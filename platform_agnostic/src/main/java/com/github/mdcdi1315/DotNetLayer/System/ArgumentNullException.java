@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.CallerArgumentExpression;
 
 /**
@@ -39,7 +40,7 @@ public class ArgumentNullException
      * Initializes a new instance of the {@code ArgumentNullException} class with the specified name of the parameter that caused this exception to be thrown.
      * @param paramname The name of the parameter that was null.
      */
-    public ArgumentNullException(String paramname)
+    public ArgumentNullException(@MaybeNull String paramname)
     {
         super("The specified parameter was null." , paramname);
     }
@@ -50,7 +51,7 @@ public class ArgumentNullException
      * @param paramname The name of the parameter that was null.
      * @param message A more detailed message why this exception was thrown
      */
-    public ArgumentNullException(String paramname , String message)
+    public ArgumentNullException(@MaybeNull String paramname , @MaybeNull String message)
     {
         super(message , paramname);
     }
@@ -62,7 +63,7 @@ public class ArgumentNullException
      * @param innerException The exception that is the cause of the current exception, or a null reference
      * (Nothing in Visual Basic) if no inner exception is specified.
      */
-    public ArgumentNullException(String message, Exception innerException)
+    public ArgumentNullException(@MaybeNull String message, @MaybeNull Exception innerException)
     {
         super(message , innerException);
     }

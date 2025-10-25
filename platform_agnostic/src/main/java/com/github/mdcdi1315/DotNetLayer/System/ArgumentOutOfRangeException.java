@@ -21,7 +21,7 @@ public class ArgumentOutOfRangeException
      *     //     the name of the parameter that causes this exception.
      * @param paramName The name of the parameter that causes this exception.
      */
-    public ArgumentOutOfRangeException(String paramName)
+    public ArgumentOutOfRangeException(@MaybeNull String paramName)
     {
         super("The specified argument was out of the range of valid values." , paramName);
     }
@@ -33,7 +33,7 @@ public class ArgumentOutOfRangeException
      * @param innerException The exception that is the cause of the current exception, or a null reference
      * (Nothing in Visual Basic) if no inner exception is specified.
      */
-    public ArgumentOutOfRangeException(String message, Exception innerException)
+    public ArgumentOutOfRangeException(@MaybeNull String message, @MaybeNull Exception innerException)
     {
         super(message , innerException);
     }
@@ -44,7 +44,7 @@ public class ArgumentOutOfRangeException
      * @param paramName The name of the parameter that caused the exception.
      * @param message The message that describes the error.
      */
-    public ArgumentOutOfRangeException(String paramName, String message)
+    public ArgumentOutOfRangeException(@MaybeNull String paramName, @MaybeNull String message)
     {
         super(message , paramName);
     }
@@ -56,7 +56,7 @@ public class ArgumentOutOfRangeException
      * @param actualValue The value of the argument that causes this exception.
      * @param message The message that describes the error.
      */
-    public ArgumentOutOfRangeException(String paramName, Object actualValue, String message)
+    public ArgumentOutOfRangeException(@MaybeNull String paramName, @MaybeNull Object actualValue, @MaybeNull String message)
     {
         super(message , paramName);
         actualvalue = actualValue;

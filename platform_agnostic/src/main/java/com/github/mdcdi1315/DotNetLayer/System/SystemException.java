@@ -20,7 +20,7 @@ public class SystemException
      * Initializes a new instance of the {@link SystemException} class with a specified error message.
      * @param message The message that describes the error.
      */
-    public SystemException(String message)
+    public SystemException(@MaybeNull String message)
     {
         super(message);
     }
@@ -33,7 +33,7 @@ public class SystemException
      *  parameter is not a null reference (Nothing in Visual Basic), the current exception
      *  is raised in a catch block that handles the inner exception.
      */
-    public SystemException(String message, @MaybeNull Exception innerException)
+    public SystemException(@MaybeNull String message, @MaybeNull Exception innerException)
     {
         super(message , innerException);
     }

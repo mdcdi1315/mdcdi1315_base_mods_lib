@@ -1,0 +1,45 @@
+package com.github.mdcdi1315.basemodslib.mods;
+
+import com.github.mdcdi1315.basemodslib.commands.ICommandRegistrar;
+import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
+import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
+import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
+
+/**
+ * Defines the server-side mod instance. <br />
+ * The mod instance is expected to be initialized and finally destroyed by using the {@link #Dispose()} method.
+ */
+public interface IServerModInstance
+    extends IModInstance
+{
+    /**
+     * Provides the logic for registering blocks.
+     * @param registrar The object responsible for registering blocks to this instance.
+     */
+    default void RegisterBlocks(IBlockRegistrar registrar) {}
+
+    /**
+     * Provides the logic for registering items.
+     * @param registrar The object responsible for registering items to this instance.
+     */
+    default void RegisterItems(IItemRegistrar registrar) {}
+
+    /**
+     * Registers events to be listened on the current server mod instance.
+     * @param manager The events manager object to use.
+     */
+    default void RegisterEvents(EventManager manager) {}
+
+    /**
+     * Registers other registry items far from blocks and items to Minecraft.
+     * @param registrar The object responsible for registering other registry items.
+     */
+    default void RegisterRegistryItems(IRegistryRegistrar registrar) {}
+
+    /**
+     * Registers chat commands to Minecraft.
+     * @param registrar The object responsible for registering chat commands to Minecraft.
+     */
+    default void RegisterCommands(ICommandRegistrar registrar) {}
+}

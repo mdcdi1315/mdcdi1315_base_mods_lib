@@ -1,7 +1,7 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.CallerArgumentExpression;
 
 /**
@@ -61,7 +61,7 @@ public class ArgumentException
      * Initializes a new instance of the {@code ArgumentException} class with a specified error message.
      * @param message The error message that explains the reason for the exception.
      */
-    public ArgumentException(String message)
+    public ArgumentException(@MaybeNull String message)
     {
         super(message);
         msg = message == null ? DEFAULT_MSG : message;
@@ -77,7 +77,7 @@ public class ArgumentException
      * parameter is not a null reference, the current exception is raised in a catch
      * block that handles the inner exception.
      */
-    public ArgumentException(String message, Exception innerException)
+    public ArgumentException(@MaybeNull String message, @MaybeNull Exception innerException)
     {
         super(message , innerException);
         msg = message == null ? DEFAULT_MSG : message;
@@ -90,7 +90,7 @@ public class ArgumentException
      * @param message The error message that explains the reason for the exception.
      * @param paramName The name of the parameter that caused the current exception.
      */
-    public ArgumentException(String message, String paramName)
+    public ArgumentException(@MaybeNull String message, @MaybeNull String paramName)
     {
         msg = message == null ? DEFAULT_MSG : message;
         parametername = paramName;

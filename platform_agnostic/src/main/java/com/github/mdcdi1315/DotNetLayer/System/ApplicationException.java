@@ -20,7 +20,7 @@ public class ApplicationException
      * Initializes a new instance of the {@link ApplicationException} class with a specified error message.
      * @param message A message that describes the error.
      */
-    public ApplicationException(String message)
+    public ApplicationException(@MaybeNull String message)
     {
         super(message);
     }
@@ -34,7 +34,7 @@ public class ApplicationException
      * parameter is not a null reference, the current exception is raised in a catch
      * block that handles the inner exception.
      */
-    public ApplicationException(String message, @MaybeNull Exception innerException)
+    public ApplicationException(@MaybeNull String message, @MaybeNull Exception innerException)
     {
         super(message , innerException);
     }
