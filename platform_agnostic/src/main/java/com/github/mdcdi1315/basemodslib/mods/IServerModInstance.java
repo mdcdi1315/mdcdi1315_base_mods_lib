@@ -4,6 +4,7 @@ import com.github.mdcdi1315.basemodslib.commands.ICommandRegistrar;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
+import com.github.mdcdi1315.basemodslib.network.NetworkManager;
 import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
 
@@ -50,4 +51,11 @@ public interface IServerModInstance
      * @param registrar The object responsible for registering registry items related to world generation.
      */
     default void RegisterWorldGenItems(IWorldGenRegistrar registrar) {}
+
+    /**
+     * Initializes networking services for this mod instance. <br />
+     * Note: Mods wishing to provide networking services should retain somewhere this object! <br />
+     * @param manager The networking manager to be used by the mod instance.
+     */
+    default void InitializeNetwork(NetworkManager manager) {}
 }

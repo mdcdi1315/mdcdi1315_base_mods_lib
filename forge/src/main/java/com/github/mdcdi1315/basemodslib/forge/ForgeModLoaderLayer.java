@@ -9,6 +9,7 @@ import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
+import com.github.mdcdi1315.basemodslib.network.ForgeBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistriesRegistrar;
 
@@ -74,7 +75,6 @@ public final class ForgeModLoaderLayer
         instance.RegisterBlocks(reg);
         instance.RegisterItems(reg);
         reg.RegisterToEventBus(mod_event_bus);
-        reg = null;
         ForgeRegistriesRegistrar reg2 = new ForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg2);
         reg2.RegisterToEventBus(mod_event_bus);
@@ -83,6 +83,10 @@ public final class ForgeModLoaderLayer
         reg3.RegisterToEventBus(mod_event_bus);
 
         // Initialize non-sensitive things, but do still need to be done after all sensitive things have completed.
+        ForgeBasedNetworkManager net_manager = new ForgeBasedNetworkManager(mod_id);
+        instance.InitializeNetwork(net_manager);
+        net_manager.InitializeNetworkManager(net_manager.GetBuilderAndDestroy());
+
         instance.RegisterCommands(global_command_registrar);
     }
 

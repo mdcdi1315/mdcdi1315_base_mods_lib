@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
@@ -10,6 +11,8 @@ import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStartedEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStoppingEvent;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -77,6 +80,11 @@ public final class BaseModsLibClient
             BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot initialize client-side mod id {}!\nRethrowing the exception to the underlying mod." , id);
             throw new ModInitializationException(id, e);
         }
+    }
+
+    @MaybeNull
+    public static Player GetLoggedInPlayer() {
+        return Minecraft.getInstance().player;
     }
 
     /**
