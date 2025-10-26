@@ -49,6 +49,9 @@ dependencies {
 // Read more about capabilities here: https://docs.gradle.org/current/userguide/component_capabilities.html#sec:declaring-additional-capabilities-for-a-local-component
 ['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
     configurations."$variant".outgoing {
+        capability("$group:${project.name}:$version")
+        capability("$group:${base.archivesName.get()}:$version")
+        capability("$group:${mod_id.replace('_', '-')}-${project.name}-${minecraft_version}:$version")
         capability("$group:${mod_id.replace('_', '-')}-${project.name}:$version")
         capability("$group:${mod_id.replace('_', '-')}:$version")
     }
@@ -83,34 +86,44 @@ jar {
 }
 
 processResources {
-    def expandProps = [
-            "version": version,
-            "group": project.group, //Else we target the task's group.
-            "minecraft_version": minecraft_version,
-            "minimum_minecraft_version": minecraft_version_range.replaceAll("[\\[\\])]", "").split(",")[0],
-            "forge_version": forge_version,
-            "forge_loader_version_range": forge_loader_version_range,
-            "forge_version_range": forge_version_range,
-            "minecraft_version_range": minecraft_version_range,
-            "fabric_version": fabric_version,
-            "fabric_loader_version": fabric_loader_version,
-            "mod_name": mod_name,
-            "mod_main": mod_name.split(/\s+/).collect { word -> word.capitalize() }.join(""),
-            "mod_author": mod_author,
-            "mod_id": mod_id,
-            "license": license,
-            "description": project.description,
-            "credits": credits,
-            "java_version": java_version,
-            "homepage": homepage,
-            "discord": discord,
-            "issues": issues,
-            "sources": sources,
+    var expandProps = [
+            'version'                      : version,
+            'group'                        : project.group, //Else we target the task's group.
+            'minecraft_version'            : minecraft_version,
+            'minecraft_version_range'      : minecraft_version_range,
+            'fabric_version'               : fabric_version,
+            'fabric_loader_version'        : fabric_loader_version,
+            'mod_name'                     : mod_name,
+            'mod_author'                   : mod_author,
+            'mod_id'                       : mod_id,
+            'license'                      : license,
+            'description'                  : project.description,
+            'homepage'                     : homepage,
+            'sources'                      : sources,
+            'issues'                       : issues,
+            "forge_version"                : forge_version,
+            "forge_version_range"          : forge_version_range,
+            "forge_loader_version_range"   : forge_loader_version_range,
+            "credits"                      : credits,
+            "java_version"                 : java_version
+
+            // The below 2 properties are for NFG support, which is after 1.21.1 ...
+            // 'neoforge_version'             : neoforge_version,
+            // 'neoforge_loader_version_range': neoforge_loader_version_range,
     ]
 
-    filesMatching(['pack.mcmeta', 'fabric.mod.json', 'META-INF/mods.toml', 'META-INF/neoforge.mods.toml', '*.mixins.json']) {
+    var jsonExpandProps = expandProps.collectEntries {
+        key, value -> [(key): value instanceof String ? value.replace("\n", "\\\\n") : value]
+    }
+
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
         expand expandProps
     }
+
+    filesMatching(['pack.mcmeta', 'fabric.mod.json', '*.mixins.json']) {
+        expand jsonExpandProps
+    }
+
     inputs.properties(expandProps)
 }
 

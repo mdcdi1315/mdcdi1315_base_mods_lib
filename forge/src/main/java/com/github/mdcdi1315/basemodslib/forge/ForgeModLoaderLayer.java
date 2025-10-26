@@ -73,6 +73,7 @@ public final class ForgeModLoaderLayer
         // Initialize sensitive things - blocks, items, registries, etc.
         BlocksAndItemsRegistrar reg = new BlocksAndItemsRegistrar(mod_id);
         instance.RegisterBlocks(reg);
+        instance.RegisterBlockEntities(reg);
         instance.RegisterItems(reg);
         reg.RegisterToEventBus(mod_event_bus);
         ForgeRegistriesRegistrar reg2 = new ForgeRegistriesRegistrar(mod_id);

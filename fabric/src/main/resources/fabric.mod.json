@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "${mod_id}",
+	"version": "${version}",
+	"name": "${mod_name}",
+	"icon": "${mod_id}-icon.png",
+	"description": "${description}",
+	"authors": [
+		"${mod_author}"
+	],
+	"contact": {
+		"homepage": "${homepage}",
+		"sources": "${sources}",
+		"issues": "${issues}"
+	},
+
+	"license": "${license}",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"${group}.basemodslib.fabric.FabricModEntryPoint"
+		],
+		"client": [
+			"${group}.basemodslib.fabric.FabricModClientEntryPoint"
+		],
+		"fabric-datagen": []
+	},
+	"mixins": [
+		"${mod_id}.mixins.json",
+		"${mod_id}.fabric.mixins.json"
+	],
+	"depends": {}
+}

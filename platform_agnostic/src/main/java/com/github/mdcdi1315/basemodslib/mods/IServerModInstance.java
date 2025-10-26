@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.mods;
 
+import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ICommandRegistrar;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
@@ -20,6 +21,12 @@ public interface IServerModInstance
      * @param registrar The object responsible for registering blocks to this instance.
      */
     default void RegisterBlocks(IBlockRegistrar registrar) {}
+
+    /**
+     * Provides the logic for registering block entities.
+     * @param registrar The object responsible for registering block entities to this instance.
+     */
+    default void RegisterBlockEntities(IBlockEntityRegistrar registrar) {}
 
     /**
      * Provides the logic for registering items.

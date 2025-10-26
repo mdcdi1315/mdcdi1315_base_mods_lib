@@ -1,0 +1,99 @@
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+
+plugins {
+    id 'idea'
+    id 'fabric-loom'
+    id 'maven-publish'
+    id 'multiloader-loader'
+    id 'com.modrinth.minotaur'
+    id 'net.darkhax.curseforgegradle'
+}
+
+base {
+    archivesName = "${mod_id}-Fabric-${minecraft_version}-${release_cycle}";
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
+    }
+
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+}
+
+apply from: rootProject.file('repositories.gradle')
+apply from: 'dependencies.gradle'
+
+loom {
+
+    def aw = project(":platform_agnostic").file("src/main/resources/${mod_id}.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
+
+    mixin {
+        defaultRefmapName.set("${mod_id}.refmap.json")
+    }
+
+    runs {
+        client {
+            client()
+            setConfigName("fabric Client")
+            ideConfigGenerated(true)
+            runDir("run")
+        }
+        server {
+            server()
+            setConfigName("fabric Server")
+            ideConfigGenerated(true)
+            runDir("run")
+        }
+        data {
+            inherit client
+            setConfigName("fabric Data")
+            ideConfigGenerated(true)
+            runDir("build/datagen")
+
+            vmArg "-Dfabric-api.datagen"
+            vmArg "-Dfabric-api.datagen.output-dir=${project(":platform_agnostic").file("src/main/generated")}"
+            vmArg "-Dfabric-api.datagen.modid=${mod_id}"
+        }
+    }
+}
+
+sourceSets.main.resources.srcDir 'src/generated/resources'
+
+task curseforge(type: TaskPublishCurseForge) {
+    dependsOn('build')
+    description = 'Publishes the Fabric build to CurseForge.'
+    group = 'publishing'
+
+    apiToken = project.findProperty("curseforge.api_key") ?: System.getenv("CURSEFORGE_TOKEN") ?: "none"
+
+    def mainFile = upload(curseforge_fabric_project_id, file("${project.buildDir}/libs/${base.archivesName}-${version}.jar"))
+    mainFile.changelog = rootProject.file('CHANGELOG.md').text
+    mainFile.addRequirement("fabric-api")
+    project.minecraft_versions.split(',').toList().each { mainFile.addGameVersion(it) }
+    mainFile.releaseType = "release"
+}
+
+modrinth {
+    token = project.findProperty("modrinth.token") ?: System.getenv("MODRINTH_TOKEN") ?: "none"
+    projectId = project.modrinth_fabric_project_id
+    versionType = project.modrinth_release_type
+    versionNumber = project.version + "+fabric-" + project.minecraft_version
+    uploadFile = remapJar
+    changelog = rootProject.file("CHANGELOG.md").text
+    gameVersions = project.minecraft_versions.split(',').toList()
+    syncBodyFrom = rootProject.file("modpage.md").text
+    loaders = ['fabric']
+    dependencies {
+        required.project "fabric-api"
+    }
+}
+
+tasks.modrinth.dependsOn(build)
