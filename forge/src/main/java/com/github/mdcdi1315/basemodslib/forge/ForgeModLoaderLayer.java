@@ -6,13 +6,14 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistriesRegistrar;
 
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.forgespi.language.IModInfo;
@@ -21,14 +22,15 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 import java.util.List;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
 public final class ForgeModLoaderLayer
     implements IModLoaderLayer
 {
-    private final ForgeCommandRegistrar global_command_registrar;
-    private final FMLJavaModLoadingContext baselibmodcontext;
     private final List<IModInfo> forge_mod_info;
+    private final FMLJavaModLoadingContext baselibmodcontext;
+    private final ForgeCommandRegistrar global_command_registrar;
     private final Version minecraft_version, forge_modloader_version;
 
     public ForgeModLoaderLayer(FMLJavaModLoadingContext baselibmodcontext) {
@@ -76,16 +78,12 @@ public final class ForgeModLoaderLayer
         ForgeRegistriesRegistrar reg2 = new ForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg2);
         reg2.RegisterToEventBus(mod_event_bus);
+        ForgeWorldGenRegistrar reg3 = new ForgeWorldGenRegistrar(mod_id);
+        instance.RegisterWorldGenItems(reg3);
+        reg3.RegisterToEventBus(mod_event_bus);
 
         // Initialize non-sensitive things, but do still need to be done after all sensitive things have completed.
         instance.RegisterCommands(global_command_registrar);
-    }
-
-    @Override
-    public void InitializeClientModInstance(IClientModInstance instance, Object mod_object) {
-        IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
-
-        instance.RegisterEvents(BaseModsLib.GetEventsManager());
     }
 
     @Override
@@ -135,5 +133,10 @@ public final class ForgeModLoaderLayer
     @Override
     public Version GetModLoaderVersion() {
         return forge_modloader_version;
+    }
+
+    @Override
+    public Path GetConfigurationDirectory() {
+        return FMLPaths.CONFIGDIR.get();
     }
 }

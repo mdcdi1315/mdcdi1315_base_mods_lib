@@ -19,4 +19,20 @@ public final class StringSupplier
     public StringSupplier(@MaybeNull String str) {
         super(str);
     }
+
+    public static StringSupplier FromFormatted(String format , Object... format_arguments) {
+        return new StringSupplier(String.format(format , format_arguments));
+    }
+
+    public static StringSupplier FromFormatted(String format, Object arg_0) {
+        return new StringSupplier(String.format(format , arg_0));
+    }
+
+    public static StringSupplier FromFormatted(String format, Object arg_0, Object arg_1) {
+        return new StringSupplier(String.format(format , arg_0, arg_1));
+    }
+
+    public static StringSupplier FromFormatted(String format, Object arg_0, Object arg_1, Object arg_2) {
+        return new StringSupplier(String.format(format , arg_0, arg_1, arg_2));
+    }
 }

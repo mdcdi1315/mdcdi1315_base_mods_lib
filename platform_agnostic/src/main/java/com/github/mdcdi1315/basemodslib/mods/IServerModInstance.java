@@ -5,6 +5,7 @@ import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
+import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
 
 /**
  * Defines the server-side mod instance. <br />
@@ -42,4 +43,11 @@ public interface IServerModInstance
      * @param registrar The object responsible for registering chat commands to Minecraft.
      */
     default void RegisterCommands(ICommandRegistrar registrar) {}
+
+    /**
+     * Registers registry items related to world generation. <br />
+     * Generally, it is a wrapper around the {@link IRegistryRegistrar} instance.
+     * @param registrar The object responsible for registering registry items related to world generation.
+     */
+    default void RegisterWorldGenItems(IWorldGenRegistrar registrar) {}
 }

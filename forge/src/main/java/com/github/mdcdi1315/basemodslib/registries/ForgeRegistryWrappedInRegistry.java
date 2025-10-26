@@ -4,11 +4,12 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.mojang.serialization.Codec;
+
+import net.minecraft.tags.TagKey;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
-import net.minecraft.tags.TagKey;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.*;

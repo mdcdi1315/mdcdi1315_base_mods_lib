@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib;
 
+import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
@@ -7,13 +8,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import com.github.mdcdi1315.DotNetLayer.System.Version;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStartedEvent;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStoppingEvent;
-
-import com.github.mdcdi1315.basemodslib.mods.IModInstance;
+import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
-import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 
@@ -22,13 +18,15 @@ import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
+
 /**
  * The main class for accessing the base mods library API. <br />
  * From this class you initialize your multiplatform mods.
  */
 public final class BaseModsLib
 {
-    private static List<IModInstance> mod_instances;
+    private static List<IServerModInstance> mod_instances;
     private static EventManager events_manager;
     private static IModLoaderLayer layer;
     public static Logger LOGGER;
@@ -57,18 +55,7 @@ public final class BaseModsLib
         mod_instances = new List<>();
         events_manager = new EventManager();
         layer = mod_loader_layer;
-        ModdingEnvironment env = layer.GetEnvironment();
-        if (env == ModdingEnvironment.CLIENT) {
-            SetupClientBaseModsLibrary();
-        }
-        LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion() , layer.GetMinecraftVersion() , env);
-    }
-
-    private static void SetupClientBaseModsLibrary()
-    {
-        LOGGER.info("Setting up client initialization data.");
-        events_manager.AddEvent(ClientStartedEvent.class);
-        events_manager.AddEvent(ClientStoppingEvent.class);
+        LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion() , layer.GetMinecraftVersion() , layer.GetEnvironment());
     }
 
     /**
@@ -88,6 +75,8 @@ public final class BaseModsLib
         try {
             instance.Initialize();
 
+            instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
+
             layer.InitializeServerModInstance(instance, mod_object);
 
             instance.OnInitializeEnd();
@@ -96,32 +85,6 @@ public final class BaseModsLib
         } catch (Exception e) {
             var id = instance.GetModId();
             LOGGER.error("BASEMODSLIB: Cannot initialize server-side mod id {}!\nRethrowing the exception to the underlying mod." , id);
-            throw new ModInitializationException(id, e);
-        }
-    }
-
-    /**
-     * Initializes the specified mod instance on the client side of Minecraft. <br />
-     * Only call this when you are initializing in a usual Minecraft client.
-     * @param instance The mod instance to initialize.
-     * @throws ArgumentNullException {@code instance} was {@code null}.
-     */
-    public static void InitializeClientSideMod(IClientModInstance instance, Object mod_object)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(instance, "instance");
-        ArgumentNullException.ThrowIfNull(mod_object, "mod_object");
-        try {
-            instance.Initialize();
-
-            layer.InitializeClientModInstance(instance, mod_object);
-
-            instance.OnInitializeEnd();
-
-            mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
-        } catch (Exception e) {
-            var id = instance.GetModId();
-            LOGGER.error("BASEMODSLIB: Cannot initialize client-side mod id {}!\nRethrowing the exception to the underlying mod." , id);
             throw new ModInitializationException(id, e);
         }
     }
@@ -140,7 +103,7 @@ public final class BaseModsLib
      * @return The registered mod instances.
      */
     @NotNull
-    public static IEnumerable<IModInstance> GetModInstances() {
+    public static IEnumerable<IServerModInstance> GetModInstances() {
         return mod_instances;
     }
 
@@ -164,6 +127,15 @@ public final class BaseModsLib
     @NotNull
     public static java.util.List<String> GetLoadedMods() {
         return layer.GetLoadedMods();
+    }
+
+    /**
+     * Gets the modding environment under which the library itself runs.
+     * @return The modding environment that the library is running into.
+     */
+    @NotNull
+    public static ModdingEnvironment GetEnvironment() {
+        return layer.GetEnvironment();
     }
 
     /**
@@ -195,6 +167,15 @@ public final class BaseModsLib
     }
 
     /**
+     * Gets the directory path where all the mod configuration files are stored.
+     * @return The configuration directory.
+     */
+    @NotNull
+    public static Path GetModConfigurationDirectory() {
+        return layer.GetConfigurationDirectory();
+    }
+
+    /**
      * Called by the mod loader when mod loading is complete. <br />
      * Destroys data structures used by the library.
      */
@@ -210,8 +191,8 @@ public final class BaseModsLib
      */
     @ApiStatus.Internal
     public static void DestroySelf() {
-        IModInstance mi;
-        IEnumerator<IModInstance> i = null;
+        IServerModInstance mi;
+        IEnumerator<IServerModInstance> i = null;
         try {
             i = mod_instances.GetEnumerator();
             while (i.MoveNext())

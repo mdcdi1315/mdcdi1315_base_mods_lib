@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.mixin;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStartedEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStoppingEvent;
@@ -20,6 +21,7 @@ public class MinecraftClientMixin
         BaseModsLib.GetEventsManager().FireEvent(new ClientStoppingEvent((Minecraft) ((Object)this)));
         BaseModsLib.LOGGER.info("Stopping mdcdi1315's Base Mods Library.");
         BaseModsLib.DestroySelf();
+        BaseModsLibClient.DestroySelf();
     }
 
     @Inject(method = "run", at = @At("HEAD"))

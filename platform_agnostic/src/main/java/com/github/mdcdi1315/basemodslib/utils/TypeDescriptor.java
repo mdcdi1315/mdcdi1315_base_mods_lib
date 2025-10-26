@@ -11,6 +11,10 @@ public final class TypeDescriptor<T>
 {
     private final Class<T> cls;
 
+    public static <T> Class<T> DescribeTypeParameter() {
+        return new TypeDescriptor<T>().DescribeTClass();
+    }
+
     /**
      * Initializes a new instance of the type descriptor class.
      */

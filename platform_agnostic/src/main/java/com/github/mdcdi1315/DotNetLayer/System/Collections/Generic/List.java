@@ -113,6 +113,7 @@ public class List<T>
     }
 
     public List(int capacity)
+            throws ArgumentOutOfRangeException
     {
         if (capacity < 0) {
             throw new ArgumentOutOfRangeException("capacity", "capacity must not be negative!!");

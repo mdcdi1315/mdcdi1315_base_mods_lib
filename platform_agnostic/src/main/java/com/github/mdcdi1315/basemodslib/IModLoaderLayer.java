@@ -3,10 +3,10 @@ package com.github.mdcdi1315.basemodslib;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 
 import java.util.List;
+import java.nio.file.Path;
 
 /**
  * Internal interface. <br />
@@ -15,8 +15,6 @@ import java.util.List;
 public interface IModLoaderLayer
 {
     void InitializeServerModInstance(IServerModInstance instance, Object mod_object);
-
-    void InitializeClientModInstance(IClientModInstance instance, Object mod_object);
 
     boolean IsModLoaded(String mod_id);
 
@@ -34,4 +32,7 @@ public interface IModLoaderLayer
 
     @NotNull
     Version GetModLoaderVersion();
+
+    @NotNull
+    Path GetConfigurationDirectory();
 }
