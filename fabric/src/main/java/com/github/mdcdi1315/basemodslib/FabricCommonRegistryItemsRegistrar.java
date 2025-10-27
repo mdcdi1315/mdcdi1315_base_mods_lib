@@ -14,8 +14,10 @@ import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.registries.MinecraftWrappedModLoaderRegistry;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
 
+import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 
@@ -150,6 +152,15 @@ public final class FabricCommonRegistryItemsRegistrar
         MappedRegistry<T> mr = new MappedRegistry<>(registryResourceKey, lc);
         ((WritableRegistry<Registry<T>>)BuiltInRegistries.REGISTRY).register(registryResourceKey, mr, lc);
         on_registry_ready.action(new MinecraftWrappedModLoaderRegistry<>(mr));
+    }
+
+    @Override
+    public <T> void RegisterDatapackRegistry(ResourceKey<Registry<T>> registry_name, Codec<T> element_codec)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(registry_name, "registry_name");
+        ArgumentNullException.ThrowIfNull(element_codec, "element_codec");
+        DynamicRegistries.register(registry_name, element_codec);
     }
 
     private record ModifyEntriesEventImpl(Item m_item)

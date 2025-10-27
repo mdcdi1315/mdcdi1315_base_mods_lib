@@ -1,22 +1,29 @@
 package com.github.mdcdi1315.basemodslib.client;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
+import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
+import net.fabricmc.fabric.api.client.particle.v1.FabricSpriteProvider;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 
 public class FabricClientArtifactsRegistrar
     implements IEntityRendererRegistrar,
         IBlockEntityRendererRegistrar,
         IModelDefinitionRegistrar,
-        IColorHandlersRegistrar
+        IColorHandlersRegistrar,
+        IParticleProviderRegistrar
 {
     @Override
     public <T extends Entity> void Register(EntityRendererRegistrationInfo<T> info)
@@ -55,6 +62,31 @@ public class FabricClientArtifactsRegistrar
             throws ArgumentNullException
     {
         EntityModelLayerRegistry.registerModelLayer(info.location(), new ModelLayerDefinitionFunction(info.definition()));
+    }
+
+    @Override
+    public <T extends ParticleOptions> void Register(SimpleParticleProviderRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        ParticleFactoryRegistry.getInstance().register(info.particle_type().function(), info.particle_provider());
+    }
+
+    @Override
+    public <T extends ParticleOptions> void Register(AdvancedParticleProviderRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        ParticleFactoryRegistry.getInstance().register(info.particle_type().function(), new ParticleFactoryRegistryAdvancedInfoTranslation<>(info.particle_provider_creater()));
+    }
+
+    private record ParticleFactoryRegistryAdvancedInfoTranslation<T extends ParticleOptions>(Func2<SpriteSet, ParticleProvider<T>> function)
+        implements ParticleFactoryRegistry.PendingParticleFactory<T>
+    {
+        @Override
+        public ParticleProvider<T> create(FabricSpriteProvider provider) {
+            return function.function(provider);
+        }
     }
 
     private record ModelLayerDefinitionFunction(Func1<LayerDefinition> definition)

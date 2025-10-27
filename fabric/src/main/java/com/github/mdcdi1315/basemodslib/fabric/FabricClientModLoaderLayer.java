@@ -25,5 +25,6 @@ public final class FabricClientModLoaderLayer
         instance.RegisterEntityRenderers(registrar);
         instance.RegisterBlockEntityRenderers(registrar);
         instance.RegisterColorHandlers(registrar);
+        instance.RegisterParticleProviders(registrar);
     }
 }

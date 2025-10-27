@@ -43,13 +43,6 @@ public interface IRegistryRegistrar
      * @param <T> The type of the registry elements.
      * @throws ArgumentNullException {@code registry_name} and/or {@code element_codec} were {@code null}.
      */
-    default <T> void RegisterDatapackRegistry(ResourceKey<Registry<T>> registry_name, Codec<T> element_codec)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(registry_name, "registry_name");
-        ArgumentNullException.ThrowIfNull(element_codec, "element_codec");
-        // Remember that we have patched this field, so we can do the below.
-        // If a mod-loader re-patches this however, we need to override this method.
-        RegistryDataLoader.WORLDGEN_REGISTRIES.add(new RegistryDataLoader.RegistryData<>(registry_name, element_codec));
-    }
+    <T> void RegisterDatapackRegistry(ResourceKey<Registry<T>> registry_name, Codec<T> element_codec)
+            throws ArgumentNullException;
 }

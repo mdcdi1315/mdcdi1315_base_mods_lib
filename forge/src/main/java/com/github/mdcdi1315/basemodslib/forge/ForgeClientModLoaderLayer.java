@@ -39,6 +39,7 @@ public final class ForgeClientModLoaderLayer
         instance.RegisterEntityRenderers(reg);
         instance.RegisterBlockEntityRenderers(reg);
         instance.RegisterColorHandlers(reg);
+        instance.RegisterParticleProviders(reg);
 
         reg.RegisterToEventBus(mod_event_bus);
 

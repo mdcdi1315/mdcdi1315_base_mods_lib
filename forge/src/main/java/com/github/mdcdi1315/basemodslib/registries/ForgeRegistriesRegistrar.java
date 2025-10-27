@@ -3,19 +3,19 @@ package com.github.mdcdi1315.basemodslib.registries;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
+
+import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
+import net.minecraftforge.registries.*;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryBuilder;
-import net.minecraftforge.registries.NewRegistryEvent;
-import net.minecraftforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
 
@@ -24,11 +24,13 @@ public final class ForgeRegistriesRegistrar
 {
     private String mod_id;
     private List<DeferredRegister<?>> registers;
+    private List<DatapackRegistryEntry<?>> datapack_registries;
     private List<Pair<Supplier<? extends IForgeRegistry<?>>, Action1<? extends IModLoaderRegistry<?>>>> registries_to_invoke;
 
     public ForgeRegistriesRegistrar(String mod_id) {
         this.mod_id = mod_id;
         registers = new List<>();
+        datapack_registries = new List<>();
         registries_to_invoke = new List<>();
     }
 
@@ -40,6 +42,8 @@ public final class ForgeRegistriesRegistrar
             return ts.Get(location);
         }
     }
+
+    private record DatapackRegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Codec<T> element_codec) {}
 
     @SuppressWarnings("unchecked")
     private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<Registry<T>> registry_key)
@@ -77,6 +81,15 @@ public final class ForgeRegistriesRegistrar
         ));
     }
 
+    @Override
+    public <T> void RegisterDatapackRegistry(ResourceKey<Registry<T>> registry_name, Codec<T> element_codec)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(registry_name, "registry_name");
+        ArgumentNullException.ThrowIfNull(element_codec, "element_codec");
+        datapack_registries.Add(new DatapackRegistryEntry<>(registry_name, element_codec));
+    }
+
     @SuppressWarnings("unchecked")
     private void OnRegistriesReady(NewRegistryEvent nre)
     {
@@ -93,6 +106,23 @@ public final class ForgeRegistriesRegistrar
         registries_to_invoke = null;
     }
 
+    private <T> void RegisterEntryInternal(DatapackRegistryEntry<T> ent , DataPackRegistryEvent.NewRegistry reg) {
+        reg.dataPackRegistry(ent.resource_key() , ent.element_codec());
+    }
+
+    private void RegisterDatapackRegistries(DataPackRegistryEvent.NewRegistry dre)
+    {
+        IEnumerator<DatapackRegistryEntry<?>> e = datapack_registries.GetEnumerator();
+        try {
+            while (e.MoveNext()) {
+                RegisterEntryInternal(e.getCurrent() , dre);
+            }
+        } finally {
+            e.Dispose();
+        }
+        datapack_registries = null; // We can now sweep up memory.
+    }
+
     public void RegisterToEventBus(IEventBus evb)
     {
         var en = registers.GetEnumerator();
@@ -106,5 +136,6 @@ public final class ForgeRegistriesRegistrar
         // We can cleanup this list once all registers have made it to be registered to the mod event bus.
         registers = null;
         evb.addListener(this::OnRegistriesReady);
+        evb.addListener(this::RegisterDatapackRegistries);
     }
 }

@@ -1,9 +1,6 @@
 package com.github.mdcdi1315.basemodslib.mods;
 
-import com.github.mdcdi1315.basemodslib.client.IColorHandlersRegistrar;
-import com.github.mdcdi1315.basemodslib.client.IEntityRendererRegistrar;
-import com.github.mdcdi1315.basemodslib.client.IModelDefinitionRegistrar;
-import com.github.mdcdi1315.basemodslib.client.IBlockEntityRendererRegistrar;
+import com.github.mdcdi1315.basemodslib.client.*;
 
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 
@@ -43,4 +40,10 @@ public interface IClientModInstance
      * @param registrar The object responsible for registering model definitions.
      */
     default void RegisterModelDefinitions(IModelDefinitionRegistrar registrar) {}
+
+    /**
+     * Provides the logic for registering particle providers.
+     * @param registrar The object responsible for registering particle providers.
+     */
+    default void RegisterParticleProviders(IParticleProviderRegistrar registrar) {}
 }
