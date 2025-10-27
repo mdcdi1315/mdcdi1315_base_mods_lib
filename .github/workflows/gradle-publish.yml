@@ -8,8 +8,9 @@
 name: Base Mods Library Package
 
 on:
-  release:
-    types: [created]
+  label:
+    types:
+      - created
 
 jobs:
   build:
