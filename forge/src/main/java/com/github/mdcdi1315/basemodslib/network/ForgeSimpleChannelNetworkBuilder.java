@@ -156,7 +156,7 @@ public final class ForgeSimpleChannelNetworkBuilder
     {
         sc.registerMessage(
                 next_index,
-                inf.GetPacketClass(),
+                inf.cls(),
                 new Action2ToBiConsumer<>(inf.encode_function()),
                 new Func2ToFunction<>(inf.decode_function()),
                 new MessageConsumer_Client<>(inf.handler())
@@ -167,7 +167,7 @@ public final class ForgeSimpleChannelNetworkBuilder
     {
         sc.registerMessage(
                 next_index,
-                inf.GetPacketClass(),
+                inf.cls(),
                 new Action2ToBiConsumer<>(inf.encode_function()),
                 new Func2ToFunction<>(inf.decode_function()),
                 new MessageConsumer_Server<>(inf.handler(), mgr)

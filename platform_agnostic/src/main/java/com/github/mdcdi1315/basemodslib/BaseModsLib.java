@@ -52,8 +52,10 @@ public final class BaseModsLib
         if (layer != null) {
             throw new InvalidOperationException("The base mods library has already been initialized successfully.");
         }
+        if (events_manager == null) {
+            events_manager = new EventManager();
+        }
         mod_instances = new List<>();
-        events_manager = new EventManager();
         layer = mod_loader_layer;
         LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion() , layer.GetMinecraftVersion() , layer.GetEnvironment());
     }
@@ -95,6 +97,9 @@ public final class BaseModsLib
      */
     @NotNull
     public static EventManager GetEventsManager()  {
+        if (events_manager == null) {
+            events_manager = new EventManager();
+        }
         return events_manager;
     }
 

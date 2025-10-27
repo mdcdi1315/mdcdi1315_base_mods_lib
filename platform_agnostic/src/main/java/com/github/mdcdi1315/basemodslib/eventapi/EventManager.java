@@ -6,12 +6,9 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.utils.TypeDescriptor;
-import com.github.mdcdi1315.basemodslib.eventapi.server.ServerReloadedEvent;
-import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStartingEvent;
-import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStoppingEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
-import com.github.mdcdi1315.basemodslib.eventapi.server.ServerResourcesReloadedEvent;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -40,35 +37,35 @@ public final class EventManager
         AddEvent(ServerReloadedEvent.class);
         AddEvent(ModLoadingCompleteEvent.class);
         AddEvent(ServerResourcesReloadedEvent.class);
+        AddEvent(NewPlayerConnectedToServerEvent.class);
+        AddEvent(PlayerDisconnectedFromServerEvent.class);
     }
 
     /**
      * Adds an event listener to listen for the associated event provided through type {@link TEvent}.
+     * @param event_class The class object of the event to add the event listener to.
      * @param action The method to invoke when the event of type {@link TEvent} fires.
      * @param <TEvent> The type of the event to listen for.
      * @throws ArgumentNullException {@code action} was {@code null}.
      * @throws InvalidOperationException Event listeners cannot be added after mod loading is complete.
      */
-    public <TEvent extends IEvent> void AddEventListener(Action1<TEvent> action)
+    public <TEvent extends IEvent> void AddEventListener(Class<TEvent> event_class, Action1<TEvent> action)
             throws ArgumentNullException , InvalidOperationException
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullException.ThrowIfNull(action, "action");
+        ArgumentNullException.ThrowIfNull(event_class, "event_class");
+
         if (finalized) {
             throw new InvalidOperationException("Cannot add event listeners after mod loading is complete!");
         }
 
-        Class<TEvent> cls = new TypeDescriptor<TEvent>().DescribeTClass();
+        List<Action1<? extends IEvent>> acts = actions.get(event_class);
 
-        for (var c : actions.entrySet())
-        {
-            if (c.getKey().equals(cls))
-            {
-                c.getValue().Add(action);
-                return;
-            }
+        if (acts == null) {
+            throw new InvalidOperationException(String.format("The event with type %s is not registered to this instance!", event_class.getName()));
         }
 
-        throw new InvalidOperationException("The event listener cannot be added because there is no event associated with this listener.");
+        acts.Add(action);
     }
 
     /**
@@ -116,7 +113,11 @@ public final class EventManager
         if (finalized) {
             throw new InvalidOperationException("Cannot add event types after mod loading is complete!");
         }
-        actions.put(cls, new List<>(4));
+        actions.computeIfAbsent(cls, EventManager::ListProvider);
+    }
+
+    private static <T extends IEvent> List<Action1<? extends IEvent>> ListProvider(Class<T> cls) {
+        return new List<>(4);
     }
 
     /**

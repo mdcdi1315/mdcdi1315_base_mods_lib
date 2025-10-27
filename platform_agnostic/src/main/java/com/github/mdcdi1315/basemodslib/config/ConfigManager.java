@@ -77,6 +77,9 @@ public final class ConfigManager
         ArgumentNullException.ThrowIfNull(file_format, "file_format");
         ArgumentNullException.ThrowIfNull(file_name_suffix, "file_name_suffix");
         Class<T> config_class = TypeDescriptor.DescribeTypeParameter();
+        if (config_class.equals(Object.class)) {
+            throw new InvalidOperationException("Code needs update.");
+        }
         if (configuration_files.containsKey(config_class)) {
             throw new InvalidOperationException("The specified configuration file is already tracked!");
         }

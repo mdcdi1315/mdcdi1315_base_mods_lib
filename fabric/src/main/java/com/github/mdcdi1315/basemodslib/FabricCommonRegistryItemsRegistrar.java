@@ -4,33 +4,34 @@ import com.github.mdcdi1315.DotNetLayer.System.*;
 
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
+import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
+import com.github.mdcdi1315.basemodslib.registries.IModLoaderRegistry;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
+import com.github.mdcdi1315.basemodslib.registries.RegistryObjectSupplier;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
-
-import com.github.mdcdi1315.basemodslib.registries.IModLoaderRegistry;
-import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.MinecraftWrappedModLoaderRegistry;
-import com.github.mdcdi1315.basemodslib.registries.RegistryObjectSupplier;
-import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
+
 import com.mojang.serialization.Lifecycle;
+
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 
-import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
-import net.minecraft.core.WritableRegistry;
-import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.item.Item;
+import net.minecraft.core.MappedRegistry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.WritableRegistry;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
 import java.util.Set;

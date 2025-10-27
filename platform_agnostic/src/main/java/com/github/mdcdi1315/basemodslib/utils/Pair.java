@@ -13,7 +13,6 @@ import com.mojang.serialization.Codec;
  * @param second The second value to store.
  * @param <T1> The type of the first value to store.
  * @param <T2> The type of the second value to store.
- * @since 1.6.0
  * @apiNote This class should be used instead of the
  * {@link com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.KeyValuePair}
  * class if you need pair variables that you will later assign to them null. <br />

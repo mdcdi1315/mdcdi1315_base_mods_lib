@@ -7,6 +7,8 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
+import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.client.ClientDisconnectedFromServerEvent;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStartedEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStoppingEvent;
@@ -50,8 +52,11 @@ public final class BaseModsLibClient
         BaseModsLib.LOGGER.info("Setting up base mods library for the client.");
         layer = client_layer;
         mod_instances = new List<>();
-        BaseModsLib.GetEventsManager().AddEvent(ClientStartedEvent.class);
-        BaseModsLib.GetEventsManager().AddEvent(ClientStoppingEvent.class);
+        var em = BaseModsLib.GetEventsManager();
+        em.AddEvent(ClientStartedEvent.class);
+        em.AddEvent(ClientStoppingEvent.class);
+        em.AddEvent(ClientConnectedToServerEvent.class);
+        em.AddEvent(ClientDisconnectedFromServerEvent.class);
     }
 
     /**
