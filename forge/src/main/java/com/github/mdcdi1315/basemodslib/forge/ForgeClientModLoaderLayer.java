@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
+import com.github.mdcdi1315.basemodslib.client.ForgeClientArtifactsRegistrar;
 
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -31,5 +32,15 @@ public final class ForgeClientModLoaderLayer
         IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
 
         instance.RegisterEvents(BaseModsLib.GetEventsManager());
+
+        ForgeClientArtifactsRegistrar reg = new ForgeClientArtifactsRegistrar();
+
+        instance.RegisterModelDefinitions(reg);
+        instance.RegisterEntityRenderers(reg);
+        instance.RegisterBlockEntityRenderers(reg);
+        instance.RegisterColorHandlers(reg);
+
+        reg.RegisterToEventBus(mod_event_bus);
+
     }
 }

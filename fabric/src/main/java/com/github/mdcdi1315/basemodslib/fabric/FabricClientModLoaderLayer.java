@@ -6,6 +6,7 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.EmptyModObject;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
+import com.github.mdcdi1315.basemodslib.client.FabricClientArtifactsRegistrar;
 
 public final class FabricClientModLoaderLayer
     implements IClientModLoaderLayer
@@ -17,5 +18,12 @@ public final class FabricClientModLoaderLayer
         }
 
         instance.RegisterEvents(BaseModsLib.GetEventsManager());
+
+        FabricClientArtifactsRegistrar registrar = new FabricClientArtifactsRegistrar();
+
+        instance.RegisterModelDefinitions(registrar);
+        instance.RegisterEntityRenderers(registrar);
+        instance.RegisterBlockEntityRenderers(registrar);
+        instance.RegisterColorHandlers(registrar);
     }
 }

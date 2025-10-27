@@ -103,7 +103,7 @@ public final class ForgeBasedNetworkManager
     private <T> void SendToServerInternal(T msg)
     {
         if (Minecraft.getInstance().getConnection() == null) {
-            BaseModsLib.LOGGER.info("NETWORKING: Not dispatching packet {} because we are not connected to a server!" , msg);
+            BaseModsLib.LOGGER.warn("NETWORKING: Not dispatching packet {} because we are not connected to a server!" , msg);
         }
 
         channel.sendToServer(msg);

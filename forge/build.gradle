@@ -2,9 +2,9 @@ import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
     id 'multiloader-loader'
-    id 'net.neoforged.moddev.legacyforge'
+    id 'com.modrinth.minotaur'
     id 'net.darkhax.curseforgegradle'
-    id "com.modrinth.minotaur"
+    id 'net.neoforged.moddev.legacyforge'
 }
 
 mixin {

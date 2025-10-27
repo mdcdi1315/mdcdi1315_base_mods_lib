@@ -1,28 +1,29 @@
 package com.github.mdcdi1315.basemodslib.network;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
-import com.github.mdcdi1315.basemodslib.utils.Action2ToBiConsumer;
-import com.github.mdcdi1315.basemodslib.utils.Func2ToFunction;
 import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-import net.minecraft.resources.ResourceLocation;
+import com.github.mdcdi1315.basemodslib.utils.Func2ToFunction;
+import com.github.mdcdi1315.basemodslib.utils.Action2ToBiConsumer;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.network.NetworkDirection;
+import net.minecraft.resources.ResourceLocation;
+
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.simple.SimpleChannel;
 
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.function.Predicate;
+import java.util.function.BiConsumer;
 
 public final class ForgeSimpleChannelNetworkBuilder
     implements INetworkBuilder
@@ -61,12 +62,18 @@ public final class ForgeSimpleChannelNetworkBuilder
     }
 
     @Override
-    public <T> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info) {
+    public <T> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
         client_packet_reg_info.Add(info);
     }
 
     @Override
-    public <T> void RegisterServerBoundPacket(ServerSideNetworkPacketRegistrationInfo<T> info) {
+    public <T> void RegisterServerBoundPacket(ServerSideNetworkPacketRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
         server_packet_reg_info.Add(info);
     }
 

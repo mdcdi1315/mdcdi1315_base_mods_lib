@@ -1,10 +1,12 @@
 package com.github.mdcdi1315.basemodslib.fabric;
 
+import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.*;
+import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
 import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
@@ -12,6 +14,8 @@ import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.commands.FabricCommandsRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStoppingEvent;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
@@ -138,6 +142,21 @@ public final class FabricModLoaderLayer
         }
     }
 
+    private void Client_RegisterModInfoHandshakePacketOnServerConnection(ServerBoundModInfoPacket p) {
+        BaseModsLib.GetEventsManager().AddEventListener(ClientConnectedToServerEvent.class, new ClientConnectedToServer_DispatchModInfoPacketImpl(p , mod_verifier_channel_name));
+    }
+
+    private record ClientConnectedToServer_DispatchModInfoPacketImpl(ServerBoundModInfoPacket packet, ResourceLocation identifier)
+        implements Action1<ClientConnectedToServerEvent>
+    {
+        @Override
+        public void action(ClientConnectedToServerEvent obj) {
+            FriendlyByteBuf buffer = PacketByteBufs.create();
+            ServerBoundModInfoPacket.Encode(packet , buffer);
+            ClientPlayNetworking.send(identifier, buffer);
+        }
+    }
+
     @Override
     public void InitializeServerModInstance(IServerModInstance mod_instance, Object o) {
         if (!(o instanceof EmptyModObject)) {
@@ -160,7 +179,11 @@ public final class FabricModLoaderLayer
 
         mod_instance.InitializeNetwork(manager);
 
-        manager.InitializeNetworkManager(manager.GetBuilderAndDestroy());
+        var builder = manager.GetBuilderAndDestroy();
+        manager.InitializeNetworkManager(builder);
+        if (builder != null && environment == ModdingEnvironment.CLIENT) {
+            Client_RegisterModInfoHandshakePacketOnServerConnection(manager.Mod_Info);
+        }
 
 
     }

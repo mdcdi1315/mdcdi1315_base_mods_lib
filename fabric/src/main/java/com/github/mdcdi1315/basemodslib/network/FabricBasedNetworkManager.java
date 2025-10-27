@@ -2,8 +2,8 @@ package com.github.mdcdi1315.basemodslib.network;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -26,9 +26,8 @@ public final class FabricBasedNetworkManager
 {
     private String mod_id;
     public Player Player_To_Reply_To;
-    public Map<Class<?> , PacketData<?>> Client_Packet_IDs;
-    public Map<Class<?> , PacketData<?>> Server_Packet_IDs;
     public ServerBoundModInfoPacket Mod_Info;
+    public Map<Class<?> , PacketData<?>> Packet_IDs;
 
     public record PacketData<TP>(ResourceLocation location, Action2<TP , FriendlyByteBuf> packet_encoder)
     {
@@ -42,8 +41,7 @@ public final class FabricBasedNetworkManager
     public FabricBasedNetworkManager(String mod_id) {
         this.mod_id = mod_id;
         Player_To_Reply_To = null;
-        Client_Packet_IDs = null;
-        Server_Packet_IDs = null;
+        Packet_IDs = null;
         Mod_Info = null;
     }
 
@@ -76,7 +74,7 @@ public final class FabricBasedNetworkManager
     @Override
     public <T> void SendTo(Player player, T message)
     {
-        PacketData<?> data = Server_Packet_IDs.get(message.getClass());
+        PacketData<?> data = Packet_IDs.get(message.getClass());
 
         if (data == null) {
             throw new ArgumentException("Attempted to send a non-existent packet type!");
@@ -88,7 +86,7 @@ public final class FabricBasedNetworkManager
     @Override
     public <T> void SendToTracking(ServerLevel world, BlockPos pos, T message)
     {
-        PacketData<?> data = Server_Packet_IDs.get(message.getClass());
+        PacketData<?> data = Packet_IDs.get(message.getClass());
 
         if (data == null) {
             throw new ArgumentException("Attempted to send a non-existent packet type!");
@@ -104,7 +102,7 @@ public final class FabricBasedNetworkManager
     @Override
     public <T> void SendToTracking(Entity entity, T message)
     {
-        PacketData<?> data = Server_Packet_IDs.get(message.getClass());
+        PacketData<?> data = Packet_IDs.get(message.getClass());
 
         if (data == null) {
             throw new ArgumentException("Attempted to send a non-existent packet type!");
@@ -120,7 +118,7 @@ public final class FabricBasedNetworkManager
     @Override
     public <T> void SendToAllPlayers(MinecraftServer server, T message)
     {
-        PacketData<?> data = Server_Packet_IDs.get(message.getClass());
+        PacketData<?> data = Packet_IDs.get(message.getClass());
 
         if (data == null) {
             throw new ArgumentException("Attempted to send a non-existent packet type!");
@@ -136,7 +134,7 @@ public final class FabricBasedNetworkManager
     @Override
     public <T> void SendToServer(T message)
     {
-        PacketData<?> data = Client_Packet_IDs.get(message.getClass());
+        PacketData<?> data = Packet_IDs.get(message.getClass());
 
         if (data == null) {
             throw new ArgumentException("Attempted to send a non-existent packet type!");

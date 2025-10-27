@@ -1,7 +1,7 @@
 package com.github.mdcdi1315.basemodslib.network;
 
-import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
+import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 /**
@@ -27,7 +27,7 @@ public interface INetworkBuilder
         AllowServerOnly();
     }
 
-    <T> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info);
+    <T> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info) throws ArgumentNullException;
 
-    <T> void RegisterServerBoundPacket(ServerSideNetworkPacketRegistrationInfo<T> info);
+    <T> void RegisterServerBoundPacket(ServerSideNetworkPacketRegistrationInfo<T> info) throws ArgumentNullException;
 }

@@ -38,6 +38,10 @@ public enum AttributeTargets
      */
     Parameter,
     /**
+     * The attribute can be applied to a generic type parameter.
+     */
+    GenericParameter,
+    /**
      * The attribute can be applied to a method's return value.
      */
     ReturnValue,

@@ -70,16 +70,13 @@ public final class ConfigManager
             T default_config
     ) {}
 
-    public <T extends IModConfig> void TrackConfigurationFile(Func1<T> config_constructor, IConfigFileFormat<?> file_format, String file_name_suffix)
+    public <T extends IModConfig> void TrackConfigurationFile(Class<T> config_class, Func1<T> config_constructor, IConfigFileFormat<?> file_format, String file_name_suffix)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(config_class, "config_class");
         ArgumentNullException.ThrowIfNull(config_constructor, "config_constructor");
         ArgumentNullException.ThrowIfNull(file_format, "file_format");
         ArgumentNullException.ThrowIfNull(file_name_suffix, "file_name_suffix");
-        Class<T> config_class = TypeDescriptor.DescribeTypeParameter();
-        if (config_class.equals(Object.class)) {
-            throw new InvalidOperationException("Code needs update.");
-        }
         if (configuration_files.containsKey(config_class)) {
             throw new InvalidOperationException("The specified configuration file is already tracked!");
         }
@@ -92,8 +89,8 @@ public final class ConfigManager
         ));
     }
 
-    public <T extends IModConfig> void TrackJsonConfigurationFile(Func1<T> config_constructor) {
-        TrackConfigurationFile(config_constructor , json_file_format , "json");
+    public <T extends IModConfig> void TrackJsonConfigurationFile(Class<T> cfg_class, Func1<T> config_constructor) {
+        TrackConfigurationFile(cfg_class, config_constructor , json_file_format , "json");
     }
 
     public <T extends IModConfig> T LoadConfigurationFile()

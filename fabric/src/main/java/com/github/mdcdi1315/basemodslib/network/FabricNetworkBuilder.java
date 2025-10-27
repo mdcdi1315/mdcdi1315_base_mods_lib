@@ -1,18 +1,15 @@
 package com.github.mdcdi1315.basemodslib.network;
 
-import com.github.mdcdi1315.DotNetLayer.System.Action2;
+import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
-import com.github.mdcdi1315.DotNetLayer.System.Version;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
-import com.github.mdcdi1315.basemodslib.utils.Pair;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -64,12 +61,18 @@ public final class FabricNetworkBuilder
     }
 
     @Override
-    public <T> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info) {
+    public <T> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
         client_side_info.Add(info);
     }
 
     @Override
-    public <T> void RegisterServerBoundPacket(ServerSideNetworkPacketRegistrationInfo<T> info) {
+    public <T> void RegisterServerBoundPacket(ServerSideNetworkPacketRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
         server_side_info.Add(info);
     }
 
@@ -123,9 +126,11 @@ public final class FabricNetworkBuilder
 
     public void Build(FabricBasedNetworkManager manager)
     {
+        if (network_version == null) {
+            network_version = new Version(1, 0);
+        }
         manager.Mod_Info = new ServerBoundModInfoPacket(mod_id, network_version, aco, aso);
-        manager.Client_Packet_IDs = new HashMap<>(client_side_info.getCount());
-        manager.Server_Packet_IDs = new HashMap<>(server_side_info.getCount());
+        manager.Packet_IDs = new HashMap<>(client_side_info.getCount() + server_side_info.getCount());
         int packet_ordinal = 0;
         ResourceLocation temp_location;
         IEnumerator<ServerSideNetworkPacketRegistrationInfo<?>> server_e = server_side_info.GetEnumerator();
@@ -135,9 +140,9 @@ public final class FabricNetworkBuilder
                 inf = server_e.getCurrent();
                 temp_location = ResourceLocation.tryBuild(mod_id, "networking_packet_id_" + packet_ordinal++);
                 if (temp_location == null) {
-                    BaseModsLib.LOGGER.info("Failed to register a packet because the packet location could not be constructed.");
+                    BaseModsLib.LOGGER.warn("NETWORKING: Failed to register a packet because the packet location could not be constructed.");
                 } else {
-                    manager.Server_Packet_IDs.put(inf.cls(), RegisterServerBoundPacketInternal(temp_location, inf , manager));
+                    manager.Packet_IDs.put(inf.cls(), RegisterServerBoundPacketInternal(temp_location, inf , manager));
                 }
             }
         } finally {
@@ -151,9 +156,9 @@ public final class FabricNetworkBuilder
                 inf = client_e.getCurrent();
                 temp_location = ResourceLocation.tryBuild(mod_id, "networking_packet_id_" + packet_ordinal++);
                 if (temp_location == null) {
-                    BaseModsLib.LOGGER.info("Failed to register a packet because the packet location could not be constructed.");
+                    BaseModsLib.LOGGER.warn("NETWORKING: Failed to register a packet because the packet location could not be constructed.");
                 } else {
-                    manager.Client_Packet_IDs.put(inf.cls(), RegisterClientBoundPacketInternal(temp_location, inf));
+                    manager.Packet_IDs.put(inf.cls(), RegisterClientBoundPacketInternal(temp_location, inf));
                 }
             }
         } finally {

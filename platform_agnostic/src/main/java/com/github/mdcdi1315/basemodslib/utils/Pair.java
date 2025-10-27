@@ -1,11 +1,14 @@
 package com.github.mdcdi1315.basemodslib.utils;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.codecs.CodecUtils;
 
 import com.mojang.serialization.Codec;
+
+import java.util.Map;
 
 /**
  * Defines a pair of values.
@@ -20,6 +23,7 @@ import com.mojang.serialization.Codec;
  */
 @SuppressWarnings("unused")
 public record Pair<T1, T2>(@MaybeNull T1 first, @MaybeNull T2 second)
+    implements Map.Entry<T1, T2>
 {
     /**
      * Creates a key-value pair {@link Codec} of the specified key and value codec. <br />
@@ -49,5 +53,20 @@ public record Pair<T1, T2>(@MaybeNull T1 first, @MaybeNull T2 second)
                 type2codec.fieldOf("value").forGetter(Pair::second),
                 Pair::new
         );
+    }
+
+    @Override
+    public T1 getKey() {
+        return first;
+    }
+
+    @Override
+    public T2 getValue() {
+        return second;
+    }
+
+    @Override
+    public T2 setValue(T2 value) {
+        throw new NotSupportedException("Cannot modify the values of a Pair instance.");
     }
 }
