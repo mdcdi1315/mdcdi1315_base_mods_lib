@@ -2,37 +2,48 @@ package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientDisconnectedFromServerEvent;
+import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStartedEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStoppingEvent;
+import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
+import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.client.ClientDisconnectedFromServerEvent;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
+
 import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Provides services for initializing client-side mods with the Base Mods Library.
  */
+@ClientOnlyEnvironment
 public final class BaseModsLibClient
 {
     private static IClientModLoaderLayer layer;
     private static List<IClientModInstance> mod_instances;
+    // The below field is created lazily on first registration.
+    // Even if the method that should call this calls in but remains null, it will keep it as null.
+    private static List<Pair<String, ConfigurationScreenFactory<?>>> config_factories;
 
     static {
-        layer = null;
-        mod_instances = null;
         if (BaseModsLib.GetEnvironment() != ModdingEnvironment.CLIENT) {
             // Perpetually crash Minecraft to avoid having weird crash reports due to class loading.
             // We will have a crash report anyway; just this will save some time finding bugs...
             throw new InvalidOperationException("Base mods library client was touched but it should not!");
         }
+        layer = null;
+        mod_instances = null;
+        config_factories = null;
     }
 
     private BaseModsLibClient() {}
@@ -77,6 +88,12 @@ public final class BaseModsLibClient
 
             layer.InitializeClientModInstance(instance, mod_object);
 
+            var config_screen = instance.RegisterConfigurationScreenFactory();
+
+            if (config_screen != null) {
+                AddConfigScreenFactory(instance.GetModId(), config_screen);
+            }
+
             instance.OnInitializeEnd();
 
             mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
@@ -87,9 +104,26 @@ public final class BaseModsLibClient
         }
     }
 
+    private static void AddConfigScreenFactory(String mod_id, ConfigurationScreenFactory<?> fact)
+    {
+        if (config_factories == null) {
+            config_factories = new List<>();
+        }
+        config_factories.Add(new Pair<>(mod_id, fact));
+    }
+
     @MaybeNull
     public static Player GetLoggedInPlayer() {
         return Minecraft.getInstance().player;
+    }
+
+    /**
+     * Gets an enumerable implementation that enumerates through the available configuration screens detected by the library.
+     * @return An enumerable implementation containing configuration screen factories.
+     */
+    @NotNull
+    public static IEnumerable<Pair<String, ConfigurationScreenFactory<?>>> GetConfigurationScreens() {
+        return (config_factories == null) ? new EmptyEnumerable<>() : config_factories;
     }
 
     /**

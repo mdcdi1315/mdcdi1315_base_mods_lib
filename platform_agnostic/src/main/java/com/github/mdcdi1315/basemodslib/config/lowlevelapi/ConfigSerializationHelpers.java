@@ -79,6 +79,10 @@ public final class ConfigSerializationHelpers
         ) {
             // All these pass and are OK
             return obj;
+        } else if (obj instanceof List<?> lt) {
+            ArrayList<Object> list = new ArrayList<>(lt.size());
+            list.addAll(lt);
+            return list;
         } else {
             throw new NotSupportedException(String.format("Decoding this value is not supported: %s" , obj.getClass().getName()));
         }

@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 /**
  * The exception that is thrown when an invoked method is not supported, or when
@@ -25,7 +26,7 @@ public class NotSupportedException
      * @param message A {@link String} that describes the error. The content of message is intended to be understood by humans.
      * The caller of this constructor is required to ensure that this string has been localized for the current system culture.
      */
-    public NotSupportedException(String message)
+    public NotSupportedException(@MaybeNull String message)
     {
         super(message);
     }
@@ -39,7 +40,7 @@ public class NotSupportedException
      * parameter is not a null reference, the current exception is raised in a catch
      * block that handles the inner exception.
      */
-    public NotSupportedException(String message, Exception innerException)
+    public NotSupportedException(@MaybeNull String message, @MaybeNull Exception innerException)
     {
         super(message , innerException);
     }

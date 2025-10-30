@@ -1,0 +1,14 @@
+{
+	"mdcdi1315_base_mods_lib.disconnect_mod_missing": "A mod is missing!\nNetwork validator cannot validate that you have the mod with ID %s loaded in your environment.\nAdd that mod and retry.",
+	"mdcdi1315_base_mods_lib.mod_network_version_mismatch": "The mod with ID %s has a versioning mismatch!\nValue retrieved from the client: %s\nValue retrieved from the server: %s\nPlease update the offending mod to match the server version.",
+
+	"mdcdi1315_base_mods_lib.confirm_dialog_screen.default_title": "Dialog",
+	"mdcdi1315_base_mods_lib.info_dialog_screen.default_title": "Information",
+	"mdcdi1315_base_mods_lib.config.default_config_screen.title": "Configuration screen",
+	"mdcdi1315_base_mods_lib.config.default_config_screen.header": "Configuration tweaker for %s config file",
+	"mdcdi1315_base_mods_lib.config.default_config_screen.exit_button": "Exit...",
+	"mdcdi1315_base_mods_lib.config.default_config_screen.save_changes_button": "Save changes...",
+	"mdcdi1315_base_mods_lib.config.default_config_screen.save_changes_question": "Are you sure that you want to save the changes done in the %s config file?\nUse 'Yes' to save changes, and use 'No' to discard those changes.",
+	"mdcdi1315_base_mods_lib.config.default_config_screen.changes_saved_successfully": "Configuration file changes saved successfully!",
+	"mdcdi1315_base_mods_lib.config.default_config_screen.changes_save_failed": "Cannot save configuration file! See log for more information."
+}

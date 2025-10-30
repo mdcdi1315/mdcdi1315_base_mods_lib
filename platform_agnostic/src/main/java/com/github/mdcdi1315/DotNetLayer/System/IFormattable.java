@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 /**
@@ -13,5 +14,6 @@ public interface IFormattable
      * @param formatProvider The provider to use to format the value. -or- A null reference ({@code Nothing} in Visual Basic) to obtain the numeric format information from the current locale setting of the operating system.
      * @return The value of the current instance in the specified format.
      */
+    @NotNull
     String ToString(@MaybeNull String format, @MaybeNull IFormatProvider formatProvider);
 }

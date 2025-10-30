@@ -21,7 +21,7 @@ public final class IndexOutOfRangeException
      * Initializes a new instance of the {@link IndexOutOfRangeException} class with a specified error message.
      * @param message The message that describes the error.
      */
-    public IndexOutOfRangeException(String message)
+    public IndexOutOfRangeException(@MaybeNull String message)
     {
         super(message);
     }
@@ -35,7 +35,7 @@ public final class IndexOutOfRangeException
      * parameter is not a null reference (Nothing in Visual Basic), the current exception
      * is raised in a catch block that handles the inner exception.
      */
-    public IndexOutOfRangeException(String message, @MaybeNull Exception innerException)
+    public IndexOutOfRangeException(@MaybeNull String message, @MaybeNull Exception innerException)
     {
         super(message , innerException);
     }

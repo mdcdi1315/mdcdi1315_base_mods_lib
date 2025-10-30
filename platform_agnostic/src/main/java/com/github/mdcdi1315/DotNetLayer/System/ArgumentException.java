@@ -1,6 +1,5 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.CallerArgumentExpression;
 
@@ -20,7 +19,7 @@ public class ArgumentException
      * @exception ArgumentNullException argument is null.
      * @exception ArgumentException argument is empty.
      */
-    public static void ThrowIfNullOrEmpty(@NotNull String argument, @CallerArgumentExpression(ParameterName = "argument") String paramName)
+    public static void ThrowIfNullOrEmpty(String argument, @CallerArgumentExpression(ParameterName = "argument") String paramName)
         throws ArgumentException
     {
         if (argument == null) {
@@ -37,7 +36,7 @@ public class ArgumentException
      * @exception ArgumentNullException argument is null.
      * @exception ArgumentException argument is empty.
      */
-    public static void ThrowIfNullOrEmpty(@NotNull String argument)
+    public static void ThrowIfNullOrEmpty(String argument)
             throws ArgumentException
     {
         if (argument == null) {

@@ -2,9 +2,9 @@ package com.github.mdcdi1315.basemodslib.utils;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
-public record Action1ToRunnable<T>(Action1<T> action , @MaybeNull T input)
+public record Action1ToRunnable<T>(Action1<T> action , @AllowNull T input)
     implements Runnable
 {
     public Action1ToRunnable {

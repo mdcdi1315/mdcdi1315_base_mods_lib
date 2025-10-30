@@ -1,11 +1,11 @@
 package com.github.mdcdi1315.basemodslib.client;
 
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
-import net.minecraft.resources.ResourceLocation;
 
 public record ModelDefinitionRegistrationInfo(
         ModelLayerLocation location,

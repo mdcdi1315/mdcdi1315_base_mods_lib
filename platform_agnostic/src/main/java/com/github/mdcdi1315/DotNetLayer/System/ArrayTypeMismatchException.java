@@ -21,7 +21,7 @@ public class ArrayTypeMismatchException
      * Initializes a new instance of the {@link ArrayTypeMismatchException} class with a specified error message.
      * @param message A {@link String} that describes the error.
      */
-    public ArrayTypeMismatchException(String message)
+    public ArrayTypeMismatchException(@MaybeNull String message)
     {
         super(message);
     }
@@ -35,7 +35,7 @@ public class ArrayTypeMismatchException
      * parameter is not a null reference, the current exception is raised in a catch
      * block that handles the inner exception.
      */
-    public ArrayTypeMismatchException(String message, @MaybeNull Exception innerException)
+    public ArrayTypeMismatchException(@MaybeNull String message, @MaybeNull Exception innerException)
     {
         super(message , innerException);
     }

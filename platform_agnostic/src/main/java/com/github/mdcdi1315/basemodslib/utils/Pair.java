@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.utils;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 import com.github.mdcdi1315.basemodslib.codecs.CodecUtils;
 
@@ -22,7 +23,7 @@ import java.util.Map;
  * KeyValuePair instances should not become null, because they are .NET structure definitions.
  */
 @SuppressWarnings("unused")
-public record Pair<T1, T2>(@MaybeNull T1 first, @MaybeNull T2 second)
+public record Pair<T1, T2>(@AllowNull T1 first, @AllowNull T2 second)
     implements Map.Entry<T1, T2>
 {
     /**
@@ -56,11 +57,13 @@ public record Pair<T1, T2>(@MaybeNull T1 first, @MaybeNull T2 second)
     }
 
     @Override
+    @MaybeNull
     public T1 getKey() {
         return first;
     }
 
     @Override
+    @MaybeNull
     public T2 getValue() {
         return second;
     }

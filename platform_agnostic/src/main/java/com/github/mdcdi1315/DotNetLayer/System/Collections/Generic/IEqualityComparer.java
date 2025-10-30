@@ -2,6 +2,7 @@ package com.github.mdcdi1315.DotNetLayer.System.Collections.Generic;
 
 import com.github.mdcdi1315.DotNetLayer.ByRefParameterType;
 import com.github.mdcdi1315.DotNetLayer.DotNetByRefParameter;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
 /**
@@ -16,7 +17,7 @@ public interface IEqualityComparer<@DotNetByRefParameter(ByRefParameterType.IN) 
      * @param y The second object of type T to compare.
      * @return true if the specified objects are equal; otherwise, false.
      */
-    boolean Equals(T x, T y);
+    boolean Equals(@MaybeNull T x, @MaybeNull T y);
 
     /**
      * Returns a hash code for the specified object.

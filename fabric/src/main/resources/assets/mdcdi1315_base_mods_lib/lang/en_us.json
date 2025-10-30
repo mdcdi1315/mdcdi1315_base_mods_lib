@@ -1,4 +1,0 @@
-{
-	"mdcdi1315_base_mods_lib.disconnect_mod_missing": "A mod is missing!\nNetwork validator cannot validate that you have the mod with ID %s loaded in your environment.\nAdd that mod and retry.",
-	"mdcdi1315_base_mods_lib.mod_network_version_mismatch": "The mod with ID %s has a versioning mismatch!\nValue retrieved from the client: %s\nValue retrieved from the server: %s\nPlease update the offending mod to match the server version."
-}

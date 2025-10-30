@@ -1,5 +1,7 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+
 /**
  * The exception that is thrown when the operating system denies access because of an I/O error or a specific type of security error.
  */
@@ -17,7 +19,7 @@ public class UnauthorizedAccessException
      * Initializes a new instance of the {@link UnauthorizedAccessException} class with a specified error message.
      * @param message The message that describes the error.
      */
-    public UnauthorizedAccessException(String message) {
+    public UnauthorizedAccessException(@MaybeNull String message) {
         super(message);
     }
 
@@ -28,7 +30,7 @@ public class UnauthorizedAccessException
      * parameter is not a null reference, the current exception is raised in a catch
      * block that handles the inner exception.
      */
-    public UnauthorizedAccessException(String message, Exception inner) {
+    public UnauthorizedAccessException(@MaybeNull String message, @MaybeNull Exception inner) {
         super(message , inner);
     }
 }

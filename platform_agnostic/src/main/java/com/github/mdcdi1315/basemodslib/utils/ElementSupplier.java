@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.utils;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import java.util.function.Supplier;
@@ -14,6 +15,7 @@ import java.util.function.Supplier;
 public class ElementSupplier<T>
     implements Supplier<T>, Func1<T>
 {
+    @AllowNull
     private final T value;
 
     public ElementSupplier(@MaybeNull T item) {

@@ -4,6 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
+
 import net.minecraft.world.entity.Entity;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.ParticleOptions;
@@ -18,6 +20,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 
+@ClientOnlyEnvironment
 public class FabricClientArtifactsRegistrar
     implements IEntityRendererRegistrar,
         IBlockEntityRendererRegistrar,

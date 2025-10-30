@@ -7,7 +7,6 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
-import com.github.mdcdi1315.basemodslib.utils.TypeDescriptor;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -126,7 +125,7 @@ public final class EventManager
      */
     public void DestroyDestroyableEvents()
     {
-        // Events can still be added before mod loading is complete.
+        // Events can still be added before the mod loading completed event is completed.
         finalized = true;
         for (var i : new HashSet<>(actions.keySet()))
         {

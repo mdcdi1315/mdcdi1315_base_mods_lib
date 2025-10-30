@@ -1,5 +1,7 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+
 /**
  * The exception that is thrown when a method call is invalid for the object's current state.
  */
@@ -15,7 +17,7 @@ public class InvalidOperationException
      * Initializes a new instance of the {@link InvalidOperationException} class with a specified error message.
      * @param message The message that describes the error.
      */
-    public InvalidOperationException(String message) { super(message); }
+    public InvalidOperationException(@MaybeNull String message) { super(message); }
 
     /**
      * Initializes a new instance of the {@link InvalidOperationException} class with
@@ -26,5 +28,5 @@ public class InvalidOperationException
      * parameter is not a null reference (Nothing in Visual Basic), the current exception
      * is raised in a catch block that handles the inner exception.
      */
-    public InvalidOperationException(String message, Exception innerException) { super(message , innerException); }
+    public InvalidOperationException(@MaybeNull String message, @MaybeNull Exception innerException) { super(message , innerException); }
 }

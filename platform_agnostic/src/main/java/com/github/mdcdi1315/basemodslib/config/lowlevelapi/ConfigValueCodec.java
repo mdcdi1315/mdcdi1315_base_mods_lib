@@ -59,11 +59,6 @@ public final class ConfigValueCodec
                         Optional<Stream<T>> dr5 = ops.getStream(input).result();
                         if (dr5.isPresent()) {
                             return DecodeStream(ops, input, dr5.get());
-                        } else {
-                            Optional<Pair<SerializedField , T>> dr6 = SerializedField.GetCodec().decode(ops, input).result();
-                            if (dr6.isPresent()) {
-                                return DataResult.success(Pair.of(dr6.get(), input));
-                            }
                         }
                     }
                 }
@@ -85,7 +80,9 @@ public final class ConfigValueCodec
 
     private <T> DataResult<T> EncodeSimple(Object input, DynamicOps<T> ops, T prefix)
     {
-        if (input instanceof Number n) {
+        if (input == null) {
+            return DataResult.error(new StringSupplier("Attempted to encode a null value!"));
+        } else if (input instanceof Number n) {
             return DataResult.success(ops.createNumeric(n));
         } else if (input instanceof String s) {
             return DataResult.success(ops.createString(s));

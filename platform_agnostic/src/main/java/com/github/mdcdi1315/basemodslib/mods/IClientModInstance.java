@@ -1,13 +1,19 @@
 package com.github.mdcdi1315.basemodslib.mods;
 
-import com.github.mdcdi1315.basemodslib.client.*;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.client.*;
+import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
+import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
+
+import net.minecraft.client.gui.screens.Screen;
 
 /**
  * Defines the client-side mod instance. <br />
  * The mod instance is expected to be initialized and finally destroyed by using the {@link #Dispose()} method.
  */
+@ClientOnlyEnvironment
 public interface IClientModInstance
     extends IModInstance
 {
@@ -46,4 +52,15 @@ public interface IClientModInstance
      * @param registrar The object responsible for registering particle providers.
      */
     default void RegisterParticleProviders(IParticleProviderRegistrar registrar) {}
+
+    /**
+     * Called only once per mod instance to provide a custom configuration screen for their needs. <br />
+     * Can also be {@code null}, indicating that the config screen is not applicable of or for any failure creating the GUI.
+     * @return The screen configuration factory object to return.
+     * @param <T> The type of the configuration screen to use.
+     */
+    @MaybeNull
+    default <T extends Screen> ConfigurationScreenFactory<T> RegisterConfigurationScreenFactory() {
+        return null; // Default implementation returns no factory. You must explicitly register one.
+    }
 }

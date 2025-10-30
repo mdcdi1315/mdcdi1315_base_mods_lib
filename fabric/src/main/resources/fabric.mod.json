@@ -13,6 +13,15 @@
 		"sources": "${sources}",
 		"issues": "${issues}"
 	},
+	"custom": {
+		"modmenu": {
+			"badges": [ "library" ],
+			"update_checker": false,
+			"links": {
+				"modmenu.github_releases": "https://github.com/mdcdi1315/mdcdi1315_base_mods_lib/releases"
+			}
+		}
+	},
 
 	"license": "${license}",
 	"environment": "*",
@@ -22,6 +31,9 @@
 		],
 		"client": [
 			"${group}.basemodslib.fabric.FabricModClientEntryPoint"
+		],
+		"modmenu": [
+			"${group}.basemodslib.integration.modmenu.ModMenuEntryPoint"
 		],
 		"fabric-datagen": []
 	},

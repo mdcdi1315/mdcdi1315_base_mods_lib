@@ -1,5 +1,8 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DoesNotReturn;
+
 /**
  * The {@link Exception} class emulates the .NET equivalent of System.Exception class,
  * roughly providing the same services as the Java equivalent would do.
@@ -50,16 +53,19 @@ public class Exception
     }
 
     @Override
+    @MaybeNull
     public final synchronized Throwable getCause()
     {
         return super.getCause();
     }
 
+    @DoesNotReturn
     public final synchronized Throwable initCause(Throwable t)
     {
         throw new InvalidOperationException("Not allowed to set the cause on a .NET-translated exception.");
     }
 
+    @MaybeNull
     public synchronized Exception getInnerException()
     {
         Throwable c = getCause();
@@ -77,6 +83,7 @@ public class Exception
      * May be null if no root cause exception was determined.
      * @return The {@link Exception} object that is the root cause of this exception instance.
      */
+    @MaybeNull
     public synchronized Exception GetBaseException()
     {
         Throwable c = getCause();

@@ -10,14 +10,8 @@ public final class JavaObjectEqualsEqualityComparer<T>
     public JavaObjectEqualsEqualityComparer() { }
 
     @Override
-    public boolean Equals(T x, T y)
-    {
-        if (x == null) {
-            // y == null : Two null objects are always equal and interchangeable
-            return y == null;
-        } else {
-            return x.equals(y);
-        }
+    public boolean Equals(T x, T y) {
+        return Objects.equals(x, y);
     }
 
     @Override

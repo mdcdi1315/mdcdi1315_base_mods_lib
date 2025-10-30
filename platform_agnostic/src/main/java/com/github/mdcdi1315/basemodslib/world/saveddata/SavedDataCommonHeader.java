@@ -11,7 +11,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.CompoundTag;
 
 /**
- * Defines the common header for all saved data provided by the mod. <br />
+ * Defines the common header for all saved data provided by the mods using this library. <br />
  * Can have a custom format version, as well as the data specifying the saved information. <br />
  * Thus, every decoding and encoding is performed through instances of this class.
  */

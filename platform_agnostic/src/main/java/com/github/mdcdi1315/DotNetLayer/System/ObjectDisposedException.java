@@ -1,10 +1,13 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 public class ObjectDisposedException
     extends InvalidOperationException
 {
+    @AllowNull
     private final String object_name;
 
     /**
@@ -13,7 +16,7 @@ public class ObjectDisposedException
      * @param instance The object whose type's full name should be included in any resulting {@link ObjectDisposedException}.
      * @exception ObjectDisposedException The {@code condition} is {@code true}.
      */
-    public static void ThrowIf(boolean condition, Object instance)
+    public static void ThrowIf(boolean condition, @NotNull Object instance)
         throws ObjectDisposedException
     {
         if (condition) {

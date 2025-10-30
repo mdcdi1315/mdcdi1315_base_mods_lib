@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 /**
@@ -14,5 +15,6 @@ public interface ICustomFormatter
      * @param formatProvider An object that supplies format information about the current instance.
      * @return The string representation of the value of {@code arg}, formatted as specified by {@code format} and {@code formatProvider}.
      */
+    @NotNull
     String Format(@MaybeNull String format, @MaybeNull Object arg, @MaybeNull IFormatProvider formatProvider);
 }

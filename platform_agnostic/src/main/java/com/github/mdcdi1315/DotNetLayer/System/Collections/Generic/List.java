@@ -2,7 +2,7 @@ package com.github.mdcdi1315.DotNetLayer.System.Collections.Generic;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 import com.google.common.primitives.UnsignedInteger;
 
@@ -18,7 +18,7 @@ public class List<T>
         private final List<T> _list;
         private int _index;
         private final int _version;
-        @MaybeNull
+        @AllowNull
         private T _current;
 
         private Enumerator(List<T> list)
