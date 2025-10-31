@@ -85,6 +85,11 @@ jar {
     }
 }
 
+javadoc {
+    setFailOnError(false)
+    options {}
+}
+
 processResources {
     var expandProps = [
             'version'                      : version,
@@ -129,21 +134,21 @@ processResources {
 
 publishing {
     repositories {
-        def repoUrl = version.toString().endsWith("SNAPSHOT") ? uri("https://maven.pkg.github.com/mdcdi1315/mdcdi1315_base_mods_lib_snapshots") : uri("https://maven.pkg.github.com/mdcdi1315/mdcdi1315_base_mods_lib")
-        if (repoUrl != null) {
-            maven {
-                name = "GitHubPackages"
-                url = repoUrl
-                credentials {
-                    username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                    password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-                }
+        maven {
+            name = "GitHubPackages"
+            url = uri(github_packages_upload_url)
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
             }
         }
     }
     publications {
         gpr(MavenPublication) {
+            defaultTasks("jar")
             from(components.java)
+            version = "${version}"
+            artifactId = "${mod_id}-${project.name}-${minecraft_version}"
         }
     }
 }

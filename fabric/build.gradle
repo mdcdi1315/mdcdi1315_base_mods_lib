@@ -96,4 +96,12 @@ modrinth {
     }
 }
 
+publishing {
+    publications {
+        gpr(MavenPublication) {
+            defaultTasks("remapJar")
+        }
+    }
+}
+
 tasks.modrinth.dependsOn(build)
