@@ -28,7 +28,7 @@ public final class BaseModsLib
 {
     private static List<IServerModInstance> mod_instances;
     private static EventManager events_manager;
-    private static IModLoaderLayer layer;
+    private static volatile IModLoaderLayer layer;
     public static Logger LOGGER;
 
     static {
@@ -78,6 +78,8 @@ public final class BaseModsLib
             instance.Initialize();
 
             instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
+
+            while (layer == null) { Thread.onSpinWait(); } // Wait until the library is fully initialized.
 
             layer.InitializeServerModInstance(instance, mod_object);
 

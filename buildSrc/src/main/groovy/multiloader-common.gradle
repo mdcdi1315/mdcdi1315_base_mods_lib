@@ -8,6 +8,8 @@ base {
     version = project.version
 }
 
+def publishing_project_id = "${mod_id}-${project.name}-${minecraft_version}";
+
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(java_version)
     withSourcesJar()
@@ -49,11 +51,8 @@ dependencies {
 // Read more about capabilities here: https://docs.gradle.org/current/userguide/component_capabilities.html#sec:declaring-additional-capabilities-for-a-local-component
 ['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
     configurations."$variant".outgoing {
-        capability("$group:${project.name}:$version")
-        capability("$group:${base.archivesName.get()}:$version")
-        capability("$group:${mod_id.replace('_', '-')}-${project.name}-${minecraft_version}:$version")
-        capability("$group:${mod_id.replace('_', '-')}-${project.name}:$version")
         capability("$group:${mod_id.replace('_', '-')}:$version")
+        capability("$group:${mod_id.replace('_', '-')}-${project.name}:$version")
     }
     publishing.publications.configureEach {
         suppressPomMetadataWarningsFor(variant)
@@ -130,25 +129,4 @@ processResources {
     }
 
     inputs.properties(expandProps)
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri(github_packages_upload_url)
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-            }
-        }
-    }
-    publications {
-        gpr(MavenPublication) {
-            defaultTasks("jar")
-            from(components.java)
-            version = "${version}"
-            artifactId = "${mod_id}-${project.name}-${minecraft_version}"
-        }
-    }
 }

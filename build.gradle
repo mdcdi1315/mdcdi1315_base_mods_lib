@@ -13,3 +13,68 @@ subprojects {
 		}
 	}
 }
+
+private static void WritePropertiesOrFail(OutputStreamWriter writer, Project project, String... properties)
+{
+    String pv;
+    for (String property : properties)
+    {
+        pv = project.findProperty(property);
+        if (pv == null) {
+            throw new IllegalStateException(String.format("Cannot find property %s!", property));
+        }
+        writer.write(String.format("%s=%s\n" , property , pv));
+    }
+}
+
+private static File CreateFileMappings(AbstractCopyTask input, Provider<Directory> BuildDirectory, Project proj)
+{
+    var OutFile = BuildDirectory.get().file("mappings.properties").getAsFile();
+    try (
+            FileOutputStream fos = new FileOutputStream(OutFile);
+            OutputStreamWriter osw = new OutputStreamWriter(fos)
+    )
+    {
+        osw.write("# Mapping file for developer archives, do not modify the values!\n");
+
+        WritePropertiesOrFail(osw, proj, "minecraft_version", "version", "mod_id", "group");
+        println("Processing files...");
+
+        for (File it : input.source)
+        {
+            String name = it.getName();
+            if (name.containsIgnoreCase("fabric")) {
+                osw.write(String.format("fabric_mapping=%s\n", name));
+                println(String.format("-> %s:\n\t-> Added as a Fabric mapping.", name));
+            } else if (name.containsIgnoreCase("forge")) {
+                osw.write(String.format("forge_mapping=%s\n", name));
+                println(String.format("-> %s:\n\t-> Added as a Forge mapping." , name));
+            } else if (name.contains("platform_agnostic")) {
+                osw.write(String.format("platform_agnostic_mapping=%s\n", name));
+                println(String.format("-> %s:\n\t-> Added as a Platform Agnostic mapping.", name));
+            } else {
+                println(String.format("Cannot determine mapping for file %s!" , name));
+            }
+        }
+    }
+    return OutFile;
+}
+
+// Builds the developer archives for use within consuming projects.
+def build_dev_jars = tasks.register("build_dev_jars", Zip) { Zip zipfile ->
+
+    var bd = layout.buildDirectory.dir("bin");
+
+    zipfile.from(
+            project(":platform_agnostic").tasks.jar,
+            project(":forge").tasks.jar,
+            project(":fabric").tasks.remapJar
+    );
+
+    File f = CreateFileMappings(zipfile, bd as Provider<Directory>, this.project);
+
+    zipfile.from(f);
+
+    zipfile.destinationDirectory.set(bd.get());
+    zipfile.archiveFileName.set('mdcdi1315_base_mods_lib_dist.zip');
+}
