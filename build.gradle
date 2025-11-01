@@ -76,5 +76,5 @@ def build_dev_jars = tasks.register("build_dev_jars", Zip) { Zip zipfile ->
     zipfile.from(f);
 
     zipfile.destinationDirectory.set(bd.get());
-    zipfile.archiveFileName.set('mdcdi1315_base_mods_lib_dist.zip');
+    zipfile.archiveFileName.set('mdcdi1315_base_mods_lib_dev_package.zip');
 }
