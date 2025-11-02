@@ -59,7 +59,7 @@ public final class ConfigSerializationHelpers
         }
     }
 
-    private static Object DecodeFieldValue(Object obj)
+    private static Object DecodeFieldValue(Object obj, Class<?> field_type)
     {
         if (obj == null) {
             throw new InvalidOperationException("Attempted to decode a null value!");
@@ -73,12 +73,16 @@ public final class ConfigSerializationHelpers
             }
         } else if (
                 obj instanceof Number ||
-                        obj instanceof ResourceLocation ||
                         obj instanceof String ||
                         obj instanceof Boolean
         ) {
             // All these pass and are OK
             return obj;
+        } else if (obj instanceof ResourceLocation rl) {
+            // There is the case thet resource location decode succeeded, but the underlying field type is in fact a string.
+            // If that is the case, that will be remediated appropriately.
+            // Otherwise, the resource location will be passed unmodified.
+            return (field_type == String.class) ? rl.toString() : rl;
         } else if (obj instanceof List<?> lt) {
             ArrayList<Object> list = new ArrayList<>(lt.size());
             list.addAll(lt);
@@ -113,7 +117,7 @@ public final class ConfigSerializationHelpers
                     continue;
                 } // Means that the field is removed from the config
 
-                fd.set(config_instance, DecodeFieldValue(ser_field.GetValue()));
+                fd.set(config_instance, DecodeFieldValue(ser_field.GetValue(), fd.getType()));
             }
         } catch (IllegalAccessException iae) {
             throw new InvalidOperationException("Cannot deserialize a non-public-access field!");

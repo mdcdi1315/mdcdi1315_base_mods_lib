@@ -27,12 +27,14 @@ public final class ConfigValueCodec
         ArrayValue.Builder builder = new ArrayValue.Builder();
         Iterator<T> itr = str.iterator();
         DataResult<Pair<Object, T>> drt;
+        Optional<Pair<Object, T>> result;
         while (itr.hasNext()) {
             drt = DecodeSimple(ops, itr.next());
-            if (drt.result().isEmpty()) {
+            if ((result = drt.result()).isEmpty()) {
                 return DataResult.error(new StringSupplier("Cannot decode the element in the array due to an error:\n" + drt.error().get().message()));
+            } else {
+                builder.Add(result.get().getFirst());
             }
-            builder.Add(drt.result().get().getFirst());
         }
         return DataResult.success(Pair.of(builder.Build(), input));
     }
@@ -44,15 +46,15 @@ public final class ConfigValueCodec
         if (dr1.isPresent()) {
             return DataResult.success(Pair.of(dr1.get(), input));
         } else {
-            Optional<String> dr2 = ops.getStringValue(input).result();
+            Optional<Pair<ResourceLocation, T>> dr2 = ResourceLocation.CODEC.decode(ops, input).result();
             if (dr2.isPresent()) {
-                return DataResult.success(Pair.of(dr2.get(), input));
+                return DataResult.success(Pair.of(dr2.get().getFirst(), input));
             } else {
                 Optional<Number> dr3 = ops.getNumberValue(input).result();
                 if (dr3.isPresent()) {
                     return DataResult.success(Pair.of(dr3.get(), input));
                 } else {
-                    Optional<Pair<ResourceLocation, T>> dr4 = ResourceLocation.CODEC.decode(ops, input).result();
+                    Optional<String> dr4 = ops.getStringValue(input).result();
                     if (dr4.isPresent()) {
                         return DataResult.success(Pair.of(dr4.get(), input));
                     } else {
