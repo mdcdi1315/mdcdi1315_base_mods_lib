@@ -5,9 +5,6 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
-import com.github.mdcdi1315.basemodslib.utils.Pair;
-import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
-
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
@@ -17,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.*;
 import net.minecraftforge.eventbus.api.IEventBus;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class ForgeRegistriesRegistrar
@@ -25,13 +23,13 @@ public final class ForgeRegistriesRegistrar
     private String mod_id;
     private List<DeferredRegister<?>> registers;
     private List<DatapackRegistryEntry<?>> datapack_registries;
-    private List<Pair<Supplier<? extends IForgeRegistry<?>>, Action1<? extends IModLoaderRegistry<?>>>> registries_to_invoke;
+    private List<RegistryEntry<?>> registries_to_create;
 
     public ForgeRegistriesRegistrar(String mod_id) {
         this.mod_id = mod_id;
         registers = new List<>();
         datapack_registries = new List<>();
-        registries_to_invoke = new List<>();
+        registries_to_create = new List<>();
     }
 
     private record ROSRegister<T>(RegistryObjectSupplier<T> ts , ResourceLocation location)
@@ -43,7 +41,18 @@ public final class ForgeRegistriesRegistrar
         }
     }
 
+    private record RegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Action1<IModLoaderRegistry<T>> on_ready) {}
+
     private record DatapackRegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Codec<T> element_codec) {}
+
+    private record OnRegistryFilledCallback<T>(Action1<IModLoaderRegistry<T>> action)
+        implements Consumer<IForgeRegistry<T>>
+    {
+        @Override
+        public void accept(IForgeRegistry<T> ts) {
+            action.action(new ForgeRegistryWrappedInRegistry<>(ts));
+        }
+    }
 
     @SuppressWarnings("unchecked")
     private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<Registry<T>> registry_key)
@@ -75,10 +84,7 @@ public final class ForgeRegistriesRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(registryResourceKey, "registryResourceKey");
-        registries_to_invoke.Add(new Pair<>(
-                CreateIfAbsentOrReturn(registryResourceKey).makeRegistry(new ElementSupplier<>(new RegistryBuilder<T>().allowModification())),
-                on_registry_ready
-        ));
+        registries_to_create.Add(new RegistryEntry<>(registryResourceKey, on_registry_ready));
     }
 
     @Override
@@ -90,20 +96,27 @@ public final class ForgeRegistriesRegistrar
         datapack_registries.Add(new DatapackRegistryEntry<>(registry_name, element_codec));
     }
 
-    @SuppressWarnings("unchecked")
-    private void OnRegistriesReady(NewRegistryEvent nre)
+    private static <T> void CreateRegistry(NewRegistryEvent event, RegistryEntry<T> entry)
     {
-        var en = registries_to_invoke.GetEnumerator();
+        event.create(
+                new RegistryBuilder<T>()
+                    .allowModification()
+                    .setName(entry.resource_key.location()),
+                new OnRegistryFilledCallback<>(entry.on_ready)
+        );
+    }
+
+    private void CreateRegistries(NewRegistryEvent nre)
+    {
+        var e = registries_to_create.GetEnumerator();
         try {
-            Pair<Supplier<? extends IForgeRegistry<?>>, Action1<? extends IModLoaderRegistry<?>>> p;
-            while (en.MoveNext()) {
-                p = en.getCurrent();
-                ((Action1<IModLoaderRegistry<?>>)p.second()).action(new ForgeRegistryWrappedInRegistry<>(p.first().get()));
+            while (e.MoveNext()) {
+                CreateRegistry(nre, e.getCurrent());
             }
         } finally {
-            en.Dispose();
+            e.Dispose();
         }
-        registries_to_invoke = null;
+        registries_to_create = null; // We can now sweep up memory.
     }
 
     private <T> void RegisterEntryInternal(DatapackRegistryEntry<T> ent , DataPackRegistryEvent.NewRegistry reg) {
@@ -135,7 +148,7 @@ public final class ForgeRegistriesRegistrar
         }
         // We can cleanup this list once all registers have made it to be registered to the mod event bus.
         registers = null;
-        evb.addListener(this::OnRegistriesReady);
+        evb.addListener(this::CreateRegistries);
         evb.addListener(this::RegisterDatapackRegistries);
     }
 }

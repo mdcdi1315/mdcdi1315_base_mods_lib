@@ -82,9 +82,9 @@ public final class BaseModsLib
         try {
             instance.Initialize();
 
-            instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
-
             while (!initialized) { Thread.onSpinWait(); } // Wait until the library is fully initialized.
+
+            instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
 
             layer.InitializeServerModInstance(instance, mod_object);
 

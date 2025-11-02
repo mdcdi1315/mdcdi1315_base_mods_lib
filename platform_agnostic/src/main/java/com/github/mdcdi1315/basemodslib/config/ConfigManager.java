@@ -5,7 +5,6 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.utils.TypeDescriptor;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.ConfigCodec;
 
 import com.google.gson.Gson;
@@ -89,13 +88,17 @@ public final class ConfigManager
         ));
     }
 
-    public <T extends IModConfig> void TrackJsonConfigurationFile(Class<T> cfg_class, Func1<T> config_constructor) {
+    public <T extends IModConfig> void TrackJsonConfigurationFile(Class<T> cfg_class, Func1<T> config_constructor)
+            throws ArgumentNullException
+    {
         TrackConfigurationFile(cfg_class, config_constructor , json_file_format , "json");
     }
 
-    public <T extends IModConfig> T LoadConfigurationFile()
+    public <T extends IModConfig> T LoadConfigurationFile(Class<T> config_class)
+            throws ArgumentNullException
     {
-        AssociatedConfigInfo<T> cfg_info = (AssociatedConfigInfo<T>) configuration_files.get(TypeDescriptor.<T>DescribeTypeParameter());
+        ArgumentNullException.ThrowIfNull(config_class, "config_class");
+        AssociatedConfigInfo<T> cfg_info = (AssociatedConfigInfo<T>) configuration_files.get(config_class);
         if (cfg_info == null) {
             throw new InvalidOperationException("This configuration class is not tracked. Track it first, then attempt to read it.");
         }
@@ -120,10 +123,11 @@ public final class ConfigManager
         }
     }
 
-    public <T extends IModConfig> T LoadOrCreateConfigurationFile()
-            throws ConfigSaveException
+    public <T extends IModConfig> T LoadOrCreateConfigurationFile(Class<T> config_class)
+            throws ConfigSaveException, ArgumentNullException
     {
-        AssociatedConfigInfo<T> cfg_info = (AssociatedConfigInfo<T>) configuration_files.get(TypeDescriptor.<T>DescribeTypeParameter());
+        ArgumentNullException.ThrowIfNull(config_class, "config_class");
+        AssociatedConfigInfo<T> cfg_info = (AssociatedConfigInfo<T>) configuration_files.get(config_class);
         if (cfg_info == null) {
             throw new InvalidOperationException("This configuration class is not tracked. Track it first, then attempt to read it.");
         }
