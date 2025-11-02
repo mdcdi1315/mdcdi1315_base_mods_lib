@@ -22,12 +22,25 @@ import java.util.stream.Stream;
 public abstract class AbstractStrictListCodec<TElement, TListType extends List<TElement>>
         extends AbstractListCodec<TElement , TListType>
 {
+    /**
+     * Initializes a new instance of the {@link AbstractStrictListCodec} class.
+     * @param elementcodec The {@link Codec} that will be used to encode and decode elements from the list.
+     * @throws ArgumentNullException {@code elementcodec} is {@code null}.
+     */
     public AbstractStrictListCodec(Codec<TElement> elementcodec)
         throws ArgumentNullException
     {
         super(elementcodec);
     }
 
+    /**
+     * Decodes a list from the specified dynamic ops and serialized input. <br />
+     * Decoding is done strictly, meaning that decoding will fail when any list element failed to be decoded.
+     * @param ops The dynamic ops object to use.
+     * @param input The serialized input to decode the list from.
+     * @return A result object indicating success or failure. On success, it returns the decoded list object.
+     * @param <T> The type of the input to decode.
+     */
     // Override the decode method to define decoding strictness.
     @Override
     public <T> DataResult<Pair<TListType, T>> decode(DynamicOps<T> ops, T input)
@@ -55,7 +68,7 @@ public abstract class AbstractStrictListCodec<TElement, TListType extends List<T
                     return DataResult.success(Pair.of(Transform(list), input));
                 } catch (Exception e) {
                     // Exceptions should be wrapped as errors because validation errors may have been found.
-                    return DataResult.error(new StringSupplier(String.format("Exception of type %s occurred: %s", e.getClass().getName() , e.getMessage())));
+                    return DataResult.error(StringSupplier.FromFormatted("Exception of type %s occurred: %s", e.getClass().getName() , e.getMessage()));
                 }
             }
         } else {

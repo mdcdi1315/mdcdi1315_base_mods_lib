@@ -16,6 +16,7 @@ public final class DelayLoadedCodec<T>
     private Func1<Codec<T>> getter;
 
     public DelayLoadedCodec(Func1<Codec<T>> supplier)
+            throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(supplier , "supplier");
         getter = supplier;

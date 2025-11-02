@@ -30,6 +30,11 @@ public abstract class AbstractListCodec<TElement, TListType extends List<TElemen
      */
     protected final Codec<TElement> element;
 
+    /**
+     * Initializes a new instance of the {@link AbstractListCodec} class.
+     * @param elementcodec The {@link Codec} that will be used to encode and decode elements from the list.
+     * @throws ArgumentNullException {@code elementcodec} is {@code null}.
+     */
     public AbstractListCodec(Codec<TElement> elementcodec)
             throws ArgumentNullException
     {
@@ -46,6 +51,13 @@ public abstract class AbstractListCodec<TElement, TListType extends List<TElemen
      */
     protected abstract TListType Transform(List<TElement> list);
 
+    /**
+     * Decodes a list from the specified dynamic ops and serialized input.
+     * @param ops The dynamic ops object to use.
+     * @param input The serialized input to decode the list from.
+     * @return A result object indicating success or failure. On success, it returns the decoded list object.
+     * @param <T> The type of the input to decode.
+     */
     @Override
     public <T> DataResult<Pair<TListType, T>> decode(DynamicOps<T> ops, T input)
     {
@@ -71,13 +83,21 @@ public abstract class AbstractListCodec<TElement, TListType extends List<TElemen
                 return DataResult.success(Pair.of(Transform(list), input));
             } catch (Exception e) {
                 // Exceptions should be wrapped as errors because validation errors may have been found.
-                return DataResult.error(new StringSupplier(String.format("Exception of type %s occurred: %s", e.getClass().getName() , e.getMessage())));
+                return DataResult.error(StringSupplier.FromFormatted("Exception of type %s occurred: %s", e.getClass().getName() , e.getMessage()));
             }
         } else {
             return DataResult.error(new StringSupplier(d.error().get().message()));
         }
     }
 
+    /**
+     * Encodes a list from the specified object, dynamic ops and the currently written data so far.
+     * @param input The list to encode.
+     * @param ops The dynamic ops object to use.
+     * @param prefix The currently written data where this list will be encoded to.
+     * @return A result object indicating success or failure. On success, it returns the encoded object.
+     * @param <T> The type of the result to produce.
+     */
     @Override
     public <T> DataResult<T> encode(TListType input, DynamicOps<T> ops, T prefix)
     {
@@ -102,16 +122,29 @@ public abstract class AbstractListCodec<TElement, TListType extends List<TElemen
         return decode(ops , input).map(Pair::getFirst);
     }
 
+    /**
+     * Determines whether this list codec and the specified object are equal.
+     * @param o The reference object with which to compare.
+     * @return A value determining equality of both objects.
+     */
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(Object o) {
         return o instanceof AbstractListCodec<? , ?> lc && Objects.equals(element, lc.element);
     }
 
+    /**
+     * Computes the hash code for this list codec.
+     * @return The computed hash code, which is a value deriving from the element codec.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(element);
     }
 
+    /**
+     * Gets a string describing this list codec.
+     * @return A string describing this list codec.
+     */
     @Override
     public String toString() {
         return String.format("ListCodec[%s]" , element);

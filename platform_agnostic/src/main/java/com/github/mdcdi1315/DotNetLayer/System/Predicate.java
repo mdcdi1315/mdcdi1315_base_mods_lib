@@ -10,11 +10,18 @@ import com.github.mdcdi1315.DotNetLayer.DotNetDelegateInterface;
  */
 @FunctionalInterface
 @DotNetDelegateInterface
-public interface Predicate<@DotNetByRefParameter(ByRefParameterType.IN) T> {
+public interface Predicate<@DotNetByRefParameter(ByRefParameterType.IN) T>
+    extends java.util.function.Predicate<T>
+{
     /**
      *
      * @param obj The object to compare against the criteria defined within the method represented by this delegate.
      * @return true if obj meets the criteria defined within the method represented by this delegate; otherwise, false.
      */
     boolean predicate(T obj);
+
+    @Override
+    default boolean test(T t) {
+        return predicate(t);
+    }
 }

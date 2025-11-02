@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.Version;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.Stopwatch;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
@@ -28,11 +29,13 @@ public final class BaseModsLib
 {
     private static List<IServerModInstance> mod_instances;
     private static EventManager events_manager;
-    private static volatile IModLoaderLayer layer;
+    private static IModLoaderLayer layer;
+    private static volatile boolean initialized;
     public static Logger LOGGER;
 
     static {
         layer = null;
+        initialized = false;
         LOGGER = LoggerFactory.getLogger("mdcdi1315's Base Mods Lib logger");
         LOGGER.info("Now initializing mdcdi1315's Base Mods Library!!!");
     }
@@ -58,6 +61,7 @@ public final class BaseModsLib
         mod_instances = new List<>();
         layer = mod_loader_layer;
         LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion() , layer.GetMinecraftVersion() , layer.GetEnvironment());
+        initialized = true;
     }
 
     /**
@@ -74,20 +78,27 @@ public final class BaseModsLib
     {
         ArgumentNullException.ThrowIfNull(instance, "instance");
         ArgumentNullException.ThrowIfNull(mod_object, "mod_object");
+        Stopwatch sw = Stopwatch.StartNew();
         try {
             instance.Initialize();
 
             instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
 
-            while (layer == null) { Thread.onSpinWait(); } // Wait until the library is fully initialized.
+            while (!initialized) { Thread.onSpinWait(); } // Wait until the library is fully initialized.
 
             layer.InitializeServerModInstance(instance, mod_object);
 
             instance.OnInitializeEnd();
 
+            sw.Stop();
+
+            LOGGER.info("BASEMODSLIB: Mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
+
             mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
         } catch (Exception e) {
             var id = instance.GetModId();
+            sw.Stop();
+            LOGGER.info("BASEMODSLIB: Mod instance with ID {} failed after {} seconds." , id, sw.GetElapsed().GetTotalSeconds());
             LOGGER.error("BASEMODSLIB: Cannot initialize server-side mod id {}!\nRethrowing the exception to the underlying mod." , id);
             throw new ModInitializationException(id, e);
         }

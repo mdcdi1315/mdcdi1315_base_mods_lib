@@ -4,6 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.ByRefParameterType;
 import com.github.mdcdi1315.DotNetLayer.DotNetByRefParameter;
 import com.github.mdcdi1315.DotNetLayer.DotNetDelegateInterface;
 
+import java.util.function.BiConsumer;
+
 /**
  * Encapsulates a method that has two parameters and does not return a value.
  * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
@@ -15,10 +17,16 @@ public interface Action2<
         @DotNetByRefParameter(ByRefParameterType.IN) T1,
         @DotNetByRefParameter(ByRefParameterType.IN) T2
         >
+    extends BiConsumer<T1, T2>
 {
     /**
      * @param obj1 The first parameter of the method that this delegate encapsulates.
      * @param obj2 The second parameter of the method that this delegate encapsulates.
      */
     void action(T1 obj1 , T2 obj2);
+
+    @Override
+    default void accept(T1 t1, T2 t2) {
+        action(t1, t2);
+    }
 }

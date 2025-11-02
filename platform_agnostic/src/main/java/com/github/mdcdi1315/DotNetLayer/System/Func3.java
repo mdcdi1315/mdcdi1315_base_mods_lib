@@ -4,6 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.ByRefParameterType;
 import com.github.mdcdi1315.DotNetLayer.DotNetByRefParameter;
 import com.github.mdcdi1315.DotNetLayer.DotNetDelegateInterface;
 
+import java.util.function.BiFunction;
+
 /**
  * Encapsulates a method that has two parameters and returns a value of the type specified by the TResult parameter.
  * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
@@ -17,6 +19,7 @@ public interface Func3<
         @DotNetByRefParameter(ByRefParameterType.IN) T2,
         @DotNetByRefParameter(ByRefParameterType.OUT) TResult
         >
+    extends BiFunction<T1, T2, TResult>
 {
     /**
      * @param input_1 The first parameter of the method that this delegate encapsulates.
@@ -24,4 +27,9 @@ public interface Func3<
      * @return The return value of the method that this delegate encapsulates.
      */
     TResult function(T1 input_1, T2 input_2);
+
+    @Override
+    default TResult apply(T1 t1, T2 t2) {
+        return function(t1, t2);
+    }
 }

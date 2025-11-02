@@ -4,10 +4,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Attribute;
 import com.github.mdcdi1315.DotNetLayer.System.AttributeUsage;
 import com.github.mdcdi1315.DotNetLayer.System.AttributeTargets;
 
+import java.lang.annotation.Documented;
+
 /**
  * Indicates that an API is experimental and it may change in the future.
  */
 @Attribute
+@Documented
 @AttributeUsage({
         AttributeTargets.Class,
         AttributeTargets.Constructor,

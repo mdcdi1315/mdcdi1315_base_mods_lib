@@ -16,7 +16,7 @@ public final class FloatProbabilityCodec
     protected DataResult<Float> Validate(Float number)
     {
         return (number > 1f || number < 0f) ?
-                DataResult.error(new StringSupplier(String.format("Probability value out of range [0..1]: %f" , number)), number) :
+                DataResult.error(StringSupplier.FromFormatted("Probability value out of range [0..1]: %f" , number), number) :
                 DataResult.success(number);
     }
 }

@@ -5,7 +5,6 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
-import com.github.mdcdi1315.basemodslib.utils.Func1ToSupplier;
 
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.ParticleProvider;
@@ -246,7 +245,7 @@ public final class ForgeClientArtifactsRegistrar
     {
         @Override
         public void action(ModelDefinitionRegistrationInfo obj) {
-            layer_defs.registerLayerDefinition(obj.location(), new Func1ToSupplier<>(obj.definition()));
+            layer_defs.registerLayerDefinition(obj.location(), obj.definition());
         }
     }
 }

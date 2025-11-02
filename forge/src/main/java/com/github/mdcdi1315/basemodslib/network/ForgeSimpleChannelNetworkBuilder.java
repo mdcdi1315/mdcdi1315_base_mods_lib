@@ -9,8 +9,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-import com.github.mdcdi1315.basemodslib.utils.Func2ToFunction;
-import com.github.mdcdi1315.basemodslib.utils.Action2ToBiConsumer;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -164,8 +162,8 @@ public final class ForgeSimpleChannelNetworkBuilder
         sc.registerMessage(
                 next_index,
                 inf.cls(),
-                new Action2ToBiConsumer<>(inf.encode_function()),
-                new Func2ToFunction<>(inf.decode_function()),
+                inf.encode_function(),
+                inf.decode_function(),
                 new MessageConsumer_Client<>(inf.handler())
         );
     }
@@ -175,8 +173,8 @@ public final class ForgeSimpleChannelNetworkBuilder
         sc.registerMessage(
                 next_index,
                 inf.cls(),
-                new Action2ToBiConsumer<>(inf.encode_function()),
-                new Func2ToFunction<>(inf.decode_function()),
+                inf.encode_function(),
+                inf.decode_function(),
                 new MessageConsumer_Server<>(inf.handler(), mgr)
         );
     }

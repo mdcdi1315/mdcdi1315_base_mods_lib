@@ -16,7 +16,7 @@ public final class DoubleProbabilityCodec
     protected DataResult<Double> Validate(Double number)
     {
         return (number > 1d || number < 0d) ?
-                DataResult.error(new StringSupplier(String.format("Probability value out of range [0..1]: %f" , number)), number) :
+                DataResult.error(StringSupplier.FromFormatted("Probability value out of range [0..1]: %f" , number), number) :
                 DataResult.success(number);
     }
 }

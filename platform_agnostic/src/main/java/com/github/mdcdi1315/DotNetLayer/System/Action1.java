@@ -4,6 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.ByRefParameterType;
 import com.github.mdcdi1315.DotNetLayer.DotNetByRefParameter;
 import com.github.mdcdi1315.DotNetLayer.DotNetDelegateInterface;
 
+import java.util.function.Consumer;
+
 /**
  * Encapsulates a method that has a single parameter and does not return a value.
  * @param <T> The type of the parameter of the method that this delegate encapsulates.
@@ -11,9 +13,15 @@ import com.github.mdcdi1315.DotNetLayer.DotNetDelegateInterface;
 @FunctionalInterface
 @DotNetDelegateInterface(ActualTypeName = "Action")
 public interface Action1<@DotNetByRefParameter(ByRefParameterType.IN) T>
+    extends Consumer<T>
 {
     /**
      * @param obj The parameter of the method that this delegate encapsulates.
      */
     void action(T obj);
+
+    @Override
+    default void accept(T t) {
+        action(t);
+    }
 }

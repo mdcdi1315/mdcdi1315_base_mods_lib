@@ -15,7 +15,7 @@ public final class PositiveIntegerCodec
     @Override
     protected DataResult<Integer> Validate(Integer number) {
         return (number < 1) ?
-            DataResult.error(new StringSupplier(String.format("Integer not positive: %d" , number))) :
+            DataResult.error(StringSupplier.FromFormatted("Integer not positive: %d" , number)) :
             DataResult.success(number);
     }
 }

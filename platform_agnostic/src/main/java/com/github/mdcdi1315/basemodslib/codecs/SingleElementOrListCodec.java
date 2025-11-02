@@ -33,6 +33,14 @@ public final class SingleElementOrListCodec<TElement>
         super(codec);
     }
 
+    /**
+     * Decodes a list from the specified dynamic ops and serialized input. <br />
+     * If a single element was found and was decoded successfully, it will be wrapped into a list object and that will be returned instead.
+     * @param ops The dynamic ops object to use.
+     * @param input The serialized input to decode the list from.
+     * @return A result object indicating success or failure. On success, it returns the decoded list object.
+     * @param <T> The type of the input to decode.
+     */
     @Override
     @SuppressWarnings("all")
     public <T> DataResult<Pair<List<TElement>, T>> decode(DynamicOps<T> ops, T input)
@@ -48,7 +56,7 @@ public final class SingleElementOrListCodec<TElement>
             var e2 = list.error();
 
             return e2.isPresent() ?
-                    DataResult.error(new StringSupplier(String.format("Deserialization failed. \nSingle element codec failed with: %s \nList codec failed with: %s \n" , e.get().message() , e2.get().message()))):
+                    DataResult.error(StringSupplier.FromFormatted("Deserialization failed. \nSingle element codec failed with: %s \nList codec failed with: %s \n" , e.get().message() , e2.get().message())):
                     list;
         } else {
             // Single element decode successful, return the element wrapped in an immutable list.

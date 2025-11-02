@@ -16,6 +16,11 @@ import java.util.List;
 public class StrictListCodec<TElement>
     extends AbstractStrictListCodec<TElement , List<TElement>>
 {
+    /**
+     * Initializes a new instance of the {@link StrictListCodec} class.
+     * @param elementcodec The {@link Codec} that will be used to encode and decode elements from the list.
+     * @throws ArgumentNullException {@code elementcodec} is {@code null}.
+     */
     public StrictListCodec(Codec<TElement> elementcodec)
             throws ArgumentNullException
     {

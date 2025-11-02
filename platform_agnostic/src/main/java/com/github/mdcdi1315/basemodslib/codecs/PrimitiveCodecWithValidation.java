@@ -28,7 +28,18 @@ public abstract class PrimitiveCodecWithValidation<TPR extends Number> // Only v
                 .orElse(Validate(Mapper(n.get().left().get())));
     }
 
+    /**
+     * Maps the read number into the specified numeric instance. <br />
+     * Typically, the method provides the value from mapping functions already contained in the {@link Number} class.
+     * @param number The number to map as {@link TPR}.
+     * @return The mapped numeric instance.
+     */
     protected abstract TPR Mapper(Number number);
 
+    /**
+     * Provides a routine for validating the mapped number.
+     * @param number The number to validate.
+     * @return A data result, indicating whether validation succeeded or not.
+     */
     protected abstract DataResult<TPR> Validate(TPR number);
 }

@@ -3,8 +3,6 @@ package com.github.mdcdi1315.basemodslib.world;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import com.github.mdcdi1315.basemodslib.utils.Func1ToSupplier;
-
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -34,7 +32,7 @@ public final class ForgeWorldGenRegistrar
     {
         ArgumentNullException.ThrowIfNull(name , "name");
         ArgumentNullException.ThrowIfNull(feature_type_creator, "feature_type_creator");
-        FEATURE_TYPES.register(name, new Func1ToSupplier<>(feature_type_creator));
+        FEATURE_TYPES.register(name, feature_type_creator);
     }
 
     @Override
@@ -43,7 +41,7 @@ public final class ForgeWorldGenRegistrar
     {
         ArgumentNullException.ThrowIfNull(name , "name");
         ArgumentNullException.ThrowIfNull(placement_modifier_type_creator, "placement_modifier_type_creator");
-        PLACEMENT_MODIFIER_TYPES.register(name , new Func1ToSupplier<>(placement_modifier_type_creator));
+        PLACEMENT_MODIFIER_TYPES.register(name , placement_modifier_type_creator);
     }
 
     @Override
@@ -52,7 +50,7 @@ public final class ForgeWorldGenRegistrar
     {
         ArgumentNullException.ThrowIfNull(name , "name");
         ArgumentNullException.ThrowIfNull(poi_type_creator, "poi_type_creator");
-        POI_TYPES.register(name, new Func1ToSupplier<>(poi_type_creator));
+        POI_TYPES.register(name, poi_type_creator);
     }
 
     public void RegisterToEventBus(IEventBus mod_bus)

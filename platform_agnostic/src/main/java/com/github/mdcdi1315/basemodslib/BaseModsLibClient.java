@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.Stopwatch;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.ApiStatus;
 public final class BaseModsLibClient
 {
     private static IClientModLoaderLayer layer;
+    private static volatile boolean initialized;
     private static List<IClientModInstance> mod_instances;
     // The below field is created lazily on first registration.
     // Even if the method that should call this calls in but remains null, it will keep it as null.
@@ -42,6 +44,7 @@ public final class BaseModsLibClient
             throw new InvalidOperationException("Base mods library client was touched but it should not!");
         }
         layer = null;
+        initialized = false;
         mod_instances = null;
         config_factories = null;
     }
@@ -68,6 +71,7 @@ public final class BaseModsLibClient
         em.AddEvent(ClientStoppingEvent.class);
         em.AddEvent(ClientConnectedToServerEvent.class);
         em.AddEvent(ClientDisconnectedFromServerEvent.class);
+        initialized = true;
     }
 
     /**
@@ -81,10 +85,13 @@ public final class BaseModsLibClient
     {
         ArgumentNullException.ThrowIfNull(instance, "instance");
         ArgumentNullException.ThrowIfNull(mod_object, "mod_object");
+        Stopwatch sw = Stopwatch.StartNew();
         try {
             instance.Initialize();
 
             instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
+
+            while (!initialized) { Thread.onSpinWait(); } // Wait until the library is fully initialized.
 
             layer.InitializeClientModInstance(instance, mod_object);
 
@@ -96,9 +103,15 @@ public final class BaseModsLibClient
 
             instance.OnInitializeEnd();
 
+            sw.Stop();
+
+            BaseModsLib.LOGGER.info("BASEMODSLIB: Mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
+
             mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
         } catch (Exception e) {
             var id = instance.GetModId();
+            sw.Stop();
+            BaseModsLib.LOGGER.info("BASEMODSLIB: Mod instance with ID {} failed after {} seconds." , id, sw.GetElapsed().GetTotalSeconds());
             BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot initialize client-side mod id {}!\nRethrowing the exception to the underlying mod." , id);
             throw new ModInitializationException(id, e);
         }
