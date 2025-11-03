@@ -1,6 +1,5 @@
 package com.github.mdcdi1315.basemodslib;
 
-import com.github.mdcdi1315.DotNetLayer.System.ApplicationException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
@@ -8,8 +7,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
  * Thrown when a mod managed by the Base Mods Library has failed to be initialized. <br />
  * The exception returns the actual exception thrown as well.
  */
-public final class ModInitializationException
-        extends ApplicationException
+public class ModInitializationException
+        extends BaseModsLibraryException
 {
     private final Exception ex;
     private final String offending_mod_id;

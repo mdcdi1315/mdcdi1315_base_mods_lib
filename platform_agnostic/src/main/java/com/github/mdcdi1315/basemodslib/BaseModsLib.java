@@ -86,6 +86,9 @@ public final class BaseModsLib
 
             instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
 
+            // Initialize event handling - may be needed so early to assure that all events will be properly fired later.
+            instance.RegisterEvents(GetEventsManager());
+
             layer.InitializeServerModInstance(instance, mod_object);
 
             instance.OnInitializeEnd();

@@ -61,8 +61,6 @@ public final class ForgeClientModLoaderLayer
     public void InitializeClientModInstance(IClientModInstance instance, Object mod_object) {
         IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
 
-        instance.RegisterEvents(BaseModsLib.GetEventsManager());
-
         ForgeClientArtifactsRegistrar reg = new ForgeClientArtifactsRegistrar();
 
         instance.RegisterModelDefinitions(reg);

@@ -1,13 +1,12 @@
 package com.github.mdcdi1315.basemodslib.mods;
 
-import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
-import com.github.mdcdi1315.basemodslib.commands.ICommandRegistrar;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
-import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.network.NetworkManager;
-import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.commands.ICommandRegistrar;
+import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
+import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 
 /**
  * Defines the server-side mod instance. <br />
@@ -33,12 +32,6 @@ public interface IServerModInstance
      * @param registrar The object responsible for registering items to this instance.
      */
     default void RegisterItems(IItemRegistrar registrar) {}
-
-    /**
-     * Registers events to be listened on the current server mod instance.
-     * @param manager The events manager object to use.
-     */
-    default void RegisterEvents(EventManager manager) {}
 
     /**
      * Registers other registry items far from blocks and items to Minecraft.

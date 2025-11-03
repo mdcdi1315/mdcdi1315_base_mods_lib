@@ -67,9 +67,6 @@ public final class ForgeModLoaderLayer
         IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
         String mod_id = instance.GetModId();
 
-        // Initialize event handling - may be needed so early to assure that all events will be properly fired later.
-        instance.RegisterEvents(BaseModsLib.GetEventsManager());
-
         // Initialize sensitive things - blocks, items, registries, etc.
         BlocksAndItemsRegistrar reg = new BlocksAndItemsRegistrar(mod_id);
         instance.RegisterBlocks(reg);
@@ -113,16 +110,10 @@ public final class ForgeModLoaderLayer
     @Override
     public ModdingEnvironment GetEnvironment()
     {
-        switch (FMLEnvironment.dist)
-        {
-            case CLIENT -> {
-                return ModdingEnvironment.CLIENT;
-            }
-            case DEDICATED_SERVER -> {
-                return ModdingEnvironment.SERVER;
-            }
-        }
-        return ModdingEnvironment.UNKNOWN;
+        return switch (FMLEnvironment.dist) {
+            case CLIENT -> ModdingEnvironment.CLIENT;
+            case DEDICATED_SERVER -> ModdingEnvironment.SERVER;
+        };
     }
 
     @Override

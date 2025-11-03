@@ -93,6 +93,9 @@ public final class BaseModsLibClient
 
             instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
 
+            // Initialize event handling - may be needed so early to assure that all events will be properly fired later.
+            instance.RegisterEvents(BaseModsLib.GetEventsManager());
+
             layer.InitializeClientModInstance(instance, mod_object);
 
             var config_screen = instance.RegisterConfigurationScreenFactory();

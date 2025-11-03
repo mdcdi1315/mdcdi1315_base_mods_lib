@@ -10,5 +10,6 @@ public final class FabricModEntryPoint
     @Override
     public void onInitialize() {
         BaseModsLib.InitializeBaseModsLibrary(new FabricModLoaderLayer());
+        FabricModsEntryPointsManager.InitializeServerSideMods();
     }
 }

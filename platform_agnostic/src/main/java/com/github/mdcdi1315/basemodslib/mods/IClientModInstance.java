@@ -4,7 +4,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.github.mdcdi1315.basemodslib.client.*;
 import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
-import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 
 import net.minecraft.client.gui.screens.Screen;
@@ -17,12 +16,6 @@ import net.minecraft.client.gui.screens.Screen;
 public interface IClientModInstance
     extends IModInstance
 {
-    /**
-     * Registers events to be listened on the current client mod instance.
-     * @param manager The events manager object to use.
-     */
-    default void RegisterEvents(EventManager manager) {}
-
     /**
      * Provides the logic for registering color handlers for blocks and items.
      * @param registrar The object responsible for registering color handlers for blocks and items.

@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.mods;
 
 import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 
 /**
  * Defines the base interface for mod instances. <br />
@@ -14,25 +15,25 @@ public interface IModInstance
      * Initializes the mod instance.
      * Runs initial data not specific somehow to Minecraft itself.
      */
-    default void Initialize() {
-
-    }
+    default void Initialize() {}
 
     /**
      * Called when mod's initialization has been completed.
      */
-    default void OnInitializeEnd() {
-
-    }
+    default void OnInitializeEnd() {}
 
     /**
      * Provides the configuration manager to mod instances to configure their mod configuration files. <br />
      * Override this in your mod instance to set up your configuration files.
      * @param manager The configuration files manager.
      */
-    default void SetupConfigurationFiles(ConfigManager manager) {
+    default void SetupConfigurationFiles(ConfigManager manager) {}
 
-    }
+    /**
+     * Registers events to be listened on the current mod instance.
+     * @param manager The events manager object to use.
+     */
+    default void RegisterEvents(EventManager manager) {}
 
     /**
      * Gets the current mod id for this mod instance. <br />
