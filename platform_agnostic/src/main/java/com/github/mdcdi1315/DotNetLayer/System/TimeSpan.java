@@ -529,12 +529,12 @@ public final class TimeSpan
 
     private static TimeSpan Interval(double value, double scale)
     {
-        if (Double.isNaN(value))
-        {
+        if (Double.isNaN(value)) {
             // ThrowHelper.ThrowArgumentException_Arg_CannotBeNaN();
             throw new ArgumentException("Value cannot be the NaN value.");
+        } else {
+            return IntervalFromDoubleTicks(value * scale);
         }
-        return IntervalFromDoubleTicks(value * scale);
     }
 
     private static TimeSpan IntervalFromDoubleTicks(double ticks)
@@ -709,7 +709,67 @@ public final class TimeSpan
         );
     }
 
+    /**
+     * Converts the value of the current {@link TimeSpan} object to its equivalent string representation.
+     * @return The string representation of the current {@link TimeSpan} value.
+     */
+    @Override
+    public String ToString() {
+        // See more info at https://learn.microsoft.com/en-us/dotnet/api/system.timespan.tostring?view=net-9.0 why this is implemented this way.
+        // This is the 'c' format specifier.
+        StringBuilder sb = new StringBuilder(20);
+        if (_ticks < 0) {
+            sb.append('-');
+        }
+        int days = GetDays();
+        if (days > 0) {
+            sb.append(String.format("%02d." , days));
+        }
+        sb.append(String.format("%02d:%02d:%02d", GetHours(), GetMinutes(), GetSeconds()));
+        double ts = GetTotalSeconds();
+        if ((ts = ts - (long)ts) > 0) {
+            sb.append(String.format(".%07f" , ts));
+        }
+        return sb.toString();
+    }
 
 
+    /**
+     * Compares this instance to a specified {@link TimeSpan} object and returns an integer that indicates whether this instance is shorter than, equal to, or longer than the {@link TimeSpan} object.
+     * @param other An object to compare to this instance.
+     * @return The value {@code 0} if {@code x == y};
+     *         a value less than {@code 0} if {@code x < y}; and
+     *         a value greater than {@code 0} if {@code x > y}.
+     */
+    public int CompareTo(TimeSpan other) {
+        return Long.compare(_ticks , other._ticks);
+    }
 
+    /**
+     * Compares this instance to a specified object or {@link TimeSpan} object and returns an integer that indicates whether this instance is shorter than, equal to, or longer than the specified object or TimeSpan object.
+     * @param value An object to compare, or {@code null}.
+     * @return A value ranging from -1 to 1, inclusive. 0 means that both instances are equal. 1 is returned if {@code value} is {@code null}.
+     */
+    public int CompareTo(Object value)
+    {
+        if (value == null) {
+            return 1;
+        } else if (value instanceof TimeSpan other) {
+            return (_ticks == other._ticks) ? 0 : ((_ticks > other._ticks) ? 1 : -1);
+        } else {
+            throw new ArgumentException("Argument must be another TimeSpan structure.");
+        }
+    }
+
+    /**
+     * Compares two {@link TimeSpan} values and returns an integer that indicates whether the first value is shorter than, equal to, or longer than the second value.
+     * @param t1 The first time interval to compare.
+     * @param t2 The second time interval to compare.
+     * @return The value {@code 0} if {@code x == y};
+     *         the value {@code -1} if {@code x < y}; and
+     *         the value {@code 1} if {@code x > y}.
+     */
+    public static int Compare(TimeSpan t1, TimeSpan t2) {
+        return (t1._ticks == t2._ticks) ? 0 : ((t1._ticks > t2._ticks) ? 1 : -1);
+    }
 }
