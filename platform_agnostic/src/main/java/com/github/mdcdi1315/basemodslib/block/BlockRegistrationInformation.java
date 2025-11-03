@@ -37,6 +37,6 @@ public record BlockRegistrationInformation(
     public BlockRegistrationInformation(Func2<ResourceLocation, Block> block_getter)
         throws ArgumentNullException
     {
-        this(block_getter, null);
+        this(block_getter, null, new CreativeModeTab[0]);
     }
 }

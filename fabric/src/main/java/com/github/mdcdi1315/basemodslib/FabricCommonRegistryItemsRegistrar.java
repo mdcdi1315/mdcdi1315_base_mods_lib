@@ -17,8 +17,8 @@ import com.github.mdcdi1315.basemodslib.registries.MinecraftWrappedModLoaderRegi
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
 
-import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 
 import net.minecraft.core.Registry;
@@ -75,8 +75,46 @@ public final class FabricCommonRegistryItemsRegistrar
 
         Func3<Block, ResourceLocation, Item> item_func_registration = info.item_for_block_getter();
 
-        if (item_func_registration != null) {
-            Registry.register(BuiltInRegistries.ITEM, location, item_func_registration.function(blk, location));
+        if (item_func_registration != null)
+        {
+            ModifyEntriesEventImpl implementation = new ModifyEntriesEventImpl(
+                    Registry.register(BuiltInRegistries.ITEM, location, item_func_registration.function(blk, location))
+            );
+
+            Optional<ResourceKey<CreativeModeTab>> rk;
+
+            for (var i : info.creative_mode_tabs_for_item())
+            {
+                rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(i);
+                if (rk.isEmpty()) {
+                    BaseModsLib.LOGGER.warn("Cannot get the resource key for the creative mode tab! Lookup failed.");
+                    continue;
+                }
+                ItemGroupEvents.modifyEntriesEvent(rk.get()).register(implementation);
+            }
+        }
+    }
+
+    @Override
+    public void Register(String name, ItemRegistrationInformation info)
+            throws ArgumentNullException
+    {
+        ResourceLocation location = BuildAndValidateLocation(name);
+
+        ModifyEntriesEventImpl implementation = new ModifyEntriesEventImpl(
+                Registry.register(BuiltInRegistries.ITEM, location, info.item_getter().function(location))
+        );
+
+        Optional<ResourceKey<CreativeModeTab>> rk;
+
+        for (var i : info.tabs())
+        {
+            rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(i);
+            if (rk.isEmpty()) {
+                BaseModsLib.LOGGER.warn("Cannot get the resource key for the creative mode tab! Lookup failed.");
+                continue;
+            }
+            ItemGroupEvents.modifyEntriesEvent(rk.get()).register(implementation);
         }
     }
 
@@ -169,29 +207,6 @@ public final class FabricCommonRegistryItemsRegistrar
         @Override
         public void modifyEntries(FabricItemGroupEntries entries) {
             entries.prepend(m_item);
-        }
-    }
-
-    @Override
-    public void Register(String name, ItemRegistrationInformation info)
-            throws ArgumentNullException
-    {
-        ResourceLocation location = BuildAndValidateLocation(name);
-
-        ModifyEntriesEventImpl implementation = new ModifyEntriesEventImpl(
-                Registry.register(BuiltInRegistries.ITEM, location, info.item_getter().function(location))
-        );
-
-        Optional<ResourceKey<CreativeModeTab>> rk;
-
-        for (var i : info.tabs())
-        {
-            rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(i);
-            if (rk.isEmpty()) {
-                BaseModsLib.LOGGER.warn("Cannot get the resource key for the creative mode tab! Lookup failed.");
-                continue;
-            }
-            ItemGroupEvents.modifyEntriesEvent(rk.get()).register(implementation);
         }
     }
 }

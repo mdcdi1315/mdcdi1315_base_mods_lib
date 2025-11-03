@@ -102,7 +102,8 @@ public final class BlocksAndItemsRegistrar
         var item_for_block_s = bri.item_for_block_getter();
 
         if (item_for_block_s != null) {
-            ITEM_REGISTER.register(name, new ItemAsBlockRegistrySupplier(item_for_block_s, registry_object, registry_object_location));
+            var ro = ITEM_REGISTER.register(name, new ItemAsBlockRegistrySupplier(item_for_block_s, registry_object, registry_object_location));
+            items_on_creative_tabs.Add(new Pair<>(bri.creative_mode_tabs_for_item() , ro));
         }
     }
 
