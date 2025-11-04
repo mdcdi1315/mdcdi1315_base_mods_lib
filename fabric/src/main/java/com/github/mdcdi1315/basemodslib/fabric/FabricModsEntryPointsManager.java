@@ -1,8 +1,8 @@
 package com.github.mdcdi1315.basemodslib.fabric;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 import com.github.mdcdi1315.basemodslib.EmptyModObject;
+import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 

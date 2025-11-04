@@ -7,6 +7,11 @@ import com.mojang.serialization.DataResult;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * Internal implementation class for compatibility with codecs already providing lists. <br />
+ * Use instead the {@link StrictListCodec} class.
+ * @param <T> The type of the element to de/encode.
+ */
 public final class NonEmptyListChecker<T>
     implements Function<List<T> , DataResult<List<T>>>
 {

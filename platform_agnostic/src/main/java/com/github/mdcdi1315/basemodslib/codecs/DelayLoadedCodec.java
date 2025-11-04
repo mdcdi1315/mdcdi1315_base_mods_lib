@@ -9,12 +9,21 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 
+/**
+ * Provides a codec wrapper that is delay-loaded, such as for use with registries that have not been initialized yet.
+ * @param <T> The type of the element to de/encode.
+ */
 public final class DelayLoadedCodec<T>
     implements Codec<T>
 {
     private Codec<T> actual;
     private Func1<Codec<T>> getter;
 
+    /**
+     * Constructs a new instance of the {@link DelayLoadedCodec} class, providing the supplying function that will be called once a decoding or encoding operation is requested.
+     * @param supplier The supplying function providing the actual codec to use.
+     * @throws ArgumentNullException The {@code supplier} parameter is {@code null}.
+     */
     public DelayLoadedCodec(Func1<Codec<T>> supplier)
             throws ArgumentNullException
     {

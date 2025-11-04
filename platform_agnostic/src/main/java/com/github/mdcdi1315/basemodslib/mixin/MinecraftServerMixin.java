@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.mixin;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStartedEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStartingEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStoppingEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerReloadedEvent;
@@ -33,6 +34,11 @@ public class MinecraftServerMixin
     @Inject(method = "runServer", at = @At("HEAD"))
     private void OnServerStarting(CallbackInfo callback_info) {
         BaseModsLib.GetEventsManager().FireEvent(new ServerStartingEvent((MinecraftServer) ((Object) this)));
+    }
+
+    @Inject(method = "runServer", at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/server/MinecraftServer;initServer()Z", ordinal = 0))
+    private void OnServerStarted(CallbackInfo callback_info) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStartedEvent((MinecraftServer) ((Object) this)));
     }
 
     @Unique

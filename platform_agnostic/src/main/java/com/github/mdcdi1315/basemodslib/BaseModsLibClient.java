@@ -78,6 +78,7 @@ public final class BaseModsLibClient
      * Initializes the specified mod instance on the client side of Minecraft. <br />
      * Only call this when you are initializing in a usual Minecraft client.
      * @param instance The mod instance to initialize.
+     * @param mod_object The mod object, provided by the mod loader. What will this object be depends on the mod loader that is being used.
      * @throws ArgumentNullException {@code instance} was {@code null}.
      */
     public static void InitializeClientSideMod(IClientModInstance instance, Object mod_object)

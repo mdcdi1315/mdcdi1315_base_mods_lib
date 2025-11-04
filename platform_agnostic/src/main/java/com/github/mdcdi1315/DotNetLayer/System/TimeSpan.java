@@ -447,7 +447,7 @@ public final class TimeSpan
     }
 
     /**
-     * Initializes a new instance of the <see cref="TimeSpan"/> structure to a specified number of hours.
+     * Initializes a new instance of the {@link TimeSpan} structure to a specified number of hours.
      * @param hours Number of hours.
      * @return A {@link TimeSpan} that represents a specified number of hours.
      * @throws ArgumentOutOfRangeException The parameters specify a {@link TimeSpan} value less than {@link #MinValue} or greater than {@link #MaxValue}
@@ -459,7 +459,7 @@ public final class TimeSpan
     }
 
     /**
-     * Initializes a new instance of the <see cref="TimeSpan"/> structure to a specified number of minutes.
+     * Initializes a new instance of the {@link TimeSpan} structure to a specified number of minutes.
      * @param minutes Number of minutes.
      * @return A {@link TimeSpan} that represents a specified number of minutes.
      * @throws ArgumentOutOfRangeException The parameters specify a {@link TimeSpan} value less than {@link #MinValue} or greater than {@link #MaxValue}
@@ -471,7 +471,7 @@ public final class TimeSpan
     }
 
     /**
-     * Initializes a new instance of the <see cref="TimeSpan"/> structure to a specified number of seconds.
+     * Initializes a new instance of the {@link TimeSpan} structure to a specified number of seconds.
      * @param seconds Number of seconds.
      * @return A {@link TimeSpan} that represents a specified number of seconds.
      * @throws ArgumentOutOfRangeException The parameters specify a {@link TimeSpan} value less than {@link #MinValue} or greater than {@link #MaxValue}
@@ -483,7 +483,7 @@ public final class TimeSpan
     }
 
     /**
-     * Initializes a new instance of the <see cref="TimeSpan"/> structure to a specified number of milliseconds.
+     * Initializes a new instance of the {@link TimeSpan} structure to a specified number of milliseconds.
      * @param milliseconds Number of milliseconds.
      * @return A {@link TimeSpan} that represents a specified number of milliseconds.
      * @throws ArgumentOutOfRangeException The parameters specify a {@link TimeSpan} value less than {@link #MinValue} or greater than {@link #MaxValue}
@@ -495,7 +495,7 @@ public final class TimeSpan
     }
 
     /**
-     * Initializes a new instance of the <see cref="TimeSpan"/> structure to a specified number of microseconds.
+     * Initializes a new instance of the {@link TimeSpan} structure to a specified number of microseconds.
      * @param microseconds Number of microseconds.
      * @return A {@link TimeSpan} that represents a specified number of microseconds.
      * @throws ArgumentOutOfRangeException The parameters specify a {@link TimeSpan} value less than {@link #MinValue} or greater than {@link #MaxValue}

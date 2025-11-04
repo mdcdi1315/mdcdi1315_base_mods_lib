@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Attribute
 @Documented
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.CLASS)
 @AttributeUsage(value = AttributeTargets.All)
 public @interface AttributeUsage
 {

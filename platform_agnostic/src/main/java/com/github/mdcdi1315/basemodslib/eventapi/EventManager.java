@@ -31,6 +31,7 @@ public final class EventManager
 
         // Initial events
 
+        AddEvent(ServerStartedEvent.class);
         AddEvent(ServerStartingEvent.class);
         AddEvent(ServerStoppingEvent.class);
         AddEvent(ServerReloadedEvent.class);

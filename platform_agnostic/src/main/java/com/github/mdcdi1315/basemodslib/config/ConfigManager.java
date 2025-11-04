@@ -20,6 +20,9 @@ import java.nio.file.FileSystems;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ * Manages, loads, and saves configuration files for mods.
+ */
 public final class ConfigManager
 {
     private final JsonConfigFileFormat json_file_format;
@@ -69,6 +72,15 @@ public final class ConfigManager
             T default_config
     ) {}
 
+    /**
+     * Instructs the configuration manager to track the specified configuration file by the specified parameters.
+     * @param config_class The class providing the mod's configuration data.
+     * @param config_constructor A function providing the configuration class constructor.
+     * @param file_format An instance of the {@link IConfigFileFormat} specifying the file format to use for saving and reading the configuration file.
+     * @param file_name_suffix An additional suffix in the configuration file name. This is the file's extension, such as 'json', without the dot.
+     * @param <T> The type of the configuration class to track. Must be a class implementing the {@link IModConfig} interface.
+     * @throws ArgumentNullException {@code config_class}, and/or {@code config_constructor}, and/or {@code file_format}, and/or {@code file_name_suffix} are {@code null}.
+     */
     public <T extends IModConfig> void TrackConfigurationFile(Class<T> config_class, Func1<T> config_constructor, IConfigFileFormat<?> file_format, String file_name_suffix)
             throws ArgumentNullException
     {
@@ -88,12 +100,28 @@ public final class ConfigManager
         ));
     }
 
+    /**
+     * Instructs the configuration manager to track the specified configuration file by the specified parameters. <br />
+     * The file format used is a JSON format provided by the configuration manager.
+     * @param cfg_class The class providing the mod's configuration data.
+     * @param config_constructor A function providing the configuration class constructor.
+     * @param <T> The type of the configuration class to track. Must be a class implementing the {@link IModConfig} interface.
+     * @throws ArgumentNullException {@code cfg_class}, and/or {@code config_constructor} are {@code null}.
+     */
     public <T extends IModConfig> void TrackJsonConfigurationFile(Class<T> cfg_class, Func1<T> config_constructor)
             throws ArgumentNullException
     {
         TrackConfigurationFile(cfg_class, config_constructor , json_file_format , "json");
     }
 
+    /**
+     * Loads the configuration file, and returns it. <br />
+     * If the file cannot be loaded, the exception will be reported to the error log and the default instance will be instead loaded.
+     * @param config_class The type of the configuration class to load.
+     * @return The loaded mod configuration data.
+     * @param <T> The type of the mod configuration to load and return.
+     * @throws ArgumentNullException {@code config_class} is {@code null}.
+     */
     public <T extends IModConfig> T LoadConfigurationFile(Class<T> config_class)
             throws ArgumentNullException
     {
@@ -123,6 +151,16 @@ public final class ConfigManager
         }
     }
 
+    /**
+     * Loads the configuration file, and returns it. <br />
+     * If the file cannot be loaded, the exception will be reported to the error log and the default instance will be instead loaded. <br />
+     * If the file does not exist, a new one will be created from the configuration data defaults.
+     * @param config_class The type of the configuration class to load.
+     * @return The loaded mod configuration data.
+     * @param <T> The type of the mod configuration to load and return.
+     * @throws ArgumentNullException {@code config_class} is {@code null}.
+     * @throws ConfigSaveException An exception was occurred while attempting to save the configuration file.
+     */
     public <T extends IModConfig> T LoadOrCreateConfigurationFile(Class<T> config_class)
             throws ConfigSaveException, ArgumentNullException
     {
@@ -152,6 +190,14 @@ public final class ConfigManager
         return cfg_info.default_config;
     }
 
+    /**
+     * Saves the specified configuration class.
+     * @param config_data The configuration class to save.
+     * @param <T> The configuration class type to look up before saving it.
+     * @throws ArgumentNullException {@code config_data} is {@code null}.
+     * @throws InvalidOperationException The class associated with {@code config_data} is not tracked by this configuration manager.
+     * @throws ConfigSaveException An exception was occurred while attempting to save the configuration file.
+     */
     public <T extends IModConfig> void SaveConfigurationFile(T config_data)
             throws ArgumentNullException, InvalidOperationException, ConfigSaveException
     {
@@ -163,6 +209,4 @@ public final class ConfigManager
 
         SaveConfigFileInternal(cfg_info , FileSystems.getDefault().getPath(BaseModsLib.GetModConfigurationDirectory().toString(), cfg_info.file_name()) , config_data);
     }
-
-
 }

@@ -34,7 +34,7 @@ public final class FabricNetworkBuilder
 
     public FabricNetworkBuilder(String mod_id)
     {
-        networking_location = ResourceLocation.tryBuild(this.mod_id = mod_id, "mdcdi1315_BML_networking_manager");
+        networking_location = ResourceLocation.tryBuild(this.mod_id = mod_id, "mdcdi1315_bml_networking_manager");
         client_side_info = new List<>();
         server_side_info = new List<>();
         network_version = null;

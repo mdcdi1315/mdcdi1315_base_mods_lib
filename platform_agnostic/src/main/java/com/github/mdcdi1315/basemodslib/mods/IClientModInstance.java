@@ -53,7 +53,7 @@ public interface IClientModInstance
      * @param <T> The type of the configuration screen to use.
      */
     @MaybeNull
-    default <T extends Screen> ConfigurationScreenFactory<T> RegisterConfigurationScreenFactory() {
+    default ConfigurationScreenFactory<? extends Screen> RegisterConfigurationScreenFactory() {
         return null; // Default implementation returns no factory. You must explicitly register one.
     }
 }

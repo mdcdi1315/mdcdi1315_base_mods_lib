@@ -4,6 +4,13 @@ import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 
 import com.mojang.serialization.DataResult;
 
+/**
+ * Provides the implementation for decoding floating-point probability values,
+ * that are values ranging from 0 to 1. <br />
+ * It is preferable to use this implementation instead of the float range codec because that one allocates two codec instances,
+ * while this class incorporates both functionalities in one class instance. <br />
+ * Finally, you should obtain an instance of this class by the singleton provided in {@link CodecUtils} class, namely the {@link CodecUtils#FLOAT_PROBABILITY} field.
+ */
 public final class FloatProbabilityCodec
     extends PrimitiveCodecWithValidation<Float>
 {

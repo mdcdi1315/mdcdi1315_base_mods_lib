@@ -1,18 +1,15 @@
-package com.github.mdcdi1315.basemodslib;
+package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
 
+import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
-import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
-import com.github.mdcdi1315.basemodslib.registries.IModLoaderRegistry;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
-import com.github.mdcdi1315.basemodslib.registries.RegistryObjectSupplier;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
-import com.github.mdcdi1315.basemodslib.registries.MinecraftWrappedModLoaderRegistry;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
@@ -26,6 +23,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.WritableRegistry;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -206,7 +204,9 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         @Override
         public void modifyEntries(FabricItemGroupEntries entries) {
-            entries.prepend(m_item);
+            ItemStack is = new ItemStack(m_item);
+            entries.getDisplayStacks().add(is);
+            entries.getSearchTabStacks().add(is);
         }
     }
 }

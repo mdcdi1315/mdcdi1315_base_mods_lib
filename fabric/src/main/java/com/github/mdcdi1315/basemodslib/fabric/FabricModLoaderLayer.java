@@ -8,6 +8,8 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.*;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
 import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
+import com.github.mdcdi1315.basemodslib.network.FabricNetworkBuilder;
+import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
@@ -58,22 +60,9 @@ public final class FabricModLoaderLayer
             throw new InvalidOperationException("Cannot construct the mod version verifier channel!");
         }
 
-        var loader = FabricLoader.getInstance();
         mod_ids = new ArrayList<>(10);
         networking_versions_map = new HashMap<>(10);
-        for (ModContainer ctr : loader.getAllMods()) {
-            ModMetadata mm = ctr.getMetadata();
-            String id = mm.getId();
-            CustomValue cv = mm.getCustomValue("mdcdi1315_BML_net_version");
-            mod_ids.add(id);
-            if (cv != null) {
-                try {
-                    networking_versions_map.put(id, Version.Parse(cv.getAsString()));
-                } catch (Exception e) {
-                    BaseModsLib.LOGGER.warn("BASEMODSLIB_NETWORK: Cannot get version string from the mod {}!!\nAssuming that the mod has not set a network version.\nException: {}", id , e);
-                }
-            }
-        }
+        var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
@@ -117,19 +106,28 @@ public final class FabricModLoaderLayer
 
     private void ServerModInfoPacketHandler(ServerPlayer sp , ServerBoundModInfoPacket p)
     {
-        Version found_net_version = networking_versions_map.get(p.Mod_ID);
-        if (found_net_version == null || !p.AllowedOnClient())
+        Version found_net_version = null; // Server mod networking version
+        // Lookup stored networking version.
+        for (var i : networking_versions_map.entrySet())
         {
-            // The client requires the server mod to have implemented but that was not found. Kick the offending player from the server.
-            sp.connection.disconnect(Component.translatable(
-                    "mdcdi1315_base_mods_lib.disconnect_mod_missing",
-                    p.Mod_ID
-            ));
-
-            return;
+            if (p.Mod_ID.equals(i.getKey())) {
+                found_net_version = i.getValue();
+                break;
+            }
         }
-
-        if (!p.AllowedOnServer() && !found_net_version.Equals(p.Mod_Network_Version))
+        // If we have a null version it means that the mod is absent on server side. Check if we can continue.
+        if (found_net_version == null) {
+            if (!p.AllowedOnClient()) {
+                // The client requires the server mod to have been implemented but that was not found. Kick the offending player from the server.
+                sp.connection.disconnect(
+                        Component.translatable(
+                                "mdcdi1315_base_mods_lib.disconnect_mod_missing",
+                                p.Mod_ID
+                        )
+                );
+                return;
+            }
+        } else if (!p.AllowedOnServer() && !found_net_version.Equals(p.Mod_Network_Version)) // If the mod requires exact version, we must negotiate it.
         {
             sp.connection.disconnect(
                     Component.translatable(
@@ -139,22 +137,13 @@ public final class FabricModLoaderLayer
                             found_net_version
                     )
             );
+            return;
         }
+        BaseModsLib.LOGGER.info("NETWORKING_MANAGER: ModInfoPacket: Successfully negotiated mod ID {} with client version {} to server mod version {}" , p.Mod_ID , p.Mod_Network_Version , found_net_version == null ? "<Non-existent>" : found_net_version);
     }
 
     private void Client_RegisterModInfoHandshakePacketOnServerConnection(ServerBoundModInfoPacket p) {
-        BaseModsLib.GetEventsManager().AddEventListener(ClientConnectedToServerEvent.class, new ClientConnectedToServer_DispatchModInfoPacketImpl(p , mod_verifier_channel_name));
-    }
-
-    private record ClientConnectedToServer_DispatchModInfoPacketImpl(ServerBoundModInfoPacket packet, ResourceLocation identifier)
-        implements Action1<ClientConnectedToServerEvent>
-    {
-        @Override
-        public void action(ClientConnectedToServerEvent obj) {
-            FriendlyByteBuf buffer = PacketByteBufs.create();
-            ServerBoundModInfoPacket.Encode(packet , buffer);
-            ClientPlayNetworking.send(identifier, buffer);
-        }
+        FabricClientModLoaderLayer.RegisterModInfoPacketDispatcher(p , mod_verifier_channel_name);
     }
 
     @Override
@@ -181,8 +170,11 @@ public final class FabricModLoaderLayer
 
         var builder = manager.GetBuilderAndDestroy();
         manager.InitializeNetworkManager(builder);
-        if (builder != null && environment == ModdingEnvironment.CLIENT) {
-            Client_RegisterModInfoHandshakePacketOnServerConnection(manager.Mod_Info);
+        if (builder != null) {
+            networking_versions_map.put(manager.Mod_Info.Mod_ID, manager.Mod_Info.Mod_Network_Version);
+            if (environment == ModdingEnvironment.CLIENT) {
+                Client_RegisterModInfoHandshakePacketOnServerConnection(manager.Mod_Info);
+            }
         }
 
 

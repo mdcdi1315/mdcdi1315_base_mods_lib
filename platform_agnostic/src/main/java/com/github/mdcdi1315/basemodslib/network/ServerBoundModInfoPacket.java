@@ -20,16 +20,16 @@ public final class ServerBoundModInfoPacket
     private byte Allow_Flags;
 
     /**
-     * Gets a value whether is not required for the client to have the specified mod networking version.
-     * @return A value whether is not required for the client to have the specified mod networking version.
+     * Gets a value whether is not required for the client the server to have the specified mod networking version.
+     * @return A value whether is not required for the client the server to have the specified mod networking version.
      */
     public boolean AllowedOnClient() {
         return (Allow_Flags & ALLOW_FLAG_CLIENT) != 0;
     }
 
     /**
-     * Gets a value whether is not required for the server to have the specified mod networking version.
-     * @return A value whether is not required for the server to have the specified mod networking version.
+     * Gets a value whether is not required for the server the client to have the specified mod networking version.
+     * @return A value whether is not required for the server the client to have the specified mod networking version.
      */
     public boolean AllowedOnServer() {
         return (Allow_Flags & ALLOW_FLAG_SERVER) != 0;

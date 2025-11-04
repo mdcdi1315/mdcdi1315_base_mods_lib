@@ -35,7 +35,7 @@ public final class ForgeSimpleChannelNetworkBuilder
     private static boolean VersionAlwaysPassPredicate(String s) { return true; }
 
     public ForgeSimpleChannelNetworkBuilder(String mod_id) {
-        manager_channel_location = ResourceLocation.tryBuild(mod_id, "mdcdi1315_BML_networking_manager");
+        manager_channel_location = ResourceLocation.tryBuild(mod_id, "mdcdi1315_bml_networking_manager");
         client_packet_reg_info = new List<>();
         server_packet_reg_info = new List<>();
         network_version = null;

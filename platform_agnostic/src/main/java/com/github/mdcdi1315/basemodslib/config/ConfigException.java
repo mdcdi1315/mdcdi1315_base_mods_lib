@@ -12,6 +12,10 @@ import com.github.mdcdi1315.basemodslib.BaseModsLibraryException;
 public class ConfigException
     extends BaseModsLibraryException
 {
+    /**
+     * Gets the cause of the exception that caused this object to be created. <br />
+     * Can be null if no such exception object is found.
+     */
     @AllowNull
     protected final Exception cause;
 
@@ -28,6 +32,10 @@ public class ConfigException
         cause = inner;
     }
 
+    /**
+     * Gets the cause of this exception, if any.
+     * @return The {@link Exception} instance that caused this {@link ConfigException} object to be created.
+     */
     @MaybeNull
     public Exception GetCause() {
         return cause;

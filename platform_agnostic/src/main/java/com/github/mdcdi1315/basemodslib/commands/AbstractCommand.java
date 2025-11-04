@@ -31,11 +31,19 @@ public abstract class AbstractCommand
         name = commandname;
     }
 
+    /**
+     * Internal implementation detail. Do not use.
+     * @param dispatcher The command dispatcher to use.
+     */
     public void RegisterToDispatcher(@DisallowNull CommandDispatcher<CommandSourceStack> dispatcher)
     {
         dispatcher.register(CommandImplementation(Commands.literal(name)));
     }
 
+    /**
+     * Internal implementation detail. Do not use.
+     * @param builder The command builder to use.
+     */
     public LiteralArgumentBuilder<CommandSourceStack> RegisterByBuilder(@DisallowNull LiteralArgumentBuilder<CommandSourceStack> builder)
     {
         return builder.then(CommandImplementation(Commands.literal(name)));

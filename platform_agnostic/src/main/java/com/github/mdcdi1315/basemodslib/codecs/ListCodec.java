@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Provides a default implementation of the {@link AbstractListCodec} class. <br />
  * The list is de/encoded into {@link ImmutableList} instances.
- * @param <TElement>
+ * @param <TElement> The type of the elements to decode as a list.
  */
 public class ListCodec<TElement>
     extends AbstractListCodec<TElement , List<TElement>>

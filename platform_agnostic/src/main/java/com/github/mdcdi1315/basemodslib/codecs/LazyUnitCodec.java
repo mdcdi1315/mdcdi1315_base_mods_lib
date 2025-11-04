@@ -21,6 +21,11 @@ public final class LazyUnitCodec<T>
     private T value;
     private Func1<T> value_getter;
 
+    /**
+     * Creates a new instance of the {@link LazyUnitCodec} class from the specified supplying function that will be called only at the first time a decoding request is acknowledged.
+     * @param getter The supplying function providing the type {@link T}.
+     * @throws ArgumentNullException {@code getter} is {@code null}.
+     */
     public LazyUnitCodec(Func1<T> getter)
             throws ArgumentNullException
     {
@@ -29,6 +34,11 @@ public final class LazyUnitCodec<T>
         value_getter = getter;
     }
 
+    /**
+     * Creates a new instance of the {@link LazyUnitCodec} class directly from the specified value.
+     * @param direct_value The value to initialize this codec class instance from.
+     * @throws ArgumentNullException {@code direct_value} is {@code null}.
+     */
     public LazyUnitCodec(T direct_value)
             throws ArgumentNullException
     {

@@ -1,16 +1,69 @@
 package com.github.mdcdi1315.basemodslib.fabric;
 
+import com.github.mdcdi1315.DotNetLayer.System.Action1;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.EmptyModObject;
+import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
+import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.client.FabricClientArtifactsRegistrar;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 
+import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
+
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+
+@ClientOnlyEnvironment
 public final class FabricClientModLoaderLayer
     implements IClientModLoaderLayer
 {
+    private static List<ClientConnectedToServer_DispatchModInfoPacketImpl> mod_info_packet_events;
+
+    static {
+        mod_info_packet_events = new List<>(3);
+    }
+
+    public static void RegisterModInfoPacketDispatcher(ServerBoundModInfoPacket packet, ResourceLocation id) {
+        mod_info_packet_events.Add(new ClientConnectedToServer_DispatchModInfoPacketImpl(packet , id));
+    }
+
+    private record ClientConnectedToServer_DispatchModInfoPacketImpl(ServerBoundModInfoPacket packet, ResourceLocation identifier)
+            implements Action1<ClientConnectedToServerEvent>
+    {
+        @Override
+        public void action(ClientConnectedToServerEvent obj) {
+            FriendlyByteBuf buffer = PacketByteBufs.create();
+            ServerBoundModInfoPacket.Encode(packet , buffer);
+            ClientPlayNetworking.send(identifier, buffer);
+        }
+    }
+
+    public FabricClientModLoaderLayer() {
+        BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, FabricClientModLoaderLayer::OnModLoadingComplete);
+    }
+
+    private static void OnModLoadingComplete(ModLoadingCompleteEvent evt)
+    {
+        var em = BaseModsLib.GetEventsManager();
+        var en = mod_info_packet_events.GetEnumerator();
+        try {
+            while (en.MoveNext()) {
+                em.AddEventListener(ClientConnectedToServerEvent.class , en.getCurrent());
+            }
+        } finally {
+            en.Dispose();
+        }
+        mod_info_packet_events = null;
+    }
+
     @Override
     public void InitializeClientModInstance(IClientModInstance instance, Object o) {
         if (!(o instanceof EmptyModObject)) {

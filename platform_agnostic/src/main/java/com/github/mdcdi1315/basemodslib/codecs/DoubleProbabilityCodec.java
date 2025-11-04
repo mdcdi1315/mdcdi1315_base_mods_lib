@@ -4,6 +4,10 @@ import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 
 import com.mojang.serialization.DataResult;
 
+/**
+ * Provides the probability codec implementation for double-precision floating-point numbers,
+ * see {@link FloatProbabilityCodec} class for more information about this.
+ */
 public final class DoubleProbabilityCodec
     extends PrimitiveCodecWithValidation<Double>
 {

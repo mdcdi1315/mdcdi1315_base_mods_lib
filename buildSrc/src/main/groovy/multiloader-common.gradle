@@ -97,6 +97,7 @@ processResources {
             'minecraft_version_range'      : minecraft_version_range,
             'fabric_version'               : fabric_version,
             'fabric_loader_version'        : fabric_loader_version,
+            'mod_menu_version'             : mod_menu_version,
             'mod_name'                     : mod_name,
             'mod_author'                   : mod_author,
             'mod_id'                       : mod_id,

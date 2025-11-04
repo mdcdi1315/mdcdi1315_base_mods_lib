@@ -21,7 +21,7 @@ import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 
 @ClientOnlyEnvironment
-public class FabricClientArtifactsRegistrar
+public final class FabricClientArtifactsRegistrar
     implements IEntityRendererRegistrar,
         IBlockEntityRendererRegistrar,
         IModelDefinitionRegistrar,
