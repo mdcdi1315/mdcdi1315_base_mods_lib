@@ -10,7 +10,7 @@ plugins {
 }
 
 base {
-    archivesName = "${mod_id}-Fabric-${minecraft_version}-${release_cycle}";
+    archivesName = "${mod_id}-fabric-${minecraft_version}-${release_cycle}";
 }
 
 dependencies {

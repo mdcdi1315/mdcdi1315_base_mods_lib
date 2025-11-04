@@ -4,7 +4,8 @@ plugins {
     id 'multiloader-loader'
     id 'com.modrinth.minotaur'
     id 'net.darkhax.curseforgegradle'
-    id 'net.neoforged.moddev.legacyforge'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.spongepowered.mixin' version '0.7-SNAPSHOT'
 }
 
 mixin {
@@ -16,38 +17,62 @@ mixin {
 }
 
 base {
-    archivesName = "${mod_id}-Forge-${minecraft_version}-${release_cycle}"
+    archivesName = "${mod_id}-forge-${minecraft_version}-${release_cycle}"
 }
 
-legacyForge {
-    version = "${minecraft_version}-${forge_version}"
+minecraft {
+    mappings channel: 'official', version: minecraft_version
 
-    validateAccessTransformers = true
+    reobf = false
 
-    def at = project(':platform_agnostic').file('src/main/resources/META-INF/accesstransformer.cfg')
+    copyIdeResources = true
+
+    // Automatically enable forge AccessTransformers if the file exists
+    def at = file('src/main/resources/META-INF/accesstransformer.cfg')
     if (at.exists()) {
-        accessTransformers = ["src/main/resources/META-INF/accesstransformer.cfg"]
-    }
-
-    parchment {
-        minecraftVersion = parchment_minecraft
-        mappingsVersion = parchment_version
+        accessTransformer = at
     }
 
     runs {
         client {
-            client()
+            workingDirectory file('runs/client')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName "Client"
+
+            property 'forge.enabledGameTestNamespaces', mod_id
+
+            mods {
+                modClientRun {
+                    source sourceSets.main
+                }
+            }
         }
+
         server {
-            server()
+            workingDirectory file('runs/server')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName "Server"
+
+            property 'forge.enabledGameTestNamespaces', mod_id
+
+            mods {
+                modServerRun {
+                    source sourceSets.main
+                }
+            }
         }
+
         data {
-            data()
-        }
-    }
-    mods {
-        "${mod_id}" {
-            sourceSet sourceSets.main
+            workingDirectory file('runs/data')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            taskName "Data"
+
+            mods {
+                modDataRun {
+                    source sourceSets.main
+                }
+            }
         }
     }
 }
@@ -55,6 +80,7 @@ legacyForge {
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
 }
 
@@ -82,7 +108,6 @@ task curseforge(type: TaskPublishCurseForge) {
     if (projectId) {
         def mainFile = upload(findProperty("curseforge_project_id"), file("${project.buildDir}/libs/${base.archivesName}-${version}.jar"))
         mainFile.changelog = rootProject.file('CHANGELOG.md').text
-        mainFile.addRequirement("mdcdi1315_base_mods_lib")
         project.minecraft_versions.split(',').toList().each { mainFile.addGameVersion(it) }
         mainFile.releaseType = "release"
     }
@@ -98,7 +123,4 @@ modrinth {
     gameVersions = project.minecraft_versions.split(',').toList()
     syncBodyFrom = rootProject.file("modpage.md").text
     loaders = ['forge']
-    dependencies {
-        required.project "mdcdi1315_base_mods_lib"
-    }
 }
