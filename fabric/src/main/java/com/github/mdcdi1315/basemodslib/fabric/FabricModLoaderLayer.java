@@ -1,31 +1,23 @@
 package com.github.mdcdi1315.basemodslib.fabric;
 
-import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.*;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
-import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
-import com.github.mdcdi1315.basemodslib.network.FabricNetworkBuilder;
-import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.commands.FabricCommandsRegistrar;
+import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStoppingEvent;
+import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModMetadata;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -117,7 +109,7 @@ public final class FabricModLoaderLayer
         }
         // If we have a null version it means that the mod is absent on server side. Check if we can continue.
         if (found_net_version == null) {
-            if (!p.AllowedOnClient()) {
+            if (!p.OptionalOnClient()) {
                 // The client requires the server mod to have been implemented but that was not found. Kick the offending player from the server.
                 sp.connection.disconnect(
                         Component.translatable(
@@ -127,7 +119,7 @@ public final class FabricModLoaderLayer
                 );
                 return;
             }
-        } else if (!p.AllowedOnServer() && !found_net_version.Equals(p.Mod_Network_Version)) // If the mod requires exact version, we must negotiate it.
+        } else if (!p.OptionalOnServer() && !found_net_version.Equals(p.Mod_Network_Version)) // If the mod requires exact version, we must negotiate it.
         {
             sp.connection.disconnect(
                     Component.translatable(

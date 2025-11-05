@@ -50,13 +50,13 @@ public final class ForgeSimpleChannelNetworkBuilder
     }
 
     @Override
-    public void AllowServerOnly() {
-        server_version_predicate = ForgeSimpleChannelNetworkBuilder::VersionAlwaysPassPredicate;
+    public void DeclareClientOptionalPresence() {
+        client_version_predicate = ForgeSimpleChannelNetworkBuilder::VersionAlwaysPassPredicate;
     }
 
     @Override
-    public void AllowClientOnly() {
-        client_version_predicate = ForgeSimpleChannelNetworkBuilder::VersionAlwaysPassPredicate;
+    public void DeclareServerOptionalPresence() {
+        server_version_predicate = ForgeSimpleChannelNetworkBuilder::VersionAlwaysPassPredicate;
     }
 
     @Override

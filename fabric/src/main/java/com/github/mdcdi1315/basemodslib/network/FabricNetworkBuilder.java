@@ -12,13 +12,13 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 import java.util.HashMap;
 
@@ -28,13 +28,11 @@ public final class FabricNetworkBuilder
     private String mod_id;
     private boolean aso, aco;
     private Version network_version;
-    private final ResourceLocation networking_location;
     private List<ClientSideNetworkPacketRegistrationInfo<?>> client_side_info;
     private List<ServerSideNetworkPacketRegistrationInfo<?>> server_side_info;
 
     public FabricNetworkBuilder(String mod_id)
     {
-        networking_location = ResourceLocation.tryBuild(this.mod_id = mod_id, "mdcdi1315_bml_networking_manager");
         client_side_info = new List<>();
         server_side_info = new List<>();
         network_version = null;
@@ -51,13 +49,13 @@ public final class FabricNetworkBuilder
     }
 
     @Override
-    public void AllowServerOnly() {
-        aso = true;
+    public void DeclareClientOptionalPresence() {
+        aco = true;
     }
 
     @Override
-    public void AllowClientOnly() {
-        aco = true;
+    public void DeclareServerOptionalPresence() {
+        aso = true;
     }
 
     @Override
@@ -126,10 +124,7 @@ public final class FabricNetworkBuilder
 
     public void Build(FabricBasedNetworkManager manager)
     {
-        if (network_version == null) {
-            network_version = new Version(1, 0);
-        }
-        manager.Mod_Info = new ServerBoundModInfoPacket(mod_id, network_version, aco, aso);
+        manager.Mod_Info = new ServerBoundModInfoPacket(mod_id, network_version == null ? new Version(1, 0) : network_version, aco, aso);
         manager.Packet_IDs = new HashMap<>(client_side_info.getCount() + server_side_info.getCount());
         int packet_ordinal = 0;
         ResourceLocation temp_location;
