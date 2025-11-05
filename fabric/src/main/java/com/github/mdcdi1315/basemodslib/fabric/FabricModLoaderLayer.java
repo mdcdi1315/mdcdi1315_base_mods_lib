@@ -39,7 +39,7 @@ public final class FabricModLoaderLayer
 
     public FabricModLoaderLayer()
     {
-        minecraft_version = new Version(1, 20, 1);
+        minecraft_version = new Version(1, 21, 1);
 
         mod_ids = new ArrayList<>(10);
         networking_versions_map = new HashMap<>(10);
@@ -101,7 +101,7 @@ public final class FabricModLoaderLayer
         }
         // If we have a null version it means that the mod is absent on server side. Check if we can continue.
         if (found_net_version == null) {
-            if (!p.AllowedOnClient()) {
+            if (!p.OptionalOnClient()) {
                 // The client requires the server mod to have been implemented but that was not found. Kick the offending player from the server.
                 sp.connection.disconnect(
                         Component.translatable(
@@ -111,7 +111,7 @@ public final class FabricModLoaderLayer
                 );
                 return;
             }
-        } else if (!p.AllowedOnServer() && !found_net_version.Equals(p.Mod_Network_Version)) // If the mod requires exact version, we must negotiate it.
+        } else if (!p.OptionalOnServer() && !found_net_version.Equals(p.Mod_Network_Version)) // If the mod requires exact version, we must negotiate it.
         {
             sp.connection.disconnect(
                     Component.translatable(

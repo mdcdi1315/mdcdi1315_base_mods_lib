@@ -4,10 +4,11 @@ import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * A special packet class used for dispatching the network versions for a given mod - dispatched once a player connects to a server. <br />
@@ -20,6 +21,11 @@ public final class ServerBoundModInfoPacket
     private static final byte ALLOW_FLAG_CLIENT = 1 << 0, ALLOW_FLAG_SERVER = 1 << 1;
 
     public static final ResourceLocation LOCATION = ResourceLocation.tryBuild("mdcdi1315_base_mods_lib", "mod_version_verifier");
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return new Type<>(LOCATION);
+    }
 
     public static final class NetCodec
             implements StreamCodec<RegistryFriendlyByteBuf, ServerBoundModInfoPacket>
@@ -49,7 +55,7 @@ public final class ServerBoundModInfoPacket
      * Gets a value whether is not required for the client the server to have the specified mod networking version.
      * @return A value whether is not required for the client the server to have the specified mod networking version.
      */
-    public boolean AllowedOnClient() {
+    public boolean OptionalOnClient() {
         return (Allow_Flags & ALLOW_FLAG_CLIENT) != 0;
     }
 
@@ -57,7 +63,7 @@ public final class ServerBoundModInfoPacket
      * Gets a value whether is not required for the server the client to have the specified mod networking version.
      * @return A value whether is not required for the server the client to have the specified mod networking version.
      */
-    public boolean AllowedOnServer() {
+    public boolean OptionalOnServer() {
         return (Allow_Flags & ALLOW_FLAG_SERVER) != 0;
     }
 
@@ -90,10 +96,5 @@ public final class ServerBoundModInfoPacket
         if (server) {
             Allow_Flags |= ALLOW_FLAG_SERVER;
         }
-    }
-
-    @Override
-    public Type<ServerBoundModInfoPacket> type() {
-        return new Type<>(LOCATION);
     }
 }

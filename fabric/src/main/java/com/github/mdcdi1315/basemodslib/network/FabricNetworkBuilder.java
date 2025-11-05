@@ -45,14 +45,15 @@ public final class FabricNetworkBuilder
     }
 
     @Override
-    public void AllowServerOnly() {
-        aso = true;
+    public void DeclareClientOptionalPresence() {
+        aco = true;
     }
 
     @Override
-    public void AllowClientOnly() {
-        aco = true;
+    public void DeclareServerOptionalPresence() {
+        aso = true;
     }
+
 
     @Override
     public <T extends CustomPacketPayload> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info)

@@ -95,7 +95,7 @@ public final class BaseModsLib
 
             sw.Stop();
 
-            LOGGER.info("BASEMODSLIB: Mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
+            LOGGER.info("BASEMODSLIB: Server mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
             mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
         } catch (Exception e) {
