@@ -31,18 +31,16 @@ public final class FabricClientModLoaderLayer
         mod_info_packet_events = new List<>(3);
     }
 
-    public static void RegisterModInfoPacketDispatcher(ServerBoundModInfoPacket packet, ResourceLocation id) {
-        mod_info_packet_events.Add(new ClientConnectedToServer_DispatchModInfoPacketImpl(packet , id));
+    public static void RegisterModInfoPacketDispatcher(ServerBoundModInfoPacket packet) {
+        mod_info_packet_events.Add(new ClientConnectedToServer_DispatchModInfoPacketImpl(packet));
     }
 
-    private record ClientConnectedToServer_DispatchModInfoPacketImpl(ServerBoundModInfoPacket packet, ResourceLocation identifier)
+    private record ClientConnectedToServer_DispatchModInfoPacketImpl(ServerBoundModInfoPacket packet)
             implements Action1<ClientConnectedToServerEvent>
     {
         @Override
         public void action(ClientConnectedToServerEvent obj) {
-            FriendlyByteBuf buffer = PacketByteBufs.create();
-            ServerBoundModInfoPacket.Encode(packet , buffer);
-            ClientPlayNetworking.send(identifier, buffer);
+            ClientPlayNetworking.send(packet);
         }
     }
 

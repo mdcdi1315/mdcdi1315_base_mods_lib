@@ -17,9 +17,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.chunk.LevelChunk;
 
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.SimpleChannel;
 import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.function.Supplier;
 

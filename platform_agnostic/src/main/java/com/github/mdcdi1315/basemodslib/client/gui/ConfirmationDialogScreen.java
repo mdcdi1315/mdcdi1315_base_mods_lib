@@ -132,7 +132,7 @@ public final class ConfirmationDialogScreen
     @Override
     public void render(GuiGraphics gc, int mouseX, int mouseY, float partialTick)
     {
-        renderBackground(gc);
+        renderBackground(gc , mouseX, mouseY, partialTick);
 
         // Render title
 

@@ -6,6 +6,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.server.PlayerDisconnectedFromSe
 
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.PlayerList;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,7 +19,7 @@ public class PlayerListMixin
 {
     // Inject this on tail to avoid possible race conditions if an event handler dispatches disconnection from this.
     @Inject(method = "placeNewPlayer", at = @At("TAIL"))
-    private void OnNewPlayerConnected(Connection netManager, ServerPlayer player, CallbackInfo ci)
+    private void OnNewPlayerConnected(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci)
     {
         BaseModsLib.LOGGER.debug("EVENTS_MANAGER: A new player was successfully connected. Dispatching player connection event.");
         BaseModsLib.GetEventsManager().FireEvent(new NewPlayerConnectedToServerEvent(player));

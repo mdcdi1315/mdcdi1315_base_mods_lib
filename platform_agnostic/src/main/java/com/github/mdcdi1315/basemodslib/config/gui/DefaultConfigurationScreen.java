@@ -100,7 +100,7 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
         back_button = Button.builder(Component.translatable("mdcdi1315_base_mods_lib.config.default_config_screen.exit_button"), this::OnButtonFiredEvent)
                 .bounds(apply_changes_button_x + 90 + 10, common_down_y, 90 , 20)
                 .build();
-        list = new SettingsModifierList(minecraft, width, common_down_y-10, 25 , common_down_y - 30);
+        list = new SettingsModifierList(minecraft, width, common_down_y-10, 25);
         list.CreateFromRecord(mod_id, ConfigSerializationHelpers.GetConfigData(cfg));
         addRenderableWidget(list);
         addRenderableWidget(back_button);
@@ -115,7 +115,7 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
-        renderBackground(guiGraphics);
+        renderBackground(guiGraphics, mouseX , mouseY , partialTick);
 
         // Render title
 

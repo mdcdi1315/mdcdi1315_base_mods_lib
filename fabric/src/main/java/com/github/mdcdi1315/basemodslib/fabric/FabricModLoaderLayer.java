@@ -1,38 +1,26 @@
 package com.github.mdcdi1315.basemodslib.fabric;
 
-import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.*;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
-import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
-import com.github.mdcdi1315.basemodslib.network.FabricNetworkBuilder;
-import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.commands.FabricCommandsRegistrar;
+import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStoppingEvent;
-
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import java.util.Map;
 import java.util.List;
@@ -46,19 +34,12 @@ public final class FabricModLoaderLayer
     private final Path config_dir;
     private final List<String> mod_ids;
     private final ModdingEnvironment environment;
-    private final ResourceLocation mod_verifier_channel_name;
     private final Map<String, Version> networking_versions_map;
     private final Version minecraft_version, fabric_modloader_version;
 
     public FabricModLoaderLayer()
     {
         minecraft_version = new Version(1, 20, 1);
-
-        mod_verifier_channel_name = ResourceLocation.tryBuild("mdcdi1315_base_mods_lib", "mod_version_verifier");
-
-        if (mod_verifier_channel_name == null) {
-            throw new InvalidOperationException("Cannot construct the mod version verifier channel!");
-        }
 
         mod_ids = new ArrayList<>(10);
         networking_versions_map = new HashMap<>(10);
@@ -79,8 +60,10 @@ public final class FabricModLoaderLayer
 
         fabric_modloader_version = fb_ver;
 
+        var mod_verifier_type = new CustomPacketPayload.Type<ServerBoundModInfoPacket>(ServerBoundModInfoPacket.LOCATION);
+        PayloadTypeRegistry.playS2C().register(mod_verifier_type , new ServerBoundModInfoPacket.NetCodec());
         ServerPlayNetworking.registerGlobalReceiver(
-                mod_verifier_channel_name,
+                mod_verifier_type,
                 new ChannelHandler(this::ServerModInfoPacketHandler)
         );
 
@@ -91,17 +74,18 @@ public final class FabricModLoaderLayer
     }
 
     private record ChannelHandler(Action2<ServerPlayer , ServerBoundModInfoPacket> action)
-        implements ServerPlayNetworking.PlayChannelHandler
+        implements ServerPlayNetworking.PlayPayloadHandler<ServerBoundModInfoPacket>
     {
         @Override
-        public void receive(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-            server.execute(new Action2ToRunnable<>(action, player, ServerBoundModInfoPacket.Decode(buf)));
+        public void receive(ServerBoundModInfoPacket payload, ServerPlayNetworking.Context context) {
+            var server = context.server();
+            server.execute(new Action2ToRunnable<>(action, context.player(), payload));
         }
     }
 
     private void OnServerClosing(ServerStoppingEvent sse) {
         BaseModsLib.LOGGER.debug("Unregistering mod verifier network handler.");
-        ServerPlayNetworking.unregisterGlobalReceiver(mod_verifier_channel_name);
+        ServerPlayNetworking.unregisterGlobalReceiver(ServerBoundModInfoPacket.LOCATION);
     }
 
     private void ServerModInfoPacketHandler(ServerPlayer sp , ServerBoundModInfoPacket p)
@@ -143,7 +127,7 @@ public final class FabricModLoaderLayer
     }
 
     private void Client_RegisterModInfoHandshakePacketOnServerConnection(ServerBoundModInfoPacket p) {
-        FabricClientModLoaderLayer.RegisterModInfoPacketDispatcher(p , mod_verifier_channel_name);
+        FabricClientModLoaderLayer.RegisterModInfoPacketDispatcher(p);
     }
 
     @Override

@@ -1,23 +1,22 @@
 package com.github.mdcdi1315.basemodslib.network;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record ServerSideNetworkPacketRegistrationInfo<T>(
+public record ServerSideNetworkPacketRegistrationInfo<T extends CustomPacketPayload>(
         Class<T> cls,
-        @NotNull Action2<T, FriendlyByteBuf> encode_function,
-        @NotNull Func2<FriendlyByteBuf, T> decode_function,
+        @NotNull StreamCodec<RegistryFriendlyByteBuf , T> codec,
         @NotNull Action2<ServerPlayer, T> handler
 ) {
     public ServerSideNetworkPacketRegistrationInfo {
         ArgumentNullException.ThrowIfNull(cls,"cls");
-        ArgumentNullException.ThrowIfNull(encode_function, "encode_function");
-        ArgumentNullException.ThrowIfNull(decode_function, "decode_function");
+        ArgumentNullException.ThrowIfNull(codec , "codec");
         ArgumentNullException.ThrowIfNull(handler, "handler");
     }
 }

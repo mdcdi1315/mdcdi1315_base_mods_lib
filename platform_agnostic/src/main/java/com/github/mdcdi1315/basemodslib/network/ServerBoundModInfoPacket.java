@@ -4,7 +4,10 @@ import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /**
  * A special packet class used for dispatching the network versions for a given mod - dispatched once a player connects to a server. <br />
@@ -12,8 +15,31 @@ import net.minecraft.network.FriendlyByteBuf;
  * Users of this class must actually provide the method that verifies the version correctness on server side.
  */
 public final class ServerBoundModInfoPacket
+    implements CustomPacketPayload
 {
     private static final byte ALLOW_FLAG_CLIENT = 1 << 0, ALLOW_FLAG_SERVER = 1 << 1;
+
+    public static final ResourceLocation LOCATION = ResourceLocation.tryBuild("mdcdi1315_base_mods_lib", "mod_version_verifier");
+
+    public static final class NetCodec
+            implements StreamCodec<RegistryFriendlyByteBuf, ServerBoundModInfoPacket>
+    {
+        @Override
+        public ServerBoundModInfoPacket decode(RegistryFriendlyByteBuf buffer) {
+            ServerBoundModInfoPacket p = new ServerBoundModInfoPacket();
+            p.Mod_ID = buffer.readUtf();
+            p.Mod_Network_Version = Version.Parse(buffer.readUtf());
+            p.Allow_Flags = buffer.readByte();
+            return p;
+        }
+
+        @Override
+        public void encode(RegistryFriendlyByteBuf buffer, ServerBoundModInfoPacket p) {
+            buffer.writeUtf(p.Mod_ID);
+            buffer.writeUtf(p.Mod_Network_Version.toString());
+            buffer.writeByte(p.Allow_Flags);
+        }
+    }
 
     public String Mod_ID;
     public Version Mod_Network_Version;
@@ -66,19 +92,8 @@ public final class ServerBoundModInfoPacket
         }
     }
 
-    public static void Encode(ServerBoundModInfoPacket p, FriendlyByteBuf buffer)
-    {
-        buffer.writeUtf(p.Mod_ID);
-        buffer.writeUtf(p.Mod_Network_Version.toString());
-        buffer.writeByte(p.Allow_Flags);
-    }
-
-    public static ServerBoundModInfoPacket Decode(FriendlyByteBuf buffer)
-    {
-        ServerBoundModInfoPacket p = new ServerBoundModInfoPacket();
-        p.Mod_ID = buffer.readUtf();
-        p.Mod_Network_Version = Version.Parse(buffer.readUtf());
-        p.Allow_Flags = buffer.readByte();
-        return p;
+    @Override
+    public Type<ServerBoundModInfoPacket> type() {
+        return new Type<>(LOCATION);
     }
 }

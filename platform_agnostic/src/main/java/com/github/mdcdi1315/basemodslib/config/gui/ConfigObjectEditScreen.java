@@ -55,7 +55,7 @@ final class ConfigObjectEditScreen
         back_button = Button.builder(Component.literal("Exit"), this::OnButtonFiredEvent)
                 .bounds(back_button_x, common_down_y, 90 , 20)
                 .build();
-        list = new SettingsModifierList(minecraft, width, common_down_y-10, 17 + (title_strings.length * font.lineHeight), common_down_y-30);
+        list = new SettingsModifierList(minecraft, width, common_down_y-10, 17 + (title_strings.length * font.lineHeight));
         list.CreateFromRecord("", cfg_record);
         addRenderableWidget(list);
     }
@@ -63,7 +63,7 @@ final class ConfigObjectEditScreen
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
-        renderBackground(guiGraphics);
+        renderBackground(guiGraphics, mouseX , mouseY , partialTick);
 
         // Render title
 

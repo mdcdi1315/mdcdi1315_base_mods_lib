@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -57,15 +58,15 @@ public abstract class NetworkManager
         return nb;
     }
 
-    public abstract <T> void Reply(T message);
+    public abstract <T extends CustomPacketPayload> void Reply(T message);
 
-    public abstract <T> void SendTo(Player player, T message);
+    public abstract <T extends CustomPacketPayload> void SendTo(Player player, T message);
 
-    public abstract <T> void SendToTracking(ServerLevel world, BlockPos pos, T message);
+    public abstract <T extends CustomPacketPayload> void SendToTracking(ServerLevel world, BlockPos pos, T message);
 
-    public abstract <T> void SendToTracking(Entity entity, T message);
+    public abstract <T extends CustomPacketPayload> void SendToTracking(Entity entity, T message);
 
-    public abstract <T> void SendToAllPlayers(MinecraftServer server, T message);
+    public abstract <T extends CustomPacketPayload> void SendToAllPlayers(MinecraftServer server, T message);
 
-    public abstract <T> void SendToServer(T message);
+    public abstract <T extends CustomPacketPayload> void SendToServer(T message);
 }

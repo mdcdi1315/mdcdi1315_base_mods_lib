@@ -27,12 +27,12 @@ public class SettingsModifierList
     public static int ITEMS_HEIGHT = 25;
     public static int ITEMS_WIDTH = 400;
 
-    public SettingsModifierList(Minecraft minecraft, int width, int height, int y0, int y1) {
-        super(minecraft, width, height, y0, y1, ITEMS_HEIGHT);
+    public SettingsModifierList(Minecraft minecraft, int width, int height, int y0) {
+        super(minecraft, width, height, y0, ITEMS_HEIGHT);
     }
 
     @Override
-    public void updateNarration(NarrationElementOutput output) {  }
+    protected void updateWidgetNarration(NarrationElementOutput neo) {}
 
     public int getRowLeft() {
         return super.getRowLeft();
@@ -98,7 +98,7 @@ public class SettingsModifierList
 
         public abstract boolean mouseReleased(double mouseX, double mouseY, int button);
 
-        public abstract boolean mouseScrolled(double mouseX, double mouseY, double delta);
+        public abstract boolean mouseScrolled(double mouseX, double mouseY, double scroll_x , double scroll_y);
 
         public abstract boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY);
 
@@ -183,11 +183,11 @@ public class SettingsModifierList
             return value;
         }
 
-        public boolean mouseScrolled(double mouseX, double mouseY, double delta)
+        public boolean mouseScrolled(double mouseX, double mouseY, double sx , double sy)
         {
             boolean value = false;
             for (AbstractWidget w : widgets) {
-                value |= w.mouseScrolled(mouseX, mouseY, delta);
+                value |= w.mouseScrolled(mouseX, mouseY, sx, sy);
             }
             return value;
         }
@@ -247,8 +247,8 @@ public class SettingsModifierList
         }
 
         @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-            return widget_to_use.mouseScrolled(mouseX, mouseY, delta);
+        public boolean mouseScrolled(double mouseX, double mouseY, double sx, double sy) {
+            return widget_to_use.mouseScrolled(mouseX, mouseY, sx, sy);
         }
 
         @Override
@@ -345,9 +345,7 @@ public class SettingsModifierList
         }
 
         @Override
-        public void Tick() {
-            edit_box.tick();
-        }
+        public void Tick() {}
     }
 
     private class StringListSettingEntry
@@ -433,11 +431,6 @@ public class SettingsModifierList
 
         public Object GetValue() {
             return edit_box.getValue();
-        }
-
-        @Override
-        public void Tick() {
-            edit_box.tick();
         }
     }
 

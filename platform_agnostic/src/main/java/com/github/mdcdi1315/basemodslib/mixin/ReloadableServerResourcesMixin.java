@@ -4,8 +4,9 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerResourcesReloadedEvent;
 
 import net.minecraft.commands.Commands;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.server.RegistryLayer;
 import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.core.LayeredRegistryAccess;
 import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.packs.resources.ResourceManager;
 
@@ -18,12 +19,24 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.CompletableFuture;
 
 @Mixin(ReloadableServerResources.class)
-public class ReloadableServerResourcesMixin {
-
+public class ReloadableServerResourcesMixin
+{
     @Inject(method = "loadResources", at = @At("RETURN"))
-    private static void loadResources(ResourceManager resourceManager, RegistryAccess.Frozen registryAccess, FeatureFlagSet enabledFeatures, Commands.CommandSelection commandSelection, int functionCompilationLevel, Executor backgroundExecutor, Executor gameExecutor, CallbackInfoReturnable<CompletableFuture<ReloadableServerResources>> callback_info)
-    {
-        callback_info.getReturnValue().thenAccept(server -> BaseModsLib.GetEventsManager().FireEvent(new ServerResourcesReloadedEvent(server)));
+    private static void loadResources(
+            ResourceManager resourceManager,
+            LayeredRegistryAccess<RegistryLayer> registries,
+            FeatureFlagSet enabledFeatures,
+            Commands.CommandSelection commandSelection,
+            int functionCompilationLevel,
+            Executor backgroundExecutor,
+            Executor gameExecutor,
+            CallbackInfoReturnable<CompletableFuture<ReloadableServerResources>> callback_info
+    ) {
+        callback_info.getReturnValue().thenAccept(ReloadableServerResourcesMixin::OnResourcesReloadedEvent);
     }
 
+    private static void OnResourcesReloadedEvent(ReloadableServerResources rsr)
+    {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerResourcesReloadedEvent(rsr));
+    }
 }
