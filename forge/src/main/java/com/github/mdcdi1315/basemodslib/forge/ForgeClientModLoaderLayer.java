@@ -49,7 +49,7 @@ public final class ForgeClientModLoaderLayer
         }
     }
 
-    private IEventBus GetEventBusOrFail(Object mod_object) {
+    private static IEventBus GetEventBusOrFail(Object mod_object) {
         try {
             return (IEventBus) mod_object;
         } catch (ClassCastException cce) {

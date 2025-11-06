@@ -10,8 +10,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -39,7 +41,7 @@ public final class SavedDataWrapper<TD extends ISavedData>
     }
 
     private record Codec_DataLoader<T extends ISavedData>(Func1<T> factory)
-        implements Function<SavedDataCommonHeader , DataResult<SavedDataWrapper<T>>>
+            implements Function<SavedDataCommonHeader , DataResult<SavedDataWrapper<T>>>
     {
         @Override
         public DataResult<SavedDataWrapper<T>> apply(SavedDataCommonHeader h) {
@@ -60,18 +62,18 @@ public final class SavedDataWrapper<TD extends ISavedData>
      * @param <T> The type of the saved data to load.
      * @exception ArgumentNullException {@code newobject} was {@code null}.
      */
-    public static <T extends ISavedData> Function<CompoundTag , SavedDataWrapper<T>> CreateLoadFunction(Func1<T> newobject)
-        throws ArgumentNullException
+    public static <T extends ISavedData> BiFunction<CompoundTag , HolderLookup.Provider , SavedDataWrapper<T>> CreateLoadFunction(Func1<T> newobject)
+            throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(newobject , "newobject");
         return new FunctionDataLoader<>(newobject);
     }
 
     private record FunctionDataLoader<T extends ISavedData>(Func1<T> creater)
-        implements Function<CompoundTag , SavedDataWrapper<T>>
+            implements BiFunction<CompoundTag , HolderLookup.Provider , SavedDataWrapper<T>>
     {
         @Override
-        public SavedDataWrapper<T> apply(CompoundTag compoundTag) {
+        public SavedDataWrapper<T> apply(CompoundTag compoundTag , HolderLookup.Provider p) {
             T sd = creater.function();
             try {
                 sd.LoadFrom(new SavedDataCommonHeader(compoundTag));
@@ -81,6 +83,7 @@ public final class SavedDataWrapper<TD extends ISavedData>
             return new SavedDataWrapper<>(sd);
         }
     }
+
 
     /**
      * Retrieves the instance associated with this wrapper object.
@@ -100,7 +103,7 @@ public final class SavedDataWrapper<TD extends ISavedData>
 
     @NotNull
     @Override
-    public CompoundTag save(CompoundTag tag) {
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
         try {
             return instance.Save().GenerateFinalData();
         } catch (Exception e) {

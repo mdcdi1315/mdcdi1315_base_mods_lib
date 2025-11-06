@@ -10,7 +10,7 @@ import com.mojang.serialization.DynamicOps;
 public abstract class PrimitiveCodecWithValidation<TPR extends Number> // Only valid for numeric types
     extends PrimitiveCodec<TPR>
 {
-    private static <T> DataResult<T> ErrorMapper(DataResult.PartialResult<Number> pr) {
+    private static <T> DataResult<T> ErrorMapper(DataResult.Error<Number> pr) {
         return DataResult.error(pr::message);
     }
 
@@ -25,7 +25,7 @@ public abstract class PrimitiveCodecWithValidation<TPR extends Number> // Only v
         var e = n.error();
         return e
                 .<DataResult<TPR>>map(PrimitiveCodecWithValidation::ErrorMapper)
-                .orElse(Validate(Mapper(n.get().left().get())));
+                .orElse(Validate(Mapper(n.result().get())));
     }
 
     /**

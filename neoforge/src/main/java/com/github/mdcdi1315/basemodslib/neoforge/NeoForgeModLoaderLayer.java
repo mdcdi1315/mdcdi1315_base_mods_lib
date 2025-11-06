@@ -10,6 +10,8 @@ import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.NeoForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 
+import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkBuilder;
+import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkingManager;
 import com.github.mdcdi1315.basemodslib.registries.NeoForgeRegistriesRegistrar;
 import com.github.mdcdi1315.basemodslib.world.NeoForgeWorldGenRegistrar;
 import net.neoforged.fml.ModList;
@@ -48,7 +50,7 @@ public final class NeoForgeModLoaderLayer
         this.event_bus.addListener(NeoForgeModLoaderLayer::OnModLoadingCompleteEvent);
     }
 
-    private IEventBus GetEventBusOrFail(Object mod_object) {
+    private static IEventBus GetEventBusOrFail(Object mod_object) {
         try {
             return (IEventBus) mod_object;
         } catch (ClassCastException cce) {
@@ -81,6 +83,13 @@ public final class NeoForgeModLoaderLayer
         reg_3.RegisterToEventBus(mod_event_bus);
 
         // Initialize non-sensitive things, but do still need to be done after all sensitive things have completed.
+        NeoForgeNetworkingManager reg_4 = new NeoForgeNetworkingManager();
+        instance.InitializeNetwork(reg_4);
+        var builder = reg_4.GetBuilderAndDestroy();
+        if (builder != null) {
+            ((NeoForgeNetworkBuilder)builder).Build(mod_event_bus);
+        }
+
         instance.RegisterCommands(global_command_registrar);
 
     }

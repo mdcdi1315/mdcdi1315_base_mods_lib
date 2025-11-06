@@ -6,6 +6,8 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
 import java.util.function.Supplier;
@@ -51,8 +53,17 @@ public final class PerDimensionWorldDataManager
         this.storage = level.getDataStorage();
     }
 
+    private static <T extends ISavedData> SavedData.Factory<SavedDataWrapper<T>> CreateFactory(Func1<T> creater)
+    {
+        return new SavedData.Factory<>(
+                new InternalCreater<>(creater),
+                SavedDataWrapper.CreateLoadFunction(creater),
+                DataFixTypes.LEVEL
+        );
+    }
+
     private record InternalCreater<T extends ISavedData>(Func1<T> actualcreater)
-        implements Supplier<SavedDataWrapper<T>>
+            implements Supplier<SavedDataWrapper<T>>
     {
         @Override
         public SavedDataWrapper<T> get() {
@@ -67,13 +78,13 @@ public final class PerDimensionWorldDataManager
      * @param creater A factory function allowing creating instances of type {@linkplain T}.
      * @return A new {@link SavedDataWrapper} class instance representing the loaded or new data.
      * @param <T> The type of the saved data to retrieve or create.
-     * @exception ArgumentNullException {@code creater} and/or {@code name} is {@code null}.
+     * @exception ArgumentNullException {@code creater} was {@code null}.
      */
     public <T extends ISavedData> SavedDataWrapper<T> ComputeIfAbsentAsWrapper(String name , Func1<T> creater)
             throws ArgumentNullException
     {
         VerifySavedDataPrefix(name);
-        return storage.computeIfAbsent(SavedDataWrapper.CreateLoadFunction(creater), new InternalCreater<>(creater) , name);
+        return storage.computeIfAbsent(CreateFactory(creater) , name);
     }
 
     /**
@@ -89,7 +100,7 @@ public final class PerDimensionWorldDataManager
             throws ArgumentNullException
     {
         VerifySavedDataPrefix(name);
-        return storage.get(SavedDataWrapper.CreateLoadFunction(creater) , name);
+        return storage.get(CreateFactory(creater) , name);
     }
 
     /**
@@ -100,7 +111,7 @@ public final class PerDimensionWorldDataManager
      * @throws ArgumentNullException {@code data} was {@code null}.
      */
     public <T extends ISavedData> void SetAsWrapper(SavedDataWrapper<T> data, String name)
-        throws ArgumentNullException
+            throws ArgumentNullException
     {
         VerifySavedDataPrefix(name);
         ArgumentNullException.ThrowIfNull(data, "data");

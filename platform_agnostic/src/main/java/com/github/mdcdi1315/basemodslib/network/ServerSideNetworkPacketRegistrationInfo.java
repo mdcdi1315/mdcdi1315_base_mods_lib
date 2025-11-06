@@ -10,12 +10,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 public record ServerSideNetworkPacketRegistrationInfo<T extends CustomPacketPayload>(
-        Class<T> cls,
+        @NotNull Class<T> cls,
+        @NotNull CustomPacketPayload.Type<T> type,
         @NotNull StreamCodec<RegistryFriendlyByteBuf , T> codec,
         @NotNull Action2<ServerPlayer, T> handler
 ) {
     public ServerSideNetworkPacketRegistrationInfo {
         ArgumentNullException.ThrowIfNull(cls,"cls");
+        ArgumentNullException.ThrowIfNull(type, "type");
         ArgumentNullException.ThrowIfNull(codec , "codec");
         ArgumentNullException.ThrowIfNull(handler, "handler");
     }

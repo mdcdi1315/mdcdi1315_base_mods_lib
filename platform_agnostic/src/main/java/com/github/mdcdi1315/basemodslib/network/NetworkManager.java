@@ -36,7 +36,7 @@ public abstract class NetworkManager
         throws InvalidOperationException
     {
         if (build_phase_completed) {
-            throw new InvalidOperationException("Building for this this network manager has completed. Building cannot happen again.");
+            throw new InvalidOperationException("Building for this network manager has completed. Building cannot happen again.");
         }
         if (builder == null) {
             builder = CreateNetworkBuilder();

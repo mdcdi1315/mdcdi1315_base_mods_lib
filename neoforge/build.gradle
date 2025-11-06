@@ -5,6 +5,10 @@ plugins {
     id 'net.darkhax.curseforgegradle'
 }
 
+base {
+    archivesName = "${mod_id}-neoforge-${minecraft_version}-${release_cycle}"
+}
+
 neoForge {
     version = neoforge_version
     // Automatically enable neoforge AccessTransformers if the file exists

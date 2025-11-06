@@ -8,16 +8,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-
 import net.minecraftforge.network.*;
 import net.minecraftforge.event.network.CustomPayloadEvent;
-
-import java.util.function.BiConsumer;
 
 public final class ForgeSimpleChannelNetworkBuilder
     implements INetworkBuilder
@@ -75,7 +72,7 @@ public final class ForgeSimpleChannelNetworkBuilder
         IEnumerator<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_e = client_packet_reg_info.GetEnumerator();
         try {
             while (client_e.MoveNext()) {
-                BuildClientBoundMessage(client_e.getCurrent() , packet_index++, sc);
+                BuildClientBoundMessage(mgr ,client_e.getCurrent() , packet_index++, sc);
             }
         } finally {
             client_e.Dispose();
@@ -83,23 +80,25 @@ public final class ForgeSimpleChannelNetworkBuilder
         IEnumerator<ServerSideNetworkPacketRegistrationInfo<?>> server_e = server_packet_reg_info.GetEnumerator();
         try {
             while (server_e.MoveNext()) {
-
+                BuildServerBoundMessage(mgr, server_e.getCurrent(), packet_index++, sc);
             }
         } finally {
             server_e.Dispose();
         }
     }
 
-    private record HandlerToConsumerMainThread_Client<T extends CustomPacketPayload>(Action2<Player, T> handler)
-            implements BiConsumer<T, CustomPayloadEvent.Context>
+    private record ClientHandlerAction<TP extends CustomPacketPayload>(ForgeBasedNetworkManager manager, Action2<Player, TP> handler)
+        implements Action2<TP , CustomPayloadEvent.Context>
     {
         @Override
-        public void accept(T t, CustomPayloadEvent.Context context) {
-            handler.action(BaseModsLibClient.GetLoggedInPlayer(), t);
+        public void action(TP packet, CustomPayloadEvent.Context context) {
+            manager.cxt = context;
+            handler.action(BaseModsLibClient.GetLoggedInPlayer() , packet);
+            manager.cxt = null;
         }
     }
 
-    private static <T extends CustomPacketPayload> void BuildClientBoundMessage(ClientSideNetworkPacketRegistrationInfo<T> info, int discriminator, SimpleChannel channel)
+    private static <T extends CustomPacketPayload> void BuildClientBoundMessage(ForgeBasedNetworkManager manager, ClientSideNetworkPacketRegistrationInfo<T> info, int discriminator, SimpleChannel channel)
     {
         channel
                 .messageBuilder(
@@ -107,20 +106,22 @@ public final class ForgeSimpleChannelNetworkBuilder
                         discriminator,
                         NetworkDirection.PLAY_TO_CLIENT
                 ).codec(info.codec())
-                .consumerMainThread(new HandlerToConsumerMainThread_Client<>(info.handler()))
+                .consumerMainThread(new ClientHandlerAction<>(manager , info.handler()))
                 .add();
     }
 
-    private record HandlerToConsumerMainThread_Server<T extends CustomPacketPayload>(Action2<ServerPlayer , T> handler)
-        implements BiConsumer<T, CustomPayloadEvent.Context>
+    private record ServerHandlerAction<T extends CustomPacketPayload>(ForgeBasedNetworkManager manager, Action2<ServerPlayer , T> handler)
+        implements Action2<T, CustomPayloadEvent.Context>
     {
         @Override
-        public void accept(T t, CustomPayloadEvent.Context context) {
+        public void action(T t, CustomPayloadEvent.Context context) {
+            manager.cxt = context;
             handler.action(context.getSender() , t);
+            manager.cxt = null;
         }
     }
 
-    private static <T extends CustomPacketPayload> void BuildServerBoundMessage(ServerSideNetworkPacketRegistrationInfo<T> info , int discriminator, SimpleChannel channel)
+    private static <T extends CustomPacketPayload> void BuildServerBoundMessage(ForgeBasedNetworkManager manager, ServerSideNetworkPacketRegistrationInfo<T> info , int discriminator, SimpleChannel channel)
     {
         channel
                 .messageBuilder(
@@ -128,7 +129,7 @@ public final class ForgeSimpleChannelNetworkBuilder
                     discriminator,
                     NetworkDirection.PLAY_TO_SERVER
                 ).codec(info.codec())
-                .consumerMainThread(new HandlerToConsumerMainThread_Server<>(info.handler()))
+                .consumerMainThread(new ServerHandlerAction<>(manager, info.handler()))
                 .add();
     }
 

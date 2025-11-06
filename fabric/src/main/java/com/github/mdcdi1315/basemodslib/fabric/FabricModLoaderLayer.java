@@ -61,7 +61,7 @@ public final class FabricModLoaderLayer
         fabric_modloader_version = fb_ver;
 
         var mod_verifier_type = new CustomPacketPayload.Type<ServerBoundModInfoPacket>(ServerBoundModInfoPacket.LOCATION);
-        PayloadTypeRegistry.playS2C().register(mod_verifier_type , new ServerBoundModInfoPacket.NetCodec());
+        PayloadTypeRegistry.playC2S().register(mod_verifier_type , new ServerBoundModInfoPacket.NetCodec());
         ServerPlayNetworking.registerGlobalReceiver(
                 mod_verifier_type,
                 new ChannelHandler(this::ServerModInfoPacketHandler)

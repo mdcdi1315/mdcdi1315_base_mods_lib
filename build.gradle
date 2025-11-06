@@ -49,6 +49,9 @@ final class ActionImpl
                 if (name.containsIgnoreCase("fabric")) {
                     osw.write(String.format("fabric_mapping=%s\n", name));
                     println(String.format("-> %s:\n\t-> Added as a Fabric mapping.", name));
+                } else if (name.containsIgnoreCase("neoforge")) {
+                    osw.write(String.format("neoforge_mapping=%s\n", name));
+                    println(String.format("-> %s:\n\t-> Added as a NeoForge mapping." , name));
                 } else if (name.containsIgnoreCase("forge")) {
                     osw.write(String.format("forge_mapping=%s\n", name));
                     println(String.format("-> %s:\n\t-> Added as a Forge mapping." , name));
@@ -88,12 +91,13 @@ tasks.register("build_dev_archive", Zip) { Zip zipfile ->
 
     var bd = layout.buildDirectory.dir("bin");
 
-    zipfile.mustRunAfter(":platform_agnostic:jar", ":forge:jar", ":fabric:remapJar", ":platform_agnostic:javadocJar");
+    zipfile.mustRunAfter(":platform_agnostic:jar", ":forge:jar", ":fabric:remapJar", ":neoforge:jar", ":platform_agnostic:javadocJar");
 
     zipfile.from(
             project(":platform_agnostic").tasks.jar,
             project(":forge").tasks.jar,
             project(":fabric").tasks.remapJar,
+            project(":neoforge").tasks.jar,
             project(":platform_agnostic").tasks.javadocJar
     );
 

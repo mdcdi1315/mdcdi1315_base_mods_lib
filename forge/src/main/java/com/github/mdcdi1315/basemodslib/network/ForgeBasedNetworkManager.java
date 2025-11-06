@@ -5,22 +5,19 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
-
-import net.minecraft.client.Minecraft;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import net.minecraftforge.network.SimpleChannel;
 import net.minecraftforge.network.PacketDistributor;
-
-import java.util.function.Supplier;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
 public final class ForgeBasedNetworkManager
     extends NetworkManager
@@ -28,7 +25,7 @@ public final class ForgeBasedNetworkManager
     private String mod_id;
     private SimpleChannel channel;
 
-    public NetworkEvent.Context cxt;
+    public CustomPayloadEvent.Context cxt;
 
     public ForgeBasedNetworkManager(String mod_id) {
         this.mod_id = mod_id;
@@ -54,7 +51,7 @@ public final class ForgeBasedNetworkManager
     }
 
     @Override
-    public <T> void Reply(T message) {
+    public <T extends CustomPacketPayload> void Reply(T message) {
         if (cxt == null) {
             throw new InvalidOperationException("There is not a context to reply to");
         }
@@ -63,48 +60,39 @@ public final class ForgeBasedNetworkManager
     }
 
     @Override
-    public <T> void SendTo(Player player, T message) {
-        channel.send(PacketDistributor.PLAYER.with(new ElementSupplier<>((ServerPlayer) player)), message);
-    }
-
-    private record LevelChunkSupplier(ServerLevel world, BlockPos position)
-        implements Supplier<LevelChunk>
-    {
-        @Override
-        public LevelChunk get() {
-            return world.getChunkAt(position);
-        }
+    public <T extends CustomPacketPayload> void SendTo(Player player, T message) {
+        channel.send(message, PacketDistributor.PLAYER.with((ServerPlayer) player));
     }
 
     @Override
-    public <T> void SendToTracking(ServerLevel world, BlockPos pos, T message) {
-        channel.send(PacketDistributor.TRACKING_CHUNK.with(new LevelChunkSupplier(world, pos)), message);
+    public <T extends CustomPacketPayload> void SendToTracking(ServerLevel world, BlockPos pos, T message) {
+        channel.send(message, PacketDistributor.TRACKING_CHUNK.with(world.getChunkAt(pos)));
     }
 
     @Override
-    public <T> void SendToTracking(Entity entity, T message) {
-        channel.send(PacketDistributor.TRACKING_ENTITY.with(new ElementSupplier<>(entity)), message);
+    public <T extends CustomPacketPayload> void SendToTracking(Entity entity, T message) {
+        channel.send(message, PacketDistributor.TRACKING_ENTITY.with(entity));
     }
 
     @Override
-    public <T> void SendToAllPlayers(MinecraftServer server, T message) {
-        channel.send(PacketDistributor.ALL.noArg(), message);
+    public <T extends CustomPacketPayload> void SendToAllPlayers(MinecraftServer server, T message) {
+        channel.send(message, PacketDistributor.ALL.noArg());
     }
 
     @Override
-    public <T> void SendToServer(T message)
+    public <T extends CustomPacketPayload> void SendToServer(T message)
     {
         if (BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT) {
             SendToServerInternal(message);
         }
     }
 
-    private <T> void SendToServerInternal(T msg)
+    private <T extends CustomPacketPayload> void SendToServerInternal(T msg)
     {
         if (Minecraft.getInstance().getConnection() == null) {
             BaseModsLib.LOGGER.warn("NETWORKING: Not dispatching packet {} because we are not connected to a server!" , msg);
         }
 
-        channel.sendToServer(msg);
+        channel.send(msg , PacketDistributor.SERVER.noArg());
     }
 }

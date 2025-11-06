@@ -18,6 +18,7 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 
+import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.world.item.Item;
 import net.minecraft.core.MappedRegistry;
@@ -122,6 +123,7 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(name, "name");
 
+
         Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, BuildAndValidateLocation(name) , new BlockEntityType<>(
                 factory::Create,
                 Set.of(factory.GetBlocks()),
@@ -186,7 +188,7 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         Lifecycle lc = Lifecycle.stable();
         MappedRegistry<T> mr = new MappedRegistry<>(registryResourceKey, lc);
-        ((WritableRegistry<Registry<T>>)BuiltInRegistries.REGISTRY).register(registryResourceKey, mr, lc);
+        ((WritableRegistry<Registry<T>>)BuiltInRegistries.REGISTRY).register(registryResourceKey, mr, new RegistrationInfo(Optional.empty() , lc));
         on_registry_ready.action(new MinecraftWrappedModLoaderRegistry<>(mr));
     }
 

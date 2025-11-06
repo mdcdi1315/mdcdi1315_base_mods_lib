@@ -53,7 +53,7 @@ public abstract class AbstractStrictListCodec<TElement, TListType extends List<T
             Iterator<T> itr = s.get().iterator();
             ArrayList<TElement> list = new ArrayList<>(10);
             DataResult<Pair<TElement , T>> dr; // We need the reference to this to get both the result and the error.
-            Optional<DataResult.PartialResult<Pair<TElement , T>>> err = Optional.empty();
+            Optional<DataResult.Error<Pair<TElement , T>>> err = Optional.empty();
             // Loop will break if at least one element has failed the decode process
             while (itr.hasNext() && (err = (dr = element.decode(ops , itr.next())).error()).isEmpty()) {
                 list.add(dr.result().get().getFirst());
