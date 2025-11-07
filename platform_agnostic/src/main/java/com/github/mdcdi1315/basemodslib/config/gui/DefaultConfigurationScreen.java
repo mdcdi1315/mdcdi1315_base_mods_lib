@@ -85,6 +85,7 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
 
     public void init()
     {
+        tweak_string_len = font.width(tweak_string);
         int common_down_y = height - 38;
         if (common_down_y < 0) {
             common_down_y = height;
@@ -93,18 +94,26 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
         if (apply_changes_button_x < 0) {
             apply_changes_button_x = 30;
         }
-        tweak_string_len = font.width(tweak_string);
-        apply_changes_button = Button.builder(Component.translatable("mdcdi1315_base_mods_lib.config.default_config_screen.save_changes_button"), this::OnButtonFiredEvent)
-                .bounds(apply_changes_button_x, common_down_y, 90, 20)
-                .build();
-        back_button = Button.builder(Component.translatable("mdcdi1315_base_mods_lib.config.default_config_screen.exit_button"), this::OnButtonFiredEvent)
-                .bounds(apply_changes_button_x + 90 + 10, common_down_y, 90 , 20)
-                .build();
-        list = new SettingsModifierList(minecraft, width, common_down_y-10, 25);
-        list.CreateFromRecord(mod_id, ConfigSerializationHelpers.GetConfigData(cfg));
-        addRenderableWidget(list);
-        addRenderableWidget(back_button);
-        addRenderableWidget(apply_changes_button);
+        if (apply_changes_button == null) {
+            apply_changes_button = Button.builder(Component.translatable("mdcdi1315_base_mods_lib.config.default_config_screen.save_changes_button"), this::OnButtonFiredEvent)
+                    .bounds(apply_changes_button_x, common_down_y, 90, 20)
+                    .build();
+            back_button = Button.builder(Component.translatable("mdcdi1315_base_mods_lib.config.default_config_screen.exit_button"), this::OnButtonFiredEvent)
+                    .bounds(apply_changes_button_x + 90 + 10, common_down_y, 90 , 20)
+                    .build();
+            list = new SettingsModifierList(minecraft, width, common_down_y-30, 25);
+            // Create the record only if needed.
+            list.CreateFromRecord(mod_id, ConfigSerializationHelpers.GetConfigData(cfg));
+        } else {
+            // The window bounds have been changed. We need to reposition the GUI elements.
+            apply_changes_button.setPosition(apply_changes_button_x , common_down_y);
+            back_button.setPosition(apply_changes_button_x + 90 + 10, common_down_y);
+            list.setWidth(width);
+            list.setHeight(common_down_y-30);
+        }
+        addWidget(list);
+        addWidget(back_button);
+        addWidget(apply_changes_button);
     }
 
     public void tick() {
@@ -113,9 +122,10 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
+    public void render(GuiGraphics graphics, int mouse_x, int mouse_y, float partialTick)
     {
-        renderBackground(guiGraphics, mouseX , mouseY , partialTick);
+        // Render our background.
+        renderBackground(graphics, mouse_x , mouse_y , partialTick);
 
         // Render title
 
@@ -123,20 +133,21 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
         // If somehow our width overflown because the string is too large (or our screen became too small), set position to a reasonable value instead.
         if (string_x_pos < 0) { string_x_pos = 10; }
 
-        guiGraphics.drawString(font, tweak_string, string_x_pos, 7 , 0xFF00FF00);
+        graphics.drawString(font, tweak_string, string_x_pos, 7 , 0xFF00FF00);
 
         if (render_comment && (
-                mouseX >= string_x_pos &&
-                mouseX < (string_x_pos + tweak_string_len) &&
-                mouseY >= 7 &&
-                mouseY < (7 + font.lineHeight)
+                mouse_x >= string_x_pos &&
+                        mouse_x < (string_x_pos + tweak_string_len) &&
+                        mouse_x >= 7 &&
+                        mouse_x < (7 + font.lineHeight)
         )) {
             // Create a tooltip for the config file comment, if the config file has one.
-            guiGraphics.renderTooltip(font, comment, mouseX , mouseY);
+            graphics.renderTooltip(font, comment, mouse_x , mouse_y);
         }
 
-        // Render the rest stuff
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        list.render(graphics, mouse_x , mouse_y , partialTick);
+        apply_changes_button.render(graphics, mouse_x , mouse_y , partialTick);
+        back_button.render(graphics, mouse_x, mouse_y, partialTick);
     }
 
     @Override

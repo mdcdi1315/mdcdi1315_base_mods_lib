@@ -1,7 +1,14 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DoesNotReturn;
+
+import java.util.List;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.lang.reflect.Method;
 
 /**
  * The {@link Exception} class emulates the .NET equivalent of System.Exception class,
@@ -25,7 +32,7 @@ public class Exception
 {
     protected static final String InnerExceptionPrefix = " ---> ";
     /**
-     *  Creates an empty {@code Exception} object.
+     *  Creates an empty {@link Exception} object.
      */
     public Exception()
     {
@@ -33,7 +40,7 @@ public class Exception
     }
 
     /**
-     * Creates an {@code Exception} object, with the error message to be provided along the exception data. 
+     * Creates an {@link Exception} object, with the error message to be provided along the exception data.
      * @param message The error message to be provided along with this exception instance.
      */
     public Exception(String message)
@@ -42,10 +49,10 @@ public class Exception
     }
 
     /**
-     * Creates an {@code Exception} object, with the error message to be provided along the exception data,
-     * and the original {@code Exception} causing this exception to be thrown.
+     * Creates an {@link Exception} object, with the error message to be provided along the exception data,
+     * and the original {@link Exception} causing this exception to be thrown.
      * @param message The error message to be provided along with this exception instance.
-     * @param innerException The inner {@code Exception} object causing this exception to be thrown.
+     * @param innerException The inner {@link Exception} object causing this exception to be thrown.
      */
     public Exception(String message , Exception innerException)
     {
@@ -93,4 +100,78 @@ public class Exception
         }
         return null;
     }
+
+    // Helper for removing StackTraceElements that their methods or declaring classes are decorated with StackTraceHidden annotation.
+    private static boolean IsEligibleForRemoving(StackTraceElement e)
+    {
+        Method cm = null;
+        try {
+            cm = Class.forName(e.getClassName()).getMethod(e.getMethodName());
+        } catch (java.lang.Exception ex) {}
+        if (cm == null) {
+            return false;
+        } else if (cm.getAnnotation(StackTraceHidden.class) != null) {
+            return true;
+        } else {
+            return cm.getDeclaringClass().getAnnotation(StackTraceHidden.class) != null;
+        }
+    }
+
+    @Override
+    public void printStackTrace(PrintStream s) {
+        synchronized (s) {
+            s.print(getClass().getName());
+            s.print(':');
+            s.println(getMessage());
+            var suppressed = getSuppressed();
+            if (suppressed.length > 0) {
+                s.print("Suppressed: ");
+                for (var p : suppressed) {
+                    s.println(p);
+                }
+                s.println();
+            }
+            var t = getCause();
+            if (t != null) {
+                s.print("Caused by: ");
+                s.println(t);
+            }
+        }
+    }
+
+    @Override
+    public void printStackTrace(PrintWriter s) {
+        synchronized (s) {
+            s.print(getClass().getName());
+            s.print(':');
+            s.println(getMessage());
+            var suppressed = getSuppressed();
+            if (suppressed.length > 0) {
+                s.print("Suppressed: ");
+                for (var p : suppressed) {
+                    s.println(p);
+                }
+                s.println();
+            }
+            var t = getCause();
+            if (t != null) {
+                s.print("Caused by: ");
+                s.println(t);
+            }
+        }
+    }
+
+    @Override
+    public StackTraceElement[] getStackTrace()
+    {
+        StackTraceElement[] original = super.getStackTrace();
+        List<StackTraceElement> elements = new ArrayList<>(original.length);
+        for (StackTraceElement e : original) {
+            if (IsEligibleForRemoving(e)) { continue; }
+            elements.add(e);
+        }
+        return elements.toArray(new StackTraceElement[elements.size()]);
+    }
+
+
 }

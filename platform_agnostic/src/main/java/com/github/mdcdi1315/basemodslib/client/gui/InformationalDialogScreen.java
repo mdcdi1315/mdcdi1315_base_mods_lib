@@ -104,17 +104,19 @@ public final class InformationalDialogScreen
 
     public void init()
     {
-        if (ok_button == null)
-        {
-            int ok_button_x = (width / 2) - 35;
-            if (ok_button_x < 0) {
-                ok_button_x = 30;
-            }
+        int ok_button_x = (width / 2) - 35;
+        if (ok_button_x < 0) {
+            ok_button_x = 30;
+        }
+        if (ok_button == null) {
             ok_button = Button.builder(Component.literal("OK!"), this::OnOKButtonPressed)
                     .bounds(ok_button_x, 0 , 70 , 25)
                     .build();
-            addRenderableWidget(ok_button);
+        } else {
+            // The window bounds have been changed. We need to update X values.
+            ok_button.setX(ok_button_x);
         }
+        addWidget(ok_button);
         title_component_string_length = font.width(title_component_string = title.getString());
         line_widths = new int[text_lines.length];
         for (int I = 0; I < text_lines.length; I++) {
@@ -153,8 +155,8 @@ public final class InformationalDialogScreen
 
         ok_button.setY(base_y + (font.lineHeight * 2));
 
-        // Render our button.
-        super.render(gc, mouseX, mouseY, partialTick);
+        // Now render our button...
+        ok_button.render(gc , mouseX , mouseY , partialTick);
     }
 
     public static void CreateDialog(Component title, String text_lines , @MaybeNull Screen parent)

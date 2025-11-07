@@ -59,7 +59,7 @@ public final class ModLoaderRegistryByNameCodec<TElement>
             Optional<TElement> opt = registry.GetElementValue(result.getFirst());
 
             return opt.isEmpty() ?
-                    DataResult.error(new StringSupplier(String.format("Cannot find element %s in registry %s because it does not exist." , result.getFirst() , registry.GetRegistryKey()))) :
+                    DataResult.error(StringSupplier.FromFormatted("Cannot find element %s in registry %s because it does not exist." , result.getFirst() , registry.GetRegistryKey())) :
                     DataResult.success(Pair.of(opt.get() , result.getSecond()));
         }
     }
@@ -70,7 +70,7 @@ public final class ModLoaderRegistryByNameCodec<TElement>
         Optional<ResourceKey<TElement>> r = registry.GetResourceKey(input);
 
         return r.isEmpty() ?
-                DataResult.error(new StringSupplier(String.format("Cannot find the element in the registry %s. Element: %s Hash code: %d" , registry.GetRegistryKey() , input , input.hashCode()))) :
+                DataResult.error(StringSupplier.FromFormatted("Cannot find the element in the registry %s. Element: %s Hash code: %d" , registry.GetRegistryKey() , input , input.hashCode())) :
                 ResourceLocation.CODEC.encode(r.get().location() , ops , prefix);
     }
 }

@@ -88,21 +88,25 @@ public final class ConfirmationDialogScreen
 
     public void init()
     {
+        int no_button_x = (width / 2) - 80;
+        if (no_button_x < 0) {
+            no_button_x = 30;
+        }
         if (no == null) // Only do this initialization if needed
         {
-            int no_button_x = (width / 2) - 80;
-            if (no_button_x < 0) {
-                no_button_x = 30;
-            }
             no = Button.builder(Component.literal("No"), this::OnButtonPressedHandler)
                     .bounds(no_button_x , 0, 70 , 25)
                     .build();
             yes = Button.builder(Component.literal("Yes!") , this::OnButtonPressedHandler)
                     .bounds(no_button_x + 80, 0, 70 ,25)
                     .build();
-            addRenderableWidget(no);
-            addRenderableWidget(yes);
+        } else {
+            // The window bounds have been changed. We need to update X values.
+            no.setX(no_button_x);
+            yes.setX(no_button_x+80);
         }
+        addWidget(no);
+        addWidget(yes);
         title_component_string_length = font.width(title_component_string);
         line_widths = new int[lines.length];
         for (int I = 0; I < lines.length; I++) {
@@ -132,6 +136,7 @@ public final class ConfirmationDialogScreen
     @Override
     public void render(GuiGraphics gc, int mouseX, int mouseY, float partialTick)
     {
+        // Render our background.
         renderBackground(gc , mouseX, mouseY, partialTick);
 
         // Render title
@@ -158,8 +163,9 @@ public final class ConfirmationDialogScreen
         no.setY(base_y);
         yes.setY(base_y);
 
-        // Render our buttons
-        super.render(gc, mouseX, mouseY, partialTick);
+        // Render our buttons.
+        no.render(gc , mouseX , mouseY , partialTick);
+        yes.render(gc, mouseX , mouseY , partialTick);
     }
 
     public static void CreateDialog(Component title, String confirmation_text, @MaybeNull Screen parent, Action1<DialogResult> on_completed)

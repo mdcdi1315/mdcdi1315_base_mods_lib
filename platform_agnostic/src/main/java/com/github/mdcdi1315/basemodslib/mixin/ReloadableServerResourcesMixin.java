@@ -11,6 +11,7 @@ import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -32,11 +33,11 @@ public class ReloadableServerResourcesMixin
             Executor gameExecutor,
             CallbackInfoReturnable<CompletableFuture<ReloadableServerResources>> callback_info
     ) {
-        callback_info.getReturnValue().thenAccept(ReloadableServerResourcesMixin::OnResourcesReloadedEvent);
+        callback_info.getReturnValue().thenAccept(ReloadableServerResourcesMixin::MDCDI1315$BML$OnResourcesReloadedEvent);
     }
 
-    private static void OnResourcesReloadedEvent(ReloadableServerResources rsr)
-    {
+    @Unique
+    private static void MDCDI1315$BML$OnResourcesReloadedEvent(ReloadableServerResources rsr) {
         BaseModsLib.GetEventsManager().FireEvent(new ServerResourcesReloadedEvent(rsr));
     }
 }

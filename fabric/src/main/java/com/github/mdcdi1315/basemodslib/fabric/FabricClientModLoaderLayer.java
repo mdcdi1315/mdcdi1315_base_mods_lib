@@ -68,8 +68,6 @@ public final class FabricClientModLoaderLayer
             throw new InvalidOperationException(String.format("The mod object was not of type EmptyModObject!!!!\nActual type: %s", o.getClass().getName()));
         }
 
-        instance.RegisterEvents(BaseModsLib.GetEventsManager());
-
         FabricClientArtifactsRegistrar registrar = new FabricClientArtifactsRegistrar();
 
         instance.RegisterModelDefinitions(registrar);

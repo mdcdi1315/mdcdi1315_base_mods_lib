@@ -7,6 +7,9 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.Requires
 import java.lang.reflect.Type;
 import java.util.Arrays;
 
+/**
+ * Provides methods for creating, manipulating, searching, and sorting arrays, thereby serving as the base class for all arrays in the common language runtime.
+ */
 public final class Array
 {
     private record TYPEDESCRIPTOR<T>()
@@ -22,9 +25,21 @@ public final class Array
         }
     }
 
+    /**
+     * Gets the maximum number of elements that may be contained in an array.
+     */
     public static final int MaxLength = 0x7FFFFFFF;
 
+    /**
+     * Sets a range of elements in an array to the default value of each element type.
+     * @param array The array whose elements need to be cleared.
+     * @param index The starting index of the range of elements to clear.
+     * @param count The number of elements to clear.
+     * @param <T> The array's underlying type.
+     * @throws ArgumentNullException {@code array} is {@code null}.
+     */
     public static <T> void Clear(T[] array , int index , int count)
+        throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(array , "array");
         var ct = index + count;
