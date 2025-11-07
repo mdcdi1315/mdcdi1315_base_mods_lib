@@ -4,6 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
+import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.MethodImpl;
+import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.MethodImplOptions;
 import com.google.common.primitives.UnsignedInteger;
 
 import java.lang.reflect.Type;
@@ -147,7 +149,7 @@ public class List<T>
                 _size = count;
             }
         } else {
-            _items = CreateArrayOfSize(0);
+            _items = CreateArrayOfSize(10);
             IEnumerator<T> en = collection.GetEnumerator();
             try
             {
@@ -273,8 +275,8 @@ public class List<T>
     // increased by one. If required, the capacity of the list is doubled
     // before adding the new element.
     //
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
     @Override
+    @MethodImpl(GetValue = MethodImplOptions.AggressiveInlining)
     public void Add(T item)
     {
         _version++;
@@ -615,6 +617,14 @@ public class List<T>
 
     // ToArray returns an array containing the contents of the List.
     // This requires copying the List, which is an O(n) operation.
+
+    /**
+     * Returns the contents of this List object to an array.
+     * @return The contents of the object to an array.
+     * @deprecated Due to Java restrictions, it is not possible to create an array of type T without knowing it's class.
+     * The class cannot be determined by JVM at run-time, so this will throw casting exceptions due to incorrect detection.
+     */
+    @Deprecated(forRemoval = true, since = "1.0.2")
     public T[] ToArray()
     {
         if (_size == 0) {

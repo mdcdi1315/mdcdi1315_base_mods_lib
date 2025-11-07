@@ -161,7 +161,7 @@ public class AggregateException
             }
         }
 
-        return new AggregateException(super.getMessage(), flattenedExceptions.ToArray());
+        return new AggregateException(super.getMessage(), flattenedExceptions);
     }
 
     /**
@@ -205,7 +205,7 @@ public class AggregateException
         // If there are unhandled exceptions remaining, throw them.
         if (unhandledExceptions != null)
         {
-            throw new AggregateException(getMessage(), unhandledExceptions.ToArray());
+            throw new AggregateException(getMessage(), unhandledExceptions);
         }
     }
 

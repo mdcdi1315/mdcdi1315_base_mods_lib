@@ -1,13 +1,12 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DoesNotReturn;
 
-import java.util.List;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.lang.reflect.Method;
 
 /**
@@ -165,12 +164,14 @@ public class Exception
     public StackTraceElement[] getStackTrace()
     {
         StackTraceElement[] original = super.getStackTrace();
-        List<StackTraceElement> elements = new ArrayList<>(original.length);
+        List<StackTraceElement> elements = new List<>(original.length);
         for (StackTraceElement e : original) {
             if (IsEligibleForRemoving(e)) { continue; }
-            elements.add(e);
+            elements.Add(e);
         }
-        return elements.toArray(new StackTraceElement[elements.size()]);
+        StackTraceElement[] ef = new StackTraceElement[elements.getCount()];
+        elements.CopyTo(ef , 0);
+        return ef;
     }
 
 

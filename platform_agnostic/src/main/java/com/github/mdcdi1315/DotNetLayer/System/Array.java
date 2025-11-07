@@ -108,7 +108,7 @@ public final class Array
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T[] CreateInstanceFast(Class<T> elementType, int length)
+    private static <T> T[] CreateInstanceFast(Class<?> elementType, int length)
     {
         try {
             return (T[]) java.lang.reflect.Array.newInstance(elementType, length);
@@ -207,7 +207,9 @@ public final class Array
                 list.Add(t);
             }
         }
-        return list.ToArray();
+        T[] result = CreateInstanceFast(array.getClass().componentType() , list.getCount());
+        list.CopyTo(result, 0);
+        return result;
     }
 
     public static <T> @MaybeNull T Find(T[] array, Predicate<T> match)
@@ -274,6 +276,7 @@ public final class Array
         }
     }
 
+    @Deprecated(forRemoval = true) // This will possibly not work properly.
     public static <T , TD> TD[] ConvertAll(T[] array , Converter<T , TD> converter)
     {
         ArgumentNullException.ThrowIfNull(array , "array");
