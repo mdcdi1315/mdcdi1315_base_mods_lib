@@ -48,7 +48,7 @@ public final class ConfigCodec<T extends IModConfig>
                     } else if (s.equals("values")) {
                         fields_value = temp_pair.getSecond();
                     } else {
-                        return DataResult.error(new StringSupplier(String.format("Unknown field: %s" , s)));
+                        return DataResult.error(StringSupplier.FromFormatted("Unknown field: %s" , s));
                     }
                 } else {
                     return DataResult.error(new StringSupplier("All the keys in the map must be string keys."));
@@ -66,7 +66,7 @@ public final class ConfigCodec<T extends IModConfig>
                 try {
                     ConfigSerializationHelpers.ApplyConfigData(final_value, dr2.result().get().getFirst());
                 } catch (Exception e) {
-                    return DataResult.error(new StringSupplier(String.format("Cannot decode due to an exception: %s" , e)));
+                    return DataResult.error(StringSupplier.FromFormatted("Cannot decode due to an exception: %s" , e));
                 }
                 return DataResult.success(Pair.of(final_value , input));
             }

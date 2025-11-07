@@ -82,7 +82,6 @@ task curseforge(type: TaskPublishCurseForge) {
     if (projectId) {
         def mainFile = upload(findProperty("curseforge_project_id"), file("${project.buildDir}/libs/${base.archivesName}-${version}.jar"))
         mainFile.changelog = rootProject.file('CHANGELOG.md').text
-        mainFile.addRequirement("mdcdi1315_base_mods_lib")
         project.minecraft_versions.split(',').toList().each { mainFile.addGameVersion(it) }
         mainFile.releaseType = "release"
     }
@@ -98,7 +97,4 @@ modrinth {
     gameVersions = project.minecraft_versions.split(',').toList()
     syncBodyFrom = rootProject.file("modpage.md").text
     loaders = ['forge']
-    dependencies {
-        required.project "mdcdi1315_base_mods_lib"
-    }
 }

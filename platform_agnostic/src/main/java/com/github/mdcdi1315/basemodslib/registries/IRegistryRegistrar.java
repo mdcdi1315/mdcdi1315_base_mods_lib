@@ -6,7 +6,6 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
-import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
 
 /**
