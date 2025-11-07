@@ -4,15 +4,15 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.CallerArgumentExpression;
 
 /**
- * The {@code ArgumentNullException} class is a convenience exception for indicating null-passed arguments or parameters to a method call.
- * 
- * <p>It does also contain some static methods for directly creating and throwing such instances.</p>
+ * The exception that is thrown when a null reference ({@code Nothing} in Visual Basic) is passed to a method that does not accept it as a valid argument.
  */
 public class ArgumentNullException
         extends ArgumentException
 {
+    private static final String DEFAULT_MSG_VALUE = "Value cannot be null.";
+
     /**
-     * Throws an {@code ArgumentNullException} if argument is null.
+     * Throws an {@link ArgumentNullException} if argument is null.
      * @param any The reference type argument to validate as non-null.
      * @param pname The name of the parameter with which 'any' corresponds.
      * @throws ArgumentNullException Thrown if <em>any</em> is 'null'.
@@ -26,7 +26,7 @@ public class ArgumentNullException
     }
 
     /**
-     * Throws an {@code ArgumentNullException} if argument is null.
+     * Throws an {@link ArgumentNullException} if argument is null.
      * @param any The reference type argument to validate as non-null.
      * @throws ArgumentNullException Thrown if <em>any</em> is 'null'.
      */
@@ -37,19 +37,25 @@ public class ArgumentNullException
     }
 
     /**
-     * Initializes a new instance of the {@code ArgumentNullException} class with the specified name of the parameter that caused this exception to be thrown.
-     * @param paramname The name of the parameter that was null.
+     * Initializes a new instance of the {@link ArgumentNullException} class.
      */
-    public ArgumentNullException(@MaybeNull String paramname)
-    {
-        super("The specified parameter was null." , paramname);
+    public ArgumentNullException() {
+        super(DEFAULT_MSG_VALUE);
     }
 
     /**
-     * Initializes a new instance of the {@code ArgumentNullException} class with the specified name of
-     * the parameter that causes this exception and the message that further describes why this exception was thrown.
-     * @param paramname The name of the parameter that was null.
-     * @param message A more detailed message why this exception was thrown
+     * Initializes a new instance of the {@link ArgumentNullException} class with the name of the parameter that causes this exception.
+     * @param paramname The name of the parameter that caused the exception.
+     */
+    public ArgumentNullException(@MaybeNull String paramname)
+    {
+        super(DEFAULT_MSG_VALUE , paramname);
+    }
+
+    /**
+     * Initializes an instance of the {@link ArgumentNullException} class with a specified error message and the name of the parameter that causes this exception.
+     * @param paramname The name of the parameter that caused the exception.
+     * @param message A message that describes the error.
      */
     public ArgumentNullException(@MaybeNull String paramname , @MaybeNull String message)
     {
@@ -57,7 +63,7 @@ public class ArgumentNullException
     }
 
     /**
-     * Initializes a new instance of the {@code ArgumentNullException} class with a specified
+     * Initializes a new instance of the {@link  ArgumentNullException} class with a specified
      * error message and the exception that is the cause of this exception.
      * @param message The error message that explains the reason for this exception.
      * @param innerException The exception that is the cause of the current exception, or a null reference

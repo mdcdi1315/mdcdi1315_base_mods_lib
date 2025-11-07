@@ -23,5 +23,5 @@ public @interface RequiresUnreferencedCode
      * Gets or sets an optional URL that contains more information about the method, why it requires unreferenced code, and what options a consumer has to deal with it.
      */
     @MaybeNull
-    String Url();
+    String Url() default "";
 }
