@@ -62,7 +62,9 @@ public enum SourceLevels
                 source_levels.Add(level);
             }
         }
-        return source_levels.ToArray();
+        SourceLevels[] levels = new SourceLevels[source_levels.getCount()];
+        source_levels.CopyTo(levels, 0);
+        return levels;
     }
 
     public static int ToPackedValue(SourceLevels... levels)

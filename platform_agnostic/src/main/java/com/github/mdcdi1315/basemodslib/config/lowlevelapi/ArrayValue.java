@@ -61,7 +61,9 @@ public final class ArrayValue
         }
 
         public ArrayValue Build() {
-            return new ArrayValue(object_list.ToArray());
+            Object[] obj = new Object[object_list.getCount()];
+            object_list.CopyTo(obj , 0);
+            return new ArrayValue(obj);
         }
     }
 

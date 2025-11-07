@@ -1,16 +1,16 @@
 package com.github.mdcdi1315.DotNetLayer.System.Diagnostics;
 
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Exception;
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import java.util.Iterator;
-import java.util.function.Function;
 import java.util.stream.Stream;
+import java.util.function.Function;
 
 public class StackTrace
 {
@@ -22,10 +22,10 @@ public class StackTrace
     private final StackFrame[] elements;
 
     private record StackFrameConstructor(int frames_to_skip)
-        implements Function<Stream<StackWalker.StackFrame>, List<StackFrame>>
+        implements Function<Stream<StackWalker.StackFrame>, StackFrame[]>
     {
         @Override
-        public List<StackFrame> apply(Stream<StackWalker.StackFrame> stream)
+        public StackFrame[] apply(Stream<StackWalker.StackFrame> stream)
         {
             List<StackFrame> stack_frames = new List<>(10);
             Iterator<StackWalker.StackFrame> si = stream.iterator();
@@ -37,11 +37,13 @@ public class StackTrace
                 if (IsEligibleForRemoving(frame)) { continue; }
                 stack_frames.Add(frame);
             }
-            return stack_frames;
+            StackFrame[] frames = new StackFrame[stack_frames.getCount()];
+            stack_frames.CopyTo(frames , 0);
+            return frames;
         }
     }
 
-    private static List<StackFrame> ConstructStackTraceFromException(Exception exception , int methods_to_skip)
+    private static StackFrame[] ConstructStackTraceFromException(Exception exception , int methods_to_skip)
     {
         var elements = exception.getStackTrace();
         if (elements == null) { throw new NotSupportedException("Cannot get stack trace frames from an uninitialized exception object."); }
@@ -56,7 +58,9 @@ public class StackTrace
                 frames.Add(constructed);
             }
         }
-        return frames;
+        StackFrame[] fs = new StackFrame[frames.getCount()];
+        frames.CopyTo(fs , 0);
+        return fs;
     }
 
     private static boolean IsEligibleForRemoving(StackFrame frame)
@@ -85,7 +89,7 @@ public class StackTrace
      * @param fNeedFileInfo {@code true} to capture the file name, line number, and column number; otherwise, {@code false}.
      */
     public StackTrace(boolean fNeedFileInfo) {
-        elements = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk(new StackFrameConstructor(METHODS_TO_SKIP)).ToArray();
+        elements = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk(new StackFrameConstructor(METHODS_TO_SKIP));
     }
 
     /**
@@ -93,7 +97,9 @@ public class StackTrace
      * @param frames The set of stack frames that should be present in the stack trace.
      */
     public StackTrace(IEnumerable<StackFrame> frames) {
-        elements = new List<>(frames).ToArray();
+        var lt = new List<>(frames);
+        elements = new StackFrame[lt.getCount()];
+        lt.CopyTo(elements , 0);
     }
 
     /**
@@ -114,7 +120,7 @@ public class StackTrace
         throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(e, "e");
-        elements = ConstructStackTraceFromException(e, METHODS_TO_SKIP).ToArray();
+        elements = ConstructStackTraceFromException(e, METHODS_TO_SKIP);
     }
 
     /**
@@ -143,7 +149,7 @@ public class StackTrace
         if (skipFrames < 0) {
             throw new ArgumentOutOfRangeException("skipFrames", "Parameter must not be a negative number.");
         }
-        elements = ConstructStackTraceFromException(e, METHODS_TO_SKIP + skipFrames).ToArray();
+        elements = ConstructStackTraceFromException(e, METHODS_TO_SKIP + skipFrames);
     }
 
     /**
@@ -171,7 +177,7 @@ public class StackTrace
         if (skipFrames < 0) {
             throw new ArgumentOutOfRangeException("skipFrames", "Parameter must not be a negative number.");
         }
-        elements = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk(new StackFrameConstructor(METHODS_TO_SKIP + skipFrames)).ToArray();
+        elements = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk(new StackFrameConstructor(METHODS_TO_SKIP + skipFrames));
     }
 
     /**

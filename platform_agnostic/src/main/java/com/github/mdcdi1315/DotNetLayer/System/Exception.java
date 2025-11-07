@@ -169,7 +169,9 @@ public class Exception
             if (IsEligibleForRemoving(e)) { continue; }
             elements.Add(e);
         }
-        return elements.ToArray();
+        StackTraceElement[] ef = new StackTraceElement[elements.getCount()];
+        elements.CopyTo(ef , 0);
+        return ef;
     }
 
 
