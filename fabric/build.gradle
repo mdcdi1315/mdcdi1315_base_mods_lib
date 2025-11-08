@@ -30,7 +30,7 @@ apply from: 'dependencies.gradle'
 
 loom {
 
-    def aw = project(":platform_agnostic").file("src/main/resources/${mod_id}.accesswidener")
+    def aw = file("src/main/resources/${mod_id}.accesswidener")
     if (aw.exists()) {
         accessWidenerPath.set(aw)
     }
@@ -68,17 +68,19 @@ loom {
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 task curseforge(type: TaskPublishCurseForge) {
-    dependsOn('build')
+    dependsOn('remapJar')
     description = 'Publishes the Fabric build to CurseForge.'
     group = 'publishing'
 
     apiToken = project.findProperty("curseforge.api_key") ?: System.getenv("CURSEFORGE_TOKEN") ?: "none"
 
-    def mainFile = upload(curseforge_project_id, file("${project.buildDir}/libs/${base.archivesName}-${version}.jar"))
+    def mainFile = upload(curseforge_project_id, project.layout.buildDirectory.file("libs/${base.archivesName.get()}-${version}.jar").get().getAsFile())
     mainFile.changelog = rootProject.file('CHANGELOG.md').text
     mainFile.addRequirement("fabric-api")
     project.minecraft_versions.split(',').toList().each { mainFile.addGameVersion(it) }
-    mainFile.releaseType = "release"
+    mainFile.releaseType = curseforge_release_type
+    mainFile.addModLoader("Fabric");
+    mainFile.addEnvironment("Client", "Server");
 }
 
 modrinth {
@@ -104,4 +106,4 @@ publishing {
     }
 }
 
-tasks.modrinth.dependsOn(build)
+tasks.modrinth.dependsOn(remapJar)
