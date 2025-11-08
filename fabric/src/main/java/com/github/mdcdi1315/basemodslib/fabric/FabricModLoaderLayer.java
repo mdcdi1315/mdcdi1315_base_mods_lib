@@ -153,6 +153,7 @@ public final class FabricModLoaderLayer
         mod_instance.RegisterItems(registrar);
         mod_instance.RegisterWorldGenItems(registrar);
         mod_instance.RegisterRegistryItems(registrar);
+        mod_instance.RegisterEntityTypes(registrar);
 
         mod_instance.RegisterCommands(new FabricCommandsRegistrar());
 
