@@ -138,7 +138,7 @@ public final class BlocksAndItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-
+        DATA_COMPONENT_TYPE_REGISTER.register(name, info.component_type_provider());
     }
 
     private void OnCreativeModeTabsRegistering(BuildCreativeModeTabContentsEvent event)
