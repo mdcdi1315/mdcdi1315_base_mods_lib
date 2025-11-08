@@ -78,4 +78,9 @@ public final class FabricClientModLoaderLayer
         instance.RegisterColorHandlers(registrar);
         instance.RegisterParticleProviders(registrar);
     }
+
+    @Override
+    public void Dispose() {
+
+    }
 }

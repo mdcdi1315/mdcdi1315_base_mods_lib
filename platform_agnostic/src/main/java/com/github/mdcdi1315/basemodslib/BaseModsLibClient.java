@@ -151,12 +151,12 @@ public final class BaseModsLibClient
         IClientModInstance mi;
         IEnumerator<IClientModInstance> i = null;
         try {
+            // Invoke to all mod instances the Dispose method.
             i = mod_instances.GetEnumerator();
             while (i.MoveNext())
             {
                 mi = i.getCurrent();
                 try {
-                    // Invoke to all mod instances the Dispose method.
                     mi.Dispose();
                 } catch (Exception e) {
                     BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
@@ -168,6 +168,7 @@ public final class BaseModsLibClient
             if (i != null) { i.Dispose(); }
         }
         mod_instances = null;
+        layer.Dispose();
         layer = null;
     }
 }

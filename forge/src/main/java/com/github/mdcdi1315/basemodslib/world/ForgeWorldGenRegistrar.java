@@ -58,5 +58,8 @@ public final class ForgeWorldGenRegistrar
         FEATURE_TYPES.register(mod_bus);
         PLACEMENT_MODIFIER_TYPES.register(mod_bus);
         POI_TYPES.register(mod_bus);
+        FEATURE_TYPES = null;
+        PLACEMENT_MODIFIER_TYPES = null;
+        POI_TYPES = null;
     }
 }

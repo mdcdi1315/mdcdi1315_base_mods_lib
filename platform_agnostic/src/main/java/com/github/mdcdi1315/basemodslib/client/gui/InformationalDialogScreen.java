@@ -110,7 +110,7 @@ public final class InformationalDialogScreen
             if (ok_button_x < 0) {
                 ok_button_x = 30;
             }
-            ok_button = Button.builder(Component.literal("OK!"), this::OnOKButtonPressed)
+            ok_button = Button.builder(Component.translatable("mdcdi1315_base_mods_lib.info_dialog_screen.ok_button_text"), this::OnOKButtonPressed)
                     .bounds(ok_button_x, 0 , 70 , 25)
                     .build();
             addRenderableWidget(ok_button);

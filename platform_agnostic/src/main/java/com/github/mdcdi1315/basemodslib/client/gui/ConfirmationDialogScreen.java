@@ -94,10 +94,10 @@ public final class ConfirmationDialogScreen
             if (no_button_x < 0) {
                 no_button_x = 30;
             }
-            no = Button.builder(Component.literal("No"), this::OnButtonPressedHandler)
+            no = Button.builder(Component.translatable("mdcdi1315_base_mods_lib.confirm_dialog_screen.no_button_text"), this::OnButtonPressedHandler)
                     .bounds(no_button_x , 0, 70 , 25)
                     .build();
-            yes = Button.builder(Component.literal("Yes!") , this::OnButtonPressedHandler)
+            yes = Button.builder(Component.translatable("mdcdi1315_base_mods_lib.confirm_dialog_screen.yes_button_text") , this::OnButtonPressedHandler)
                     .bounds(no_button_x + 80, 0, 70 ,25)
                     .build();
             addRenderableWidget(no);

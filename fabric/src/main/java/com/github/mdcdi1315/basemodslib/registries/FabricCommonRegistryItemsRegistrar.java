@@ -3,6 +3,10 @@ package com.github.mdcdi1315.basemodslib.registries;
 import com.github.mdcdi1315.DotNetLayer.System.*;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.entity.EntityTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
@@ -19,6 +23,8 @@ import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 
 import net.minecraft.core.Registry;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.item.Item;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.resources.ResourceKey;
@@ -42,7 +48,8 @@ public final class FabricCommonRegistryItemsRegistrar
         IBlockRegistrar,
         IBlockEntityRegistrar,
         IWorldGenRegistrar,
-        IRegistryRegistrar
+        IRegistryRegistrar,
+        IEntityTypeRegistrar
 {
     private String mod_id;
 
@@ -65,6 +72,8 @@ public final class FabricCommonRegistryItemsRegistrar
     public void Register(String name, BlockRegistrationInformation info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(info, "info");
+
         ArgumentNullException.ThrowIfNull(name, "name");
 
         ResourceLocation location = BuildAndValidateLocation(name);
@@ -97,6 +106,8 @@ public final class FabricCommonRegistryItemsRegistrar
     public void Register(String name, ItemRegistrationInformation info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(info, "info");
+
         ResourceLocation location = BuildAndValidateLocation(name);
 
         ModifyEntriesEventImpl implementation = new ModifyEntriesEventImpl(
@@ -184,6 +195,9 @@ public final class FabricCommonRegistryItemsRegistrar
     public <T> void RegisterRegistry(ResourceKey<Registry<T>> registryResourceKey, Action1<IModLoaderRegistry<T>> on_registry_ready)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(on_registry_ready, "on_registry_ready");
+        ArgumentNullException.ThrowIfNull(registryResourceKey, "registryResourceKey");
+
         Lifecycle lc = Lifecycle.stable();
         MappedRegistry<T> mr = new MappedRegistry<>(registryResourceKey, lc);
         ((WritableRegistry<Registry<T>>)BuiltInRegistries.REGISTRY).register(registryResourceKey, mr, lc);
@@ -197,6 +211,30 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(registry_name, "registry_name");
         ArgumentNullException.ThrowIfNull(element_codec, "element_codec");
         DynamicRegistries.register(registry_name, element_codec);
+    }
+
+    @Override
+    public <T extends Entity> void RegisterEntity(String name, EntityTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.ENTITY_TYPE , BuildAndValidateLocation(name) , info.entity_provider().function());
+    }
+
+    @Override
+    public <T> void RegisterMemoryModuleType(String name, MemoryModuleTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.MEMORY_MODULE_TYPE , BuildAndValidateLocation(name) , new MemoryModuleType<>(info.optional_codec()));
+    }
+
+    @Override
+    public void RegisterEntityAttribute(String name, AttributeRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.ATTRIBUTE , BuildAndValidateLocation(name) , info.attribute_getter().function());
     }
 
     private record ModifyEntriesEventImpl(Item m_item)

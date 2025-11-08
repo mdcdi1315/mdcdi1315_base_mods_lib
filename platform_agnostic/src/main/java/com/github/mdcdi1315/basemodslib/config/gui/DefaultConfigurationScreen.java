@@ -36,6 +36,14 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
     private final Component comment, tweak_string;
     private Button back_button, apply_changes_button;
 
+    /**
+     * Creates a new instance of the default configuration screen.
+     * @param config The mod config to be modified through this object.
+     * @param mod_id The ID of the mod requesting the creation of this object.
+     * @param parent The parent screen where this object should be parented to.
+     * @throws ArgumentException {@code mod_id} is the empty string ("").
+     * @throws ArgumentNullException {@code config} and/or {@code mod_id} are {@code null}.
+     */
     public DefaultConfigurationScreen(TCFG config, String mod_id, Screen parent)
             throws ArgumentException
     {

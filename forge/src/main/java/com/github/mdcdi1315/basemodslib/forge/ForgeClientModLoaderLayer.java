@@ -72,4 +72,9 @@ public final class ForgeClientModLoaderLayer
         reg.RegisterToEventBus(mod_event_bus);
 
     }
+
+    @Override
+    public void Dispose() {
+
+    }
 }

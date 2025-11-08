@@ -14,8 +14,15 @@ public final class ConfigGuiUtils
 {
     public static final String TRANSLATABLE_STRING_VAL = "[Translate]";
 
+    // Do not let anyone instantiate this class.
     private ConfigGuiUtils() {}
 
+    /**
+     * Constructs a chat component from the given config translatable string. <br />
+     * See {@link com.github.mdcdi1315.basemodslib.config.ConfigField#comment()} method for more information on how this is used.
+     * @param str The string to create a translation for, if needed.
+     * @return The created chat component.
+     */
     public static Component ConstructConfigTranslatableString(@MaybeNull String str)
     {
         Component component;
@@ -29,6 +36,13 @@ public final class ConfigGuiUtils
         return component;
     }
 
+    /**
+     * Constructs a chat component for a config field. The parameters denote from which mod and field to construct the chat component from.
+     * @param mod_id The ID of the mod managing the configuration file.
+     * @param field_name The name of the configuration file field.
+     * @return The constructed chat component.
+     * @throws ArgumentException {@code mod_id} and/or {@code field_name} are {@code null}.
+     */
     public static Component ConstructRootConfigFieldTranslation(String mod_id, String field_name)
             throws ArgumentException
     {

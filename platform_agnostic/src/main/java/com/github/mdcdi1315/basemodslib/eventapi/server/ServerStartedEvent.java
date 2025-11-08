@@ -6,4 +6,8 @@ import com.github.mdcdi1315.basemodslib.eventapi.IEvent;
 
 import net.minecraft.server.MinecraftServer;
 
+/**
+ * Event firing when a new Minecraft server is started.
+ * @param server The server object that started successfully.
+ */
 public record ServerStartedEvent(@NotNull MinecraftServer server) implements IEvent { }

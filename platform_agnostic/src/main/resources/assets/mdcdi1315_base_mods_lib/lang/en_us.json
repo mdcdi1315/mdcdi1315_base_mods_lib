@@ -3,7 +3,10 @@
 	"mdcdi1315_base_mods_lib.mod_network_version_mismatch": "The mod with ID %s has a versioning mismatch!\nValue retrieved from the client: %s\nValue retrieved from the server: %s\nPlease update the offending mod to match the server version.",
 
 	"mdcdi1315_base_mods_lib.confirm_dialog_screen.default_title": "Dialog",
+	"mdcdi1315_base_mods_lib.confirm_dialog_screen.yes_button_text": "Yes!",
+	"mdcdi1315_base_mods_lib.confirm_dialog_screen.no_button_text": "No",
 	"mdcdi1315_base_mods_lib.info_dialog_screen.default_title": "Information",
+	"mdcdi1315_base_mods_lib.info_dialog_screen.ok_button_text": "OK!",
 	"mdcdi1315_base_mods_lib.config.default_config_screen.title": "Configuration screen",
 	"mdcdi1315_base_mods_lib.config.default_config_screen.header": "Configuration tweaker for %s config file",
 	"mdcdi1315_base_mods_lib.config.default_config_screen.exit_button": "Exit...",

@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.block_item;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
+import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
@@ -29,7 +30,7 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import java.util.function.Supplier;
 
 public final class BlocksAndItemsRegistrar
-    implements IBlockRegistrar, IItemRegistrar, IBlockEntityRegistrar
+    implements IBlockRegistrar, IItemRegistrar, IBlockEntityRegistrar, IDisposable
 {
     private String mod_id;
     private DeferredRegister<Item> ITEM_REGISTER;
@@ -50,6 +51,11 @@ public final class BlocksAndItemsRegistrar
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(factory, "factory");
         BLOCK_ENTITY_TYPE_REGISTER.register(name , new BlockEntityRegistrySupplier<>(factory));
+    }
+
+    @Override
+    public void Dispose() {
+        items_on_creative_tabs = null;
     }
 
     private record BlockEntityRegistrySupplier<T extends BlockEntity>(IBlockEntityFactory<T> factory)
@@ -152,5 +158,10 @@ public final class BlocksAndItemsRegistrar
         ITEM_REGISTER.register(evb);
         BLOCK_ENTITY_TYPE_REGISTER.register(evb);
         evb.addListener(this::OnCreativeModeTabsRegistering);
+        // Clean up what we can clean, items_on_creative_mode_tabs will be cleaned once mod loading is complete.
+        mod_id = null;
+        ITEM_REGISTER = null;
+        BLOCKS_REGISTER = null;
+        BLOCK_ENTITY_TYPE_REGISTER = null;
     }
 }
