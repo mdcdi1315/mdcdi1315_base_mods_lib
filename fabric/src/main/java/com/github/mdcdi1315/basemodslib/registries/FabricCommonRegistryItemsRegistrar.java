@@ -6,10 +6,15 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
+import com.github.mdcdi1315.basemodslib.entity.EntityTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
@@ -18,13 +23,14 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 
-import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.core.MappedRegistry;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.WritableRegistry;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.RegistrationInfo;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -32,6 +38,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
@@ -43,7 +50,8 @@ public final class FabricCommonRegistryItemsRegistrar
         IBlockRegistrar,
         IBlockEntityRegistrar,
         IWorldGenRegistrar,
-        IRegistryRegistrar
+        IRegistryRegistrar,
+        IEntityTypeRegistrar
 {
     private String mod_id;
 
@@ -115,6 +123,14 @@ public final class FabricCommonRegistryItemsRegistrar
             }
             ItemGroupEvents.modifyEntriesEvent(rk.get()).register(implementation);
         }
+    }
+
+    @Override
+    public <T> void RegisterDataComponentType(String name, DataComponentTypeRegistrationInformation<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, BuildAndValidateLocation(name) , info.component_type_provider().function());
     }
 
     @Override
@@ -199,6 +215,30 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(registry_name, "registry_name");
         ArgumentNullException.ThrowIfNull(element_codec, "element_codec");
         DynamicRegistries.register(registry_name, element_codec);
+    }
+
+    @Override
+    public <T extends Entity> void RegisterEntity(String name, EntityTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.ENTITY_TYPE , BuildAndValidateLocation(name) , info.entity_provider().function());
+    }
+
+    @Override
+    public <T> void RegisterMemoryModuleType(String name, MemoryModuleTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.MEMORY_MODULE_TYPE, BuildAndValidateLocation(name) , new MemoryModuleType<>(info.optional_codec()));
+    }
+
+    @Override
+    public void RegisterEntityAttribute(String name, AttributeRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.ATTRIBUTE, BuildAndValidateLocation(name) , info.attribute_getter().function());
     }
 
     private record ModifyEntriesEventImpl(Item m_item)

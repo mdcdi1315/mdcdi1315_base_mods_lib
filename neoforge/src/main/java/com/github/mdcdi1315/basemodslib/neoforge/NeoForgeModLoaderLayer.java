@@ -1,26 +1,28 @@
 package com.github.mdcdi1315.basemodslib.neoforge;
 
-import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
+import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
-import com.github.mdcdi1315.basemodslib.commands.NeoForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
-
+import com.github.mdcdi1315.basemodslib.utils.DisposableObjectsTracker;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkBuilder;
-import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkingManager;
-import com.github.mdcdi1315.basemodslib.registries.NeoForgeRegistriesRegistrar;
 import com.github.mdcdi1315.basemodslib.world.NeoForgeWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkingManager;
+import com.github.mdcdi1315.basemodslib.commands.NeoForgeCommandRegistrar;
+import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
+import com.github.mdcdi1315.basemodslib.entity.NeoForgeEntityTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.registries.NeoForgeRegistriesRegistrar;
+
 import net.neoforged.fml.ModList;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforgespi.language.IModInfo;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 import java.util.List;
 import java.nio.file.Path;
@@ -29,10 +31,11 @@ import java.util.ArrayList;
 public final class NeoForgeModLoaderLayer
     implements IModLoaderLayer
 {
-    private final IEventBus event_bus;
-    private final List<IModInfo> mods;
-    private final Version minecraft_version, neoforge_version;
-    private final NeoForgeCommandRegistrar global_command_registrar;
+    private IEventBus event_bus;
+    private List<IModInfo> mods;
+    private DisposableObjectsTracker tracker;
+    private Version minecraft_version, neoforge_version;
+    private NeoForgeCommandRegistrar global_command_registrar;
 
     public NeoForgeModLoaderLayer(IEventBus event_bus) {
         this.event_bus = event_bus;
@@ -47,7 +50,8 @@ public final class NeoForgeModLoaderLayer
             fg_ver = new Version(0 , 0);
         }
         neoforge_version = fg_ver;
-        this.event_bus.addListener(NeoForgeModLoaderLayer::OnModLoadingCompleteEvent);
+        tracker = new DisposableObjectsTracker();
+        this.event_bus.addListener(this::OnModLoadingCompleteEvent);
     }
 
     private static IEventBus GetEventBusOrFail(Object mod_object) {
@@ -58,8 +62,15 @@ public final class NeoForgeModLoaderLayer
         }
     }
 
-    private static void OnModLoadingCompleteEvent(FMLLoadCompleteEvent event) {
+    private void DestroyLayerData() {
+        tracker.Dispose();
+        tracker = null;
+        global_command_registrar = null;
+    }
+
+    private void OnModLoadingCompleteEvent(FMLLoadCompleteEvent event) {
         event.enqueueWork(BaseModsLib::Destroy);
+        event.enqueueWork(this::DestroyLayerData);
     }
 
     @Override
@@ -73,6 +84,7 @@ public final class NeoForgeModLoaderLayer
         instance.RegisterItems(reg_1);
         instance.RegisterBlockEntities(reg_1);
         reg_1.RegisterToEventBus(mod_event_bus);
+        tracker.AddDisposable(reg_1);
 
         NeoForgeRegistriesRegistrar reg_2 = new NeoForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg_2);
@@ -81,6 +93,10 @@ public final class NeoForgeModLoaderLayer
         NeoForgeWorldGenRegistrar reg_3 = new NeoForgeWorldGenRegistrar(mod_id);
         instance.RegisterWorldGenItems(reg_3);
         reg_3.RegisterToEventBus(mod_event_bus);
+
+        NeoForgeEntityTypeRegistrar reg_5 = new NeoForgeEntityTypeRegistrar(mod_id);
+        instance.RegisterEntityTypes(reg_5);
+        reg_5.RegisterToEventBus(mod_event_bus);
 
         // Initialize non-sensitive things, but do still need to be done after all sensitive things have completed.
         NeoForgeNetworkingManager reg_4 = new NeoForgeNetworkingManager();
@@ -139,5 +155,14 @@ public final class NeoForgeModLoaderLayer
     @Override
     public Path GetConfigurationDirectory() {
         return FMLPaths.CONFIGDIR.get();
+    }
+
+    @Override
+    public void Dispose() {
+        this.mods = null;
+        this.event_bus = null;
+        this.neoforge_version = null;
+        this.minecraft_version = null;
+        this.global_command_registrar = null;
     }
 }

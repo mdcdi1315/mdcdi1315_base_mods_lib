@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.block_item;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
+import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
@@ -12,12 +13,14 @@ import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -33,11 +36,13 @@ import java.util.function.Supplier;
 public final class BlocksAndItemsRegistrar
     implements IBlockRegistrar,
         IBlockEntityRegistrar,
-        IItemRegistrar
+        IItemRegistrar,
+        IDisposable
 {
-    private final DeferredRegister.Blocks BLOCKS_REGISTER;
-    private final DeferredRegister.Items ITEMS_REGISTER;
-    private final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_REGISTER;
+    private DeferredRegister.Items ITEMS_REGISTER;
+    private DeferredRegister.Blocks BLOCKS_REGISTER;
+    private DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_REGISTER;
+    private DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPE_REGISTER;
     private List<Pair<Func1<ItemLike>, CreativeModeTab[]>> tabs_registration;
 
     public BlocksAndItemsRegistrar(String mod_id)
@@ -45,7 +50,13 @@ public final class BlocksAndItemsRegistrar
         ITEMS_REGISTER = DeferredRegister.createItems(mod_id);
         BLOCKS_REGISTER = DeferredRegister.createBlocks(mod_id);
         BLOCK_ENTITY_REGISTER = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE , mod_id);
+        DATA_COMPONENT_TYPE_REGISTER = DeferredRegister.create(BuiltInRegistries.DATA_COMPONENT_TYPE , mod_id);
         tabs_registration = new List<>();
+    }
+
+    @Override
+    public void Dispose() {
+        tabs_registration = null;
     }
 
     private record BlockItemRegisterSupplier(Func3<Block , ResourceLocation, Item> item_func, DeferredBlock<?> block)
@@ -96,6 +107,14 @@ public final class BlocksAndItemsRegistrar
         }
     }
 
+    @Override
+    public <T> void RegisterDataComponentType(String name, DataComponentTypeRegistrationInformation<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        DATA_COMPONENT_TYPE_REGISTER.register(name , info.component_type_provider());
+    }
+
     private void RegisterCreativeModeTabsEvent(BuildCreativeModeTabContentsEvent event)
     {
         var en = tabs_registration.GetEnumerator();
@@ -119,9 +138,14 @@ public final class BlocksAndItemsRegistrar
 
     public void RegisterToEventBus(IEventBus bus)
     {
-        BLOCK_ENTITY_REGISTER.register(bus);
-        BLOCKS_REGISTER.register(bus);
         ITEMS_REGISTER.register(bus);
+        BLOCKS_REGISTER.register(bus);
+        BLOCK_ENTITY_REGISTER.register(bus);
+        DATA_COMPONENT_TYPE_REGISTER.register(bus);
         bus.addListener(this::RegisterCreativeModeTabsEvent);
+        DATA_COMPONENT_TYPE_REGISTER = null;
+        BLOCK_ENTITY_REGISTER = null;
+        BLOCKS_REGISTER = null;
+        ITEMS_REGISTER = null;
     }
 }

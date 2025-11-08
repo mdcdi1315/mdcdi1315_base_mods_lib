@@ -5,6 +5,9 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
+import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
+import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
+
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
@@ -17,6 +20,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
  */
 public final class ItemHelpers
 {
+    // Do not let anyone instantiate this class.
     private ItemHelpers() {}
 
     /**
@@ -82,6 +86,21 @@ public final class ItemHelpers
         } else {
             return tab;
         }
+    }
+
+    /**
+     * Gets a previously registered item by the specified location in the item registry.
+     * @param location The location of the item to get.
+     * @return The item corresponding to the specified resource location, if found.
+     * @param <T> The exact type of the item to return.
+     * @throws ArgumentNullException {@code location} is {@code null}.
+     * @throws RegistryObjectNotFoundException {@code location} is not a valid item declaration registered in the items registry.
+     * @since 1.0.3
+     */
+    public static <T extends Item> T GetItem(ResourceLocation location)
+            throws ArgumentNullException, RegistryObjectNotFoundException
+    {
+        return (T) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.ITEM , location);
     }
 
     /**

@@ -31,11 +31,11 @@ import java.util.ArrayList;
 public final class FabricModLoaderLayer
     implements IModLoaderLayer
 {
-    private final Path config_dir;
-    private final List<String> mod_ids;
-    private final ModdingEnvironment environment;
-    private final Map<String, Version> networking_versions_map;
-    private final Version minecraft_version, fabric_modloader_version;
+    private Path config_dir;
+    private List<String> mod_ids;
+    private ModdingEnvironment environment;
+    private Map<String, Version> networking_versions_map;
+    private Version minecraft_version, fabric_modloader_version;
 
     public FabricModLoaderLayer()
     {
@@ -71,6 +71,16 @@ public final class FabricModLoaderLayer
             // On dedicated server environments, make sure to destroy the channel once the server has started shutting down.
             BaseModsLib.GetEventsManager().AddEventListener(ServerStoppingEvent.class, this::OnServerClosing);
         }
+    }
+
+    @Override
+    public void Dispose() {
+        this.mod_ids = null;
+        this.config_dir = null;
+        this.environment = null;
+        this.minecraft_version = null;
+        this.networking_versions_map = null;
+        this.fabric_modloader_version = null;
     }
 
     private record ChannelHandler(Action2<ServerPlayer , ServerBoundModInfoPacket> action)
@@ -145,6 +155,7 @@ public final class FabricModLoaderLayer
         mod_instance.RegisterItems(registrar);
         mod_instance.RegisterWorldGenItems(registrar);
         mod_instance.RegisterRegistryItems(registrar);
+        mod_instance.RegisterEntityTypes(registrar);
 
         mod_instance.RegisterCommands(new FabricCommandsRegistrar());
 

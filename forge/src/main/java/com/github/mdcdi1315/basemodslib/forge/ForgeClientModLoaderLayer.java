@@ -22,7 +22,7 @@ import java.util.Optional;
 public final class ForgeClientModLoaderLayer
     implements IClientModLoaderLayer
 {
-    private final FMLJavaModLoadingContext context;
+    private FMLJavaModLoadingContext context;
 
     public ForgeClientModLoaderLayer(FMLJavaModLoadingContext context) {
         this.context = context;
@@ -71,5 +71,10 @@ public final class ForgeClientModLoaderLayer
 
         reg.RegisterToEventBus(mod_event_bus);
 
+    }
+
+    @Override
+    public void Dispose() {
+        context = null;
     }
 }

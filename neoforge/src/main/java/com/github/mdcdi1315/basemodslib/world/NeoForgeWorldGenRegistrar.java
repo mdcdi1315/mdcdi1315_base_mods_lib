@@ -14,9 +14,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class NeoForgeWorldGenRegistrar
     implements IWorldGenRegistrar
 {
-    private final DeferredRegister<Feature<?>> FEATURE_REGISTER;
-    private final DeferredRegister<PlacementModifierType<?>> FEATURE_PLACEMENT_MOD_REGISTER;
-    private final DeferredRegister<PoiType> POI_TYPE_REGISTER;
+    private DeferredRegister<Feature<?>> FEATURE_REGISTER;
+    private DeferredRegister<PlacementModifierType<?>> FEATURE_PLACEMENT_MOD_REGISTER;
+    private DeferredRegister<PoiType> POI_TYPE_REGISTER;
 
     public NeoForgeWorldGenRegistrar(String mod_id)
     {
@@ -45,5 +45,8 @@ public final class NeoForgeWorldGenRegistrar
         FEATURE_REGISTER.register(event_bus);
         POI_TYPE_REGISTER.register(event_bus);
         FEATURE_PLACEMENT_MOD_REGISTER.register(event_bus);
+        FEATURE_REGISTER = null;
+        POI_TYPE_REGISTER = null;
+        FEATURE_PLACEMENT_MOD_REGISTER = null;
     }
 }

@@ -235,6 +235,7 @@ public final class BaseModsLib
         mod_instances = null;
         events_manager.DestroyManager();
         events_manager = null;
+        layer.Dispose();
         layer = null;
     }
 }

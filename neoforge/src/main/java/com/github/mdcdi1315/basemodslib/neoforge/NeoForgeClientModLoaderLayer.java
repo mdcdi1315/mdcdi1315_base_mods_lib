@@ -34,6 +34,11 @@ public final class NeoForgeClientModLoaderLayer
         }
     }
 
+    @Override
+    public void Dispose() {
+
+    }
+
     private record LibConfigScreenFactoryToNeoForgeScreenFactory(ConfigurationScreenFactory<?> factory)
         implements IConfigScreenFactory
     {

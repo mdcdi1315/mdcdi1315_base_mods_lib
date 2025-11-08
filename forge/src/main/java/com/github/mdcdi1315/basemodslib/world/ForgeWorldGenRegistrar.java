@@ -55,8 +55,11 @@ public final class ForgeWorldGenRegistrar
 
     public void RegisterToEventBus(IEventBus mod_bus)
     {
+        POI_TYPES.register(mod_bus);
         FEATURE_TYPES.register(mod_bus);
         PLACEMENT_MODIFIER_TYPES.register(mod_bus);
-        POI_TYPES.register(mod_bus);
+        PLACEMENT_MODIFIER_TYPES = null;
+        FEATURE_TYPES = null;
+        POI_TYPES = null;
     }
 }

@@ -168,6 +168,7 @@ public final class BaseModsLibClient
             if (i != null) { i.Dispose(); }
         }
         mod_instances = null;
+        layer.Dispose();
         layer = null;
     }
 }

@@ -1,0 +1,65 @@
+package com.github.mdcdi1315.basemodslib.entity;
+
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+
+import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
+import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
+
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+
+public final class ForgeEntityTypeRegistrar
+    implements IEntityTypeRegistrar
+{
+    private DeferredRegister<Attribute> ATTRIBUTE_REGISTER;
+    private DeferredRegister<EntityType<?>> ENTITY_TYPE_REGISTER;
+    private DeferredRegister<MemoryModuleType<?>> MEM_MODULE_TYPE_REGISTER;
+
+    public ForgeEntityTypeRegistrar(String mod_id)
+    {
+        ATTRIBUTE_REGISTER = DeferredRegister.create(Registries.ATTRIBUTE , mod_id);
+        ENTITY_TYPE_REGISTER = DeferredRegister.create(Registries.ENTITY_TYPE , mod_id);
+        MEM_MODULE_TYPE_REGISTER = DeferredRegister.create(Registries.MEMORY_MODULE_TYPE , mod_id);
+    }
+
+    @Override
+    public <T extends Entity> void RegisterEntity(String name, EntityTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        ENTITY_TYPE_REGISTER.register(name, info.entity_provider());
+    }
+
+    @Override
+    public <T> void RegisterMemoryModuleType(String name, MemoryModuleTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        MEM_MODULE_TYPE_REGISTER.register(name, new ElementSupplier<>(new MemoryModuleType<>(info.optional_codec())));
+    }
+
+    @Override
+    public void RegisterEntityAttribute(String name, AttributeRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        ATTRIBUTE_REGISTER.register(name, info.attribute_getter());
+    }
+
+    public void RegisterToEventBus(IEventBus event_bus)
+    {
+        ATTRIBUTE_REGISTER.register(event_bus);
+        ENTITY_TYPE_REGISTER.register(event_bus);
+        MEM_MODULE_TYPE_REGISTER.register(event_bus);
+        MEM_MODULE_TYPE_REGISTER = null;
+        ENTITY_TYPE_REGISTER = null;
+        ATTRIBUTE_REGISTER = null;
+    }
+}

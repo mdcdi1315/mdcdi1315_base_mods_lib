@@ -6,7 +6,9 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
+import com.github.mdcdi1315.basemodslib.entity.ForgeEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.utils.DisposableObjectsTracker;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.network.ForgeBasedNetworkManager;
@@ -29,16 +31,16 @@ import java.util.ArrayList;
 public final class ForgeModLoaderLayer
     implements IModLoaderLayer
 {
-    private final List<IModInfo> forge_mod_info;
-    private final FMLJavaModLoadingContext baselibmodcontext;
-    private final ForgeCommandRegistrar global_command_registrar;
-    private final Version minecraft_version, forge_modloader_version;
+    private List<IModInfo> forge_mod_info;
+    private DisposableObjectsTracker tracker;
+    private FMLJavaModLoadingContext baselibmodcontext;
+    private ForgeCommandRegistrar global_command_registrar;
+    private Version minecraft_version, forge_modloader_version;
 
     public ForgeModLoaderLayer(FMLJavaModLoadingContext baselibmodcontext) {
         forge_mod_info = ModList.get().getMods();
         this.baselibmodcontext = baselibmodcontext;
         global_command_registrar = new ForgeCommandRegistrar();
-        this.baselibmodcontext.getModEventBus().addListener(ForgeModLoaderLayer::OnModLoadingComplete);
         minecraft_version = new Version(1 , 21, 1);
         Version fg_ver;
         try {
@@ -48,6 +50,8 @@ public final class ForgeModLoaderLayer
             fg_ver = new Version(0 , 0);
         }
         forge_modloader_version = fg_ver;
+        tracker = new DisposableObjectsTracker();
+        this.baselibmodcontext.getModEventBus().addListener(this::OnModLoadingComplete);
     }
 
     private IEventBus GetEventBusOrFail(Object mod_object) {
@@ -58,8 +62,15 @@ public final class ForgeModLoaderLayer
         }
     }
 
-    private static void OnModLoadingComplete(FMLLoadCompleteEvent mlce) {
+    private void DestroyLayerData() {
+        tracker.Dispose();
+        tracker = null;
+        global_command_registrar = null;
+    }
+
+    private void OnModLoadingComplete(FMLLoadCompleteEvent mlce) {
         mlce.enqueueWork(BaseModsLib::Destroy);
+        mlce.enqueueWork(this::DestroyLayerData);
     }
 
     @Override
@@ -73,12 +84,16 @@ public final class ForgeModLoaderLayer
         instance.RegisterBlockEntities(reg);
         instance.RegisterItems(reg);
         reg.RegisterToEventBus(mod_event_bus);
+        tracker.AddDisposable(reg);
         ForgeRegistriesRegistrar reg2 = new ForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg2);
         reg2.RegisterToEventBus(mod_event_bus);
         ForgeWorldGenRegistrar reg3 = new ForgeWorldGenRegistrar(mod_id);
         instance.RegisterWorldGenItems(reg3);
         reg3.RegisterToEventBus(mod_event_bus);
+        ForgeEntityTypeRegistrar reg4 = new ForgeEntityTypeRegistrar(mod_id);
+        instance.RegisterEntityTypes(reg4);
+        reg4.RegisterToEventBus(mod_event_bus);
 
         // Initialize non-sensitive things, but do still need to be done after all sensitive things have completed.
         ForgeBasedNetworkManager net_manager = new ForgeBasedNetworkManager(mod_id);
@@ -134,5 +149,15 @@ public final class ForgeModLoaderLayer
     @Override
     public Path GetConfigurationDirectory() {
         return FMLPaths.CONFIGDIR.get();
+    }
+
+    @Override
+    public void Dispose() {
+        this.tracker = null;
+        this.forge_mod_info = null;
+        this.minecraft_version = null;
+        this.baselibmodcontext = null;
+        this.forge_modloader_version = null;
+        this.global_command_registrar = null;
     }
 }

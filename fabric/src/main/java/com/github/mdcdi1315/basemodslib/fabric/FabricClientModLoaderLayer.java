@@ -35,6 +35,11 @@ public final class FabricClientModLoaderLayer
         mod_info_packet_events.Add(new ClientConnectedToServer_DispatchModInfoPacketImpl(packet));
     }
 
+    @Override
+    public void Dispose() {
+
+    }
+
     private record ClientConnectedToServer_DispatchModInfoPacketImpl(ServerBoundModInfoPacket packet)
             implements Action1<ClientConnectedToServerEvent>
     {
