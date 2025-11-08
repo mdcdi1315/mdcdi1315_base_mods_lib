@@ -1,5 +1,8 @@
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 plugins {
     id 'multiloader-loader'
     id 'com.modrinth.minotaur'
@@ -8,9 +11,10 @@ plugins {
     id 'org.spongepowered.mixin' version '0.7-SNAPSHOT'
 }
 
+def refmapfilename = "${mod_id}.refmap.json";
+
 mixin {
-    def refmapfile = "${mod_id}.refmap.json"
-    add(sourceSets.main, refmapfile)
+    add(sourceSets.main, refmapfilename)
 
     config("${mod_id}.mixins.json")
     config("${mod_id}.forge.mixins.json")
@@ -84,6 +88,19 @@ dependencies {
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
 }
 
+processResources {
+    doFirst {
+        File refmapping_file = file("build/tmp/compileJava/${refmapfilename}");
+        if (refmapping_file.exists()) {
+            String work_dir = "build/tmp/build_working";
+            Directory dir = project.layout.projectDirectory.dir(work_dir);
+            dir.getAsFile().mkdir();
+            Files.copy(refmapping_file.toPath() , dir.file(refmapfilename).getAsFile().toPath() , StandardCopyOption.REPLACE_EXISTING);
+            sourceSets.main.resources.srcDir(work_dir);
+        }
+    }
+}
+
 jar {
     manifest.attributes([
             "MixinConfigs": "${mod_id}.mixins.json,${mod_id}.forge.mixins.json"
@@ -93,28 +110,23 @@ jar {
 apply from: rootProject.file('repositories.gradle')
 apply from: 'dependencies.gradle'
 
-task curseforge(type: TaskPublishCurseForge) {
+tasks.register('curseforge', TaskPublishCurseForge) {
     dependsOn('build')
     description = 'Publishes the Forge build to CurseForge.'
     group = 'publishing'
 
     apiToken = project.findProperty("curseforge.api_key") ?: System.getenv("CURSEFORGE_TOKEN") ?: "none"
 
-    def projectId = findProperty("curseforge_project_id")
-    onlyIf {
-        projectId != null
-    }
-    if (projectId) {
-        def mainFile = upload(findProperty("curseforge_project_id"), file("${project.buildDir}/libs/${base.archivesName}-${version}.jar"))
-        mainFile.changelog = rootProject.file('CHANGELOG.md').text
-        project.minecraft_versions.split(',').toList().each { mainFile.addGameVersion(it) }
-        mainFile.releaseType = "release"
-    }
+    def mainFile = upload(curseforge_project_id, project.layout.buildDirectory.get().file("libs/${base.archivesName}-${version}.jar").getAsFile())
+    mainFile.changelog = rootProject.file('CHANGELOG.md').text
+    project.minecraft_versions.split(',').toList().each { mainFile.addGameVersion(it) }
+    mainFile.releaseType = curseforge_release_type
+    mainFile.addModLoader("Forge")
 }
 
 modrinth {
     token = project.findProperty("modrinth.token") ?: System.getenv("MODRINTH_TOKEN") ?: "none"
-    projectId = findProperty("modrinth_project_id")
+    projectId = modrinth_project_id
     versionType = "release"
     versionNumber = project.version + "+forge-" + project.minecraft_version
     uploadFile = jar
