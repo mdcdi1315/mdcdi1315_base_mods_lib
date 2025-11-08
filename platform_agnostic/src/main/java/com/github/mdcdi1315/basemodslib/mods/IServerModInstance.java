@@ -5,6 +5,7 @@ import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NetworkManager;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ICommandRegistrar;
+import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 
@@ -58,4 +59,10 @@ public interface IServerModInstance
      * @param manager The networking manager to be used by the mod instance.
      */
     default void InitializeNetwork(NetworkManager manager) {}
+
+    /**
+     * Registers entity types and other stuff related to entities for this mod instance.
+     * @param registrar The object responsible for registering entity types to Minecraft.
+     */
+    default void RegisterEntityTypes(IEntityTypeRegistrar registrar) {}
 }

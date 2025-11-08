@@ -1,11 +1,14 @@
 package com.github.mdcdi1315.basemodslib;
 
+import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
+
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 
 /**
  * Like {@link IModLoaderLayer}, this provides the mod loader layer for client side mods.
  */
 public interface IClientModLoaderLayer
+    extends IDisposable
 {
     /**
      * Initializes a new client-side mod instance.

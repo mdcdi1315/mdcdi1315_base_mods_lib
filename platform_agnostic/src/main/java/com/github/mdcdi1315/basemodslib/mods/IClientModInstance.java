@@ -50,7 +50,6 @@ public interface IClientModInstance
      * Called only once per mod instance to provide a custom configuration screen for their needs. <br />
      * Can also be {@code null}, indicating that the config screen is not applicable of or for any failure creating the GUI.
      * @return The screen configuration factory object to return.
-     * @param <T> The type of the configuration screen to use.
      */
     @MaybeNull
     default ConfigurationScreenFactory<? extends Screen> RegisterConfigurationScreenFactory() {

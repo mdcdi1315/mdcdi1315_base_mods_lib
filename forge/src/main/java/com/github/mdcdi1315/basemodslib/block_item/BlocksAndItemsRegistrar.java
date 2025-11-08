@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.block_item;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
+import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
@@ -12,11 +13,14 @@ import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
+import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
@@ -30,19 +34,21 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public final class BlocksAndItemsRegistrar
-    implements IBlockRegistrar, IItemRegistrar, IBlockEntityRegistrar
+    implements IBlockRegistrar, IItemRegistrar, IBlockEntityRegistrar, IDisposable
 {
     private String mod_id;
     private DeferredRegister<Item> ITEM_REGISTER;
     private DeferredRegister<Block> BLOCKS_REGISTER;
     private DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPE_REGISTER;
+    private DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPE_REGISTER;
     private List<Pair<CreativeModeTab[] , RegistryObject<Item>>> items_on_creative_tabs;
 
     public BlocksAndItemsRegistrar(String mod_id) {
         this.mod_id = mod_id;
         items_on_creative_tabs = new List<>();
-        BLOCKS_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCKS , this.mod_id);
         ITEM_REGISTER = DeferredRegister.create(ForgeRegistries.ITEMS, this.mod_id);
+        BLOCKS_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCKS , this.mod_id);
+        DATA_COMPONENT_TYPE_REGISTER = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE , this.mod_id);
         BLOCK_ENTITY_TYPE_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, this.mod_id);
     }
 
@@ -51,6 +57,11 @@ public final class BlocksAndItemsRegistrar
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(factory, "factory");
         BLOCK_ENTITY_TYPE_REGISTER.register(name , new BlockEntityRegistrySupplier<>(factory));
+    }
+
+    @Override
+    public void Dispose() {
+        items_on_creative_tabs = null;
     }
 
     private record BlockEntityRegistrySupplier<T extends BlockEntity>(IBlockEntityFactory<T> factory)
@@ -123,6 +134,14 @@ public final class BlocksAndItemsRegistrar
         }
     }
 
+    @Override
+    public <T> void RegisterDataComponentType(String name, DataComponentTypeRegistrationInformation<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        DATA_COMPONENT_TYPE_REGISTER.register(name, info.component_type_provider());
+    }
+
     private void OnCreativeModeTabsRegistering(BuildCreativeModeTabContentsEvent event)
     {
         if (items_on_creative_tabs.getCount() < 1) {
@@ -149,9 +168,14 @@ public final class BlocksAndItemsRegistrar
 
     public void RegisterToEventBus(IEventBus evb)
     {
-        BLOCKS_REGISTER.register(evb);
         ITEM_REGISTER.register(evb);
+        BLOCKS_REGISTER.register(evb);
         BLOCK_ENTITY_TYPE_REGISTER.register(evb);
+        DATA_COMPONENT_TYPE_REGISTER.register(evb);
         evb.addListener(this::OnCreativeModeTabsRegistering);
+        DATA_COMPONENT_TYPE_REGISTER = null;
+        BLOCK_ENTITY_TYPE_REGISTER = null;
+        BLOCKS_REGISTER = null;
+        ITEM_REGISTER = null;
     }
 }
