@@ -5,15 +5,16 @@ import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
-import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.ParticleResources;
+import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.bus.EventBus;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
@@ -25,7 +26,7 @@ public final class ForgeClientArtifactsRegistrar
         IModelDefinitionRegistrar,
         IParticleProviderRegistrar
 {
-    private List<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
+    private List<BlockEntityRendererRegistrationInfo<? extends BlockEntity , ? extends BlockEntityRenderState>> block_entity_renderer_infos;
     private List<EntityRendererRegistrationInfo<?>> entity_renderer_infos;
     private List<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
     private List<ModelDefinitionRegistrationInfo> model_defs_infos;
@@ -42,7 +43,7 @@ public final class ForgeClientArtifactsRegistrar
     }
 
     @Override
-    public <T extends BlockEntity> void Register(BlockEntityRendererRegistrationInfo<T> info)
+    public <T extends BlockEntity, S extends BlockEntityRenderState> void Register(BlockEntityRendererRegistrationInfo<T, S> info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
@@ -134,7 +135,7 @@ public final class ForgeClientArtifactsRegistrar
         advanced_particle_reg = null;
     }
 
-    public void RegisterToEventBus(IEventBus bus)
+    public void RegisterToEventBus(EventBus<?> bus)
     {
         bus.addListener(this::OnRegisterEntityRenderers);
         bus.addListener(this::OnRegisterModelDefinitions);
@@ -143,7 +144,7 @@ public final class ForgeClientArtifactsRegistrar
     }
 
     private record SpriteParticleImplementation_Simple<T extends ParticleOptions>(ParticleProvider<T> prov)
-        implements ParticleEngine.SpriteParticleRegistration<T>
+        implements ParticleResources.SpriteParticleRegistration<T>
     {
         @Override
         public ParticleProvider<T> create(SpriteSet spriteSet) {
@@ -152,7 +153,7 @@ public final class ForgeClientArtifactsRegistrar
     }
 
     private record SpriteParticleImplementation_Advanced<T extends ParticleOptions>(Func2<SpriteSet, ParticleProvider<T>> provider_function)
-        implements ParticleEngine.SpriteParticleRegistration<T>
+        implements ParticleResources.SpriteParticleRegistration<T>
     {
         @Override
         public ParticleProvider<T> create(SpriteSet spriteSet) {

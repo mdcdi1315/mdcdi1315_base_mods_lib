@@ -13,6 +13,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 public final class NeoForgeNetworkingManager
     extends NetworkManager
@@ -59,6 +60,6 @@ public final class NeoForgeNetworkingManager
 
     @Override
     public <T extends CustomPacketPayload> void SendToServer(T message) {
-        PacketDistributor.sendToServer(message);
+        ClientPacketDistributor.sendToServer(message);
     }
 }

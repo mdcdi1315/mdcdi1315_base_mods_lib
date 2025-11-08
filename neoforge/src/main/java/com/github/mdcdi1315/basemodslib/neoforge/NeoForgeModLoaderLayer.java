@@ -41,7 +41,7 @@ public final class NeoForgeModLoaderLayer
         global_command_registrar = new NeoForgeCommandRegistrar();
         Version fg_ver;
         try {
-            fg_ver = Version.Parse(FMLLoader.versionInfo().neoForgeVersion());
+            fg_ver = Version.Parse(FMLLoader.getCurrent().getVersionInfo().neoForgeVersion());
         } catch (Exception e) {
             BaseModsLib.LOGGER.warn("Cannot retrieve NeoForge version due to an exception. Setting version values to 0,0.", e);
             fg_ver = new Version(0 , 0);
@@ -115,7 +115,7 @@ public final class NeoForgeModLoaderLayer
 
     @Override
     public ModdingEnvironment GetEnvironment() {
-        return switch (FMLEnvironment.dist) {
+        return switch (FMLEnvironment.getDist()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case DEDICATED_SERVER -> ModdingEnvironment.SERVER;
         };

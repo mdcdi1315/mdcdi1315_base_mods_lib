@@ -1,14 +1,15 @@
 package com.github.mdcdi1315.basemodslib.client;
 
+import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
-import net.minecraft.client.particle.ParticleEngine;
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.ParticleResources;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import net.neoforged.bus.api.IEventBus;
@@ -27,9 +28,9 @@ public final class NeoForgeClientArtifactsRegistrar
     private List<ItemColorHandlerRegistrationInfo> item_colors;
     private List<BlockColorHandlerRegistrationInfo> block_colors;
     private List<EntityRendererRegistrationInfo<? extends Entity>> entities;
-    private List<BlockEntityRendererRegistrationInfo<? extends BlockEntity>> block_entities;
     private List<SimpleParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_simple;
     private List<AdvancedParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_advanced;
+    private List<BlockEntityRendererRegistrationInfo<? extends BlockEntity, ? extends BlockEntityRenderState>> block_entities;
 
     public NeoForgeClientArtifactsRegistrar()
     {
@@ -43,7 +44,7 @@ public final class NeoForgeClientArtifactsRegistrar
     }
 
     @Override
-    public <T extends BlockEntity> void Register(BlockEntityRendererRegistrationInfo<T> info)
+    public <T extends BlockEntity, S extends BlockEntityRenderState> void Register(BlockEntityRendererRegistrationInfo<T, S> info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
@@ -98,7 +99,7 @@ public final class NeoForgeClientArtifactsRegistrar
         particles_advanced.Add(info);
     }
 
-    private static <T extends BlockEntity> void RegisterBlockEntityRenderer(EntityRenderersEvent.RegisterRenderers event, BlockEntityRendererRegistrationInfo<T> info) {
+    private static <T extends BlockEntity, S extends BlockEntityRenderState> void RegisterBlockEntityRenderer(EntityRenderersEvent.RegisterRenderers event, BlockEntityRendererRegistrationInfo<T, S> info) {
         event.registerBlockEntityRenderer(info.type().function() , info.provider());
     }
 
@@ -188,7 +189,7 @@ public final class NeoForgeClientArtifactsRegistrar
     }
 
     private record SimpleParticleRegistration<T extends ParticleOptions>(ParticleProvider<T> provider)
-        implements ParticleEngine.SpriteParticleRegistration<T>
+        implements ParticleResources.SpriteParticleRegistration<T>
     {
         @Override
         public ParticleProvider<T> create(SpriteSet spriteSet) {
@@ -197,7 +198,7 @@ public final class NeoForgeClientArtifactsRegistrar
     }
 
     private record Func2ToSpriteParticleRegistration<T extends ParticleOptions>(Func2<SpriteSet, ParticleProvider<T>> function)
-        implements ParticleEngine.SpriteParticleRegistration<T>
+        implements ParticleResources.SpriteParticleRegistration<T>
     {
         @Override
         public ParticleProvider<T> create(SpriteSet spriteSet) {

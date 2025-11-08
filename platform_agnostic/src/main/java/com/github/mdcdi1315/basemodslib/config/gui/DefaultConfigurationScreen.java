@@ -13,12 +13,16 @@ import com.github.mdcdi1315.basemodslib.client.gui.ConfirmationDialogScreen;
 import com.github.mdcdi1315.basemodslib.client.gui.InformationalDialogScreen;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.ConfigSerializationHelpers;
 
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.sounds.Music;
 import net.minecraft.sounds.Musics;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
+
+import java.util.List;
 
 /**
  * Provides a screen for modifying configuration file data. <br />
@@ -31,6 +35,7 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
     private final TCFG cfg;
     private final String mod_id;
     private int tweak_string_len;
+    private ClientTextTooltip ctp;
     private SettingsModifierList list;
     private final boolean render_comment;
     private final Component comment, tweak_string;
@@ -42,6 +47,7 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
         super(Component.translatable("mdcdi1315_base_mods_lib.config.default_config_screen.title"), parent);
         ArgumentNullException.ThrowIfNull(config, "config");
         ArgumentNullException.ThrowIfNullOrEmpty(mod_id, "mod_id");
+        ctp = null;
         cfg = config;
         this.mod_id = mod_id;
         tweak_string_len = 0;
@@ -114,6 +120,7 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
         addWidget(list);
         addWidget(back_button);
         addWidget(apply_changes_button);
+        ctp = new ClientTextTooltip(comment.getVisualOrderText());
     }
 
     public void tick() {
@@ -142,7 +149,7 @@ public class DefaultConfigurationScreen<TCFG extends IModConfig>
                         mouse_x < (7 + font.lineHeight)
         )) {
             // Create a tooltip for the config file comment, if the config file has one.
-            graphics.renderTooltip(font, comment, mouse_x , mouse_y);
+            graphics.renderTooltip(font, List.of(ctp), mouse_x , mouse_y, DefaultTooltipPositioner.INSTANCE, null);
         }
 
         list.render(graphics, mouse_x , mouse_y , partialTick);

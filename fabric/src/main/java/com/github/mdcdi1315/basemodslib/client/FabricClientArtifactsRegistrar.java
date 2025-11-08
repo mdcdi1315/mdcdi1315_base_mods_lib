@@ -6,18 +6,19 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
 import net.fabricmc.fabric.api.client.particle.v1.FabricSpriteProvider;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 
@@ -34,7 +35,7 @@ public final class FabricClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        EntityRendererRegistry.register(info.entity_type_provider().function(), info.renderer_provider());
+        EntityRenderers.register(info.entity_type_provider().function() , info.renderer_provider());
     }
 
     @Override
@@ -54,7 +55,7 @@ public final class FabricClientArtifactsRegistrar
     }
 
     @Override
-    public <T extends BlockEntity> void Register(BlockEntityRendererRegistrationInfo<T> info)
+    public <T extends BlockEntity, S extends BlockEntityRenderState> void Register(BlockEntityRendererRegistrationInfo<T, S> info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");

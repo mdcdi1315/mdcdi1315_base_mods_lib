@@ -11,6 +11,9 @@ import com.github.mdcdi1315.basemodslib.client.gui.ITickableGuiElement;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.SerializedField;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
@@ -61,11 +64,13 @@ public class SettingsModifierList
         protected final FieldData setting_data;
         @AllowNull
         private final List<Component> desc_tool_tip;
+        private int desc_c_width;
 
         public AbstractSettingEntry(FieldData data) {
             ArgumentNullException.ThrowIfNull(data, "data");
             setting_data = data;
             focus_status = false;
+            desc_c_width = -1;
             desc_tool_tip = setting_data.ConstructTooltipLinesFromComment();
         }
 
@@ -88,33 +93,49 @@ public class SettingsModifierList
 
         public abstract void mouseMoved(double mouseX, double mouseY);
 
-        public abstract boolean charTyped(char codePoint, int modifiers);
+        @Override
+        public abstract boolean charTyped(CharacterEvent event);
 
-        public abstract boolean keyPressed(int keyCode, int scanCode, int modifiers);
+        @Override
+        public abstract boolean keyPressed(KeyEvent event);
 
-        public abstract boolean keyReleased(int keyCode, int scanCode, int modifiers);
+        @Override
+        public abstract boolean keyReleased(KeyEvent event);
 
-        public abstract boolean mouseClicked(double mouseX, double mouseY, int button);
+        @Override
+        public abstract boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick);
 
-        public abstract boolean mouseReleased(double mouseX, double mouseY, int button);
+        @Override
+        public abstract boolean mouseReleased(MouseButtonEvent event);
 
+        @Override
         public abstract boolean mouseScrolled(double mouseX, double mouseY, double scroll_x , double scroll_y);
 
-        public abstract boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY);
+        @Override
+        public abstract boolean mouseDragged(MouseButtonEvent event, double mouseX, double mouseY);
 
         public abstract void RenderElementValue(GuiGraphics graphics, int top, int left, int width, int height, int mouse_x, int mouse_y, boolean hovering, float partialTick);
 
         @Override
-        public final void render(GuiGraphics graphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTick) {
-            int left_shift = left+4;
-            int wd = (graphics.drawString(minecraft.font, setting_data.GetCulturizedDescription(), left_shift, (top-2) + (height / 2), 0xFF443355) - left_shift) + 10;
-
-            int new_position = left + wd;
-            if (desc_tool_tip != null && (mouseX >= left && mouseX < new_position && mouseY >= top && mouseY < top+height)) {
-                graphics.renderComponentTooltip(minecraft.font, desc_tool_tip, mouseX, mouseY);
+        public final void renderContent(GuiGraphics graphics, int mouse_x, int mouse_y, boolean hovering, float partial_tick)
+        {
+            int left = this.getX() ,
+                top = this.getY(),
+                width = this.getWidth(),
+                height = this.getHeight();
+            if (desc_c_width == -1) {
+                desc_c_width = minecraft.font.width(setting_data.GetCulturizedDescription());
             }
 
-            RenderElementValue(graphics, top, new_position, width-wd-4, height, mouseX, mouseY, hovering, partialTick);
+            int wd = desc_c_width + 10;;
+            graphics.drawString(minecraft.font, setting_data.GetCulturizedDescription(), left + 4, (top-2) + (height / 2), 0xFF443355);
+
+            int new_position = left + wd;
+            if (desc_tool_tip != null && (mouse_x >= left && mouse_x < new_position && mouse_y >= top && mouse_y < top+height)) {
+                graphics.setComponentTooltipForNextFrame(minecraft.font , desc_tool_tip , mouse_x , mouse_y);
+            }
+
+            RenderElementValue(graphics, top, new_position, width-wd-4, height, mouse_x, mouse_y, hovering, partial_tick);
         }
 
         public void Tick() {}
@@ -138,46 +159,46 @@ public class SettingsModifierList
             }
         }
 
-        public boolean charTyped(char codePoint, int modifiers) {
+        public boolean charTyped(CharacterEvent event) {
             boolean value = false;
             for (AbstractWidget w : widgets) {
-                value |= w.charTyped(codePoint, modifiers);
+                value |= w.charTyped(event);
             }
             return value;
         }
 
-        public boolean keyPressed(int keyCode, int scanCode, int modifiers)
+        public boolean keyPressed(KeyEvent event)
         {
             for (AbstractWidget w : widgets) {
-                if (w.keyPressed(keyCode, scanCode, modifiers)) { return true; }
+                if (w.keyPressed(event)) { return true; }
             }
             return false;
         }
 
-        public boolean keyReleased(int keyCode, int scanCode, int modifiers)
+        public boolean keyReleased(KeyEvent event)
         {
             boolean value = false;
             for (AbstractWidget w : widgets) {
-                value |= w.keyReleased(keyCode, scanCode, modifiers);
+                value |= w.keyReleased(event);
             }
             return value;
         }
 
-        public boolean mouseClicked(double mouseX, double mouseY, int button)
+        public boolean mouseClicked(MouseButtonEvent event, boolean double_click)
         {
             boolean value = false;
             for (AbstractWidget w : widgets) {
-                value |= w.mouseClicked(mouseX, mouseY, button);
+                value |= w.mouseClicked(event, double_click);
             }
             return value;
         }
 
-        public boolean mouseReleased(double mouseX, double mouseY, int button)
+        public boolean mouseReleased(MouseButtonEvent event)
         {
             boolean value = false;
             for (AbstractWidget w : widgets) {
-                if (w.isMouseOver(mouseX, mouseY)) {
-                    value |= w.mouseReleased(mouseX, mouseY, button);
+                if (w.isMouseOver(event.x() , event.y())) {
+                    value |= w.mouseReleased(event);
                 }
             }
             return value;
@@ -192,11 +213,11 @@ public class SettingsModifierList
             return value;
         }
 
-        public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
+        public boolean mouseDragged(MouseButtonEvent event, double mouseX, double mouseY)
         {
             boolean value = false;
             for (AbstractWidget w : widgets) {
-                value |= w.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+                value |= w.mouseDragged(event, mouseX, mouseY);
             }
             return value;
         }
@@ -222,28 +243,28 @@ public class SettingsModifierList
         }
 
         @Override
-        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-            return widget_to_use.keyPressed(keyCode, scanCode, modifiers);
+        public boolean keyPressed(KeyEvent event) {
+            return widget_to_use.keyPressed(event);
         }
 
         @Override
-        public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
-            return widget_to_use.keyReleased(keyCode, scanCode, modifiers);
+        public boolean keyReleased(KeyEvent event) {
+            return widget_to_use.keyReleased(event);
         }
 
         @Override
-        public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-            return widget_to_use.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        public boolean mouseDragged(MouseButtonEvent event, double mouseX, double mouseY) {
+            return widget_to_use.mouseDragged(event, mouseX, mouseY);
         }
 
         @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            return widget_to_use.mouseClicked(mouseX, mouseY, button);
+        public boolean mouseClicked(MouseButtonEvent event, boolean double_click) {
+            return widget_to_use.mouseClicked(event, double_click);
         }
 
         @Override
-        public boolean mouseReleased(double mouseX, double mouseY, int button) {
-            return widget_to_use.mouseReleased(mouseX,mouseY, button);
+        public boolean mouseReleased(MouseButtonEvent event) {
+            return widget_to_use.mouseReleased(event);
         }
 
         @Override
@@ -252,8 +273,8 @@ public class SettingsModifierList
         }
 
         @Override
-        public boolean charTyped(char codePoint, int modifiers) {
-            return widget_to_use.charTyped(codePoint, modifiers);
+        public boolean charTyped(CharacterEvent event) {
+            return widget_to_use.charTyped(event);
         }
 
         @Override
