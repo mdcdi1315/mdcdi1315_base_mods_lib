@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 @Mixin(MinecraftServer.class)
 public class MinecraftServerMixin
 {
-    @Inject(method = "reloadResources(Ljava/util/Collection;)Ljava/util/concurrent/CompletableFuture;", at = @At("RETURN"))
+    @Inject(method = "reloadResources", at = @At("RETURN"))
     private void reloadResources(Collection<String> p_129862_, CallbackInfoReturnable<CompletableFuture<Void>> callback_info) {
         callback_info.getReturnValue().thenAccept(this::MDCDI1315$BML$EventAccepter);
     }

@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.mixin;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerResourcesReloadedEvent;
 
+import net.minecraft.core.Registry;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.RegistryLayer;
 import net.minecraft.world.flag.FeatureFlagSet;
@@ -16,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.CompletableFuture;
 
@@ -25,7 +27,8 @@ public class ReloadableServerResourcesMixin
     @Inject(method = "loadResources", at = @At("RETURN"))
     private static void loadResources(
             ResourceManager resourceManager,
-            LayeredRegistryAccess<RegistryLayer> registries,
+            LayeredRegistryAccess<RegistryLayer> registryAccess,
+            List<Registry.PendingTags<?>> postponedTags,
             FeatureFlagSet enabledFeatures,
             Commands.CommandSelection commandSelection,
             int functionCompilationLevel,

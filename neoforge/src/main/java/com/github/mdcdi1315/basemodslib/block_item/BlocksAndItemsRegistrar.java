@@ -27,6 +27,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -78,7 +79,7 @@ public final class BlocksAndItemsRegistrar
         @Override
         @SuppressWarnings("all")
         public BlockEntityType<T> get() {
-            return BlockEntityType.Builder.of(factory::Create , factory.GetBlocks()).build(null); // dataType is unused.
+            return new BlockEntityType<>(factory::Create , Set.of(factory.GetBlocks()));
         }
     }
 

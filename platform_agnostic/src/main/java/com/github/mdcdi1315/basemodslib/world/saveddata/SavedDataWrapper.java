@@ -13,20 +13,20 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.level.saveddata.SavedData;
 
-import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.BiFunction;
 
 /**
  * Defines the compatibility layer between {@link ISavedData} instances and {@link SavedData} instances.
  * @param <TD> The type of the {@link ISavedData} object to hold.
  */
 public final class SavedDataWrapper<TD extends ISavedData>
-    extends SavedData
+        extends SavedData
 {
     private final TD instance;
 
     public SavedDataWrapper(TD instance)
-        throws ArgumentNullException
+            throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(instance , "instance");
         this.instance = instance;
@@ -84,7 +84,6 @@ public final class SavedDataWrapper<TD extends ISavedData>
         }
     }
 
-
     /**
      * Retrieves the instance associated with this wrapper object.
      * @return The instance object to inspect.
@@ -102,7 +101,6 @@ public final class SavedDataWrapper<TD extends ISavedData>
     }
 
     @NotNull
-    @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
         try {
             return instance.Save().GenerateFinalData();

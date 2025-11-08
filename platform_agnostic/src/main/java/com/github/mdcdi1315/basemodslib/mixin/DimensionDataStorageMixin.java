@@ -16,12 +16,14 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import com.github.mdcdi1315.basemodslib.world.saveddata.PerDimensionWorldDataManager;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Files;
 
 @Mixin(DimensionDataStorage.class)
 public abstract class DimensionDataStorageMixin
 {
     @Invoker("getDataFile")
-    protected abstract File GetDataFile(String name);
+    protected abstract Path GetDataFile(String name);
 
     @Invoker("isGzip")
     protected abstract boolean IsGzip(PushbackInputStream inputStream) throws IOException;
@@ -37,10 +39,8 @@ public abstract class DimensionDataStorageMixin
     @Unique
     private CompoundTag BASEMODSLIB_II_ReadTagFromDisk$1(String name) throws IOException
     {
-        File file1 = GetDataFile(name);
-
         try (
-                FileInputStream fileinputstream = new FileInputStream(file1);
+                InputStream fileinputstream = Files.newInputStream(GetDataFile(name));
                 PushbackInputStream pushbackinputstream = new PushbackInputStream(fileinputstream, 2)
         ) {
             CompoundTag compoundtag;

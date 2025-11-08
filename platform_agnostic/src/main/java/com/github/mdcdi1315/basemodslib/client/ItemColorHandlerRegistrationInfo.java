@@ -1,17 +1,17 @@
 package com.github.mdcdi1315.basemodslib.client;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import net.minecraft.world.level.ItemLike;
-import net.minecraft.client.color.item.ItemColor;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.color.item.ItemTintSource;
 
 public record ItemColorHandlerRegistrationInfo(
-        Func1<ItemLike[]> items,
-        ItemColor item_color
+        ResourceLocation location,
+        MapCodec<? extends ItemTintSource> tint_source
 ) {
     public ItemColorHandlerRegistrationInfo {
-        ArgumentNullException.ThrowIfNull(item_color, "item_color");
-        ArgumentNullException.ThrowIfNull(items, "items");
+        ArgumentNullException.ThrowIfNull(location, "location");
+        ArgumentNullException.ThrowIfNull(tint_source, "tint_source");
     }
 }

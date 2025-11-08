@@ -37,10 +37,6 @@ neoForge {
         server {
             server()
         }
-
-        data {
-            data()
-        }
     }
 
     mods {

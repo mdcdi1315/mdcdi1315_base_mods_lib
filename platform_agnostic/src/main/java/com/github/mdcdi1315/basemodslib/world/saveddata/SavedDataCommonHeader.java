@@ -10,6 +10,8 @@ import com.mojang.serialization.Codec;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.CompoundTag;
 
+import java.util.Optional;
+
 /**
  * Defines the common header for all saved data provided by the mods using this library. <br />
  * Can have a custom format version, as well as the data specifying the saved information. <br />
@@ -34,13 +36,15 @@ public final class SavedDataCommonHeader
 
     public SavedDataCommonHeader(CompoundTag tag)
     {
-        if (tag.contains(VERSION_HEADER , Tag.TAG_SHORT)) {
-            version = tag.getShort(VERSION_HEADER);
+        Optional<Short> os = tag.getShort(VERSION_HEADER);
+        if (os.isPresent()) {
+            version = os.get();
         } else {
             throw new IncorrectSavedDataFormatException("Cannot find the saved data versioning field!");
         }
-        if (tag.contains(DATA_HEADER , Tag.TAG_COMPOUND)) {
-            this.tag = tag.getCompound(DATA_HEADER);
+        Optional<CompoundTag> oct = tag.getCompound(DATA_HEADER);
+        if (oct.isPresent()) {
+            this.tag = oct.get();
         } else {
             throw new IncorrectSavedDataFormatException("Cannot find the saved data data field!");
         }

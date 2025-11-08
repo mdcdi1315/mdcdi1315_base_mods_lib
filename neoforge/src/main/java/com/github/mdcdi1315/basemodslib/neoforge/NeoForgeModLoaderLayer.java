@@ -37,7 +37,7 @@ public final class NeoForgeModLoaderLayer
     public NeoForgeModLoaderLayer(IEventBus event_bus) {
         this.event_bus = event_bus;
         mods = ModList.get().getMods();
-        minecraft_version = new Version(1, 21, 1);
+        minecraft_version = new Version(1, 21, 5);
         global_command_registrar = new NeoForgeCommandRegistrar();
         Version fg_ver;
         try {

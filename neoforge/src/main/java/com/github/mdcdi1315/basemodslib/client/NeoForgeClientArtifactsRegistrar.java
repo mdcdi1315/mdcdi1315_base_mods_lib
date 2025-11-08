@@ -152,14 +152,14 @@ public final class NeoForgeClientArtifactsRegistrar
         model_infos = null;
     }
 
-    private void RegisterItemColorHandlersEventDef(RegisterColorHandlersEvent.Item event)
+    private void RegisterItemColorHandlersEventDef(RegisterColorHandlersEvent.ItemTintSources event)
     {
         var items = item_colors.GetEnumerator();
         try {
             ItemColorHandlerRegistrationInfo info;
             while (items.MoveNext()) {
                 info = items.getCurrent();
-                event.register(info.item_color(), info.items().function());
+                event.register(info.location() , info.tint_source());
             }
         } finally {
             items.Dispose();

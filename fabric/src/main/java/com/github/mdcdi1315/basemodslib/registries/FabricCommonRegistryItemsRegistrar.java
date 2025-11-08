@@ -17,14 +17,15 @@ import com.mojang.serialization.Lifecycle;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 
-import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.world.item.Item;
 import net.minecraft.core.MappedRegistry;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.WritableRegistry;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.RegistrationInfo;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -32,7 +33,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
 import java.util.Set;
@@ -123,12 +123,11 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(name, "name");
 
-
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, BuildAndValidateLocation(name) , new BlockEntityType<>(
-                factory::Create,
-                Set.of(factory.GetBlocks()),
-                null
-        ));
+        Registry.register(
+                BuiltInRegistries.BLOCK_ENTITY_TYPE,
+                BuildAndValidateLocation(name) ,
+                FabricBlockEntityTypeBuilder.create(factory::Create, factory.GetBlocks()).build()
+        );
     }
 
     @Override

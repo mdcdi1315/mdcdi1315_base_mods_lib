@@ -27,7 +27,7 @@ public final class ItemHelpers
     @MaybeNull
     public static CreativeModeTab GetMinecraftCreativeModeTab(@ConstantExpected String name) {
         ArgumentNullException.ThrowIfNull(name, "name");
-        return BuiltInRegistries.CREATIVE_MODE_TAB.get(ResourceLocation.tryBuild(ResourceLocation.DEFAULT_NAMESPACE , name));
+        return BuiltInRegistries.CREATIVE_MODE_TAB.getValue(ResourceLocation.tryBuild(ResourceLocation.DEFAULT_NAMESPACE , name));
     }
 
     /**
@@ -38,7 +38,7 @@ public final class ItemHelpers
     @MaybeNull
     public static CreativeModeTab GetCreativeModeTab(ResourceLocation tab_location) {
         ArgumentNullException.ThrowIfNull(tab_location, "tab_location");
-        return BuiltInRegistries.CREATIVE_MODE_TAB.get(tab_location);
+        return BuiltInRegistries.CREATIVE_MODE_TAB.getValue(tab_location);
     }
 
     /**
@@ -56,7 +56,7 @@ public final class ItemHelpers
         if (rl == null) {
             throw new ArgumentException("The resource location could not be constructed.");
         } else {
-            CreativeModeTab tab = BuiltInRegistries.CREATIVE_MODE_TAB.get(rl);
+            CreativeModeTab tab = BuiltInRegistries.CREATIVE_MODE_TAB.getValue(rl);
             if (tab == null) {
                 throw new CreativeModeTabNotFoundException(rl);
             } else {
@@ -76,7 +76,7 @@ public final class ItemHelpers
             throws ArgumentNullException, CreativeModeTabNotFoundException
     {
         ArgumentNullException.ThrowIfNull(location, "location");
-        CreativeModeTab tab = BuiltInRegistries.CREATIVE_MODE_TAB.get(location);
+        CreativeModeTab tab = BuiltInRegistries.CREATIVE_MODE_TAB.getValue(location);
         if (tab == null) {
             throw new CreativeModeTabNotFoundException(location);
         } else {

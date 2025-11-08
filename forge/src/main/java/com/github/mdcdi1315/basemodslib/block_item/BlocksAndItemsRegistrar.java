@@ -26,6 +26,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 
+import java.util.Set;
 import java.util.function.Supplier;
 
 public final class BlocksAndItemsRegistrar
@@ -58,7 +59,7 @@ public final class BlocksAndItemsRegistrar
         @Override
         @SuppressWarnings("all")
         public BlockEntityType<T> get() {
-            return BlockEntityType.Builder.of(factory::Create , factory.GetBlocks()).build(null); // dataType is unused.
+            return new BlockEntityType<>(factory::Create , Set.of(factory.GetBlocks()));
         }
     }
 

@@ -1,22 +1,22 @@
 package com.github.mdcdi1315.basemodslib.client;
 
+import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
-
-import net.minecraft.client.particle.ParticleEngine;
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 
 public final class ForgeClientArtifactsRegistrar
     implements IBlockEntityRendererRegistrar,
@@ -28,7 +28,6 @@ public final class ForgeClientArtifactsRegistrar
     private List<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
     private List<EntityRendererRegistrationInfo<?>> entity_renderer_infos;
     private List<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
-    private List<ItemColorHandlerRegistrationInfo> item_color_handler_infos;
     private List<ModelDefinitionRegistrationInfo> model_defs_infos;
     private List<SimpleParticleProviderRegistrationInfo<?>> simple_particle_reg;
     private List<AdvancedParticleProviderRegistrationInfo<?>> advanced_particle_reg;
@@ -37,7 +36,6 @@ public final class ForgeClientArtifactsRegistrar
         block_entity_renderer_infos = new List<>();
         entity_renderer_infos = new List<>();
         block_color_handler_infos = new List<>();
-        item_color_handler_infos = new List<>();
         model_defs_infos = new List<>();
         simple_particle_reg = new List<>();
         advanced_particle_reg = new List<>();
@@ -64,7 +62,7 @@ public final class ForgeClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        item_color_handler_infos.Add(info);
+        ItemTintSources.ID_MAPPER.put(info.location() , info.tint_source());
     }
 
     @Override
@@ -126,13 +124,6 @@ public final class ForgeClientArtifactsRegistrar
         block_color_handler_infos = null;
     }
 
-    private void OnRegisterItemColorHandlers(RegisterColorHandlersEvent.Item item)
-    {
-        item_color_handler_infos.ForEach(new RegisterItemColorHandlersEventMethod(item));
-        item_color_handler_infos.Clear();
-        item_color_handler_infos = null;
-    }
-
     private void OnRegisterParticleProviders(RegisterParticleProvidersEvent particle_reg_event)
     {
         simple_particle_reg.ForEach(new RegisterSimpleParticleProvider(particle_reg_event));
@@ -148,7 +139,6 @@ public final class ForgeClientArtifactsRegistrar
         bus.addListener(this::OnRegisterEntityRenderers);
         bus.addListener(this::OnRegisterModelDefinitions);
         bus.addListener(this::OnRegisterParticleProviders);
-        bus.addListener(this::OnRegisterItemColorHandlers);
         bus.addListener(this::OnRegisterBlockColorHandlers);
     }
 
@@ -228,15 +218,6 @@ public final class ForgeClientArtifactsRegistrar
         @Override
         public void action(BlockColorHandlerRegistrationInfo obj) {
             event.register(obj.block_color(), obj.blocks().function());
-        }
-    }
-
-    private record RegisterItemColorHandlersEventMethod(RegisterColorHandlersEvent.Item event)
-            implements Action1<ItemColorHandlerRegistrationInfo>
-    {
-        @Override
-        public void action(ItemColorHandlerRegistrationInfo obj) {
-            event.register(obj.item_color(), obj.items().function());
         }
     }
 

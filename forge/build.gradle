@@ -7,7 +7,7 @@ plugins {
     id 'multiloader-loader'
     id 'com.modrinth.minotaur'
     id 'net.darkhax.curseforgegradle'
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'net.minecraftforge.gradle' version '[6.0.25,6.2)'
     id 'org.spongepowered.mixin' version '0.7-SNAPSHOT'
 }
 
@@ -81,13 +81,23 @@ minecraft {
     }
 }
 
+// Needed for fixing the class not found issue on runs
+sourceSets.each {
+    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
+    it.output.resourcesDir = dir
+    it.java.destinationDirectory = dir
+}
+
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
+    // This is possibly needed for configuring Forge properly.
+    implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
 }
 
+/* Disabling this for now because of a clash with the Forge itself. Assuming defaults by Forge is OK, however.
 processResources {
     doFirst {
         File refmapping_file = file("build/tmp/compileJava/${refmapfilename}");
@@ -100,6 +110,7 @@ processResources {
         }
     }
 }
+*/
 
 jar {
     manifest.attributes([

@@ -10,6 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
@@ -41,7 +42,7 @@ public final class FabricClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        ColorProviderRegistry.ITEM.register(info.item_color(), info.items().function());
+        ItemTintSources.ID_MAPPER.put(info.location() , info.tint_source());
     }
 
     @Override

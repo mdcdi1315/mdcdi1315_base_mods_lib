@@ -39,7 +39,7 @@ public final class ForgeModLoaderLayer
         this.baselibmodcontext = baselibmodcontext;
         global_command_registrar = new ForgeCommandRegistrar();
         this.baselibmodcontext.getModEventBus().addListener(ForgeModLoaderLayer::OnModLoadingComplete);
-        minecraft_version = new Version(1 , 21, 1);
+        minecraft_version = new Version(1 , 21, 5);
         Version fg_ver;
         try {
             fg_ver = Version.Parse(ForgeVersion.getVersion());
