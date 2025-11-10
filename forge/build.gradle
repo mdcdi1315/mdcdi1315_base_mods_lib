@@ -88,6 +88,12 @@ dependencies {
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
 }
 
+sourceSets.each {
+    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
+    it.output.resourcesDir = dir
+    it.java.destinationDirectory = dir
+}
+
 processResources {
     doFirst {
         File refmapping_file = file("build/tmp/compileJava/${refmapfilename}");

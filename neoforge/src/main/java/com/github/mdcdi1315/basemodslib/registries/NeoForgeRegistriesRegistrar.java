@@ -10,11 +10,10 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
-import net.neoforged.neoforge.registries.callback.BakeCallback;
+import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 public final class NeoForgeRegistriesRegistrar
         implements IRegistryRegistrar
@@ -82,23 +81,13 @@ public final class NeoForgeRegistriesRegistrar
         datapack_registries.Add(new DatapackRegistryEntry<>(registry_name, element_codec));
     }
 
-    private record Registry_OnBakeCallback<T>(Action1<IModLoaderRegistry<T>> registry_on_load)
-        implements BakeCallback<T>
-    {
-        @Override
-        public void onBake(Registry<T> registry) {
-            registry_on_load.action(new MinecraftWrappedModLoaderRegistry<>(registry));
-        }
-    }
-
     private static <T> void CreateRegistry(NewRegistryEvent event, RegistryEntry<T> entry)
     {
-        var builder = new RegistryBuilder<>(entry.resource_key);
+        Registry<T> registry = event.create(new RegistryBuilder<>(entry.resource_key).sync(false));
         var on_ready_act = entry.on_ready;
         if (on_ready_act != null) {
-            builder.onBake(new Registry_OnBakeCallback<>(on_ready_act));
+            on_ready_act.action(new MinecraftWrappedModLoaderRegistry<>(registry));
         }
-        event.create(builder);
     }
 
     private void CreateRegistries(NewRegistryEvent nre)
