@@ -33,7 +33,7 @@ public final class NeoForgeModLoaderLayer
 {
     private IEventBus event_bus;
     private List<IModInfo> mods;
-    private DisposableObjectsTracker tracker;
+    // private DisposableObjectsTracker tracker;
     private Version minecraft_version, neoforge_version;
     private NeoForgeCommandRegistrar global_command_registrar;
 
@@ -50,7 +50,7 @@ public final class NeoForgeModLoaderLayer
             fg_ver = new Version(0 , 0);
         }
         neoforge_version = fg_ver;
-        tracker = new DisposableObjectsTracker();
+        // tracker = new DisposableObjectsTracker();
         this.event_bus.addListener(this::OnModLoadingCompleteEvent);
     }
 
@@ -63,8 +63,10 @@ public final class NeoForgeModLoaderLayer
     }
 
     private void DestroyLayerData() {
+        /*
         tracker.Dispose();
         tracker = null;
+         */
         global_command_registrar = null;
     }
 
@@ -84,7 +86,7 @@ public final class NeoForgeModLoaderLayer
         instance.RegisterItems(reg_1);
         instance.RegisterBlockEntities(reg_1);
         reg_1.RegisterToEventBus(mod_event_bus);
-        tracker.AddDisposable(reg_1);
+        // tracker.AddDisposable(reg_1);
 
         NeoForgeRegistriesRegistrar reg_2 = new NeoForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg_2);
@@ -159,6 +161,7 @@ public final class NeoForgeModLoaderLayer
 
     @Override
     public void Dispose() {
+        // this.tracker = null;
         this.mods = null;
         this.event_bus = null;
         this.neoforge_version = null;

@@ -32,7 +32,7 @@ public final class ForgeModLoaderLayer
     implements IModLoaderLayer
 {
     private List<IModInfo> forge_mod_info;
-    private DisposableObjectsTracker tracker;
+    // private DisposableObjectsTracker tracker;
     private FMLJavaModLoadingContext baselibmodcontext;
     private ForgeCommandRegistrar global_command_registrar;
     private Version minecraft_version, forge_modloader_version;
@@ -50,7 +50,7 @@ public final class ForgeModLoaderLayer
             fg_ver = new Version(0 , 0);
         }
         forge_modloader_version = fg_ver;
-        tracker = new DisposableObjectsTracker();
+        // tracker = new DisposableObjectsTracker();
         this.baselibmodcontext.getModEventBus().addListener(this::OnModLoadingComplete);
     }
 
@@ -63,8 +63,10 @@ public final class ForgeModLoaderLayer
     }
 
     private void DestroyLayerData() {
+        /*
         tracker.Dispose();
         tracker = null;
+         */
         global_command_registrar = null;
     }
 
@@ -84,7 +86,7 @@ public final class ForgeModLoaderLayer
         instance.RegisterBlockEntities(reg);
         instance.RegisterItems(reg);
         reg.RegisterToEventBus(mod_event_bus);
-        tracker.AddDisposable(reg);
+        // tracker.AddDisposable(reg);
         ForgeRegistriesRegistrar reg2 = new ForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg2);
         reg2.RegisterToEventBus(mod_event_bus);
@@ -153,7 +155,7 @@ public final class ForgeModLoaderLayer
 
     @Override
     public void Dispose() {
-        this.tracker = null;
+        // this.tracker = null;
         this.forge_mod_info = null;
         this.minecraft_version = null;
         this.baselibmodcontext = null;
