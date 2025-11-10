@@ -2,7 +2,6 @@ package com.github.mdcdi1315.basemodslib.block_item;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
-import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
@@ -34,10 +33,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class BlocksAndItemsRegistrar
-    implements IBlockRegistrar,
+        implements IBlockRegistrar,
         IBlockEntityRegistrar,
-        IItemRegistrar,
-        IDisposable
+        IItemRegistrar
 {
     private DeferredRegister.Items ITEMS_REGISTER;
     private DeferredRegister.Blocks BLOCKS_REGISTER;
@@ -54,13 +52,8 @@ public final class BlocksAndItemsRegistrar
         tabs_registration = new List<>();
     }
 
-    @Override
-    public void Dispose() {
-        tabs_registration = null;
-    }
-
     private record BlockItemRegisterSupplier(Func3<Block , ResourceLocation, Item> item_func, DeferredBlock<?> block)
-        implements Function<ResourceLocation , Item>
+            implements Function<ResourceLocation , Item>
     {
         @Override
         public Item apply(ResourceLocation location) {
@@ -117,9 +110,14 @@ public final class BlocksAndItemsRegistrar
 
     private void RegisterCreativeModeTabsEvent(BuildCreativeModeTabContentsEvent event)
     {
+        if (tabs_registration == null || tabs_registration.getCount() < 1) {
+            tabs_registration = null;
+            return;
+        }
+
         var en = tabs_registration.GetEnumerator();
         try {
-            var current = event.getTab();
+            CreativeModeTab current = event.getTab();
             Pair<Func1<ItemLike> , CreativeModeTab[]> p;
             while (en.MoveNext()) {
                 p = en.getCurrent();
@@ -128,6 +126,7 @@ public final class BlocksAndItemsRegistrar
                 {
                     if (current == tab) {
                         event.accept(item);
+                        break;
                     }
                 }
             }

@@ -2,7 +2,6 @@ package com.github.mdcdi1315.basemodslib.block_item;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
-import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
@@ -33,7 +32,7 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import java.util.function.Supplier;
 
 public final class BlocksAndItemsRegistrar
-    implements IBlockRegistrar, IItemRegistrar, IBlockEntityRegistrar, IDisposable
+        implements IBlockRegistrar, IItemRegistrar, IBlockEntityRegistrar
 {
     private String mod_id;
     private DeferredRegister<Item> ITEM_REGISTER;
@@ -58,13 +57,8 @@ public final class BlocksAndItemsRegistrar
         BLOCK_ENTITY_TYPE_REGISTER.register(name , new BlockEntityRegistrySupplier<>(factory));
     }
 
-    @Override
-    public void Dispose() {
-        items_on_creative_tabs = null;
-    }
-
     private record BlockEntityRegistrySupplier<T extends BlockEntity>(IBlockEntityFactory<T> factory)
-        implements Supplier<BlockEntityType<T>>
+            implements Supplier<BlockEntityType<T>>
     {
         @Override
         @SuppressWarnings("all")
@@ -74,7 +68,7 @@ public final class BlocksAndItemsRegistrar
     }
 
     private record BlockRegistrySupplier(Func2<ResourceLocation, Block> bs, ResourceLocation loc)
-        implements Supplier<Block>
+            implements Supplier<Block>
     {
         @Override
         public Block get() {
@@ -83,7 +77,7 @@ public final class BlocksAndItemsRegistrar
     }
 
     private record ItemAsBlockRegistrySupplier(Func3<Block, ResourceLocation, Item> bs, RegistryObject<Block> ro, ResourceLocation location)
-        implements Supplier<Item>
+            implements Supplier<Item>
     {
         @Override
         public Item get() {
@@ -92,7 +86,7 @@ public final class BlocksAndItemsRegistrar
     }
 
     private record ItemRegistrySupplier(Func2<ResourceLocation, Item> bs, ResourceLocation location)
-        implements Supplier<Item>
+            implements Supplier<Item>
     {
         @Override
         public Item get() {
@@ -143,18 +137,20 @@ public final class BlocksAndItemsRegistrar
 
     private void OnCreativeModeTabsRegistering(BuildCreativeModeTabContentsEvent event)
     {
-        if (items_on_creative_tabs.getCount() < 1) {
+        if (items_on_creative_tabs == null || items_on_creative_tabs.getCount() < 1) {
+            items_on_creative_tabs = null;
             return;
         }
 
         var en = items_on_creative_tabs.GetEnumerator();
         try {
+            CreativeModeTab current = event.getTab();
             Pair<CreativeModeTab[], RegistryObject<Item>> p;
             while (en.MoveNext()) {
                 p = en.getCurrent();
                 for (var i : p.first())
                 {
-                    if (i == event.getTab()) {
+                    if (i == current) {
                         event.accept(p.second());
                         break;
                     }
