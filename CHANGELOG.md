@@ -1,11 +1,5 @@
-### Now releasing 1.0.3:
+### Now releasing 1.0.4:
 
--> Added support for entities!
+-> Fixed a critical bug with incorrect registry registration in NeoForge.
 
--> Add some missing translations for the dialog screens
-
--> Improved registry support by adding a utility class
-
--> Base Mods Library Layers are now disposable objects
-
--> Improve documentation
+-> Thus, this means that the 1.20.1 files do actually remain unaffected for this version change.
