@@ -6,11 +6,10 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.entity.ForgeEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
-import com.github.mdcdi1315.basemodslib.utils.DisposableObjectsTracker;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
+import com.github.mdcdi1315.basemodslib.entity.ForgeEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.ForgeBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistriesRegistrar;
@@ -32,7 +31,7 @@ public final class ForgeModLoaderLayer
     implements IModLoaderLayer
 {
     private List<IModInfo> forge_mod_info;
-    private DisposableObjectsTracker tracker;
+    // private DisposableObjectsTracker tracker;
     private ForgeCommandRegistrar global_command_registrar;
     private final FMLJavaModLoadingContext baselibmodcontext;
     private Version minecraft_version, forge_modloader_version;
@@ -51,7 +50,7 @@ public final class ForgeModLoaderLayer
             fg_ver = new Version(0 , 0);
         }
         forge_modloader_version = fg_ver;
-        tracker = new DisposableObjectsTracker();
+        // tracker = new DisposableObjectsTracker();
         this.baselibmodcontext.getModEventBus().addListener(this::OnModLoadingComplete);
     }
 
@@ -65,8 +64,10 @@ public final class ForgeModLoaderLayer
 
     private void DestroyInternalResources() {
         global_command_registrar = null;
+        /*
         tracker.Dispose();
         tracker = null;
+         */
     }
 
     private void OnModLoadingComplete(FMLLoadCompleteEvent mlce) {
@@ -85,7 +86,7 @@ public final class ForgeModLoaderLayer
         instance.RegisterBlockEntities(reg);
         instance.RegisterItems(reg);
         reg.RegisterToEventBus(mod_event_bus);
-        tracker.AddDisposable(reg);
+        // tracker.AddDisposable(reg);
         ForgeRegistriesRegistrar reg2 = new ForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg2);
         reg2.RegisterToEventBus(mod_event_bus);
