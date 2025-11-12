@@ -7,6 +7,7 @@ import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 /**
  * Like {@link IModLoaderLayer}, this provides the mod loader layer for client side mods.
  */
+@ClientOnlyEnvironment
 public interface IClientModLoaderLayer
     extends IDisposable
 {

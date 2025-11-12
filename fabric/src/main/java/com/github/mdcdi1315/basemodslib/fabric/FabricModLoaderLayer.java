@@ -11,6 +11,7 @@ import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.commands.FabricCommandsRegistrar;
 import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStoppingEvent;
+import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
@@ -35,11 +36,12 @@ import java.util.ArrayList;
 public final class FabricModLoaderLayer
     implements IModLoaderLayer
 {
-    private Path config_dir;
     private List<String> mod_ids;
+    private Path config_dir, minecraft_dir;
     private ModdingEnvironment environment;
     private ResourceLocation mod_verifier_channel_name;
     private Map<String, Version> networking_versions_map;
+    private FabricCommandsRegistrar global_commands_registrar;
     private Version minecraft_version, fabric_modloader_version;
 
     public FabricModLoaderLayer()
@@ -56,6 +58,7 @@ public final class FabricModLoaderLayer
         networking_versions_map = new HashMap<>(10);
         var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
+        minecraft_dir = loader.getGameDir();
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;
@@ -70,6 +73,9 @@ public final class FabricModLoaderLayer
         }
 
         fabric_modloader_version = fb_ver;
+
+        global_commands_registrar = new FabricCommandsRegistrar();
+        global_commands_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
 
         ServerPlayNetworking.registerGlobalReceiver(
                 mod_verifier_channel_name,
@@ -156,7 +162,7 @@ public final class FabricModLoaderLayer
         mod_instance.RegisterEntityTypes(registrar);
         mod_instance.RegisterFluids(registrar);
 
-        mod_instance.RegisterCommands(new FabricCommandsRegistrar());
+        mod_instance.RegisterCommands(global_commands_registrar);
 
         FabricBasedNetworkManager manager = new FabricBasedNetworkManager(mod_id);
 
@@ -175,10 +181,12 @@ public final class FabricModLoaderLayer
     }
 
     public void Dispose() {
+        this.global_commands_registrar = null;
         this.mod_verifier_channel_name = null;
         this.fabric_modloader_version = null;
         this.networking_versions_map = null;
         this.minecraft_version = null;
+        this.minecraft_dir = null;
         this.environment = null;
         this.config_dir = null;
         this.mod_ids = null;
@@ -218,4 +226,7 @@ public final class FabricModLoaderLayer
     public Path GetConfigurationDirectory() {
         return config_dir;
     }
+
+    @Override
+    public Path GetMinecraftDirectory() { return minecraft_dir; }
 }

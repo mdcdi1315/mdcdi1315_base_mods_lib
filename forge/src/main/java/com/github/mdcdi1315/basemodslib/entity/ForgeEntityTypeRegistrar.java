@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.entity;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
 
@@ -11,6 +12,8 @@ import com.mojang.serialization.Codec;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
@@ -24,12 +27,14 @@ public final class ForgeEntityTypeRegistrar
 {
     private DeferredRegister<Attribute> ATTRIBUTES;
     private DeferredRegister<EntityType<?>> ENTITY_TYPES;
+    private DeferredRegister<SensorType<?>> SENSOR_TYPES;
     private DeferredRegister<MemoryModuleType<?>> MEM_MODULE_TYPES;
 
     public ForgeEntityTypeRegistrar(String mod_id)
     {
-        ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE , mod_id);
         ATTRIBUTES = DeferredRegister.create(Registries.ATTRIBUTE , mod_id);
+        SENSOR_TYPES = DeferredRegister.create(Registries.SENSOR_TYPE , mod_id);
+        ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE , mod_id);
         MEM_MODULE_TYPES = DeferredRegister.create(Registries.MEMORY_MODULE_TYPE , mod_id);
     }
 
@@ -66,13 +71,23 @@ public final class ForgeEntityTypeRegistrar
         ATTRIBUTES.register(name, info.attribute_getter());
     }
 
+    @Override
+    public <T extends Sensor<?>> void RegisterSensorType(String name, SensorTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        SENSOR_TYPES.register(name , info.sensor_type_getter());
+    }
+
     public void RegisterToEventBus(IEventBus bus)
     {
-        ENTITY_TYPES.register(bus);
-        MEM_MODULE_TYPES.register(bus);
         ATTRIBUTES.register(bus);
+        ENTITY_TYPES.register(bus);
+        SENSOR_TYPES.register(bus);
+        MEM_MODULE_TYPES.register(bus);
+        ATTRIBUTES = null;
+        SENSOR_TYPES = null;
         ENTITY_TYPES = null;
         MEM_MODULE_TYPES = null;
-        ATTRIBUTES = null;
     }
 }

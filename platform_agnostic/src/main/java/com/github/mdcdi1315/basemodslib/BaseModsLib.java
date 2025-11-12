@@ -197,6 +197,15 @@ public final class BaseModsLib
     }
 
     /**
+     * Gets the directory where Minecraft is running. <br />
+     * This is commonly referred to as the 'game working directory'.
+     * @return The directory where the game runs from.
+     * @since 1.0.5
+     */
+    @NotNull
+    public static Path GetMinecraftDirectory() { return layer.GetMinecraftDirectory(); }
+
+    /**
      * Called by the mod loader when mod loading is complete. <br />
      * Destroys data structures used by the library.
      */

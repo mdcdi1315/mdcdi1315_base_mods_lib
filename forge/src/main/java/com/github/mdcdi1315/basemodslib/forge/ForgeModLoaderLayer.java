@@ -13,6 +13,7 @@ import com.github.mdcdi1315.basemodslib.entity.ForgeEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.ForgeBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistriesRegistrar;
+import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -41,6 +42,7 @@ public final class ForgeModLoaderLayer
         forge_mod_info = ModList.get().getMods();
         this.baselibmodcontext = baselibmodcontext;
         global_command_registrar = new ForgeCommandRegistrar();
+        global_command_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
         minecraft_version = new Version(1 , 20, 1);
         Version fg_ver;
         try {
@@ -142,22 +144,17 @@ public final class ForgeModLoaderLayer
     }
 
     @Override
-    public String GetModLoaderBranding() {
-        return "Forge";
-    }
+    public String GetModLoaderBranding() { return "Forge"; }
 
     @Override
-    public Version GetMinecraftVersion() {
-        return minecraft_version;
-    }
+    public Version GetMinecraftVersion() { return minecraft_version; }
 
     @Override
-    public Version GetModLoaderVersion() {
-        return forge_modloader_version;
-    }
+    public Version GetModLoaderVersion() { return forge_modloader_version; }
 
     @Override
-    public Path GetConfigurationDirectory() {
-        return FMLPaths.CONFIGDIR.get();
-    }
+    public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
+
+    @Override
+    public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
 }

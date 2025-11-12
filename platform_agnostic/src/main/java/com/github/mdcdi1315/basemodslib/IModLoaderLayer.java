@@ -78,4 +78,12 @@ public interface IModLoaderLayer
      */
     @NotNull
     Path GetConfigurationDirectory();
+
+    /**
+     * Gets the directory where the game runs.
+     * @return The directory where the game has been started to.
+     * @since 1.0.5
+     */
+    @NotNull
+    Path GetMinecraftDirectory();
 }
