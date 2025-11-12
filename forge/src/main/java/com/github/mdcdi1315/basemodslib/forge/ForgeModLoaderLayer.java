@@ -85,6 +85,7 @@ public final class ForgeModLoaderLayer
         instance.RegisterBlocks(reg);
         instance.RegisterBlockEntities(reg);
         instance.RegisterItems(reg);
+        instance.RegisterFluids(reg);
         reg.RegisterToEventBus(mod_event_bus);
         // tracker.AddDisposable(reg);
         ForgeRegistriesRegistrar reg2 = new ForgeRegistriesRegistrar(mod_id);
