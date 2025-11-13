@@ -48,7 +48,7 @@ public final class FabricModLoaderLayer
     {
         minecraft_version = new Version(1, 20, 1);
 
-        mod_verifier_channel_name = ResourceLocation.tryBuild("mdcdi1315_base_mods_lib", "mod_version_verifier");
+        mod_verifier_channel_name = ResourceLocation.tryBuild(BaseModsLib.MOD_ID, "mod_version_verifier");
 
         if (mod_verifier_channel_name == null) {
             throw new InvalidOperationException("Cannot construct the mod version verifier channel!");

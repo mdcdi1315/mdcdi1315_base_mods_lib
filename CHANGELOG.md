@@ -1,9 +1,11 @@
-### Now releasing 1.0.4:
+### Now releasing 1.0.5:
 
-This is a bugfix release fixing issues aroused since 1.0.3.
+-> Support for fluid registration was added!
 
--> NeoForge: Fixed a critical bug with incorrect registry registration.
+-> Most concurrency issues should have been fixed now.
 
--> Forge/NeoForge: Fixed an issue when building creative mode tabs.
+-> Added creative mode tab registration support
 
--> NeoForge: Optimized creative mode tab building.
+-> Added support for adding entity sensor types as well
+
+-> The game's working directory can be now retrieved through the GetMinecraftDirectory method.

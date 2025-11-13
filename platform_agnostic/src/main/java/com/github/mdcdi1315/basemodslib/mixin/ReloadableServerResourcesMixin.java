@@ -10,6 +10,7 @@ import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -18,12 +19,15 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.CompletableFuture;
 
 @Mixin(ReloadableServerResources.class)
-public class ReloadableServerResourcesMixin {
-
+public class ReloadableServerResourcesMixin
+{
     @Inject(method = "loadResources", at = @At("RETURN"))
-    private static void loadResources(ResourceManager resourceManager, RegistryAccess.Frozen registryAccess, FeatureFlagSet enabledFeatures, Commands.CommandSelection commandSelection, int functionCompilationLevel, Executor backgroundExecutor, Executor gameExecutor, CallbackInfoReturnable<CompletableFuture<ReloadableServerResources>> callback_info)
-    {
-        callback_info.getReturnValue().thenAccept(server -> BaseModsLib.GetEventsManager().FireEvent(new ServerResourcesReloadedEvent(server)));
+    private static void loadResources(ResourceManager resourceManager, RegistryAccess.Frozen registryAccess, FeatureFlagSet enabledFeatures, Commands.CommandSelection commandSelection, int functionCompilationLevel, Executor backgroundExecutor, Executor gameExecutor, CallbackInfoReturnable<CompletableFuture<ReloadableServerResources>> callback_info) {
+        callback_info.getReturnValue().thenAccept(ReloadableServerResourcesMixin::MDCDI1315$BML$FireReloadingEvent);
     }
 
+    @Unique
+    private static void MDCDI1315$BML$FireReloadingEvent(ReloadableServerResources rsr) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerResourcesReloadedEvent(rsr));
+    }
 }

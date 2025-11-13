@@ -27,6 +27,13 @@ import java.nio.file.Path;
  */
 public final class BaseModsLib
 {
+    /**
+     * The ID of the library. <br />
+     * This is used for the mod loader and represents the library as a mod to it.
+     * @since 1.0.5
+     */
+    public static final String MOD_ID = "mdcdi1315_base_mods_lib";
+
     private static List<IServerModInstance> mod_instances;
     private static EventManager events_manager;
     private static IModLoaderLayer layer;
