@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.mods;
 
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
+import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NetworkManager;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
@@ -63,6 +64,14 @@ public interface IServerModInstance
     /**
      * Registers entity types and other stuff related to entities for this mod instance.
      * @param registrar The object responsible for registering entity types to Minecraft.
+     * @since 1.0.3
      */
     default void RegisterEntityTypes(IEntityTypeRegistrar registrar) {}
+
+    /**
+     * Registers fluids for this mod instance.
+     * @param registrar The object responsible for registering fluids to Minecraft.
+     * @since 1.0.5
+     */
+    default void RegisterFluids(IFluidRegistrar registrar) {}
 }

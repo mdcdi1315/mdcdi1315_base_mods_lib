@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.block;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
@@ -20,7 +21,7 @@ public interface IBlockRegistrar
      * @param info The block registration information to use.
      * @throws ArgumentNullException {@code name} or {@code creator} were {@code null}.
      */
-    void Register(String name, BlockRegistrationInformation info)
+    void Register(@ConstantExpected String name, BlockRegistrationInformation info)
             throws ArgumentNullException;
 
     /**

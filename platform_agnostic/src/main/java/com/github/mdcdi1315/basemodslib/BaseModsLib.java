@@ -27,6 +27,13 @@ import java.nio.file.Path;
  */
 public final class BaseModsLib
 {
+    /**
+     * The ID of the library. <br />
+     * This is used for the mod loader and represents the library as a mod to it.
+     * @since 1.0.5
+     */
+    public static final String MOD_ID = "mdcdi1315_base_mods_lib";
+
     private static List<IServerModInstance> mod_instances;
     private static EventManager events_manager;
     private static IModLoaderLayer layer;
@@ -97,7 +104,9 @@ public final class BaseModsLib
 
             LOGGER.info("BASEMODSLIB: Server mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
-            mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
+            synchronized (mod_instances) {
+                mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
+            }
         } catch (Exception e) {
             var id = instance.GetModId();
             sw.Stop();
@@ -195,6 +204,15 @@ public final class BaseModsLib
     public static Path GetModConfigurationDirectory() {
         return layer.GetConfigurationDirectory();
     }
+
+    /**
+     * Gets the directory where Minecraft is running. <br />
+     * This is commonly referred to as the 'game working directory'.
+     * @return The directory where the game runs from.
+     * @since 1.0.5
+     */
+    @NotNull
+    public static Path GetMinecraftDirectory() { return layer.GetMinecraftDirectory(); }
 
     /**
      * Called by the mod loader when mod loading is complete. <br />

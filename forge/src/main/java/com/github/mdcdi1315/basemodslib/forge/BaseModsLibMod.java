@@ -8,7 +8,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-@Mod("mdcdi1315_base_mods_lib")
+@Mod(BaseModsLib.MOD_ID)
 public final class BaseModsLibMod
 {
     public BaseModsLibMod(FMLJavaModLoadingContext cxt)

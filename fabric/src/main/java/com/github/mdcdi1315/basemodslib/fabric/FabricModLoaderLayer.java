@@ -11,6 +11,8 @@ import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.commands.FabricCommandsRegistrar;
 import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStoppingEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
+import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 
 import net.fabricmc.loader.api.FabricLoader;
@@ -31,10 +33,11 @@ import java.util.ArrayList;
 public final class FabricModLoaderLayer
     implements IModLoaderLayer
 {
-    private Path config_dir;
     private List<String> mod_ids;
+    private Path config_dir, minecraft_dir;
     private ModdingEnvironment environment;
     private Map<String, Version> networking_versions_map;
+    private FabricCommandsRegistrar global_commands_registrar;
     private Version minecraft_version, fabric_modloader_version;
 
     public FabricModLoaderLayer()
@@ -45,6 +48,7 @@ public final class FabricModLoaderLayer
         networking_versions_map = new HashMap<>(10);
         var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
+        minecraft_dir = loader.getGameDir();
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;
@@ -67,9 +71,14 @@ public final class FabricModLoaderLayer
                 new ChannelHandler(this::ServerModInfoPacketHandler)
         );
 
+        global_commands_registrar = new FabricCommandsRegistrar();
+        global_commands_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
+        var em = BaseModsLib.GetEventsManager();
+        em.AddEventListener(ModLoadingCompleteEvent.class , this::OnModLoadingComplete);
+
         if (environment == ModdingEnvironment.SERVER) {
             // On dedicated server environments, make sure to destroy the channel once the server has started shutting down.
-            BaseModsLib.GetEventsManager().AddEventListener(ServerStoppingEvent.class, this::OnServerClosing);
+            em.AddEventListener(ServerStoppingEvent.class, this::OnServerClosing);
         }
     }
 
@@ -78,9 +87,11 @@ public final class FabricModLoaderLayer
         this.mod_ids = null;
         this.config_dir = null;
         this.environment = null;
+        this.minecraft_dir = null;
         this.minecraft_version = null;
         this.networking_versions_map = null;
         this.fabric_modloader_version = null;
+        this.global_commands_registrar = null;
     }
 
     private record ChannelHandler(Action2<ServerPlayer , ServerBoundModInfoPacket> action)
@@ -91,6 +102,11 @@ public final class FabricModLoaderLayer
             var server = context.server();
             server.execute(new Action2ToRunnable<>(action, context.player(), payload));
         }
+    }
+
+    private void OnModLoadingComplete(ModLoadingCompleteEvent event)
+    {
+        this.global_commands_registrar = null;
     }
 
     private void OnServerClosing(ServerStoppingEvent sse) {
@@ -151,13 +167,14 @@ public final class FabricModLoaderLayer
         FabricCommonRegistryItemsRegistrar registrar = new FabricCommonRegistryItemsRegistrar(mod_id);
 
         mod_instance.RegisterBlocks(registrar);
-        mod_instance.RegisterBlockEntities(registrar);
         mod_instance.RegisterItems(registrar);
+        mod_instance.RegisterBlockEntities(registrar);
+        mod_instance.RegisterFluids(registrar);
         mod_instance.RegisterWorldGenItems(registrar);
         mod_instance.RegisterRegistryItems(registrar);
         mod_instance.RegisterEntityTypes(registrar);
 
-        mod_instance.RegisterCommands(new FabricCommandsRegistrar());
+        mod_instance.RegisterCommands(global_commands_registrar);
 
         FabricBasedNetworkManager manager = new FabricBasedNetworkManager(mod_id);
 
@@ -166,47 +183,36 @@ public final class FabricModLoaderLayer
         var builder = manager.GetBuilderAndDestroy();
         manager.InitializeNetworkManager(builder);
         if (builder != null) {
-            networking_versions_map.put(manager.Mod_Info.Mod_ID, manager.Mod_Info.Mod_Network_Version);
+            synchronized (networking_versions_map) {
+                networking_versions_map.put(manager.Mod_Info.Mod_ID, manager.Mod_Info.Mod_Network_Version);
+            }
             if (environment == ModdingEnvironment.CLIENT) {
                 Client_RegisterModInfoHandshakePacketOnServerConnection(manager.Mod_Info);
             }
         }
-
-
     }
 
     @Override
-    public boolean IsModLoaded(String s) {
-        return mod_ids.contains(s);
-    }
+    public boolean IsModLoaded(String s) { return mod_ids.contains(s); }
 
     @Override
-    public List<String> GetLoadedMods() {
-        return mod_ids;
-    }
+    public List<String> GetLoadedMods() { return mod_ids; }
 
     @Override
-    public ModdingEnvironment GetEnvironment() {
-        return environment;
-    }
+    public ModdingEnvironment GetEnvironment() { return environment; }
 
     @Override
-    public String GetModLoaderBranding() {
-        return "Fabric";
-    }
+    public String GetModLoaderBranding() { return "Fabric"; }
 
     @Override
-    public Version GetMinecraftVersion() {
-        return minecraft_version;
-    }
+    public Version GetMinecraftVersion() { return minecraft_version; }
 
     @Override
-    public Version GetModLoaderVersion() {
-        return fabric_modloader_version;
-    }
+    public Version GetModLoaderVersion() { return fabric_modloader_version; }
 
     @Override
-    public Path GetConfigurationDirectory() {
-        return config_dir;
-    }
+    public Path GetConfigurationDirectory() { return config_dir; }
+
+    @Override
+    public Path GetMinecraftDirectory() { return minecraft_dir; }
 }

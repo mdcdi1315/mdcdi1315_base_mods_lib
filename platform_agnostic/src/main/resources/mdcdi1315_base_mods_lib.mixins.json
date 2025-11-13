@@ -12,6 +12,7 @@
 		"PlayerListMixin",
 		"MinecraftServerMixin",
 		"DimensionDataStorageMixin",
+		"MultiNoiseBiomeSourceMixin",
 		"DedicatedMinecraftServerMixin",
 		"ReloadableServerResourcesMixin"
 	],

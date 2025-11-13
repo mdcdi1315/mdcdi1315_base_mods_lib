@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.entity;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
@@ -9,6 +10,8 @@ import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrati
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
@@ -20,11 +23,13 @@ public final class NeoForgeEntityTypeRegistrar
 {
     private DeferredRegister<Attribute> ATTRIBUTE_REGISTER;
     private DeferredRegister<EntityType<?>> ENTITY_TYPE_REGISTER;
+    private DeferredRegister<SensorType<?>> SENSOR_TYPE_REGISTER;
     private DeferredRegister<MemoryModuleType<?>> MEM_MODULE_TYPE_REGISTER;
 
     public NeoForgeEntityTypeRegistrar(String mod_id)
     {
         ATTRIBUTE_REGISTER = DeferredRegister.create(Registries.ATTRIBUTE , mod_id);
+        SENSOR_TYPE_REGISTER = DeferredRegister.create(Registries.SENSOR_TYPE, mod_id);
         ENTITY_TYPE_REGISTER = DeferredRegister.create(Registries.ENTITY_TYPE , mod_id);
         MEM_MODULE_TYPE_REGISTER = DeferredRegister.create(Registries.MEMORY_MODULE_TYPE , mod_id);
     }
@@ -53,12 +58,22 @@ public final class NeoForgeEntityTypeRegistrar
         ATTRIBUTE_REGISTER.register(name, info.attribute_getter());
     }
 
+    @Override
+    public <T extends Sensor<?>> void RegisterSensorType(String name, SensorTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+
+    }
+
     public void RegisterToEventBus(IEventBus event_bus)
     {
         ATTRIBUTE_REGISTER.register(event_bus);
         ENTITY_TYPE_REGISTER.register(event_bus);
+        SENSOR_TYPE_REGISTER.register(event_bus);
         MEM_MODULE_TYPE_REGISTER.register(event_bus);
         MEM_MODULE_TYPE_REGISTER = null;
+        SENSOR_TYPE_REGISTER = null;
         ENTITY_TYPE_REGISTER = null;
         ATTRIBUTE_REGISTER = null;
     }

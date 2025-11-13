@@ -12,13 +12,14 @@ import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides the base API for managing events, that are reusable classes that hold actions to be executed when the instance is fired.
  */
 public final class EventManager
 {
-    private boolean finalized;
+    private volatile boolean finalized;
     private Map<Class<? extends IEvent>, List<Action1<? extends IEvent>>> actions;
 
     /**
@@ -27,7 +28,7 @@ public final class EventManager
      */
     public EventManager() {
         finalized = false;
-        actions = Collections.synchronizedMap(new HashMap<>());
+        actions = new ConcurrentHashMap<>();
 
         // Initial events
 
@@ -65,7 +66,10 @@ public final class EventManager
             throw new InvalidOperationException(String.format("The event with type %s is not registered to this instance!", event_class.getName()));
         }
 
-        acts.Add(action);
+        synchronized (acts) {
+            // We must be extremely careful when adding a new event handler to the list. Locking on the object is a relatively good idea.
+            acts.Add(action);
+        }
     }
 
     /**
@@ -79,7 +83,7 @@ public final class EventManager
     public <TEvent extends IEvent> void FireEvent(TEvent event_data)
             throws ArgumentNullException, InvalidOperationException
     {
-        ArgumentNullException.ThrowIfNull(event_data);
+        ArgumentNullException.ThrowIfNull(event_data , "event_data");
         var list = actions.get(event_data.getClass());
         if (list == null) {
             throw new InvalidOperationException("Attempted to fire an event not yet registered!");
@@ -109,7 +113,7 @@ public final class EventManager
     public <TEvent extends IEvent> void AddEvent(Class<TEvent> cls)
             throws ArgumentNullException, InvalidOperationException
     {
-        ArgumentNullException.ThrowIfNull(cls);
+        ArgumentNullException.ThrowIfNull(cls, "cls");
         if (finalized) {
             throw new InvalidOperationException("Cannot add event types after mod loading is complete!");
         }

@@ -13,5 +13,28 @@
 	"mdcdi1315_base_mods_lib.config.default_config_screen.save_changes_button": "Save changes...",
 	"mdcdi1315_base_mods_lib.config.default_config_screen.save_changes_question": "Are you sure that you want to save the changes done in the %s config file?\nUse 'Yes' to save changes, and use 'No' to discard those changes.",
 	"mdcdi1315_base_mods_lib.config.default_config_screen.changes_saved_successfully": "Configuration file changes saved successfully!",
-	"mdcdi1315_base_mods_lib.config.default_config_screen.changes_save_failed": "Cannot save configuration file! See log for more information."
+	"mdcdi1315_base_mods_lib.config.default_config_screen.changes_save_failed": "Cannot save configuration file! See log for more information.",
+
+	"mdcdi1315_base_mods_lib.cmds.completed_sucessfully": "Command was completed successfully.",
+	"mdcdi1315_base_mods_lib.cmds.requires_player_context": "This command requires a player context.",
+	"mdcdi1315_base_mods_lib.devcmds.describe_held_item_file_format_arg.invalid_value": "This value does not belong to the DescribeHeldItemFileFormat enumeration: %s. Supported values: JSON, NBT, NBT_COMPRESSED.",
+
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_template.warn_dest_file_exists": "The specified destination path does exist. Note that the file will be overwritten.",
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_template.update_failure": "Cannot update the specified NBT file as a structure template. See server error log for more information.",
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_template.source_not_exist": "The specified source file does not exist in the file system: %s",
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_template.source_invalid": "The specified source file is not a valid Minecraft structure template.",
+
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.source_not_exist_or_dir": "The specified source directory does not exist, or is not a directory: %s",
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.dest_not_exist_or_dir": "The specified target directory does not exist, or is not a directory: %s",
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.i_o_error_gathering_files": "The files could not be gathered from the source directory due to an I/O error.",
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.not_all_files_updated": "%d out of %d NBT files were not updated! See server error log for more information about those failed files.",
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.completed_inform_about_files": "%d file(s) were updated. Results saved to: %s",
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.all_files_failed": "All the specified files were failed to be updated! See server error log for more information about those failed files.",
+
+	"mdcdi1315_base_mods_lib.devcmds.describe_held_item.item_stack_empty": "You do not currently hold any item.",
+	"mdcdi1315_base_mods_lib.devcmds.describe_held_item.encoded_stack_message_json": "Currently held item (JSON):\n%s",
+	"mdcdi1315_base_mods_lib.devcmds.describe_held_item.cannot_encode_stack": "Cannot encode the specified item stack. See server error log for more information.",
+
+	"mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.list_encoding_failed": "Cannot encode the biome temperatures list to JSON! See server error log for more information.",
+	"mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.not_multi_noise_source": "This command can be only used for multi-noise biome sources. The specified dimension is not defined using a multi-noise biome source."
 }

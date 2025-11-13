@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.FileSystems;
 
 import java.util.Map;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages, loads, and saves configuration files for mods.
@@ -62,7 +62,7 @@ public final class ConfigManager
 
     private ConfigManager() {
         json_file_format = new JsonConfigFileFormat();
-        configuration_files = new HashMap<>();
+        configuration_files = new ConcurrentHashMap<>();
     }
 
     private record AssociatedConfigInfo<T extends IModConfig>(
