@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.block.entity;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
@@ -22,7 +23,7 @@ public interface IBlockEntityRegistrar
      * @param <T> The type of the block entity to create.
      * @throws ArgumentNullException {@code name} and/or {@code factory} were {@code null}.
      */
-    <T extends BlockEntity> void Register(String name, IBlockEntityFactory<T> factory) throws ArgumentNullException;
+    <T extends BlockEntity> void Register(@ConstantExpected String name, IBlockEntityFactory<T> factory) throws ArgumentNullException;
 
     /**
      * Gets a previously registered block entity type.

@@ -4,11 +4,12 @@ import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import com.github.mdcdi1315.basemodslib.BaseModsLib;
+
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /**
  * A special packet class used for dispatching the network versions for a given mod - dispatched once a player connects to a server. <br />
@@ -20,7 +21,7 @@ public final class ServerBoundModInfoPacket
 {
     private static final byte ALLOW_FLAG_CLIENT = 1 << 0, ALLOW_FLAG_SERVER = 1 << 1;
 
-    public static final ResourceLocation LOCATION = ResourceLocation.tryBuild("mdcdi1315_base_mods_lib", "mod_version_verifier");
+    public static final ResourceLocation LOCATION = ResourceLocation.tryBuild(BaseModsLib.MOD_ID, "mod_version_verifier");
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

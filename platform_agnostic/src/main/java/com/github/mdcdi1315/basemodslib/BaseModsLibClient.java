@@ -111,7 +111,9 @@ public final class BaseModsLibClient
 
             BaseModsLib.LOGGER.info("BASEMODSLIB: Client mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
-            mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
+            synchronized (mod_instances) {
+                mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
+            }
         } catch (Exception e) {
             var id = instance.GetModId();
             sw.Stop();
@@ -167,6 +169,7 @@ public final class BaseModsLibClient
         } finally {
             if (i != null) { i.Dispose(); }
         }
+        config_factories = null;
         mod_instances = null;
         layer.Dispose();
         layer = null;

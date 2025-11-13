@@ -36,6 +36,12 @@ public final class CodecUtils
     public static final Codec<Integer> POSITIVE_INTEGER = new PositiveIntegerCodec();
 
     /**
+     * Gets a singleton of a codec that only accepts positive {@link Float} values.
+     * @since 1.0.5
+     */
+    public static final Codec<Float> POSITIVE_FLOAT = new PositiveFloatCodec();
+
+    /**
      * Gets a singleton of a codec that accepts zero or positive {@link Integer} values only.
      */
     public static final Codec<Integer> ZERO_OR_POSITIVE_INTEGER = new ZeroOrPositiveIntegerCodec();

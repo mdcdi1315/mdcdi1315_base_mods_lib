@@ -5,13 +5,16 @@ import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
+import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.entity.EntityTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
@@ -35,6 +38,7 @@ import net.minecraft.core.RegistrationInfo;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -50,7 +54,8 @@ public final class FabricCommonRegistryItemsRegistrar
         IBlockEntityRegistrar,
         IWorldGenRegistrar,
         IRegistryRegistrar,
-        IEntityTypeRegistrar
+        IEntityTypeRegistrar,
+        IFluidRegistrar
 {
     private String mod_id;
 
@@ -130,6 +135,14 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(info, "info");
         Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, BuildAndValidateLocation(name) , info.component_type_provider().function());
+    }
+
+    @Override
+    public void RegisterCreativeModeTab(String name, CreativeModeTab tab)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(tab, "tab");
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB , BuildAndValidateLocation(name) , tab);
     }
 
     @Override
@@ -237,6 +250,23 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(info, "info");
         Registry.register(BuiltInRegistries.ATTRIBUTE, BuildAndValidateLocation(name) , info.attribute_getter().function());
+    }
+
+    @Override
+    public <T extends Sensor<?>> void RegisterSensorType(String name, SensorTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.SENSOR_TYPE , BuildAndValidateLocation(name) , info.sensor_type_getter().function());
+    }
+
+    @Override
+    public void Register(String name, FluidRegistrationInformation info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        ResourceLocation location = BuildAndValidateLocation(name);
+        Registry.register(BuiltInRegistries.FLUID , location , info.fluid_getter().function(location));
     }
 
     private record ModifyEntriesEventImpl(Item m_item)

@@ -3,14 +3,16 @@ package com.github.mdcdi1315.basemodslib.entity;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
-import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
+import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
@@ -46,6 +48,16 @@ public interface IEntityTypeRegistrar
      * @throws ArgumentNullException {@code info} is {@code null}.
      */
     void RegisterEntityAttribute(@ConstantExpected String name, AttributeRegistrationInfo info) throws ArgumentNullException;
+
+    /**
+     * Registers a new sensor type to Minecraft.
+     * @param name The name of the newly created sensor type that will be registered.
+     * @param info The sensor type information that is used to register the sensor type.
+     * @param <T> The type of the sensor to register.
+     * @throws ArgumentNullException {@code info} is {@code null}.
+     * @since 1.0.5
+     */
+    <T extends Sensor<?>> void RegisterSensorType(@ConstantExpected String name, SensorTypeRegistrationInfo<T> info) throws ArgumentNullException;
 
     /**
      * Gets a previously registered entity type.

@@ -1,11 +1,12 @@
 package com.github.mdcdi1315.basemodslib.codecs;
 
+import com.github.mdcdi1315.DotNetLayer.System.Func2;
+
 import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 
 import com.mojang.serialization.DataResult;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * Internal implementation class for compatibility with codecs already providing lists. <br />
@@ -13,10 +14,10 @@ import java.util.function.Function;
  * @param <T> The type of the element to de/encode.
  */
 public final class NonEmptyListChecker<T>
-    implements Function<List<T> , DataResult<List<T>>>
+    implements Func2<List<T> , DataResult<List<T>>>
 {
     @Override
-    public DataResult<List<T>> apply(List<T> ts) {
+    public DataResult<List<T>> function(List<T> ts) {
         return (ts == null) ?
                 DataResult.error(new StringSupplier("Unexpected path: List was null.")) : (
                 (ts.isEmpty()) ?

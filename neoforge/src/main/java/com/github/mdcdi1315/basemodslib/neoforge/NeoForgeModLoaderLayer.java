@@ -7,13 +7,13 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
-import com.github.mdcdi1315.basemodslib.utils.DisposableObjectsTracker;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkBuilder;
 import com.github.mdcdi1315.basemodslib.world.NeoForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkingManager;
 import com.github.mdcdi1315.basemodslib.commands.NeoForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.NeoForgeEntityTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.NeoForgeRegistriesRegistrar;
 
 import net.neoforged.fml.ModList;
@@ -42,6 +42,7 @@ public final class NeoForgeModLoaderLayer
         mods = ModList.get().getMods();
         minecraft_version = new Version(1, 21, 5);
         global_command_registrar = new NeoForgeCommandRegistrar();
+        global_command_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
         Version fg_ver;
         try {
             fg_ver = Version.Parse(FMLLoader.versionInfo().neoForgeVersion());
@@ -85,6 +86,7 @@ public final class NeoForgeModLoaderLayer
         instance.RegisterBlocks(reg_1);
         instance.RegisterItems(reg_1);
         instance.RegisterBlockEntities(reg_1);
+        instance.RegisterFluids(reg_1);
         reg_1.RegisterToEventBus(mod_event_bus);
         // tracker.AddDisposable(reg_1);
 
@@ -140,24 +142,19 @@ public final class NeoForgeModLoaderLayer
     }
 
     @Override
-    public String GetModLoaderBranding() {
-        return "NeoForge";
-    }
+    public String GetModLoaderBranding() { return "NeoForge"; }
 
     @Override
-    public Version GetMinecraftVersion() {
-        return minecraft_version;
-    }
+    public Version GetMinecraftVersion() { return minecraft_version; }
 
     @Override
-    public Version GetModLoaderVersion() {
-        return neoforge_version;
-    }
+    public Version GetModLoaderVersion() { return neoforge_version; }
 
     @Override
-    public Path GetConfigurationDirectory() {
-        return FMLPaths.CONFIGDIR.get();
-    }
+    public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
+
+    @Override
+    public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
 
     @Override
     public void Dispose() {

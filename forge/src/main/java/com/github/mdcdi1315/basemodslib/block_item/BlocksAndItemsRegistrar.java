@@ -5,6 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Func3;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
+import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
@@ -23,6 +25,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -33,11 +36,12 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public final class BlocksAndItemsRegistrar
-    implements IBlockRegistrar, IItemRegistrar, IBlockEntityRegistrar
+    implements IBlockRegistrar, IItemRegistrar, IBlockEntityRegistrar, IFluidRegistrar
 {
     private String mod_id;
     private DeferredRegister<Item> ITEM_REGISTER;
     private DeferredRegister<Block> BLOCKS_REGISTER;
+    private DeferredRegister<Fluid> FLUIDS_REGISTER;
     private DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPE_REGISTER;
     private DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPE_REGISTER;
     private List<Pair<CreativeModeTab[] , RegistryObject<Item>>> items_on_creative_tabs;
@@ -47,6 +51,7 @@ public final class BlocksAndItemsRegistrar
         items_on_creative_tabs = new List<>();
         ITEM_REGISTER = DeferredRegister.create(ForgeRegistries.ITEMS, this.mod_id);
         BLOCKS_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCKS , this.mod_id);
+        FLUIDS_REGISTER = DeferredRegister.create(ForgeRegistries.FLUIDS , this.mod_id);
         DATA_COMPONENT_TYPE_REGISTER = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE , this.mod_id);
         BLOCK_ENTITY_TYPE_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, this.mod_id);
     }
@@ -56,6 +61,23 @@ public final class BlocksAndItemsRegistrar
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(factory, "factory");
         BLOCK_ENTITY_TYPE_REGISTER.register(name , new BlockEntityRegistrySupplier<>(factory));
+    }
+
+    @Override
+    public void Register(String name, FluidRegistrationInformation info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        FLUIDS_REGISTER.register(name , new FluidRegistrySupplier(info.fluid_getter(), ResourceLocation.tryBuild(mod_id, name)));
+    }
+
+    private record FluidRegistrySupplier(Func2<ResourceLocation, Fluid> f, ResourceLocation loc)
+        implements Supplier<Fluid>
+    {
+        @Override
+        public Fluid get() {
+            return f.function(loc);
+        }
     }
 
     private record BlockEntityRegistrySupplier<T extends BlockEntity>(IBlockEntityFactory<T> factory)
@@ -100,6 +122,7 @@ public final class BlocksAndItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(bri, "bri");
 
         ResourceLocation registry_object_location = ResourceLocation.tryBuild(mod_id, name);
 
@@ -118,6 +141,7 @@ public final class BlocksAndItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(info, "info");
 
         ResourceLocation registry_object_location = ResourceLocation.tryBuild(mod_id, name);
 
@@ -134,6 +158,11 @@ public final class BlocksAndItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(info, "info");
         DATA_COMPONENT_TYPE_REGISTER.register(name, info.component_type_provider());
+    }
+
+    @Override
+    public void RegisterCreativeModeTab(String name, CreativeModeTab tab) throws ArgumentNullException {
+
     }
 
     private void OnCreativeModeTabsRegistering(BuildCreativeModeTabContentsEvent event)
@@ -166,12 +195,15 @@ public final class BlocksAndItemsRegistrar
     {
         ITEM_REGISTER.register(evb);
         BLOCKS_REGISTER.register(evb);
+        FLUIDS_REGISTER.register(evb);
         BLOCK_ENTITY_TYPE_REGISTER.register(evb);
         DATA_COMPONENT_TYPE_REGISTER.register(evb);
         evb.addListener(this::OnCreativeModeTabsRegistering);
         DATA_COMPONENT_TYPE_REGISTER = null;
         BLOCK_ENTITY_TYPE_REGISTER = null;
+        FLUIDS_REGISTER = null;
         BLOCKS_REGISTER = null;
         ITEM_REGISTER = null;
+        mod_id = null;
     }
 }

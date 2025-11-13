@@ -27,6 +27,14 @@ import java.nio.file.Path;
  */
 public final class BaseModsLib
 {
+
+    /**
+     * The ID of the library. <br />
+     * This is used for the mod loader and represents the library as a mod to it.
+     * @since 1.0.5
+     */
+    public static final String MOD_ID = "mdcdi1315_base_mods_lib";
+
     private static List<IServerModInstance> mod_instances;
     private static EventManager events_manager;
     private static IModLoaderLayer layer;
@@ -97,7 +105,9 @@ public final class BaseModsLib
 
             LOGGER.info("BASEMODSLIB: Server mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
-            mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
+            synchronized (mod_instances) {
+                mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
+            }
         } catch (Exception e) {
             var id = instance.GetModId();
             sw.Stop();
@@ -146,18 +156,14 @@ public final class BaseModsLib
      * @return A list of the loaded mods in this Minecraft instance.
      */
     @NotNull
-    public static java.util.List<String> GetLoadedMods() {
-        return layer.GetLoadedMods();
-    }
+    public static java.util.List<String> GetLoadedMods() { return layer.GetLoadedMods(); }
 
     /**
      * Gets the modding environment under which the library itself runs.
      * @return The modding environment that the library is running into.
      */
     @NotNull
-    public static ModdingEnvironment GetEnvironment() {
-        return layer.GetEnvironment();
-    }
+    public static ModdingEnvironment GetEnvironment() { return layer.GetEnvironment(); }
 
     /**
      * Gets the branding of the underlying mod loader where the library is initialized to. <br />
@@ -165,36 +171,37 @@ public final class BaseModsLib
      * @return The mod loader branding.
      */
     @NotNull
-    public static String GetModLoaderBranding() {
-        return layer.GetModLoaderBranding();
-    }
+    public static String GetModLoaderBranding() { return layer.GetModLoaderBranding(); }
 
     /**
      * Gets the version of the underlying mod loader where the library is initialized to. <br />
      * @return The mod loader version.
      */
     @NotNull
-    public static Version GetModLoaderVersion() {
-        return layer.GetModLoaderVersion();
-    }
+    public static Version GetModLoaderVersion() { return layer.GetModLoaderVersion(); }
 
     /**
      * Gets the Minecraft version under which the mod loader runs.
      * @return The Minecraft version.
      */
     @NotNull
-    public static Version GetMinecraftVersion() {
-        return layer.GetMinecraftVersion();
-    }
+    public static Version GetMinecraftVersion() { return layer.GetMinecraftVersion(); }
 
     /**
      * Gets the directory path where all the mod configuration files are stored.
      * @return The configuration directory.
      */
     @NotNull
-    public static Path GetModConfigurationDirectory() {
-        return layer.GetConfigurationDirectory();
-    }
+    public static Path GetModConfigurationDirectory() { return layer.GetConfigurationDirectory(); }
+
+    /**
+     * Gets the directory where Minecraft is running. <br />
+     * This is commonly referred to as the 'game working directory'.
+     * @return The directory where the game runs from.
+     * @since 1.0.5
+     */
+    @NotNull
+    public static Path GetMinecraftDirectory() { return layer.GetMinecraftDirectory(); }
 
     /**
      * Called by the mod loader when mod loading is complete. <br />
