@@ -109,9 +109,11 @@ public final class BaseModsLibClient
 
             sw.Stop();
 
-            BaseModsLib.LOGGER.info("BASEMODSLIB: Mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
+            BaseModsLib.LOGGER.info("BASEMODSLIB: Client mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
-            mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
+            synchronized (mod_instances) {
+                mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
+            }
         } catch (Exception e) {
             var id = instance.GetModId();
             sw.Stop();
