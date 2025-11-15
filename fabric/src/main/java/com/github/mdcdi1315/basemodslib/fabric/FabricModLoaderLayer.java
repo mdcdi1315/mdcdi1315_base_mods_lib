@@ -157,12 +157,11 @@ public final class FabricModLoaderLayer
         mod_instance.RegisterBlocks(registrar);
         mod_instance.RegisterBlockEntities(registrar);
         mod_instance.RegisterItems(registrar);
+        mod_instance.RegisterFluids(registrar);
+
         mod_instance.RegisterWorldGenItems(registrar);
         mod_instance.RegisterRegistryItems(registrar);
         mod_instance.RegisterEntityTypes(registrar);
-        mod_instance.RegisterFluids(registrar);
-
-        mod_instance.RegisterCommands(global_commands_registrar);
 
         FabricBasedNetworkManager manager = new FabricBasedNetworkManager(mod_id);
 
@@ -177,7 +176,9 @@ public final class FabricModLoaderLayer
             }
         }
 
+        mod_instance.RegisterMenuTypes(registrar);
 
+        mod_instance.RegisterCommands(global_commands_registrar);
     }
 
     public void Dispose() {

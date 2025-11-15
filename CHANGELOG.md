@@ -1,11 +1,7 @@
-### Now releasing 1.0.5:
+### Now releasing 1.0.6:
 
--> Support for fluid registration was added!
+-> Added support for registering menu types. Due to this, the networking manager has been also appropriately modified.
 
--> Most concurrency issues should have been fixed now.
+-> Fixed an issue with the PlatformNotSupportedException class not calling the superclass constructor.
 
--> Added creative mode tab registration support
-
--> Added support for adding entity sensor types as well
-
--> The game's working directory can be now retrieved through the GetMinecraftDirectory method.
+-> Changed the load order of various registrars to avoid mod loading issues.

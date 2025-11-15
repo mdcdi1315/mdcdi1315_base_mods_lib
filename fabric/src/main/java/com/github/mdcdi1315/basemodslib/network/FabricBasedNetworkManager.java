@@ -1,9 +1,9 @@
 package com.github.mdcdi1315.basemodslib.network;
 
-import com.github.mdcdi1315.DotNetLayer.System.Action2;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
-import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
+import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+
+import com.github.mdcdi1315.basemodslib.menu.MenuProviderEx;
 
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.FriendlyByteBuf;
@@ -141,5 +142,17 @@ public final class FabricBasedNetworkManager
         }
 
         ClientPlayNetworking.send(data.location , data.UnsafeEncode(message));
+    }
+
+    @Override
+    public void OpenMenu(Player player, MenuProvider provider)
+        throws ArgumentNullException , NotSupportedException
+    {
+        ArgumentNullException.ThrowIfNull(player, "player");
+        ArgumentNullException.ThrowIfNull(provider, "provider");
+
+        if (player instanceof ServerPlayer sp) {
+            sp.openMenu(provider instanceof MenuProviderEx mpx ? new ExtendedScreenFactoryTranslation(mpx) : provider);
+        }
     }
 }

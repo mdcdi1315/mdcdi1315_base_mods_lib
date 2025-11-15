@@ -1,10 +1,13 @@
 package com.github.mdcdi1315.basemodslib.network;
 
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -61,11 +64,44 @@ public abstract class NetworkManager
 
     public abstract <T> void SendTo(Player player, T message);
 
+    /**
+     * Sends the specified packet to all the tracking entities in the specified level and position.
+     * @param world The level to find it's currently tracking entities.
+     * @param pos The position to filter out tracking entities.
+     * @param message The message to dispatch to the tracking entities.
+     * @param <T> The type of the message to send.
+     */
     public abstract <T> void SendToTracking(ServerLevel world, BlockPos pos, T message);
 
+    /**
+     * Sends to the specified tracking entity the specified packet.
+     * @param entity The entity that this tracked and must be sent the specified packet.
+     * @param message The message to dispatch to the tracking entity.
+     * @param <T> The type of the message to send.
+     */
     public abstract <T> void SendToTracking(Entity entity, T message);
 
+    /**
+     * Sends the specified packet to the players in the specified server.
+     * @param server The Minecraft server to use to find the players and dispatch to them the specified message.
+     * @param message The message to dispatch to all the players.
+     * @param <T> The type of the message to send.
+     */
     public abstract <T> void SendToAllPlayers(MinecraftServer server, T message);
 
+    /**
+     * Sends to the server the specified message.
+     * @param message The message/packet to send.
+     * @param <T> The type of the message to send.
+     */
     public abstract <T> void SendToServer(T message);
+
+    /**
+     * Dispatches to the network an 'open menu' packet.
+     * @param player The player to dispatch the menu open packet to.
+     * @param provider The menu provider to use.
+     * @throws ArgumentNullException {@code player} and/or {@code provider} are {@code null}.
+     * @throws NotSupportedException A menu provider of type {@link com.github.mdcdi1315.basemodslib.menu.MenuProviderEx} was used, but it is not supported by the underlying mod loader.
+     */
+    public abstract void OpenMenu(Player player, MenuProvider provider) throws NotSupportedException, ArgumentNullException;
 }

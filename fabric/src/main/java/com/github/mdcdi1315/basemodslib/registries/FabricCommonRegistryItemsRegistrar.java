@@ -3,16 +3,19 @@ package com.github.mdcdi1315.basemodslib.registries;
 import com.github.mdcdi1315.DotNetLayer.System.*;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
-import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
+import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreater;
+import com.github.mdcdi1315.basemodslib.menu.MenuTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.entity.EntityTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
+import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
@@ -27,6 +30,9 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 
 import net.minecraft.core.Registry;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.resources.ResourceKey;
@@ -54,7 +60,8 @@ public final class FabricCommonRegistryItemsRegistrar
         IWorldGenRegistrar,
         IRegistryRegistrar,
         IEntityTypeRegistrar,
-        IFluidRegistrar
+        IFluidRegistrar,
+        IMenuTypeRegistrar
 {
     private String mod_id;
 
@@ -266,6 +273,27 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(info, "info");
         ResourceLocation location = BuildAndValidateLocation(name);
         Registry.register(BuiltInRegistries.FLUID , location , info.fluid_getter().function(location));
+    }
+
+    private record MenuCreaterToMenuSupplier<T extends AbstractContainerMenu>(MenuTypeCreater<T> crt)
+            implements MenuType.MenuSupplier<T>
+    {
+        @Override
+        public T create(int i, Inventory inventory) {
+            return crt.Create(i , inventory);
+        }
+    }
+
+    @Override
+    public <T extends AbstractContainerMenu> void Register(String name, MenuTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(
+                BuiltInRegistries.MENU,
+                BuildAndValidateLocation(name) ,
+                new MenuType<>(new MenuCreaterToMenuSupplier<>(info.creater()) , info.required_features())
+        );
     }
 
     private record ModifyEntriesEventImpl(Item m_item)
