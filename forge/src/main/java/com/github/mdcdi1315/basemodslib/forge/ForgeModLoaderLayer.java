@@ -7,6 +7,7 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.ForgeEntityTypeRegistrar;
@@ -103,6 +104,10 @@ public final class ForgeModLoaderLayer
         ForgeBasedNetworkManager net_manager = new ForgeBasedNetworkManager(mod_id);
         instance.InitializeNetwork(net_manager);
         net_manager.InitializeNetworkManager(net_manager.GetBuilderAndDestroy());
+
+        ForgeMenuTypeRegistrar reg5 = new ForgeMenuTypeRegistrar(mod_id);
+        instance.RegisterMenuTypes(reg5);
+        reg5.RegisterToEventBus(mod_event_bus);
 
         instance.RegisterCommands(global_command_registrar);
     }

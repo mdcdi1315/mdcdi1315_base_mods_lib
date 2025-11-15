@@ -1,15 +1,21 @@
 package com.github.mdcdi1315.basemodslib.network;
 
+import com.github.mdcdi1315.DotNetLayer.System.Action1;
+import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
+import com.github.mdcdi1315.basemodslib.menu.MenuProviderEx;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -94,5 +100,30 @@ public final class ForgeBasedNetworkManager
         }
 
         channel.send(msg , PacketDistributor.SERVER.noArg());
+    }
+
+    private record WriteScreenDataTranslater(ServerPlayer sp, MenuProviderEx mpx)
+            implements Action1<FriendlyByteBuf>
+    {
+        @Override
+        public void action(FriendlyByteBuf obj) {
+            mpx.WriteScreenOpeningData(sp , obj);
+        }
+    }
+
+    @Override
+    public void OpenMenu(Player player, MenuProvider provider)
+            throws NotSupportedException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(player, "player");
+        ArgumentNullException.ThrowIfNull(provider, "provider");
+
+        if (player instanceof ServerPlayer sp) {
+            if (provider instanceof MenuProviderEx mpx) {
+                sp.openMenu(mpx , new WriteScreenDataTranslater(sp , mpx));
+            } else {
+                sp.openMenu(provider);
+            }
+        }
     }
 }

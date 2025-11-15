@@ -1,14 +1,18 @@
 package com.github.mdcdi1315.basemodslib.network;
 
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
+import com.github.mdcdi1315.basemodslib.menu.MenuProviderEx;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -88,5 +92,21 @@ public final class FabricBasedNetworkManager
     public <T extends CustomPacketPayload> void SendToServer(T message)
     {
         ClientPlayNetworking.send(message);
+    }
+
+    @Override
+    public void OpenMenu(Player player, MenuProvider provider)
+            throws NotSupportedException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(player, "player");
+        ArgumentNullException.ThrowIfNull(provider, "provider");
+
+        if (player instanceof ServerPlayer sp) {
+            if (provider instanceof MenuProviderEx) {
+                throw new NotSupportedException("This feature is unsupported on Fabric due to how the Screen Handler API is written. Use that API directly instead.");
+            } else {
+                sp.openMenu(provider);
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.menu.NeoForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkBuilder;
 import com.github.mdcdi1315.basemodslib.world.NeoForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkingManager;
@@ -109,6 +110,10 @@ public final class NeoForgeModLoaderLayer
         if (builder != null) {
             ((NeoForgeNetworkBuilder)builder).Build(mod_event_bus);
         }
+
+        NeoForgeMenuTypeRegistrar reg_6 = new NeoForgeMenuTypeRegistrar(mod_id);
+        instance.RegisterMenuTypes(reg_6);
+        reg_6.RegisterToEventBus(mod_event_bus);
 
         instance.RegisterCommands(global_command_registrar);
 
