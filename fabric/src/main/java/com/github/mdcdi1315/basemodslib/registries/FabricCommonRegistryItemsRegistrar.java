@@ -4,10 +4,13 @@ import com.github.mdcdi1315.DotNetLayer.System.*;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreater;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.MenuTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.entity.EntityTypeRegistrationInfo;
@@ -36,13 +39,16 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.core.RegistrationInfo;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
@@ -55,7 +61,8 @@ public final class FabricCommonRegistryItemsRegistrar
         IWorldGenRegistrar,
         IRegistryRegistrar,
         IEntityTypeRegistrar,
-        IFluidRegistrar
+        IFluidRegistrar,
+        IMenuTypeRegistrar
 {
     private String mod_id;
 
@@ -267,6 +274,24 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(info, "info");
         ResourceLocation location = BuildAndValidateLocation(name);
         Registry.register(BuiltInRegistries.FLUID , location , info.fluid_getter().function(location));
+    }
+
+    private record MenuCreaterToMenuSupplier<T extends AbstractContainerMenu>(MenuTypeCreater<T> crt)
+            implements MenuType.MenuSupplier<T>
+    {
+        @Override
+        public T create(int i, Inventory inventory) {
+            return crt.Create(i , inventory);
+        }
+    }
+
+    @Override
+    public <T extends AbstractContainerMenu> void Register(String name, MenuTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+
+        Registry.register(BuiltInRegistries.MENU, BuildAndValidateLocation(name) , new MenuType<>(new MenuCreaterToMenuSupplier<>(info.creater()) , info.required_features()));
     }
 
     private record ModifyEntriesEventImpl(Item m_item)

@@ -4,6 +4,7 @@ import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NetworkManager;
+import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ICommandRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
@@ -74,4 +75,11 @@ public interface IServerModInstance
      * @since 1.0.5
      */
     default void RegisterFluids(IFluidRegistrar registrar) {}
+
+    /**
+     * Registers menu types for this mod instance.
+     * @param registrar The object responsible for registering menu types to Minecraft.
+     * @since 1.0.6
+     */
+    default void RegisterMenuTypes(IMenuTypeRegistrar registrar) {}
 }
