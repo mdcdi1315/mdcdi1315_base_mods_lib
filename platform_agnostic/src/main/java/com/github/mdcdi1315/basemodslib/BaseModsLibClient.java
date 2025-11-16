@@ -9,6 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
@@ -67,6 +68,7 @@ public final class BaseModsLibClient
         layer = client_layer;
         mod_instances = new List<>();
         var em = BaseModsLib.GetEventsManager();
+        em.AddEvent(ClientSetupEvent.class);
         em.AddEvent(ClientStartedEvent.class);
         em.AddEvent(ClientStoppingEvent.class);
         em.AddEvent(ClientConnectedToServerEvent.class);

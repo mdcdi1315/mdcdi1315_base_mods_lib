@@ -6,8 +6,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -32,6 +32,7 @@ public final class EventManager
 
         // Initial events
 
+        AddEvent(CommonSetupEvent.class);
         AddEvent(ServerStartedEvent.class);
         AddEvent(ServerStartingEvent.class);
         AddEvent(ServerStoppingEvent.class);

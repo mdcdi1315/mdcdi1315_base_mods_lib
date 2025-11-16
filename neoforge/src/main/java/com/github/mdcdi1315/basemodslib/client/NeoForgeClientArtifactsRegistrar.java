@@ -1,18 +1,27 @@
 package com.github.mdcdi1315.basemodslib.client;
 
+import com.github.mdcdi1315.DotNetLayer.System.Func1;
+import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
-import net.minecraft.client.particle.ParticleEngine;
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 
@@ -21,8 +30,10 @@ public final class NeoForgeClientArtifactsRegistrar
         IColorHandlersRegistrar,
         IEntityRendererRegistrar,
         IModelDefinitionRegistrar,
-        IParticleProviderRegistrar
+        IParticleProviderRegistrar,
+        IMenuScreensRegistrar
 {
+    private List<MenuScreenRegInfo<? , ?>> menu_screens_info;
     private List<ModelDefinitionRegistrationInfo> model_infos;
     private List<ItemColorHandlerRegistrationInfo> item_colors;
     private List<BlockColorHandlerRegistrationInfo> block_colors;
@@ -39,6 +50,7 @@ public final class NeoForgeClientArtifactsRegistrar
         block_colors = new List<>();
         block_entities = new List<>();
         particles_simple = new List<>();
+        menu_screens_info = new List<>();
         particles_advanced = new List<>();
     }
 
@@ -108,6 +120,7 @@ public final class NeoForgeClientArtifactsRegistrar
 
     public void RegisterToEventBus(IEventBus bus)
     {
+        bus.addListener(this::OnRegisterMenuScreensEventDef);
         bus.addListener(this::RegisterModelsEventDef);
         bus.addListener(this::RegisterRenderersEventDef);
         bus.addListener(this::RegisterItemColorHandlersEventDef);
@@ -185,6 +198,45 @@ public final class NeoForgeClientArtifactsRegistrar
     private static <T extends ParticleOptions> void RegisterSimpleParticleProvider(RegisterParticleProvidersEvent event, SimpleParticleProviderRegistrationInfo<T> info)
     {
         event.registerSpriteSet(info.particle_type().function() , new SimpleParticleRegistration<>(info.particle_provider()));
+    }
+
+    private record MenuScreenRegInfo<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
+    {
+        private record MSCToMenuConstructor<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(MenuScreenConstructor<M, U> constructor)
+                implements MenuScreens.ScreenConstructor<M , U>
+        {
+            @Override
+            public U create(M abstractContainerMenu, Inventory inventory, Component component) {
+                return constructor.Create(abstractContainerMenu, inventory, component);
+            }
+        }
+
+        public void RegisterByEvent(RegisterMenuScreensEvent event) {
+            event.register(type.function(), new MSCToMenuConstructor<>(constructor));
+        }
+    }
+
+    private void OnRegisterMenuScreensEventDef(RegisterMenuScreensEvent event)
+    {
+        var en = menu_screens_info.GetEnumerator();
+        try {
+            while (en.MoveNext()) {
+                en.getCurrent().RegisterByEvent(event);
+            }
+        } finally {
+            en.Dispose();
+        }
+        menu_screens_info.Clear();
+        menu_screens_info = null;
+    }
+
+    @Override
+    public <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void RegisterMenuScreen(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(type, "type");
+        ArgumentNullException.ThrowIfNull(constructor, "constructor");
+        menu_screens_info.Add(new MenuScreenRegInfo<>(type, constructor));
     }
 
     private record SimpleParticleRegistration<T extends ParticleOptions>(ParticleProvider<T> provider)

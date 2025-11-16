@@ -11,6 +11,6 @@ import net.neoforged.api.distmarker.Dist;
 public final class BaseModsLibNeoForgeClientMod
 {
     public BaseModsLibNeoForgeClientMod(IEventBus event_bus) {
-        BaseModsLibClient.InitializeBaseModsLibClient(new NeoForgeClientModLoaderLayer());
+        BaseModsLibClient.InitializeBaseModsLibClient(new NeoForgeClientModLoaderLayer(event_bus));
     }
 }

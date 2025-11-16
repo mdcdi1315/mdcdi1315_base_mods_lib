@@ -1,21 +1,30 @@
 package com.github.mdcdi1315.basemodslib.client;
 
+import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
-import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 
 public final class ForgeClientArtifactsRegistrar
@@ -23,22 +32,25 @@ public final class ForgeClientArtifactsRegistrar
         IEntityRendererRegistrar,
         IColorHandlersRegistrar,
         IModelDefinitionRegistrar,
-        IParticleProviderRegistrar
+        IParticleProviderRegistrar,
+        IMenuScreensRegistrar
 {
-    private List<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
+    private List<MenuScreenRegInfo<? , ?>> menu_screens_info;
+    private List<ModelDefinitionRegistrationInfo> model_defs_infos;
     private List<EntityRendererRegistrationInfo<?>> entity_renderer_infos;
     private List<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
-    private List<ModelDefinitionRegistrationInfo> model_defs_infos;
     private List<SimpleParticleProviderRegistrationInfo<?>> simple_particle_reg;
     private List<AdvancedParticleProviderRegistrationInfo<?>> advanced_particle_reg;
+    private List<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
 
     public ForgeClientArtifactsRegistrar() {
-        block_entity_renderer_infos = new List<>();
-        entity_renderer_infos = new List<>();
-        block_color_handler_infos = new List<>();
         model_defs_infos = new List<>();
+        menu_screens_info = new List<>();
         simple_particle_reg = new List<>();
         advanced_particle_reg = new List<>();
+        entity_renderer_infos = new List<>();
+        block_color_handler_infos = new List<>();
+        block_entity_renderer_infos = new List<>();
     }
 
     @Override
@@ -134,12 +146,56 @@ public final class ForgeClientArtifactsRegistrar
         advanced_particle_reg = null;
     }
 
+    private void RegisterMenuScreensAll()
+    {
+        var en = menu_screens_info.GetEnumerator();
+        try {
+            while (en.MoveNext()) {
+                en.getCurrent().RegisterToMenuScreens();
+            }
+        } finally {
+            en.Dispose();
+        }
+        menu_screens_info.Clear();
+        menu_screens_info = null;
+    }
+
+    private void OnClientSetupEvent(FMLClientSetupEvent event) {
+        event.enqueueWork(this::RegisterMenuScreensAll);
+    }
+
     public void RegisterToEventBus(IEventBus bus)
     {
+        bus.addListener(this::OnClientSetupEvent);
         bus.addListener(this::OnRegisterEntityRenderers);
         bus.addListener(this::OnRegisterModelDefinitions);
         bus.addListener(this::OnRegisterParticleProviders);
         bus.addListener(this::OnRegisterBlockColorHandlers);
+    }
+
+    private record MenuScreenRegInfo<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
+    {
+        private record MSCToMenuConstructor<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(MenuScreenConstructor<M, U> constructor)
+                implements MenuScreens.ScreenConstructor<M , U>
+        {
+            @Override
+            public U create(M abstractContainerMenu, Inventory inventory, Component component) {
+                return constructor.Create(abstractContainerMenu, inventory, component);
+            }
+        }
+
+        public void RegisterToMenuScreens() {
+            MenuScreens.register(type.function() , new MSCToMenuConstructor<>(constructor));
+        }
+    }
+
+    @Override
+    public <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void RegisterMenuScreen(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(type, "type");
+        ArgumentNullException.ThrowIfNull(constructor, "constructor");
+        menu_screens_info.Add(new MenuScreenRegInfo<>(type, constructor));
     }
 
     private record SpriteParticleImplementation_Simple<T extends ParticleOptions>(ParticleProvider<T> prov)

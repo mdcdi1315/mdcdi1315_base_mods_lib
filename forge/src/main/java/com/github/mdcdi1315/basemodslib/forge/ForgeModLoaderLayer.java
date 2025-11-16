@@ -6,9 +6,10 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.ForgeEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.ForgeBasedNetworkManager;
@@ -22,6 +23,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.versions.forge.ForgeVersion;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
@@ -53,7 +55,9 @@ public final class ForgeModLoaderLayer
         }
         forge_modloader_version = fg_ver;
         // tracker = new DisposableObjectsTracker();
-        this.baselibmodcontext.getModEventBus().addListener(this::OnModLoadingComplete);
+        IEventBus bus = this.baselibmodcontext.getModEventBus();
+        bus.addListener(this::OnModLoadingComplete);
+        bus.addListener(this::OnCommonSetupEvent);
     }
 
     private IEventBus GetEventBusOrFail(Object mod_object) {
@@ -72,9 +76,16 @@ public final class ForgeModLoaderLayer
         global_command_registrar = null;
     }
 
-    private void OnModLoadingComplete(FMLLoadCompleteEvent mlce) {
-        mlce.enqueueWork(BaseModsLib::Destroy);
-        mlce.enqueueWork(this::DestroyLayerData);
+    private void OnCommonSetupEvent(FMLCommonSetupEvent event) {
+        BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
+        CommonSetupEvent cse = new CommonSetupEvent();
+        BaseModsLib.GetEventsManager().FireEvent(cse);
+        event.enqueueWork(cse::Run);
+    }
+
+    private void OnModLoadingComplete(FMLLoadCompleteEvent event) {
+        event.enqueueWork(BaseModsLib::Destroy);
+        event.enqueueWork(this::DestroyLayerData);
     }
 
     @Override

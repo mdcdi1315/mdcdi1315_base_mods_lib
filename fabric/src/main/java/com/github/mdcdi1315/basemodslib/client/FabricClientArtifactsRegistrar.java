@@ -7,11 +7,18 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
@@ -27,7 +34,8 @@ public final class FabricClientArtifactsRegistrar
         IBlockEntityRendererRegistrar,
         IModelDefinitionRegistrar,
         IColorHandlersRegistrar,
-        IParticleProviderRegistrar
+        IParticleProviderRegistrar,
+        IMenuScreensRegistrar
 {
     @Override
     public <T extends Entity> void Register(EntityRendererRegistrationInfo<T> info)
@@ -82,6 +90,24 @@ public final class FabricClientArtifactsRegistrar
     {
         ArgumentNullException.ThrowIfNull(info, "info");
         ParticleFactoryRegistry.getInstance().register(info.particle_type().function(), new ParticleFactoryRegistryAdvancedInfoTranslation<>(info.particle_provider_creater()));
+    }
+
+    private record MSCToMenuConstructor<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(MenuScreenConstructor<M, U> constructor)
+        implements MenuScreens.ScreenConstructor<M , U>
+    {
+        @Override
+        public U create(M abstractContainerMenu, Inventory inventory, Component component) {
+            return constructor.Create(abstractContainerMenu, inventory, component);
+        }
+    }
+
+    @Override
+    public <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void RegisterMenuScreen(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(type, "type");
+        ArgumentNullException.ThrowIfNull(constructor, "constructor");
+        MenuScreens.register(type.function() , new MSCToMenuConstructor<>(constructor));
     }
 
     private record ParticleFactoryRegistryAdvancedInfoTranslation<T extends ParticleOptions>(Func2<SpriteSet, ParticleProvider<T>> function)

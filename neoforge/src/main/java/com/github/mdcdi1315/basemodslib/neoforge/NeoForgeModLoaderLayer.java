@@ -6,8 +6,9 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.menu.NeoForgeMenuTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.menu.NeoForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkBuilder;
 import com.github.mdcdi1315.basemodslib.world.NeoForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkingManager;
@@ -19,6 +20,7 @@ import com.github.mdcdi1315.basemodslib.registries.NeoForgeRegistriesRegistrar;
 
 import net.neoforged.fml.ModList;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -53,6 +55,7 @@ public final class NeoForgeModLoaderLayer
         }
         neoforge_version = fg_ver;
         // tracker = new DisposableObjectsTracker();
+        this.event_bus.addListener(this::OnCommonSetupEvent);
         this.event_bus.addListener(this::OnModLoadingCompleteEvent);
     }
 
@@ -70,6 +73,13 @@ public final class NeoForgeModLoaderLayer
         tracker = null;
          */
         global_command_registrar = null;
+    }
+
+    private void OnCommonSetupEvent(FMLCommonSetupEvent event) {
+        BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
+        CommonSetupEvent cse = new CommonSetupEvent();
+        BaseModsLib.GetEventsManager().FireEvent(cse);
+        event.enqueueWork(cse::Run);
     }
 
     private void OnModLoadingCompleteEvent(FMLLoadCompleteEvent event) {
