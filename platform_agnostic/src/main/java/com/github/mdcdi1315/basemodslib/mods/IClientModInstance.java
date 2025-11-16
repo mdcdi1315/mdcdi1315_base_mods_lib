@@ -47,6 +47,13 @@ public interface IClientModInstance
     default void RegisterParticleProviders(IParticleProviderRegistrar registrar) {}
 
     /**
+     * Provides a way for registering additional menu screens to Minecraft.
+     * @param registrar The object responsible for registering additional menu screens.
+     * @since 1.0.7
+     */
+    default void RegisterMenuScreens(IMenuScreensRegistrar registrar) {}
+
+    /**
      * Called only once per mod instance to provide a custom configuration screen for their needs. <br />
      * Can also be {@code null}, indicating that the config screen is not applicable of or for any failure creating the GUI.
      * @return The screen configuration factory object to return.
