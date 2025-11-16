@@ -7,6 +7,7 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.client.ForgeClientArtifactsRegistrar;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
@@ -15,6 +16,7 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import java.util.Optional;
@@ -22,11 +24,9 @@ import java.util.Optional;
 public final class ForgeClientModLoaderLayer
     implements IClientModLoaderLayer
 {
-    private FMLJavaModLoadingContext context;
-
     public ForgeClientModLoaderLayer(FMLJavaModLoadingContext context) {
-        this.context = context;
         BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, ForgeClientModLoaderLayer::RegisterConfigScreensToMods);
+        context.getModEventBus().addListener(this::OnClientSetupClient);
     }
 
     private static void RegisterConfigScreensToMods(ModLoadingCompleteEvent completed)
@@ -57,6 +57,13 @@ public final class ForgeClientModLoaderLayer
         }
     }
 
+    private void OnClientSetupClient(FMLClientSetupEvent event) {
+        BaseModsLib.LOGGER.info("Client setup event realized. Dispatching client setup to implementing mods.");
+        ClientSetupEvent cse = new ClientSetupEvent();
+        BaseModsLib.GetEventsManager().FireEvent(cse);
+        event.enqueueWork(cse::Run);
+    }
+
     @Override
     public void InitializeClientModInstance(IClientModInstance instance, Object mod_object) {
         IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
@@ -68,13 +75,12 @@ public final class ForgeClientModLoaderLayer
         instance.RegisterBlockEntityRenderers(reg);
         instance.RegisterColorHandlers(reg);
         instance.RegisterParticleProviders(reg);
+        instance.RegisterMenuScreens(reg);
 
         reg.RegisterToEventBus(mod_event_bus);
 
     }
 
     @Override
-    public void Dispose() {
-        context = null;
-    }
+    public void Dispose() {}
 }

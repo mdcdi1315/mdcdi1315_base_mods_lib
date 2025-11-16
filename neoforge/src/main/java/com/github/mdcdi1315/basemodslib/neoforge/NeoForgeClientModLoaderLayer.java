@@ -2,19 +2,22 @@ package com.github.mdcdi1315.basemodslib.neoforge;
 
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
+import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
+import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
-import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.client.NeoForgeClientArtifactsRegistrar;
 
-import com.github.mdcdi1315.basemodslib.utils.Pair;
 import net.minecraft.client.gui.screens.Screen;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
+
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 import java.util.Optional;
@@ -22,8 +25,9 @@ import java.util.Optional;
 public final class NeoForgeClientModLoaderLayer
     implements IClientModLoaderLayer
 {
-    public NeoForgeClientModLoaderLayer() {
+    public NeoForgeClientModLoaderLayer(IEventBus event_bus) {
         BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class , NeoForgeClientModLoaderLayer::RegisterConfigScreensToMods);
+        event_bus.addListener(this::OnClientSetupEvent);
     }
 
     private static IEventBus GetEventBusOrFail(Object mod_object) {
@@ -32,6 +36,13 @@ public final class NeoForgeClientModLoaderLayer
         } catch (ClassCastException cce) {
             throw new InvalidOperationException(String.format("The mod object was not of type IEventBus!!!!\nActual type: %s", mod_object.getClass().getName()));
         }
+    }
+
+    private void OnClientSetupEvent(FMLClientSetupEvent event) {
+        BaseModsLib.LOGGER.info("Client setup event realized. Dispatching client setup to implementing mods.");
+        ClientSetupEvent cse = new ClientSetupEvent();
+        BaseModsLib.GetEventsManager().FireEvent(cse);
+        event.enqueueWork(cse::Run);
     }
 
     @Override
@@ -79,6 +90,7 @@ public final class NeoForgeClientModLoaderLayer
         instance.RegisterEntityRenderers(registrar);
         instance.RegisterBlockEntityRenderers(registrar);
         instance.RegisterParticleProviders(registrar);
+        instance.RegisterMenuScreens(registrar);
         registrar.RegisterToEventBus(mod_bus);
 
 

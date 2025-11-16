@@ -80,5 +80,6 @@ public final class FabricClientModLoaderLayer
         instance.RegisterBlockEntityRenderers(registrar);
         instance.RegisterColorHandlers(registrar);
         instance.RegisterParticleProviders(registrar);
+        instance.RegisterMenuScreens(registrar);
     }
 }

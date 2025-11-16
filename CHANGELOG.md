@@ -1,7 +1,7 @@
-### Now releasing 1.0.6:
+### Now releasing 1.0.7:
 
--> Added support for registering menu types. Due to this, the networking manager has been also appropriately modified.
+-> Added additional setup events during Minecraft loading
 
--> Fixed an issue with the PlatformNotSupportedException class not calling the superclass constructor.
+-> Fix the dedicated server only mixins to load only on dedicated server environments.
 
--> Changed the load order of various registrars to avoid mod loading issues.
+-> Added support for registering additional menu screens on Minecraft clients.

@@ -13,8 +13,10 @@
 		"MinecraftServerMixin",
 		"DimensionDataStorageMixin",
 		"MultiNoiseBiomeSourceMixin",
-		"DedicatedMinecraftServerMixin",
 		"ReloadableServerResourcesMixin"
+	],
+	"server": [
+		"DedicatedMinecraftServerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
