@@ -52,8 +52,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
-import java.util.Set;
-import java.util.Optional;
+import java.util.*;
 
 public final class FabricCommonRegistryItemsRegistrar
     implements IItemRegistrar,
@@ -66,9 +65,11 @@ public final class FabricCommonRegistryItemsRegistrar
         IMenuTypeRegistrar
 {
     private String mod_id;
+    private HashMap<CreativeModeTab, ArrayList<Item>> modify_entries_register;
 
     public FabricCommonRegistryItemsRegistrar(String mod_id) {
         this.mod_id = mod_id;
+        modify_entries_register = new HashMap<>(2);
     }
 
     private ResourceLocation BuildAndValidateLocation(String path)
@@ -80,6 +81,47 @@ public final class FabricCommonRegistryItemsRegistrar
         }
 
         return ret;
+    }
+
+    private record ModifyEntriesEventImpl(ArrayList<Item> item_enum)
+            implements ItemGroupEvents.ModifyEntries
+    {
+        public ModifyEntriesEventImpl {
+            // Trash unused array elements in the list. This will be possibly accessed many times.
+            item_enum.trimToSize();
+        }
+
+        @Override
+        public void modifyEntries(FabricItemGroupEntries entries)
+        {
+            var disp_stacks = entries.getDisplayStacks();
+            var search_stacks = entries.getSearchTabStacks();
+            ItemStack temp;
+            for (Item i : item_enum) {
+                temp = new ItemStack(i);
+                disp_stacks.add(temp);
+                search_stacks.add(temp);
+            }
+        }
+    }
+
+    private static ArrayList<Item> ComputeIfAbsentWrapper(CreativeModeTab rk) {
+        return new ArrayList<>(10);
+    }
+
+    // This is executed right after all the blocks, items, block entities and fluids have been registered.
+    public void ApplyFabricModifyEntries()
+    {
+        Optional<ResourceKey<CreativeModeTab>> rk;
+        for (var kvp : modify_entries_register.entrySet()) {
+            rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(kvp.getKey());
+            if (rk.isEmpty()) {
+                BaseModsLib.LOGGER.warn("Cannot get the resource key for the specified creative mode tab! Lookup failed.\nAll the items specified for this creative mode tab will not be applied.");
+                continue;
+            }
+            ItemGroupEvents.modifyEntriesEvent(rk.get()).register(new ModifyEntriesEventImpl(kvp.getValue()));
+        }
+        modify_entries_register = null;
     }
 
     @Override
@@ -96,20 +138,11 @@ public final class FabricCommonRegistryItemsRegistrar
 
         if (item_func_registration != null)
         {
-            ModifyEntriesEventImpl implementation = new ModifyEntriesEventImpl(
-                    Registry.register(BuiltInRegistries.ITEM, location, item_func_registration.function(blk, location))
-            );
+            Item itm = Registry.register(BuiltInRegistries.ITEM, location, item_func_registration.function(blk, location));
 
-            Optional<ResourceKey<CreativeModeTab>> rk;
-
-            for (var i : info.creative_mode_tabs_for_item())
-            {
-                rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(i);
-                if (rk.isEmpty()) {
-                    BaseModsLib.LOGGER.warn("Cannot get the resource key for the creative mode tab! Lookup failed.");
-                    continue;
-                }
-                ItemGroupEvents.modifyEntriesEvent(rk.get()).register(implementation);
+            for (var i : info.creative_mode_tabs_for_item()) {
+                // Add the item to be registered to the creative mode tabs.
+                modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).add(itm);
             }
         }
     }
@@ -120,20 +153,10 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ResourceLocation location = BuildAndValidateLocation(name);
 
-        ModifyEntriesEventImpl implementation = new ModifyEntriesEventImpl(
-                Registry.register(BuiltInRegistries.ITEM, location, info.item_getter().function(location))
-        );
+        Item itm = Registry.register(BuiltInRegistries.ITEM, location, info.item_getter().function(location));
 
-        Optional<ResourceKey<CreativeModeTab>> rk;
-
-        for (var i : info.tabs())
-        {
-            rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(i);
-            if (rk.isEmpty()) {
-                BaseModsLib.LOGGER.warn("Cannot get the resource key for the creative mode tab! Lookup failed.");
-                continue;
-            }
-            ItemGroupEvents.modifyEntriesEvent(rk.get()).register(implementation);
+        for (var i : info.tabs()) {
+            modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).add(itm);
         }
     }
 
@@ -294,16 +317,5 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(info, "info");
 
         Registry.register(BuiltInRegistries.MENU, BuildAndValidateLocation(name) , new MenuType<>(new MenuCreaterToMenuSupplier<>(info.creater()) , info.required_features()));
-    }
-
-    private record ModifyEntriesEventImpl(Item m_item)
-        implements ItemGroupEvents.ModifyEntries
-    {
-        @Override
-        public void modifyEntries(FabricItemGroupEntries entries) {
-            ItemStack is = new ItemStack(m_item);
-            entries.getDisplayStacks().add(is);
-            entries.getSearchTabStacks().add(is);
-        }
     }
 }
