@@ -1,7 +1,5 @@
-### Now releasing 1.0.7:
+### Now releasing 1.0.8:
 
--> Added additional setup events during Minecraft loading
+-> Added an API for making custom block items to be rendered on GUI screens.
 
--> Fix the dedicated server only mixins to load only on dedicated server environments.
-
--> Added support for registering additional menu screens on Minecraft clients.
+-> Fabric: Fixed the issue where the custom-created creative mode tabs could not be detected.
