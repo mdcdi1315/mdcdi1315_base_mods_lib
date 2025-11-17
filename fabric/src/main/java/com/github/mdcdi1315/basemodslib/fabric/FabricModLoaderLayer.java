@@ -170,6 +170,9 @@ public final class FabricModLoaderLayer
         mod_instance.RegisterBlocks(registrar);
         mod_instance.RegisterBlockEntities(registrar);
         mod_instance.RegisterItems(registrar);
+        mod_instance.RegisterFluids(registrar);
+        registrar.ApplyFabricModifyEntries();
+
         mod_instance.RegisterWorldGenItems(registrar);
         mod_instance.RegisterRegistryItems(registrar);
         mod_instance.RegisterEntityTypes(registrar);
