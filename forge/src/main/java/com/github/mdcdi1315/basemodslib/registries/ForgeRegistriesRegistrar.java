@@ -5,6 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
+
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
@@ -148,7 +150,7 @@ public final class ForgeRegistriesRegistrar
         }
         // We can cleanup this list once all registers have made it to be registered to the mod event bus.
         registers = null;
-        evb.addListener(this::CreateRegistries);
-        evb.addListener(this::RegisterDatapackRegistries);
+        ForgeUtils.AddListener(evb , NewRegistryEvent.class , this::CreateRegistries);
+        ForgeUtils.AddListener(evb , DataPackRegistryEvent.NewRegistry.class , this::RegisterDatapackRegistries);
     }
 }

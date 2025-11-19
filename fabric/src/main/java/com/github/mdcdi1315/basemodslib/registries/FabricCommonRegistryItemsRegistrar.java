@@ -8,14 +8,15 @@ import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreater;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.MenuTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.entity.EntityTypeRegistrationInfo;
-import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
+import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
@@ -69,18 +70,7 @@ public final class FabricCommonRegistryItemsRegistrar
 
     public FabricCommonRegistryItemsRegistrar(String mod_id) {
         this.mod_id = mod_id;
-        modify_entries_register = new HashMap<>();
-    }
-
-    private ResourceLocation BuildAndValidateLocation(String path)
-    {
-        ResourceLocation ret = ResourceLocation.tryBuild(mod_id, path);
-
-        if (ret == null) {
-            throw new RuntimeException("Could not create the resource location!");
-        }
-
-        return ret;
+        modify_entries_register = new HashMap<>(2);
     }
 
     private record ModifyEntriesEventImpl(ArrayList<Item> item_enum)
@@ -94,14 +84,9 @@ public final class FabricCommonRegistryItemsRegistrar
         @Override
         public void modifyEntries(FabricItemGroupEntries entries)
         {
-            var disp_stacks = entries.getDisplayStacks();
-            var search_stacks = entries.getSearchTabStacks();
-            ItemStack temp;
-            for (Item i : item_enum) {
-                temp = new ItemStack(i);
-                disp_stacks.add(temp);
-                search_stacks.add(temp);
-            }
+            var mapped = new DirectlyMappedList<>(item_enum , ItemStack::new);
+            entries.getDisplayStacks().addAll(mapped);
+            entries.getSearchTabStacks().addAll(mapped);
         }
     }
 
@@ -124,11 +109,23 @@ public final class FabricCommonRegistryItemsRegistrar
         modify_entries_register = null;
     }
 
+    private ResourceLocation BuildAndValidateLocation(String path)
+    {
+        ResourceLocation ret = ResourceLocation.tryBuild(mod_id, path);
+
+        if (ret == null) {
+            throw new RuntimeException("Could not create the resource location!");
+        }
+
+        return ret;
+    }
+
     @Override
     public void Register(String name, BlockRegistrationInformation info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
+
         ArgumentNullException.ThrowIfNull(name, "name");
 
         ResourceLocation location = BuildAndValidateLocation(name);
@@ -176,7 +173,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(tab, "tab");
-        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB , BuildAndValidateLocation(name) , tab);
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB , BuildAndValidateLocation(name), tab);
     }
 
     @Override
@@ -184,6 +181,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(factory, "factory");
 
         Registry.register(
                 BuiltInRegistries.BLOCK_ENTITY_TYPE,
@@ -247,6 +245,9 @@ public final class FabricCommonRegistryItemsRegistrar
     public <T> void RegisterRegistry(ResourceKey<Registry<T>> registryResourceKey, Action1<IModLoaderRegistry<T>> on_registry_ready)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(on_registry_ready, "on_registry_ready");
+        ArgumentNullException.ThrowIfNull(registryResourceKey, "registryResourceKey");
+
         Lifecycle lc = Lifecycle.stable();
         MappedRegistry<T> mr = new MappedRegistry<>(registryResourceKey, lc);
         ((WritableRegistry<Registry<T>>)BuiltInRegistries.REGISTRY).register(registryResourceKey, mr, new RegistrationInfo(Optional.empty() , lc));
@@ -275,7 +276,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.MEMORY_MODULE_TYPE, BuildAndValidateLocation(name) , new MemoryModuleType<>(info.optional_codec()));
+        Registry.register(BuiltInRegistries.MEMORY_MODULE_TYPE , BuildAndValidateLocation(name) , new MemoryModuleType<>(info.optional_codec()));
     }
 
     @Override
@@ -283,7 +284,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.ATTRIBUTE, BuildAndValidateLocation(name) , info.attribute_getter().function());
+        Registry.register(BuiltInRegistries.ATTRIBUTE , BuildAndValidateLocation(name) , info.attribute_getter().function());
     }
 
     @Override
@@ -317,7 +318,10 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-
-        Registry.register(BuiltInRegistries.MENU, BuildAndValidateLocation(name) , new MenuType<>(new MenuCreaterToMenuSupplier<>(info.creater()) , info.required_features()));
+        Registry.register(
+                BuiltInRegistries.MENU,
+                BuildAndValidateLocation(name) ,
+                new MenuType<>(new MenuCreaterToMenuSupplier<>(info.creater()) , info.required_features())
+        );
     }
 }

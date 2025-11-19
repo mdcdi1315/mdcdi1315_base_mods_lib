@@ -8,6 +8,10 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
+import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
+
+import com.google.common.collect.ImmutableSet;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -32,15 +36,24 @@ public final class EventManager
 
         // Initial events
 
-        AddEvent(CommonSetupEvent.class);
-        AddEvent(ServerStartedEvent.class);
-        AddEvent(ServerStartingEvent.class);
-        AddEvent(ServerStoppingEvent.class);
-        AddEvent(ServerReloadedEvent.class);
-        AddEvent(ModLoadingCompleteEvent.class);
-        AddEvent(ServerResourcesReloadedEvent.class);
-        AddEvent(NewPlayerConnectedToServerEvent.class);
-        AddEvent(PlayerDisconnectedFromServerEvent.class);
+        AddEventFast(CommonSetupEvent.class);
+        AddEventFast(ServerStartedEvent.class);
+        AddEventFast(ServerStartingEvent.class);
+        AddEventFast(ServerStoppingEvent.class);
+        AddEventFast(ServerReloadedEvent.class);
+        AddEventFast(RegistryFinalizedEvent.class);
+        AddEventFast(ModLoadingCompleteEvent.class);
+        AddEventFast(ServerResourcesReloadedEvent.class);
+        AddEventFast(NewPlayerConnectedToServerEvent.class);
+        AddEventFast(PlayerDisconnectedFromServerEvent.class);
+        // Registry finalized events.
+        // Note that all the below events will be removed once the mod loading complete event is dispatched.
+        AddEventFast(ItemRegistryFinalizedEvent.class);
+        AddEventFast(BlockRegistryFinalizedEvent.class);
+        AddEventFast(FluidRegistryFinalizedEvent.class);
+        AddEventFast(MenuTypeRegistryFinalizedEvent.class);
+        AddEventFast(EntityTypeRegistryFinalizedEvent.class);
+        AddEventFast(BlockEntityTypeRegistryFinalizedEvent.class);
     }
 
     /**
@@ -68,6 +81,7 @@ public final class EventManager
         }
 
         synchronized (acts) {
+            // We must be extremely careful when adding a new event handler to the list. Locking on the object is a relatively good idea.
             acts.Add(action);
         }
     }
@@ -103,6 +117,14 @@ public final class EventManager
         }
     }
 
+    // A variant for AddEvent method that just adds the event classes directly rather than checking whether those are actually registered.
+    // This is only invoked in the events manager constructor.
+    private <TEvent extends IEvent> void AddEventFast(Class<TEvent> cls)
+    {
+        ArgumentNullException.ThrowIfNull(cls, "cls");
+        actions.put(cls, new List<>(4));
+    }
+
     /**
      * Registers a new event class that can be subsequently fired.
      * @param cls The event class that can be considered as an event.
@@ -117,7 +139,10 @@ public final class EventManager
         if (finalized) {
             throw new InvalidOperationException("Cannot add event types after mod loading is complete!");
         }
-        actions.computeIfAbsent(cls, EventManager::ListProvider);
+        synchronized (actions) {
+            // Typically, events are added by the library, but mods may add their own as well. So locking on the object avoids to double-register an existing event class.
+            actions.computeIfAbsent(cls, EventManager::ListProvider);
+        }
     }
 
     private static <T extends IEvent> List<Action1<? extends IEvent>> ListProvider(Class<T> cls) {
@@ -128,20 +153,18 @@ public final class EventManager
      * Removes events from the event manager that have been marked with the {@link IDestroyableEvent} interface instead. <br />
      * This will be called by the mod loader; it is not to be called by your code.
      */
+    @ApiStatus.Internal
     public void DestroyDestroyableEvents()
     {
         // Events can still be added before the mod loading completed event is completed.
         finalized = true;
-        for (var i : new HashSet<>(actions.keySet()))
-        {
-            for (var interf : i.getInterfaces())
-            {
-                if (interf == IDestroyableEvent.class) {
-                    actions.remove(i);
-                    break;
-                }
-            }
+        int removed = 0;
+        Class<?> destroyable = IDestroyableEvent.class;
+        for (var i : ImmutableSet.copyOf(actions.keySet())) { // Guava's copyOf is much better and faster than new HashSet<>(actions.keySet()).
+            // Running the below function could be a VERY HEAVY OPERATION. However, each event object registered is unique, so we check each time for different class objects, so this is OK and acceptable.
+            if (ReflectionUtils.ImplementsInterface(i , destroyable)) { actions.remove(i); removed++; }
         }
+        BaseModsLib.LOGGER.info("EVENTS_MANAGER: Successfully removed {} destroyable events" , removed);
     }
 
     /**

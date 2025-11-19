@@ -4,10 +4,12 @@ import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
 import com.github.mdcdi1315.basemodslib.menu.NeoForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkBuilder;
 import com.github.mdcdi1315.basemodslib.world.NeoForgeWorldGenRegistrar;
@@ -20,12 +22,14 @@ import com.github.mdcdi1315.basemodslib.registries.NeoForgeRegistriesRegistrar;
 
 import net.neoforged.fml.ModList;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforgespi.language.IModInfo;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
 import java.nio.file.Path;
@@ -36,14 +40,19 @@ public final class NeoForgeModLoaderLayer
 {
     private IEventBus event_bus;
     private List<IModInfo> mods;
+    // Boolean tracking down whether mod loading has been actually completed.
+    // Helps to avoid calling the bake callbacks more than one times.
+    // See NeoForgeUtils class for the usage of this.
+    public static boolean mod_loading_complete;
     // private DisposableObjectsTracker tracker;
     private Version minecraft_version, neoforge_version;
     private NeoForgeCommandRegistrar global_command_registrar;
 
     public NeoForgeModLoaderLayer(IEventBus event_bus) {
         this.event_bus = event_bus;
+        mod_loading_complete = false;
         mods = ModList.get().getMods();
-        minecraft_version = new Version(1, 21, 5);
+        minecraft_version = new Version(1, 21, 1);
         global_command_registrar = new NeoForgeCommandRegistrar();
         global_command_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
         Version fg_ver;
@@ -55,8 +64,16 @@ public final class NeoForgeModLoaderLayer
         }
         neoforge_version = fg_ver;
         // tracker = new DisposableObjectsTracker();
-        this.event_bus.addListener(this::OnCommonSetupEvent);
-        this.event_bus.addListener(this::OnModLoadingCompleteEvent);
+        NeoForgeUtils.AddListener(this.event_bus , FMLCommonSetupEvent.class, this::OnCommonSetupEvent);
+        NeoForgeUtils.AddListener(this.event_bus, FMLLoadCompleteEvent.class, this::OnModLoadingCompleteEvent);
+        // Register bake callbacks instead. This does not require a mixin, and it is OK since this will call in as appropriate.
+        // Also, it is far more practical than the Forge solution.
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK, BlockRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityTypeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ITEM, ItemRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.FLUID, FluidRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ENTITY_TYPE, EntityTypeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.MENU, MenuTypeRegistryFinalizedEvent::new);
     }
 
     private static IEventBus GetEventBusOrFail(Object mod_object) {
@@ -73,6 +90,7 @@ public final class NeoForgeModLoaderLayer
         tracker = null;
          */
         global_command_registrar = null;
+        mod_loading_complete = true;
     }
 
     private void OnCommonSetupEvent(FMLCommonSetupEvent event) {

@@ -5,6 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
+
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
@@ -120,12 +122,12 @@ public final class NeoForgeClientArtifactsRegistrar
 
     public void RegisterToEventBus(IEventBus bus)
     {
-        bus.addListener(this::OnRegisterMenuScreensEventDef);
-        bus.addListener(this::RegisterModelsEventDef);
-        bus.addListener(this::RegisterRenderersEventDef);
-        bus.addListener(this::RegisterItemColorHandlersEventDef);
-        bus.addListener(this::RegisterParticleProvidersEventDef);
-        bus.addListener(this::RegisterBlockColorHandlersEventDef);
+        NeoForgeUtils.AddListener(bus, RegisterMenuScreensEvent.class, this::OnRegisterMenuScreensEventDef);
+        NeoForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterLayerDefinitions.class , this::RegisterModelsEventDef);
+        NeoForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterRenderers.class , this::RegisterRenderersEventDef);
+        NeoForgeUtils.AddListener(bus, RegisterColorHandlersEvent.ItemTintSources.class , this::RegisterItemColorHandlersEventDef);
+        NeoForgeUtils.AddListener(bus, RegisterParticleProvidersEvent.class, this::RegisterParticleProvidersEventDef);
+        NeoForgeUtils.AddListener(bus, RegisterColorHandlersEvent.Block.class, this::RegisterBlockColorHandlersEventDef);
     }
 
     private void RegisterRenderersEventDef(EntityRenderersEvent.RegisterRenderers event)

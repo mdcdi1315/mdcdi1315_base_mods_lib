@@ -5,9 +5,13 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+
 import com.mojang.brigadier.CommandDispatcher;
+
 import net.minecraft.commands.CommandSourceStack;
+
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 
@@ -18,7 +22,7 @@ public final class ForgeCommandRegistrar
 
     public ForgeCommandRegistrar() {
         commands = new List<>(4);
-        MinecraftForge.EVENT_BUS.addListener(this::RunCommandsRegistration);
+        ForgeUtils.AddListener(MinecraftForge.EVENT_BUS , RegisterCommandsEvent.class , this::RunCommandsRegistration);
     }
 
     private void RunCommandsRegistration(RegisterCommandsEvent rce)

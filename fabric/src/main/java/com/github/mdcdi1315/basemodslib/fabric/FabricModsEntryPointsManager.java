@@ -3,10 +3,14 @@ package com.github.mdcdi1315.basemodslib.fabric;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.EmptyModObject;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 
 import net.fabricmc.loader.api.FabricLoader;
+
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public final class FabricModsEntryPointsManager
 {
@@ -18,16 +22,27 @@ public final class FabricModsEntryPointsManager
 
     public static void InitializeServerSideMods()
     {
-        for (IServerModInstance instance : FabricLoader.getInstance().getEntrypoints(ENTRYPOINT_SERVER, IServerModInstance.class))
-        {
+        for (IServerModInstance instance : FabricLoader.getInstance().getEntrypoints(ENTRYPOINT_SERVER, IServerModInstance.class)) {
             BaseModsLib.InitializeServerSideMod(instance , EmptyModObject.INSTANCE);
         }
+        // For Fabric, we do not have a way to listen to a 'Registries Ready!' event.
+        // The best way to handle this is after all the mods using the BML have been initialized.
+        // This will ensure that the events are fired at the right place and time, and will also avoid non-loaded issues with client-side mod instances.
+        // Otherwise, client side mod instances will run just right after this method finishes execution.
+        EventManager manager = BaseModsLib.GetEventsManager();
+        BaseModsLib.LOGGER.info("Dispatching registry finalization events.");
+        manager.FireEvent(new BlockRegistryFinalizedEvent(BuiltInRegistries.BLOCK));
+        manager.FireEvent(new BlockEntityTypeRegistryFinalizedEvent(BuiltInRegistries.BLOCK_ENTITY_TYPE));
+        manager.FireEvent(new ItemRegistryFinalizedEvent(BuiltInRegistries.ITEM));
+        manager.FireEvent(new FluidRegistryFinalizedEvent(BuiltInRegistries.FLUID));
+        manager.FireEvent(new EntityTypeRegistryFinalizedEvent(BuiltInRegistries.ENTITY_TYPE));
+        manager.FireEvent(new MenuTypeRegistryFinalizedEvent(BuiltInRegistries.MENU));
+        BaseModsLib.LOGGER.info("Registry finalization events dispatched successfully.");
     }
 
     public static void InitializeClientSideMods()
     {
-        for (IClientModInstance instance : FabricLoader.getInstance().getEntrypoints(ENTRYPOINT_CLIENT, IClientModInstance.class))
-        {
+        for (IClientModInstance instance : FabricLoader.getInstance().getEntrypoints(ENTRYPOINT_CLIENT, IClientModInstance.class)) {
             BaseModsLibClient.InitializeClientSideMod(instance , EmptyModObject.INSTANCE);
         }
     }

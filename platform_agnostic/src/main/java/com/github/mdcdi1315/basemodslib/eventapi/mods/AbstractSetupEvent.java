@@ -52,6 +52,6 @@ public abstract class AbstractSetupEvent
         throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(work, "work");
-        runnable_queue.push(work);
+        runnable_queue.add(work);
     }
 }
