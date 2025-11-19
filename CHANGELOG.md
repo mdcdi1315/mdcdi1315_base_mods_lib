@@ -1,5 +1,9 @@
-### Now releasing 1.0.8:
+### Now releasing 1.0.9:
 
--> Added an API for making custom block items to be rendered on GUI screens.
+-> Fabric: Fix an issue that rendering items implemented with the newly added IBlockEntityItem interface were not actually rendered.
 
--> Fabric: Fixed the issue where the custom-created creative mode tabs could not be detected.
+-> Forge: All event bus listeners now are created explicitly, thus saving some computation time during event registration.
+
+-> Added new events that fire during when the registries are ready to be consumed. 
+
+-> Fixed an issue where all the setup events were not adding the work to do to the queue's tail.

@@ -6,7 +6,10 @@ import java.lang.reflect.Type;
  * Helper class for getting the class of type parameters. <br />
  * The described class object is returned through the {@link #DescribeTClass()} method.
  * @param <T> The type of the Java object to describe.
+ * @deprecated Although practical, this class cannot correctly determine the types and return {@link Object} at most times. <br />
+ * This will not be removed for binary compatibility, but newer consumers of the library will not be able to use it.
  */
+@Deprecated(since = "1.0.9")
 public final class TypeDescriptor<T>
 {
     private final Class<T> cls;

@@ -3,10 +3,13 @@ package com.github.mdcdi1315.basemodslib.forge;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
@@ -16,10 +19,15 @@ import com.github.mdcdi1315.basemodslib.network.ForgeBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistriesRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
+import com.github.mdcdi1315.basemodslib.registries.ForgeRegistryWrappedInRegistry;
 
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.IdMappingEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.versions.forge.ForgeVersion;
@@ -57,8 +65,8 @@ public final class ForgeModLoaderLayer
         forge_modloader_version = fg_ver;
         // tracker = new DisposableObjectsTracker();
         IEventBus bus = this.baselibmodcontext.getModEventBus();
-        bus.addListener(this::OnModLoadingComplete);
-        bus.addListener(this::OnCommonSetupEvent);
+        ForgeUtils.AddListener(bus, FMLCommonSetupEvent.class, this::OnCommonSetupEvent);
+        ForgeUtils.AddListener(bus, FMLLoadCompleteEvent.class, this::OnModLoadingComplete);
     }
 
     private IEventBus GetEventBusOrFail(Object mod_object) {

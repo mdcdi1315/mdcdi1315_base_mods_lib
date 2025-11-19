@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
@@ -174,12 +175,12 @@ public final class ForgeClientArtifactsRegistrar
 
     public void RegisterToEventBus(IEventBus bus)
     {
-        bus.addListener(this::OnClientSetupEvent);
-        bus.addListener(this::OnRegisterEntityRenderers);
-        bus.addListener(this::OnRegisterModelDefinitions);
-        bus.addListener(this::OnRegisterParticleProviders);
-        bus.addListener(this::OnRegisterItemColorHandlers);
-        bus.addListener(this::OnRegisterBlockColorHandlers);
+        ForgeUtils.AddListener(bus, FMLClientSetupEvent.class, this::OnClientSetupEvent);
+        ForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterRenderers.class, this::OnRegisterEntityRenderers);
+        ForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterLayerDefinitions.class, this::OnRegisterModelDefinitions);
+        ForgeUtils.AddListener(bus, RegisterParticleProvidersEvent.class, this::OnRegisterParticleProviders);
+        ForgeUtils.AddListener(bus, RegisterColorHandlersEvent.Item.class, this::OnRegisterItemColorHandlers);
+        ForgeUtils.AddListener(bus, RegisterColorHandlersEvent.Block.class, this::OnRegisterBlockColorHandlers);
     }
 
     private record MenuScreenRegInfo<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)

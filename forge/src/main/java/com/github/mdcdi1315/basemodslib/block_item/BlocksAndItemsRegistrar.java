@@ -5,14 +5,15 @@ import com.github.mdcdi1315.DotNetLayer.System.Func3;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
-import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
-import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
+import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 
@@ -193,7 +194,8 @@ public final class BlocksAndItemsRegistrar
         BLOCKS_REGISTER.register(evb);
         BLOCK_ENTITY_TYPE_REGISTER.register(evb);
         CREATIVE_MODE_TAB_REGISTER.register(evb);
-        evb.addListener(this::OnCreativeModeTabsRegistering);
+        items_on_creative_tabs.TrimExcess();
+        ForgeUtils.AddListener(evb, BuildCreativeModeTabContentsEvent.class, this::OnCreativeModeTabsRegistering);
         // Clean up what we can clean.
         mod_id = null;
         ITEM_REGISTER = null;
