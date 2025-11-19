@@ -3,7 +3,7 @@
 	"id": "${mod_id}",
 	"version": "${version}",
 	"name": "${mod_name}",
-	"icon": "${mod_id}-icon.png",
+	"icon": "${mod_id}-icon-fabric.png",
 	"description": "${description}",
 	"authors": [
 		"${mod_author}"

@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Func3;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
@@ -207,7 +208,7 @@ public final class BlocksAndItemsRegistrar
         BLOCK_ENTITY_TYPE_REGISTER.register(evb);
         CREATIVE_MODE_TAB_REGISTER.register(evb);
         DATA_COMPONENT_TYPE_REGISTER.register(evb);
-        evb.addListener(this::OnCreativeModeTabsRegistering);
+        ForgeUtils.AddListener(evb, BuildCreativeModeTabContentsEvent.class , this::OnCreativeModeTabsRegistering);
         DATA_COMPONENT_TYPE_REGISTER = null;
         CREATIVE_MODE_TAB_REGISTER = null;
         BLOCK_ENTITY_TYPE_REGISTER = null;

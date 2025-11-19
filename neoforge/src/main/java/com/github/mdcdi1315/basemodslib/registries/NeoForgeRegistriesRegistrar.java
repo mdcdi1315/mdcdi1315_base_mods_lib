@@ -4,6 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
+
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
@@ -132,7 +134,7 @@ public final class NeoForgeRegistriesRegistrar
             registers_en.Dispose();
         }
         registers = null; // We can now sweep up memory.
-        bus.addListener(this::CreateRegistries);
-        bus.addListener(this::DatapackRegistries);
+        NeoForgeUtils.AddListener(bus, NewRegistryEvent.class, this::CreateRegistries);
+        NeoForgeUtils.AddListener(bus, DataPackRegistryEvent.NewRegistry.class , this::DatapackRegistries);
     }
 }

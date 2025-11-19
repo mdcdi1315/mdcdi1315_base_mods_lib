@@ -1,4 +1,4 @@
-package com.github.mdcdi1315.basemodslib.mixin;
+package com.github.mdcdi1315.basemodslib.forge.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
