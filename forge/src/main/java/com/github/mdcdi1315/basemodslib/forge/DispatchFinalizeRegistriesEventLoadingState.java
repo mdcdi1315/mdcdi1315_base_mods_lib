@@ -1,14 +1,13 @@
 package com.github.mdcdi1315.basemodslib.forge;
 
+// NOTE: Keep these imports as less as possible.
+// This is executed on the FML mod loader class loader, which it means that we do not typically have access to the mod's internals.
+
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
-import com.github.mdcdi1315.basemodslib.registries.ForgeRegistryWrappedInRegistry;
 
 import net.minecraftforge.fml.*;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.fml.event.IModBusEvent;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.fml.loading.progress.ProgressMeter;
 
 import java.util.Optional;
@@ -33,7 +32,7 @@ public final class DispatchFinalizeRegistriesEventLoadingState
     }
 
     @Override
-    public ToIntFunction<ModList> size() { return (ml) -> 6; } // 6 stages in total
+    public ToIntFunction<ModList> size() { return (ml) -> ForgeModLoaderLayer.RegistryFinalization_GetEventCount(); }
 
     @Override
     public Optional<Consumer<ModList>> inlineRunnable() {
@@ -44,13 +43,13 @@ public final class DispatchFinalizeRegistriesEventLoadingState
     public <T extends Event & IModBusEvent> Optional<CompletableFuture<Void>> buildTransition(Executor syncExecutor, Executor parallelExecutor, ProgressMeter progressBar, Function<Executor, CompletableFuture<Void>> preSyncTask, Function<Executor, CompletableFuture<Void>> postSyncTask) {
         if (ModLoader.isLoadingStateValid()) {
             // Nice. Dispatch.
-            EventManager manager = BaseModsLib.GetEventsManager();
-
             CompletableFuture<Void> cf = preSyncTask.apply(syncExecutor); // We must get the pre-sync task to actually perform transition
             BaseModsLib.LOGGER.info("Dispatching registry finalization events.");
             cf = cf.thenApplyAsync(new UpdateLabel(progressBar), parallelExecutor);
-            cf = cf.thenComposeAsync(new GetResult(GetSyncTasks(cf, progressBar, manager)), syncExecutor);
-            cf = cf.thenComposeAsync(new GetResult(GetParallelDispatchableTasks(cf, progressBar, manager)), parallelExecutor);
+            // Get the events to dispatch. The events are possibly not initialized yet, and we need them to be loaded in the mod class loader, that's why we call them in from the mod loader layer.
+            // Calling them from that class will use the class loader of that class for any dependencies, which is what we want to.
+            cf = cf.thenComposeAsync(new GetResult(ForgeModLoaderLayer.RegistryFinalization_GetSynchronizedTasks(cf, progressBar::increment)), syncExecutor);
+            cf = cf.thenComposeAsync(new GetResult(ForgeModLoaderLayer.RegistryFinalization_GetParallelTasks(cf , progressBar::increment)), parallelExecutor);
             // We do not need the below in prod code, I just keep it here to verify that the mod loading state actually dispatches.
             // cf = cf.thenAcceptAsync((v) -> { try { Thread.sleep(2000); } catch (InterruptedException ie) {} }, parallelExecutor);
             cf = cf.thenApply(new OnComplete(syncExecutor , postSyncTask));
@@ -59,24 +58,6 @@ public final class DispatchFinalizeRegistriesEventLoadingState
         } else {
             return Optional.empty();
         }
-    }
-
-    private static CompletableFuture<Void> GetParallelDispatchableTasks(CompletableFuture<Void> root, ProgressMeter progressBar, EventManager manager) {
-        CompletableFuture<Void> cf_actual_2 = root;
-        // The below can be dispatched at the same time
-        cf_actual_2 = cf_actual_2.thenApplyAsync(new ManagerEventFireDirect(manager, progressBar, (mgr) -> mgr.FireEvent(new EntityTypeRegistryFinalizedEvent(new ForgeRegistryWrappedInRegistry<>(ForgeRegistries.ENTITY_TYPES)))));
-        cf_actual_2 = cf_actual_2.thenApplyAsync(new ManagerEventFireDirect(manager, progressBar, (mgr) -> mgr.FireEvent(new MenuTypeRegistryFinalizedEvent(new ForgeRegistryWrappedInRegistry<>(ForgeRegistries.MENU_TYPES)))));
-        return cf_actual_2;
-    }
-
-    private static CompletableFuture<Void> GetSyncTasks(CompletableFuture<Void> root, ProgressMeter progressBar, EventManager manager) {
-        CompletableFuture<Void> cf_actual_1 = root;
-        // The below tasks must be executed one after the other
-        cf_actual_1 = cf_actual_1.thenAcceptAsync(new ManagerEventFire(manager, progressBar, (mgr) -> mgr.FireEvent(new BlockRegistryFinalizedEvent(new ForgeRegistryWrappedInRegistry<>(ForgeRegistries.BLOCKS)))));
-        cf_actual_1 = cf_actual_1.thenAcceptAsync(new ManagerEventFire(manager, progressBar, (mgr) -> mgr.FireEvent(new BlockEntityTypeRegistryFinalizedEvent(new ForgeRegistryWrappedInRegistry<>(ForgeRegistries.BLOCK_ENTITY_TYPES)))));
-        cf_actual_1 = cf_actual_1.thenAcceptAsync(new ManagerEventFire(manager, progressBar, (mgr) -> mgr.FireEvent(new ItemRegistryFinalizedEvent(new ForgeRegistryWrappedInRegistry<>(ForgeRegistries.ITEMS)))));
-        cf_actual_1 = cf_actual_1.thenAcceptAsync(new ManagerEventFire(manager, progressBar, (mgr) -> mgr.FireEvent(new FluidRegistryFinalizedEvent(new ForgeRegistryWrappedInRegistry<>(ForgeRegistries.FLUIDS)))));
-        return cf_actual_1;
     }
 
     private record GetResult(CompletableFuture<Void> v)
@@ -106,28 +87,4 @@ public final class DispatchFinalizeRegistriesEventLoadingState
             return null;
         }
     }
-
-    // This waits for the current method to complete, thus you chain tasks to be executed one after the other.
-    private record ManagerEventFire(EventManager manager, ProgressMeter pm, Consumer<EventManager> event_to_fire)
-            implements Consumer<Void>
-    {
-        @Override
-        public void accept(Void unused) {
-            event_to_fire.accept(manager);
-            pm.increment();
-        }
-    }
-
-    // This applies the event on the fly, thus the CF will immediately continue with processing the next application.
-    private record ManagerEventFireDirect(EventManager manager, ProgressMeter pm , Consumer<EventManager> event_to_fire)
-        implements Function<Void , Void>
-    {
-        @Override
-        public Void apply(Void unused) {
-            event_to_fire.accept(manager);
-            pm.increment();
-            return unused;
-        }
-    }
-
 }

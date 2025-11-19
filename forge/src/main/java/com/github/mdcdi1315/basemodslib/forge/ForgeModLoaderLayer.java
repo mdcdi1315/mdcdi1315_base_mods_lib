@@ -1,5 +1,7 @@
 package com.github.mdcdi1315.basemodslib.forge;
 
+import com.github.mdcdi1315.DotNetLayer.System.Func2;
+import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
@@ -7,10 +9,10 @@ import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.registries.IModLoaderRegistry;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
@@ -18,15 +20,14 @@ import com.github.mdcdi1315.basemodslib.entity.ForgeEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.ForgeBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistriesRegistrar;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.RegistryFinalizedEvent;
 import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistryWrappedInRegistry;
 
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.IdMappingEvent;
+import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.forgespi.language.IModInfo;
@@ -38,6 +39,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import java.util.List;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 
 public final class ForgeModLoaderLayer
     implements IModLoaderLayer
@@ -84,6 +86,52 @@ public final class ForgeModLoaderLayer
         tracker = null;
          */
     }
+
+    // REGISTRY FINALIZATION BEGIN
+    // The below 3 public methods are called in by the DispatchFinalizeRegistriesEventLoadingState class. See that class for more information.
+
+    public static int RegistryFinalization_GetEventCount() { return 6; } // 6 stages in total
+
+    private record EventManagerFire_1<T>(IForgeRegistry<T> registry, Func2<IModLoaderRegistry<T> , RegistryFinalizedEvent<T>> event_getter, Runnable increment_meter_handler)
+            implements Action1<Void>
+    {
+        @Override
+        public void action(Void obj) {
+            BaseModsLib.GetEventsManager().FireEvent(event_getter.function(new ForgeRegistryWrappedInRegistry<>(registry)));
+            increment_meter_handler.run();
+        }
+    }
+
+    private record EventManagerFire_2<T>(IForgeRegistry<T> registry, Func2<IModLoaderRegistry<T>, RegistryFinalizedEvent<T>> event_getter, Runnable increment_meter_handler)
+            implements Func2<Void, Void>
+    {
+        @Override
+        public Void function(Void input) {
+            BaseModsLib.GetEventsManager().FireEvent(event_getter.function(new ForgeRegistryWrappedInRegistry<>(registry)));
+            increment_meter_handler.run();
+            return input;
+        }
+    }
+
+    public static CompletableFuture<Void> RegistryFinalization_GetSynchronizedTasks(CompletableFuture<Void> root, Runnable increment_meter_handler)
+    {
+        // The below tasks must be executed one after the other
+        root = root.thenAcceptAsync(new EventManagerFire_1<>(ForgeRegistries.BLOCKS, BlockRegistryFinalizedEvent::new , increment_meter_handler));
+        root = root.thenAcceptAsync(new EventManagerFire_1<>(ForgeRegistries.ITEMS, ItemRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenAcceptAsync(new EventManagerFire_1<>(ForgeRegistries.BLOCK_ENTITY_TYPES, BlockEntityTypeRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenAcceptAsync(new EventManagerFire_1<>(ForgeRegistries.FLUIDS, FluidRegistryFinalizedEvent::new, increment_meter_handler));
+        return root;
+    }
+
+    public static CompletableFuture<Void> RegistryFinalization_GetParallelTasks(CompletableFuture<Void> root, Runnable increment_meter_handler)
+    {
+        // The below tasks can be dispatched at the same time.
+        root = root.thenApplyAsync(new EventManagerFire_2<>(ForgeRegistries.ENTITY_TYPES, EntityTypeRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire_2<>(ForgeRegistries.MENU_TYPES, MenuTypeRegistryFinalizedEvent::new, increment_meter_handler));
+        return root;
+    }
+
+    // REGISTRY FINALIZATION END
 
     private void OnCommonSetupEvent(FMLCommonSetupEvent event) {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
