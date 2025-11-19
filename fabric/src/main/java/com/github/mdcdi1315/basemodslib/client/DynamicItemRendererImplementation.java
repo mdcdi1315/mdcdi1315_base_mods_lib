@@ -10,23 +10,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 
 public final class DynamicItemRendererImplementation
     implements BuiltinItemRendererRegistry.DynamicItemRenderer
 {
-    private final BlockEntityRenderDispatcher dispatcher;
     private final IBlockEntityItem item_to_be_rendered;
 
     public DynamicItemRendererImplementation(IBlockEntityItem item) {
-        dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
         item_to_be_rendered = item;
     }
 
     @Override
     public void render(ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, int packed_light, int packed_overlay)
     {
-        dispatcher.renderItem(
+        Minecraft.getInstance().getBlockEntityRenderDispatcher().renderItem(
                 item_to_be_rendered.GetBlockEntity(),
                 poseStack,
                 multiBufferSource,

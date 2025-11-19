@@ -1,9 +1,5 @@
-### Now releasing 1.0.9:
+### Now releasing 1.0.10:
 
--> Fabric: Fix an issue that rendering items implemented with the newly added IBlockEntityItem interface were not actually rendered.
+-> Fabric: The recommended patch for the IBlockEntityItem had a critical issue whence the block entity renderer dispatcher is called in. This patches that.
 
--> Forge: All event bus listeners now are created explicitly, thus saving some computation time during event registration.
-
--> Added new events that fire during when the registries are ready to be consumed. 
-
--> Fixed an issue where all the setup events were not adding the work to do to the queue's tail.
+-> That means all Forge, NeoForge and 1.21.5 versions do remain unchanged. 
