@@ -37,6 +37,7 @@ public final class FabricModLoaderLayer
     implements IModLoaderLayer
 {
     private List<String> mod_ids;
+    private final boolean dev_env;
     private Path config_dir, minecraft_dir;
     private ModdingEnvironment environment;
     private ResourceLocation mod_verifier_channel_name;
@@ -59,6 +60,7 @@ public final class FabricModLoaderLayer
         var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
         minecraft_dir = loader.getGameDir();
+        dev_env = loader.isDevelopmentEnvironment();
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;
@@ -195,40 +197,29 @@ public final class FabricModLoaderLayer
     }
 
     @Override
-    public boolean IsModLoaded(String s) {
-        return mod_ids.contains(s);
-    }
+    public boolean IsModLoaded(String s) { return mod_ids.contains(s); }
 
     @Override
-    public List<String> GetLoadedMods() {
-        return mod_ids;
-    }
+    public List<String> GetLoadedMods() { return mod_ids; }
 
     @Override
-    public ModdingEnvironment GetEnvironment() {
-        return environment;
-    }
+    public ModdingEnvironment GetEnvironment() { return environment; }
 
     @Override
-    public String GetModLoaderBranding() {
-        return "Fabric";
-    }
+    public String GetModLoaderBranding() { return "Fabric"; }
 
     @Override
-    public Version GetMinecraftVersion() {
-        return minecraft_version;
-    }
+    public Version GetMinecraftVersion() { return minecraft_version; }
 
     @Override
-    public Version GetModLoaderVersion() {
-        return fabric_modloader_version;
-    }
+    public Version GetModLoaderVersion() { return fabric_modloader_version; }
 
     @Override
-    public Path GetConfigurationDirectory() {
-        return config_dir;
-    }
+    public Path GetConfigurationDirectory() { return config_dir; }
 
     @Override
     public Path GetMinecraftDirectory() { return minecraft_dir; }
+
+    @Override
+    public boolean IsDevelopmentEnvironmentBuild() { return dev_env; }
 }

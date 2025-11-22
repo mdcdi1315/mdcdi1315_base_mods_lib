@@ -1,0 +1,21 @@
+plugins {
+    id 'java-library'
+}
+
+def lib_version = "1.0.0"
+
+base {
+    version = lib_version
+    archivesName = "bml_language_loader"
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+}
+
+jar {
+    manifest.attributes(["FMLModType": "LANGPROVIDER"])
+}
+
+apply from: rootProject.file('repositories.gradle')
+apply from: 'dependencies.gradle'

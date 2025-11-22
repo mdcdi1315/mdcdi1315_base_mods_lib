@@ -9,8 +9,14 @@ import com.github.mdcdi1315.basemodslib.config.lowlevelapi.ConfigCodec;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+
+import com.mojang.datafixers.util.Pair;
+
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 
 import java.io.*;
@@ -33,44 +39,10 @@ public final class ConfigManager
      */
     public static final ConfigManager INSTANCE = new ConfigManager();
 
-    private static class JsonConfigFileFormat
-        implements IConfigFileFormat<JsonElement>
-    {
-        @Override
-        public DynamicOps<JsonElement> GetFileFormatConverter() {
-            return JsonOps.INSTANCE;
-        }
-
-        @Override
-        public JsonElement ReadFromStream(InputStream is)
-                throws java.io.IOException
-        {
-            try (InputStreamReader isr = new InputStreamReader(is)) {
-                return JsonParser.parseReader(isr);
-            }
-        }
-
-        @Override
-        public void SaveToStream(OutputStream os, JsonElement jsonElement) throws IOException
-        {
-            Gson gso = new Gson().newBuilder().setPrettyPrinting().setLenient().create();
-            try (OutputStreamWriter osw = new OutputStreamWriter(os)) {
-                gso.toJson(jsonElement, gso.newJsonWriter(osw));
-            }
-        }
-    }
-
     private ConfigManager() {
         json_file_format = new JsonConfigFileFormat();
         configuration_files = new ConcurrentHashMap<>();
     }
-
-    private record AssociatedConfigInfo<T extends IModConfig>(
-            String file_name,
-            ConfigCodec<T> cfg_codec,
-            IConfigFileFormat<?> file_format,
-            T default_config
-    ) {}
 
     /**
      * Instructs the configuration manager to track the specified configuration file by the specified parameters.
@@ -134,7 +106,7 @@ public final class ConfigManager
         Path constructed = FileSystems.getDefault().getPath(BaseModsLib.GetModConfigurationDirectory().toString(), cfg_info.file_name());
 
         try (FileInputStream fis = new FileInputStream(constructed.toFile())) {
-            return cfg_info.file_format().LoadConfig(fis, cfg_info.cfg_codec);
+            return LoadConfig(cfg_info.file_format(), fis, cfg_info.cfg_codec);
         } catch (Exception ex) {
             BaseModsLib.LOGGER.error("ConfigManager: Cannot read config file due to an exception.\nReturning the empty configuration instance." , ex);
         }
@@ -145,7 +117,7 @@ public final class ConfigManager
             throws ConfigSaveException
     {
         try (FileOutputStream fos = new FileOutputStream(constructed.toFile())) {
-            cfg_info.file_format.SaveConfig(fos, cfg_info.cfg_codec() , conf);
+            SaveConfig(cfg_info.file_format, fos, cfg_info.cfg_codec() , conf);
         } catch (Exception ex) {
             throw new ConfigSaveException(ex);
         }
@@ -173,7 +145,7 @@ public final class ConfigManager
         Path constructed = FileSystems.getDefault().getPath(BaseModsLib.GetModConfigurationDirectory().toString(), cfg_info.file_name());
 
         try (FileInputStream fis = new FileInputStream(constructed.toFile())) {
-            return cfg_info.file_format().LoadConfig(fis, cfg_info.cfg_codec);
+            return LoadConfig(cfg_info.file_format(), fis, cfg_info.cfg_codec);
         } catch (Exception ex) {
             if (ex instanceof FileNotFoundException) {
                 BaseModsLib.LOGGER.info("ConfigManager: Configuration file {} does not exist - creating it now." , cfg_info.file_name());
@@ -208,5 +180,60 @@ public final class ConfigManager
         }
 
         SaveConfigFileInternal(cfg_info , FileSystems.getDefault().getPath(BaseModsLib.GetModConfigurationDirectory().toString(), cfg_info.file_name()) , config_data);
+    }
+
+    // PRIVATE IMPLEMENTATION DETAILS
+
+    private <TC extends IModConfig, TF> TC LoadConfig(IConfigFileFormat<TF> cfg, InputStream is, Codec<TC> codec)
+            throws java.io.IOException, ConfigLoadException
+    {
+        DataResult<Pair<TC , TF>> dr = codec.decode(cfg.GetFileFormatConverter() , cfg.ReadFromStream(is));
+        if (dr.error().isPresent()) {
+            throw new ConfigLoadException(dr.error().get().message());
+        }
+        return dr.result().get().getFirst();
+    }
+
+    private <TC extends IModConfig, TFormat> void SaveConfig(IConfigFileFormat<TFormat> cfg, OutputStream os, Codec<TC> codec , TC in_config)
+            throws java.io.IOException, ConfigSaveException
+    {
+        DynamicOps<TFormat> ops = cfg.GetFileFormatConverter();
+        DataResult<TFormat> dr = codec.encode(in_config, ops, ops.empty());
+        if (dr.error().isPresent()) {
+            throw new ConfigSaveException(dr.error().get().message());
+        }
+        cfg.SaveToStream(os, dr.result().get());
+    }
+
+    private record AssociatedConfigInfo<T extends IModConfig>(String file_name, ConfigCodec<T> cfg_codec, IConfigFileFormat<?> file_format, T default_config) {}
+
+    private static class JsonConfigFileFormat
+            implements IConfigFileFormat<JsonElement>
+    {
+        @Override
+        public DynamicOps<JsonElement> GetFileFormatConverter() {
+            return JsonOps.INSTANCE;
+        }
+
+        @Override
+        public JsonElement ReadFromStream(InputStream is)
+                throws java.io.IOException
+        {
+            try (InputStreamReader isr = new InputStreamReader(is)) {
+                return JsonParser.parseReader(isr);
+            }
+        }
+
+        @Override
+        public void SaveToStream(OutputStream os, JsonElement jsonElement) throws IOException
+        {
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .setLenient()
+                    .create();
+            try (OutputStreamWriter osw = new OutputStreamWriter(os)) {
+                gson.toJson(jsonElement, gson.newJsonWriter(osw));
+            }
+        }
     }
 }

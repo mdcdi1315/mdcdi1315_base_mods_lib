@@ -14,8 +14,12 @@ import net.minecraft.core.registries.BuiltInRegistries;
  */
 public final class StableItemStackCodec
 {
+    // Do not let anyone instantiate this class.
     private StableItemStackCodec() {}
 
+    /**
+     * Gets the single and the only one instance of this codec implementation.
+     */
     public static final Codec<ItemStack> INSTANCE =
             CodecUtils.CreateCodecDirect(
                     BuiltInRegistries.ITEM.byNameCodec().fieldOf("item").forGetter(ItemStack::getItem),

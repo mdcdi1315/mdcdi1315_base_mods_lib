@@ -229,4 +229,7 @@ public final class ForgeModLoaderLayer
 
     @Override
     public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
+
+    @Override
+    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
 }

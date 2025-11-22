@@ -1,0 +1,41 @@
+
+// Update the below as needed.
+def forge_spi_version="7.0.1"
+def merge_tool_version = "1.1.7"
+def log_4j_version = "2.19.0"
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Forge Maven"
+                url = uri("https://maven.minecraftforge.net")
+            }
+        }
+        filter {
+            includeGroupAndSubgroups("net.minecraftforge")
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "NeoForged Maven"
+                url = 'https://maven.neoforged.net/releases'
+            }
+        }
+        filter {
+            includeGroupAndSubgroups("cpw.mods")
+        }
+    }
+}
+
+dependencies {
+    api "net.minecraftforge:mergetool:${merge_tool_version}"
+    implementation "net.minecraftforge:forgespi:${forge_spi_version}"
+    implementation "net.minecraftforge:fmlcore:${minecraft_version}-${forge_version}"
+    implementation "net.minecraftforge:fmlloader:${minecraft_version}-${forge_version}"
+
+    implementation "org.apache.logging.log4j:log4j-api:${log_4j_version}"
+}
