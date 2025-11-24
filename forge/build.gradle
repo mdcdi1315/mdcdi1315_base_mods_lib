@@ -83,6 +83,22 @@ minecraft {
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
+jarJar.enable()
+
+jar {
+    dependsOn tasks.jarJar
+    doLast {
+        // Forge fucks up the jar-jar dependencies completely, we need to replace the non-final file with the final one.
+        def template = "libs/${base.archivesName.get()}-${version}"; // A template string for use in our archive matching
+        def wanted = project.layout.buildDirectory.file("${template}.jar");
+        delete(wanted);
+        // Now rename our file...
+        File src = project.layout.buildDirectory.file("${template}-all.jar").get().getAsFile();
+        Files.copy(src.toPath() , wanted.get().getAsFile().toPath() , StandardCopyOption.REPLACE_EXISTING);
+        src.delete();
+    }
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
@@ -94,7 +110,7 @@ sourceSets.each {
     it.java.destinationDirectory = dir
 }
 
-/* Seems that even in 1.20.1 Forge is been plagued by the refmap. Disable.
+/* Seems that even in 1.21.1 Forge is been plagued by the refmap. Disable.
 processResources {
     doFirst {
         File refmapping_file = file("build/tmp/compileJava/${refmapfilename}");

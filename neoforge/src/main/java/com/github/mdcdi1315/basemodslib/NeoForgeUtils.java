@@ -19,7 +19,7 @@ public final class NeoForgeUtils
     private NeoForgeUtils() {}
 
     // Associates a 'registry bake' callback to a BML registry finalized event.
-    public static <T> void AddRegistryBakeCallback(Registry<T> registry, Func2<IModLoaderRegistry<T>, RegistryFinalizedEvent<T>> registry_event_to_be_invoked) {
+    public static <T> void AddRegistryBakeCallback(Registry<T> registry, Func2<Registry<T>, RegistryFinalizedEvent<T>> registry_event_to_be_invoked) {
         registry.addCallback(new NFGUtils_BaseBakeCallbackImplementation<>(registry_event_to_be_invoked));
     }
 

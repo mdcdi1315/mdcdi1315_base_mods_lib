@@ -86,4 +86,11 @@ public interface IModLoaderLayer
      */
     @NotNull
     Path GetMinecraftDirectory();
+
+    /**
+     * Gets a value whether this Minecraft build originates from a development environment.
+     * @return A value whether the current instance originates as a result of running from a development environment.
+     * @since 1.0.11
+     */
+    boolean IsDevelopmentEnvironmentBuild();
 }

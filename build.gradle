@@ -15,7 +15,7 @@ subprojects {
 }
 
 final class ActionImpl
-    implements Action<Task>
+        implements Action<Task>
 {
     private static void WritePropertiesOrFail(OutputStreamWriter writer, Project project, String... properties)
     {
@@ -55,12 +55,14 @@ final class ActionImpl
                 } else if (name.containsIgnoreCase("forge")) {
                     osw.write(String.format("forge_mapping=%s\n", name));
                     println(String.format("-> %s:\n\t-> Added as a Forge mapping." , name));
-                } else if (name.contains("javadoc")) {
-                    osw.write(String.format("javadoc=%s\n", name));
-                    println(String.format("-> %s:\n\t-> Added as a JavaDoc archive.", name));
                 } else if (name.contains("platform_agnostic")) {
-                    osw.write(String.format("platform_agnostic_mapping=%s\n", name));
-                    println(String.format("-> %s:\n\t-> Added as a Platform Agnostic mapping.", name));
+                    if (name.contains("sources")) {
+                        osw.write(String.format("sources=%s\n", name));
+                        println(String.format("-> %s:\n\t-> Added as a Platform Agnostic sources archive.", name));
+                    } else {
+                        osw.write(String.format("platform_agnostic_mapping=%s\n", name));
+                        println(String.format("-> %s:\n\t-> Added as a Platform Agnostic mapping.", name));
+                    }
                 } else {
                     println(String.format("Cannot determine mapping for file %s!" , name));
                 }
@@ -91,14 +93,14 @@ tasks.register("build_dev_archive", Zip) { Zip zipfile ->
 
     var bd = layout.buildDirectory.dir("bin");
 
-    zipfile.mustRunAfter(":platform_agnostic:jar", ":forge:jar", ":fabric:remapJar", ":neoforge:jar", ":platform_agnostic:javadocJar");
+    zipfile.mustRunAfter(":platform_agnostic:jar", ":forge:jar", ":fabric:remapJar", ":neoforge:jar", ":platform_agnostic:sourcesJar");
 
     zipfile.from(
             project(":platform_agnostic").tasks.jar,
             project(":forge").tasks.jar,
             project(":fabric").tasks.remapJar,
             project(":neoforge").tasks.jar,
-            project(":platform_agnostic").tasks.javadocJar
+            project(":platform_agnostic").tasks.sourcesJar
     );
 
     zipfile.getActions().add(0 , new ActionImpl(zipfile as AbstractCopyTask, bd as Provider<Directory>, this.project as Project));

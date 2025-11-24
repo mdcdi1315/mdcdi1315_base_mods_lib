@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.mods;
 import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
+import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 
 /**
  * Defines the base interface for mod instances. <br />
@@ -34,6 +35,13 @@ public interface IModInstance
      * @param manager The events manager object to use.
      */
     default void RegisterEvents(EventManager manager) {}
+
+    /**
+     * Registers proxy objects to be used later for the current mod instance.
+     * @param manager The proxy manager object to use.
+     * @since 1.0.11
+     */
+    default void RegisterProxyObjects(ProxyManager manager) {}
 
     /**
      * Gets the current mod id for this mod instance. <br />

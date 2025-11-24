@@ -1,24 +1,20 @@
 package com.github.mdcdi1315.basemodslib;
 
+import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.Stopwatch;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
-import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
+import com.github.mdcdi1315.basemodslib.eventapi.client.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStartedEvent;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientStoppingEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
-import com.github.mdcdi1315.basemodslib.eventapi.client.ClientDisconnectedFromServerEvent;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
@@ -50,29 +46,49 @@ public final class BaseModsLibClient
         config_factories = null;
     }
 
+    // Do not let anyone instantiate this class.
     private BaseModsLibClient() {}
 
     /**
-     * Initializes the Base Mods library for the Minecraft client distribution.
-     * @param client_layer The client mod loader layer to initialize the base mods library from.
+     * Initializes the Base Mods library for the Minecraft client distribution. <br />
+     * Remarks: <br />
+     * Although that this is documented, this API should not be called by consumers of the library but only by the library itself. <br />
+     * As the modding needs are evolving, the method requirements, and it's signature are subject to change without notice.
+     * @param client_layer_constructor The client mod loader layer method reference providing the mod loader layer to initialize the base mods library from.
      * @throws ArgumentNullException {@code client_layer} is {@code null}.
+     * @throws InvalidOperationException The library has been successfully initialized before.
+     * @throws CriticalLibraryInitializationException A critical initialization error has been realized by the library. Execution cannot continue.
      */
-    public static void InitializeBaseModsLibClient(IClientModLoaderLayer client_layer)
-            throws ArgumentNullException
+    @ApiStatus.Internal
+    public static void InitializeBaseModsLibClient(Func1<IClientModLoaderLayer> client_layer_constructor)
+            throws ArgumentNullException, InvalidOperationException, CriticalLibraryInitializationException
     {
-        ArgumentNullException.ThrowIfNull(client_layer, "client_layer");
+        ArgumentNullException.ThrowIfNull(client_layer_constructor, "client_layer_constructor");
         if (layer != null) {
             throw new InvalidOperationException("The base mods library has already been initialized successfully.");
         }
-        BaseModsLib.LOGGER.info("Setting up base mods library for the client.");
-        layer = client_layer;
-        mod_instances = new List<>();
-        var em = BaseModsLib.GetEventsManager();
-        em.AddEvent(ClientSetupEvent.class);
-        em.AddEvent(ClientStartedEvent.class);
-        em.AddEvent(ClientStoppingEvent.class);
-        em.AddEvent(ClientConnectedToServerEvent.class);
-        em.AddEvent(ClientDisconnectedFromServerEvent.class);
+        BaseModsLib.LOGGER.info("Initializing mdcdi1315's Base Mods Library for the client distribution...");
+        Stopwatch sw = Stopwatch.StartNew();
+        try {
+            layer = client_layer_constructor.function();
+            if (layer == null) {
+                throw new InvalidOperationException("Returned an empty client mod loader layer through the mod loader layer constructor. This is unexpected.");
+            }
+            mod_instances = new List<>();
+            var em = BaseModsLib.GetEventsManager();
+            em.AddEvent(ClientSetupEvent.class);
+            em.AddEvent(ClientStartedEvent.class);
+            em.AddEvent(ClientStoppingEvent.class);
+            em.AddEvent(ClientConnectedToServerEvent.class);
+            em.AddEvent(ClientDisconnectedFromServerEvent.class);
+            sw.Stop();
+            BaseModsLib.LOGGER.info("The library for the client distribution took {} seconds to initialize." , sw.GetElapsed().GetTotalSeconds());
+        } catch (Exception ex) {
+            sw.Stop();
+            initialized = true;
+            BaseModsLib.LOGGER.error("Library failed to be initialized after {} seconds! Inspecting exception and throwing back." , sw.GetElapsed().GetTotalSeconds());
+            throw new CriticalLibraryInitializationException(ex);
+        }
         initialized = true;
     }
 
@@ -82,9 +98,10 @@ public final class BaseModsLibClient
      * @param instance The mod instance to initialize.
      * @param mod_object The mod object, provided by the mod loader. What will this object be depends on the mod loader that is being used.
      * @throws ArgumentNullException {@code instance} was {@code null}.
+     * @throws ModInitializationException The mod instance passed failed to be initialized. Check error log for more information.
      */
     public static void InitializeClientSideMod(IClientModInstance instance, Object mod_object)
-            throws ArgumentNullException
+            throws ArgumentNullException, ModInitializationException
     {
         ArgumentNullException.ThrowIfNull(instance, "instance");
         ArgumentNullException.ThrowIfNull(mod_object, "mod_object");
@@ -94,10 +111,19 @@ public final class BaseModsLibClient
 
             while (!initialized) { Thread.onSpinWait(); } // Wait until the library is fully initialized.
 
+            if (layer == null) {
+                // This indicates a failure or a bug in the library. The mod instance will be ignored completely.
+                BaseModsLib.LOGGER.info("Critical library bug realized, cowardly refusing to continue initialization!");
+                return;
+            }
+
             instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
 
             // Initialize event handling - may be needed so early to assure that all events will be properly fired later.
             instance.RegisterEvents(BaseModsLib.GetEventsManager());
+
+            // After the events have been initialized, initialize everything required for the proxy objects.
+            instance.RegisterProxyObjects(BaseModsLib.GetProxyManager());
 
             layer.InitializeClientModInstance(instance, mod_object);
 
@@ -133,6 +159,10 @@ public final class BaseModsLibClient
         config_factories.Add(new Pair<>(mod_id, fact));
     }
 
+    /**
+     * Gets the player that has initialized this Minecraft instance.
+     * @return The {@link Player} that has created this particular Minecraft instance.
+     */
     @MaybeNull
     public static Player GetLoggedInPlayer() {
         return Minecraft.getInstance().player;
@@ -155,12 +185,12 @@ public final class BaseModsLibClient
         IClientModInstance mi;
         IEnumerator<IClientModInstance> i = null;
         try {
+            // Invoke to all mod instances the Dispose method.
             i = mod_instances.GetEnumerator();
             while (i.MoveNext())
             {
                 mi = i.getCurrent();
                 try {
-                    // Invoke to all mod instances the Dispose method.
                     mi.Dispose();
                 } catch (Exception e) {
                     BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
@@ -171,7 +201,6 @@ public final class BaseModsLibClient
         } finally {
             if (i != null) { i.Dispose(); }
         }
-        config_factories = null;
         mod_instances = null;
         layer.Dispose();
         layer = null;

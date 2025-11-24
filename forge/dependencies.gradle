@@ -1,3 +1,6 @@
 dependencies {
-
+    jarJar(project(":forge_bml_lang_provider")) { ProjectDependency g ->
+        jarJar.pin(g , "[1.0.0,)") // Keep in sync with the value in that project
+        transitive = false
+    }
 }

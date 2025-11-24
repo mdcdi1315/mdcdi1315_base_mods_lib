@@ -9,6 +9,7 @@
 		"ClientPacketListenerMixin"
 	],
 	"mixins": [
+		"PlayerMixin",
 		"PlayerListMixin",
 		"MinecraftServerMixin",
 		"DimensionDataStorageMixin",

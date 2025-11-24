@@ -34,6 +34,7 @@ public final class FabricModLoaderLayer
     implements IModLoaderLayer
 {
     private List<String> mod_ids;
+    private final boolean dev_env;
     private Path config_dir, minecraft_dir;
     private ModdingEnvironment environment;
     private Map<String, Version> networking_versions_map;
@@ -49,6 +50,7 @@ public final class FabricModLoaderLayer
         var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
         minecraft_dir = loader.getGameDir();
+        dev_env = loader.isDevelopmentEnvironment();
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;
@@ -218,4 +220,7 @@ public final class FabricModLoaderLayer
 
     @Override
     public Path GetMinecraftDirectory() { return minecraft_dir; }
+
+    @Override
+    public boolean IsDevelopmentEnvironmentBuild() { return dev_env; }
 }

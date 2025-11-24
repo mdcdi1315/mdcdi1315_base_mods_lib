@@ -2,7 +2,7 @@ package com.github.mdcdi1315.basemodslib.eventapi.server;
 
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import com.github.mdcdi1315.basemodslib.eventapi.IEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
 
 import net.minecraft.server.MinecraftServer;
 
@@ -10,4 +10,4 @@ import net.minecraft.server.MinecraftServer;
  * Fired when the Minecraft Server has started shutting down.
  * @param server The server that has started shutting down.
  */
-public record ServerStoppingEvent(@NotNull MinecraftServer server) implements IEvent { }
+public record ServerStoppingEvent(@NotNull MinecraftServer server) implements IDestroyableIfUnusedEvent { }

@@ -223,6 +223,9 @@ public final class ForgeModLoaderLayer
     public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
 
     @Override
+    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
+
+    @Override
     public void Dispose() {
         // this.tracker = null;
         this.forge_mod_info = null;
