@@ -6,6 +6,8 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 
+import net.fabricmc.fabric.api.client.rendering.v1.SpecialBlockRendererRegistry;
+import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
@@ -35,7 +37,8 @@ public final class FabricClientArtifactsRegistrar
         IModelDefinitionRegistrar,
         IColorHandlersRegistrar,
         IParticleProviderRegistrar,
-        IMenuScreensRegistrar
+        IMenuScreensRegistrar,
+        ISpecialModelRendererRegistrar
 {
     @Override
     public <T extends Entity> void Register(EntityRendererRegistrationInfo<T> info)
@@ -90,6 +93,22 @@ public final class FabricClientArtifactsRegistrar
     {
         ArgumentNullException.ThrowIfNull(info, "info");
         ParticleFactoryRegistry.getInstance().register(info.particle_type().function(), new ParticleFactoryRegistryAdvancedInfoTranslation<>(info.particle_provider_creater()));
+    }
+
+    @Override
+    public void RegisterCodec(SpecialModelRendererCodecRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        SpecialModelRenderers.ID_MAPPER.put(info.location() , info.renderer_codec());
+    }
+
+    @Override
+    public void Register(SpecialModelRendererRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        SpecialBlockRendererRegistry.register(info.block().function() , info.unbaked_renderer());
     }
 
     private record MSCToMenuConstructor<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(MenuScreenConstructor<M, U> constructor)

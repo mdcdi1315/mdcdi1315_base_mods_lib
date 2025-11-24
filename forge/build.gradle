@@ -81,6 +81,22 @@ minecraft {
     }
 }
 
+jarJar.enable()
+
+jar {
+    dependsOn tasks.jarJar
+    doLast {
+        // Forge fucks up the jar-jar dependencies completely, we need to replace the non-final file with the final one.
+        def template = "libs/${base.archivesName.get()}-${version}"; // A template string for use in our archive matching
+        def wanted = project.layout.buildDirectory.file("${template}.jar");
+        delete(wanted);
+        // Now rename our file...
+        File src = project.layout.buildDirectory.file("${template}-all.jar").get().getAsFile();
+        Files.copy(src.toPath() , wanted.get().getAsFile().toPath() , StandardCopyOption.REPLACE_EXISTING);
+        src.delete();
+    }
+}
+
 // Needed for fixing the class not found issue on runs
 sourceSets.each {
     def dir = layout.buildDirectory.dir("sourcesSets/$it.name")

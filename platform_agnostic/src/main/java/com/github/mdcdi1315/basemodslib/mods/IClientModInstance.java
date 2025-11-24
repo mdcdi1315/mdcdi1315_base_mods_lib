@@ -54,6 +54,13 @@ public interface IClientModInstance
     default void RegisterMenuScreens(IMenuScreensRegistrar registrar) {}
 
     /**
+     * Provides a way for registering additional special model renderers to Minecraft.
+     * @param registrar The object responsible for registering additional special model renderers.
+     * @since 1.0.11
+     */
+    default void RegisterSpecialModelRenderers(ISpecialModelRendererRegistrar registrar) {}
+
+    /**
      * Called only once per mod instance to provide a custom configuration screen for their needs. <br />
      * Can also be {@code null}, indicating that the config screen is not applicable of or for any failure creating the GUI.
      * @return The screen configuration factory object to return.

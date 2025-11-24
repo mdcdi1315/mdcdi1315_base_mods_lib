@@ -64,9 +64,9 @@ public final class NeoForgeModLoaderLayer
         }
         neoforge_version = fg_ver;
         // tracker = new DisposableObjectsTracker();
-        NeoForgeUtils.AddListener(this.event_bus , FMLCommonSetupEvent.class, this::OnCommonSetupEvent);
+        NeoForgeUtils.AddListener(this.event_bus, FMLCommonSetupEvent.class, this::OnCommonSetupEvent);
         NeoForgeUtils.AddListener(this.event_bus, FMLLoadCompleteEvent.class, this::OnModLoadingCompleteEvent);
-        // Register bake callbacks instead. This does not require a mixin, and it is OK since this will call in as appropriate.
+        // RegisterCodec bake callbacks instead. This does not require a mixin, and it is OK since this will call in as appropriate.
         // Also, it is far more practical than the Forge solution.
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK, BlockRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityTypeRegistryFinalizedEvent::new);
@@ -188,6 +188,9 @@ public final class NeoForgeModLoaderLayer
 
     @Override
     public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
+
+    @Override
+    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
 
     @Override
     public void Dispose() {

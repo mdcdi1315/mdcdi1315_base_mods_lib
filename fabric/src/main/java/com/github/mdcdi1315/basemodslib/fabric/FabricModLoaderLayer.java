@@ -34,7 +34,8 @@ public final class FabricModLoaderLayer
     implements IModLoaderLayer
 {
     private List<String> mod_ids;
-    private Path config_dir, game_dir;
+    private final boolean dev_env;
+    private Path config_dir, minecraft_dir;
     private ModdingEnvironment environment;
     private Map<String, Version> networking_versions_map;
     private FabricCommandsRegistrar global_commands_registrar;
@@ -42,13 +43,14 @@ public final class FabricModLoaderLayer
 
     public FabricModLoaderLayer()
     {
-        minecraft_version = new Version(1, 21, 5);
+        minecraft_version = new Version(1, 21, 1);
 
         mod_ids = new ArrayList<>(10);
         networking_versions_map = new HashMap<>(10);
         var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
-        game_dir = loader.getGameDir();
+        minecraft_dir = loader.getGameDir();
+        dev_env = loader.isDevelopmentEnvironment();
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;
@@ -73,9 +75,7 @@ public final class FabricModLoaderLayer
 
         global_commands_registrar = new FabricCommandsRegistrar();
         global_commands_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
-
         var em = BaseModsLib.GetEventsManager();
-
         em.AddEventListener(ModLoadingCompleteEvent.class , this::OnModLoadingComplete);
 
         if (environment == ModdingEnvironment.SERVER) {
@@ -84,16 +84,12 @@ public final class FabricModLoaderLayer
         }
     }
 
-    private void OnModLoadingComplete(ModLoadingCompleteEvent event)
-    {
-        this.global_commands_registrar = null;
-    }
-
     @Override
     public void Dispose() {
         this.mod_ids = null;
         this.config_dir = null;
         this.environment = null;
+        this.minecraft_dir = null;
         this.minecraft_version = null;
         this.networking_versions_map = null;
         this.fabric_modloader_version = null;
@@ -108,6 +104,11 @@ public final class FabricModLoaderLayer
             var server = context.server();
             server.execute(new Action2ToRunnable<>(action, context.player(), payload));
         }
+    }
+
+    private void OnModLoadingComplete(ModLoadingCompleteEvent event)
+    {
+        this.global_commands_registrar = null;
     }
 
     private void OnServerClosing(ServerStoppingEvent sse) {
@@ -168,8 +169,8 @@ public final class FabricModLoaderLayer
         FabricCommonRegistryItemsRegistrar registrar = new FabricCommonRegistryItemsRegistrar(mod_id);
 
         mod_instance.RegisterBlocks(registrar);
-        mod_instance.RegisterBlockEntities(registrar);
         mod_instance.RegisterItems(registrar);
+        mod_instance.RegisterBlockEntities(registrar);
         mod_instance.RegisterFluids(registrar);
         registrar.ApplyFabricModifyEntries();
 
@@ -178,7 +179,7 @@ public final class FabricModLoaderLayer
         mod_instance.RegisterEntityTypes(registrar);
         mod_instance.RegisterMenuTypes(registrar);
 
-        mod_instance.RegisterCommands(new FabricCommandsRegistrar());
+        mod_instance.RegisterCommands(global_commands_registrar);
 
         FabricBasedNetworkManager manager = new FabricBasedNetworkManager(mod_id);
 
@@ -194,8 +195,6 @@ public final class FabricModLoaderLayer
                 Client_RegisterModInfoHandshakePacketOnServerConnection(manager.Mod_Info);
             }
         }
-
-
     }
 
     @Override
@@ -220,5 +219,8 @@ public final class FabricModLoaderLayer
     public Path GetConfigurationDirectory() { return config_dir; }
 
     @Override
-    public Path GetMinecraftDirectory() { return game_dir; }
+    public Path GetMinecraftDirectory() { return minecraft_dir; }
+
+    @Override
+    public boolean IsDevelopmentEnvironmentBuild() { return dev_env; }
 }

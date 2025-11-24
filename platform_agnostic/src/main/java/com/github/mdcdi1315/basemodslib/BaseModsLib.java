@@ -1,16 +1,14 @@
 package com.github.mdcdi1315.basemodslib;
 
-import com.github.mdcdi1315.DotNetLayer.System.Version;
+import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.Stopwatch;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
-import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.eventapi.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
-import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
+import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 
@@ -20,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.lang.Exception;
 
 /**
  * The main class for accessing the base mods library API. <br />
@@ -27,7 +26,6 @@ import java.nio.file.Path;
  */
 public final class BaseModsLib
 {
-
     /**
      * The ID of the library. <br />
      * This is used for the mod loader and represents the library as a mod to it.
@@ -35,40 +33,79 @@ public final class BaseModsLib
      */
     public static final String MOD_ID = "mdcdi1315_base_mods_lib";
 
-    private static List<IServerModInstance> mod_instances;
-    private static EventManager events_manager;
     private static IModLoaderLayer layer;
+    private static ProxyManager proxy_manager;
+    private static EventManager events_manager;
     private static volatile boolean initialized;
+    private static List<IServerModInstance> mod_instances;
+
     public static Logger LOGGER;
 
     static {
         layer = null;
         initialized = false;
+        proxy_manager = null; // Initialized once the layer is ready.
+        events_manager = new EarlyEventsManager();
         LOGGER = LoggerFactory.getLogger("mdcdi1315's Base Mods Lib logger");
         LOGGER.info("Now initializing mdcdi1315's Base Mods Library!!!");
     }
 
+    // Do not let anyone instantiate this class.
     private BaseModsLib() {}
 
     /**
-     * Initializes the base mods library.
-     * @param mod_loader_layer The mod loader layer to use for initializing the library components.
+     * Initializes the Base Mods library generically. <br />
+     * Remarks: <br />
+     * Although that this is documented, this API should not be called by consumers of the library but only by the library itself. <br />
+     * As the modding needs are evolving, the method requirements, and it's signature are subject to change without notice.
+     * @param mod_loader_layer_constructor The mod loader layer method reference to use for initializing the library components.
      * @throws ArgumentNullException {@code layer} was {@code null}.
      * @throws InvalidOperationException The library has been successfully initialized before.
+     * @throws CriticalLibraryInitializationException A critical initialization error has been realized by the library. Execution cannot continue.
      */
-    public static void InitializeBaseModsLibrary(IModLoaderLayer mod_loader_layer)
-            throws ArgumentNullException, InvalidOperationException
+    @ApiStatus.Internal
+    public static void InitializeBaseModsLibrary(Func1<IModLoaderLayer> mod_loader_layer_constructor)
+            throws ArgumentNullException, InvalidOperationException, CriticalLibraryInitializationException
     {
-        ArgumentNullException.ThrowIfNull(mod_loader_layer, "mod_loader_layer");
+        ArgumentNullException.ThrowIfNull(mod_loader_layer_constructor, "mod_loader_layer_constructor");
         if (layer != null) {
             throw new InvalidOperationException("The base mods library has already been initialized successfully.");
         }
-        if (events_manager == null) {
-            events_manager = new EventManager();
+        LOGGER.info("Initializing mdcdi1315's Base Mods Library...");
+        Stopwatch sw = Stopwatch.StartNew();
+        try {
+            layer = mod_loader_layer_constructor.function();
+            if (layer == null) {
+                throw new InvalidOperationException("Returned an empty mod loader layer through the mod loader layer constructor. This is unexpected.");
+            }
+            boolean dev_env = layer.IsDevelopmentEnvironmentBuild();
+            if (dev_env) {
+                LOGGER.info("Detected a development environment instance. Library will enter the dev env mode.");
+            }
+            // OK. Now hand out everything defined from the early events manager to the normal events manager (Or to the debug one if running on dev env)
+            LOGGER.debug("Handing out registered events from early initialization to the normal events manager.");
+            if (dev_env) {
+                DebugEventsManager dem = new DebugEventsManager();
+                dem.HandEventsFromEarly((EarlyEventsManager) events_manager);
+                events_manager = dem;
+            } else {
+                NormalEventsManager nem = new NormalEventsManager();
+                nem.HandEventsFromEarly((EarlyEventsManager) events_manager);
+                events_manager = nem;
+            }
+            LOGGER.debug("Hand out completed.");
+            mod_instances = new List<>();
+            proxy_manager = new ProxyManager();
+            LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion(), layer.GetMinecraftVersion(), layer.GetEnvironment());
+            sw.Stop();
+            LOGGER.info("The library took {} seconds to initialize.", sw.GetElapsed().GetTotalSeconds());
+        } catch (Exception e) {
+            layer = null;
+            initialized = true;
+            sw.Stop();
+            LOGGER.error("Library failed to be initialized after {} seconds! Inspecting exception and throwing back." , sw.GetElapsed().GetTotalSeconds());
+            throw new CriticalLibraryInitializationException(e);
         }
-        mod_instances = new List<>();
-        layer = mod_loader_layer;
-        LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion() , layer.GetMinecraftVersion() , layer.GetEnvironment());
         initialized = true;
     }
 
@@ -80,9 +117,10 @@ public final class BaseModsLib
      * What this is depends on the mod loader. <br />
      * On (Neo)Forge, it must be the IEventBus object associated with your mod.
      * @throws ArgumentNullException {@code instance} was {@code null}.
+     * @throws ModInitializationException The mod instance passed failed to be initialized. Check error log for more information.
      */
     public static void InitializeServerSideMod(IServerModInstance instance, Object mod_object)
-            throws ArgumentNullException
+            throws ArgumentNullException, ModInitializationException
     {
         ArgumentNullException.ThrowIfNull(instance, "instance");
         ArgumentNullException.ThrowIfNull(mod_object, "mod_object");
@@ -92,10 +130,19 @@ public final class BaseModsLib
 
             while (!initialized) { Thread.onSpinWait(); } // Wait until the library is fully initialized.
 
+            if (layer == null) {
+                // This indicates a failure or a bug in the library. The mod instance will be ignored completely.
+                BaseModsLib.LOGGER.info("Critical library bug realized, cowardly refusing to continue initialization!");
+                return;
+            }
+
             instance.SetupConfigurationFiles(ConfigManager.INSTANCE);
 
             // Initialize event handling - may be needed so early to assure that all events will be properly fired later.
-            instance.RegisterEvents(GetEventsManager());
+            instance.RegisterEvents(events_manager);
+
+            // After the events have been initialized, initialize everything required for the proxy objects.
+            instance.RegisterProxyObjects(proxy_manager);
 
             layer.InitializeServerModInstance(instance, mod_object);
 
@@ -118,25 +165,31 @@ public final class BaseModsLib
     }
 
     /**
-     * Gets the event manager for mods.
+     * Gets the event manager for mods. <br />
+     * Note: Do not attempt to access this on early time. <br />
+     * If you do that, you risk losing your event's registration. <br />
+     * Instead, wait until the {@link com.github.mdcdi1315.basemodslib.mods.IModInstance#RegisterEvents(EventManager)} method is called to your mod instance.
      * @return The event manager.
      */
     @NotNull
-    public static EventManager GetEventsManager()  {
-        if (events_manager == null) {
-            events_manager = new EventManager();
-        }
-        return events_manager;
-    }
+    public static EventManager GetEventsManager() { return events_manager; }
+
+    /**
+     * Gets the proxy manager for mods that use this. <br />
+     * Note: Do not attempt to access this on early time. <br />
+     * This is only valid once the library itself has been successfully initialized. <br />
+     * Instead, wait until the {@link com.github.mdcdi1315.basemodslib.mods.IModInstance#RegisterProxyObjects(ProxyManager)} method is called to your mod instance.
+     * @return The proxy manager to be used by mods that use this API.
+     */
+    @MaybeNull
+    public static ProxyManager GetProxyManager() { return proxy_manager; }
 
     /**
      * Gets an enumerable of mod instances currently registered.
      * @return The registered mod instances.
      */
     @NotNull
-    public static IEnumerable<IServerModInstance> GetModInstances() {
-        return mod_instances;
-    }
+    public static IEnumerable<IServerModInstance> GetModInstances() { return mod_instances; }
 
     /**
      * Gets a value whether the mod with the specified ID is loaded in this Minecraft instance.
@@ -174,6 +227,18 @@ public final class BaseModsLib
     public static String GetModLoaderBranding() { return layer.GetModLoaderBranding(); }
 
     /**
+     * Gets the value returned by the {@link #GetModLoaderBranding()} method as one of the constants defined in the {@link CommonModLoaderBranding} enumeration.
+     * @return The mod loader branding constant mapped by the result of invoking the {@link #GetModLoaderBranding()} method.
+     * @throws FormatException The mod loader branding returned by the {@link #GetModLoaderBranding()} method could not be mapped to one of the common mod loader constants.
+     * @since 1.0.11
+     */
+    public static CommonModLoaderBranding GetCommonModLoaderBranding()
+        throws FormatException
+    {
+        return CommonModLoaderBranding.Parse(layer.GetModLoaderBranding());
+    }
+
+    /**
      * Gets the version of the underlying mod loader where the library is initialized to. <br />
      * @return The mod loader version.
      */
@@ -204,6 +269,14 @@ public final class BaseModsLib
     public static Path GetMinecraftDirectory() { return layer.GetMinecraftDirectory(); }
 
     /**
+     * Gets a value whether this Minecraft build originates from a development environment.
+     * @return A value whether the current instance originates as a result of running from a development environment.
+     * @since 1.0.11
+     */
+    // Check for non-null before calling, because it may be called by the mods too early and will cause them to fail.
+    public static boolean IsDevelopmentEnvironment() { return layer != null && layer.IsDevelopmentEnvironmentBuild(); }
+
+    /**
      * Called by the mod loader when mod loading is complete. <br />
      * Destroys data structures used by the library.
      */
@@ -212,6 +285,11 @@ public final class BaseModsLib
         LOGGER.info("Mod loading complete. Dispatching mod loading complete event to implementing mods.");
         events_manager.FireEvent(new ModLoadingCompleteEvent());
         events_manager.DestroyDestroyableEvents();
+        if (!proxy_manager.Lock()) {
+            BaseModsLib.LOGGER.info("BASEMODSLIB: Proxy manager is not used by any mods, deallocating it.");
+            proxy_manager.Dispose();
+            proxy_manager = null;
+        }
     }
 
     /**
@@ -240,9 +318,17 @@ public final class BaseModsLib
         }
         // Additional disposal code to be run.
         mod_instances = null;
-        events_manager.DestroyManager();
-        events_manager = null;
-        layer.Dispose();
-        layer = null;
+        if (events_manager != null) {
+            events_manager.DestroyManager();
+            events_manager = null;
+        }
+        if (proxy_manager != null) {
+            proxy_manager.Dispose();
+            proxy_manager = null;
+        }
+        if (layer != null) {
+            layer.Dispose();
+            layer = null;
+        }
     }
 }

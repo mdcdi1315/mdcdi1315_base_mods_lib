@@ -22,10 +22,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
-import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.*;
 
 public final class NeoForgeClientArtifactsRegistrar
     implements IBlockEntityRendererRegistrar,
@@ -33,14 +30,17 @@ public final class NeoForgeClientArtifactsRegistrar
         IEntityRendererRegistrar,
         IModelDefinitionRegistrar,
         IParticleProviderRegistrar,
-        IMenuScreensRegistrar
+        IMenuScreensRegistrar,
+        ISpecialModelRendererRegistrar
 {
     private List<MenuScreenRegInfo<? , ?>> menu_screens_info;
     private List<ModelDefinitionRegistrationInfo> model_infos;
     private List<ItemColorHandlerRegistrationInfo> item_colors;
     private List<BlockColorHandlerRegistrationInfo> block_colors;
     private List<EntityRendererRegistrationInfo<? extends Entity>> entities;
+    private List<SpecialModelRendererRegistrationInfo> model_renderer_registrations;
     private List<BlockEntityRendererRegistrationInfo<? extends BlockEntity>> block_entities;
+    private List<SpecialModelRendererCodecRegistrationInfo> model_renderer_codec_registrations;
     private List<SimpleParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_simple;
     private List<AdvancedParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_advanced;
 
@@ -54,6 +54,8 @@ public final class NeoForgeClientArtifactsRegistrar
         particles_simple = new List<>();
         menu_screens_info = new List<>();
         particles_advanced = new List<>();
+        model_renderer_registrations = new List<>();
+        model_renderer_codec_registrations = new List<>();
     }
 
     @Override
@@ -120,16 +122,6 @@ public final class NeoForgeClientArtifactsRegistrar
         event.registerEntityRenderer(info.entity_type_provider().function(), info.renderer_provider());
     }
 
-    public void RegisterToEventBus(IEventBus bus)
-    {
-        NeoForgeUtils.AddListener(bus, RegisterMenuScreensEvent.class, this::OnRegisterMenuScreensEventDef);
-        NeoForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterLayerDefinitions.class , this::RegisterModelsEventDef);
-        NeoForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterRenderers.class , this::RegisterRenderersEventDef);
-        NeoForgeUtils.AddListener(bus, RegisterColorHandlersEvent.ItemTintSources.class , this::RegisterItemColorHandlersEventDef);
-        NeoForgeUtils.AddListener(bus, RegisterParticleProvidersEvent.class, this::RegisterParticleProvidersEventDef);
-        NeoForgeUtils.AddListener(bus, RegisterColorHandlersEvent.Block.class, this::RegisterBlockColorHandlersEventDef);
-    }
-
     private void RegisterRenderersEventDef(EntityRenderersEvent.RegisterRenderers event)
     {
         var block_ent_en = block_entities.GetEnumerator();
@@ -138,7 +130,7 @@ public final class NeoForgeClientArtifactsRegistrar
                 RegisterBlockEntityRenderer(event , block_ent_en.getCurrent());
             }
         } finally {
-            block_ent_en.Dispose();;
+            block_ent_en.Dispose();
         }
         block_entities = null;
         var entity_en = entities.GetEnumerator();
@@ -200,6 +192,22 @@ public final class NeoForgeClientArtifactsRegistrar
     private static <T extends ParticleOptions> void RegisterSimpleParticleProvider(RegisterParticleProvidersEvent event, SimpleParticleProviderRegistrationInfo<T> info)
     {
         event.registerSpriteSet(info.particle_type().function() , new SimpleParticleRegistration<>(info.particle_provider()));
+    }
+
+    @Override
+    public void RegisterCodec(SpecialModelRendererCodecRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        model_renderer_codec_registrations.Add(info);
+    }
+
+    @Override
+    public void Register(SpecialModelRendererRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        model_renderer_registrations.Add(info);
     }
 
     private record MenuScreenRegInfo<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
@@ -284,5 +292,49 @@ public final class NeoForgeClientArtifactsRegistrar
             advanced.Dispose();
         }
         particles_advanced = null;
+    }
+
+    private void OnRegisterSpecialModelRenderers_Codec(RegisterSpecialModelRendererEvent event)
+    {
+        var en = model_renderer_codec_registrations.GetEnumerator();
+        try {
+            SpecialModelRendererCodecRegistrationInfo inf;
+            while (en.MoveNext()) {
+                inf = en.getCurrent();
+                event.register(inf.location() , inf.renderer_codec());
+            }
+        } finally {
+            en.Dispose();
+        }
+        model_renderer_codec_registrations = null;
+    }
+
+    private void OnRegisterSpecialModelRenderers(RegisterSpecialBlockModelRendererEvent event)
+    {
+        var en = model_renderer_registrations.GetEnumerator();
+        try {
+            SpecialModelRendererRegistrationInfo inf;
+            while (en.MoveNext()) {
+                inf = en.getCurrent();
+                event.register(inf.block().function() , inf.unbaked_renderer());
+            }
+        } finally {
+            en.Dispose();
+        }
+        // We can't delete this, because Minecraft can reload these renderers at some time.
+        // We are cooked if we destroy this object.
+        // model_renderer_registrations = null;
+    }
+
+    public void RegisterToEventBus(IEventBus bus)
+    {
+        NeoForgeUtils.AddListener(bus, RegisterMenuScreensEvent.class, this::OnRegisterMenuScreensEventDef);
+        NeoForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterLayerDefinitions.class , this::RegisterModelsEventDef);
+        NeoForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterRenderers.class , this::RegisterRenderersEventDef);
+        NeoForgeUtils.AddListener(bus, RegisterColorHandlersEvent.ItemTintSources.class , this::RegisterItemColorHandlersEventDef);
+        NeoForgeUtils.AddListener(bus, RegisterParticleProvidersEvent.class, this::RegisterParticleProvidersEventDef);
+        NeoForgeUtils.AddListener(bus, RegisterColorHandlersEvent.Block.class, this::RegisterBlockColorHandlersEventDef);
+        NeoForgeUtils.AddListener(bus, RegisterSpecialModelRendererEvent.class, this::OnRegisterSpecialModelRenderers_Codec);
+        NeoForgeUtils.AddListener(bus, RegisterSpecialBlockModelRendererEvent.class , this::OnRegisterSpecialModelRenderers);
     }
 }

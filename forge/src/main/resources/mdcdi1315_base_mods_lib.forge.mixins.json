@@ -4,8 +4,9 @@
   "package": "${group}.basemodslib.forge.mixin",
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_17",
-  "mixins": [],
-  "client": [],
+  "client": [
+	  "SpecialModelRenderersMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

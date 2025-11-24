@@ -2,8 +2,10 @@ package com.github.mdcdi1315.basemodslib.utils;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import java.util.*;
+import java.lang.reflect.*;
 
 /**
  * Several reflection utilities required throughout the library. Mods depending on the library can use these as well.
@@ -105,4 +107,34 @@ public final class ReflectionUtils
         // No super classes found, or none of the super classes specified is not of type super_class.
         return false;
     }
+
+    /**
+     * Invokes the specified public method and returns it's result, if applicable.
+     * @param class_providing_method The {@link Class} object to look up for the specified method.
+     * @param name The name of the method which is to be invoked. Must not be {@code null} or the empty string.
+     * @param instance The instance of the object (If invoking an instance method), or {@code null} if the method to be invoked is a static method.
+     * @param arguments The method's arguments to pass once the method is actually invoked.
+     * @return The return value of the method, if it has one. If the return type of the method is {@code void}, it returns {@code null}.
+     * @throws InvocationTargetException The invoked method has thrown an exception. Get the exception that was thrown by using the {@link InvocationTargetException#getCause()} method.
+     * @throws IllegalAccessException If the {@link Method} object associated with {@code name} is enforcing Java language access control and the underlying method is inaccessible.
+     * @throws NoSuchMethodException The method with name {@code name} was not found.
+     * @throws ArgumentNullException {@code class_providing_method} and/or {@code name} are {@code null}.
+     * @since 1.0.11
+     */
+    @MaybeNull
+    public static Object InvokeMethod(Class<?> class_providing_method, String name, @MaybeNull Object instance, Object... arguments)
+            throws InvocationTargetException, IllegalAccessException , NoSuchMethodException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(name, "name");
+        ArgumentNullException.ThrowIfNull(class_providing_method, "class_providing_method");
+        for (Method m : class_providing_method.getMethods())
+        {
+            if (name.equals(m.getName())) {
+                return m.invoke(instance , arguments);
+            }
+        }
+        throw new NoSuchMethodException(String.format("A public method named as '%s' was not found in class named as '%s'." , name , class_providing_method.getName()));
+    }
+
+
 }

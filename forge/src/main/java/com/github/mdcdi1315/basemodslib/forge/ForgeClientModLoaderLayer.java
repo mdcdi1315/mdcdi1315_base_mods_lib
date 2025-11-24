@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.forge;
 
+import com.github.mdcdi1315.DotNetLayer.System.Action2;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.utils.Pair;
@@ -11,6 +12,11 @@ import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.client.ForgeClientArtifactsRegistrar;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
+
+import com.mojang.serialization.MapCodec;
+
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.special.SpecialModelRenderer;
 
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModContainer;
@@ -24,12 +30,15 @@ import java.util.Optional;
 public final class ForgeClientModLoaderLayer
     implements IClientModLoaderLayer
 {
+    // Used for the mods, see the RegisterCodec method in the ForgeClientArtifactsRegistrar class for more information about this.
+    public static Action2<ResourceLocation , MapCodec<? extends SpecialModelRenderer.Unbaked>> id_mapper_method;
+
     public ForgeClientModLoaderLayer(FMLJavaModLoadingContext context) {
-        BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, ForgeClientModLoaderLayer::RegisterConfigScreensToMods);
+        BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, ForgeClientModLoaderLayer::OnModLoadingComplete);
         context.getModEventBus().addListener(this::OnClientSetupClient);
     }
 
-    private static void RegisterConfigScreensToMods(ModLoadingCompleteEvent completed)
+    private static void OnModLoadingComplete(ModLoadingCompleteEvent completed)
     {
         var mod_list = ModList.get();
         var en = BaseModsLibClient.GetConfigurationScreens().GetEnumerator();
@@ -47,6 +56,8 @@ public final class ForgeClientModLoaderLayer
         } finally {
             en.Dispose();
         }
+        // Mod loading complete - mods cannot access this in any way anymore.
+        id_mapper_method = null;
     }
 
     private static IEventBus GetEventBusOrFail(Object mod_object) {
@@ -68,7 +79,7 @@ public final class ForgeClientModLoaderLayer
     public void InitializeClientModInstance(IClientModInstance instance, Object mod_object) {
         IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
 
-        ForgeClientArtifactsRegistrar reg = new ForgeClientArtifactsRegistrar();
+        ForgeClientArtifactsRegistrar reg = new ForgeClientArtifactsRegistrar(id_mapper_method);
 
         instance.RegisterModelDefinitions(reg);
         instance.RegisterEntityRenderers(reg);
@@ -76,6 +87,7 @@ public final class ForgeClientModLoaderLayer
         instance.RegisterColorHandlers(reg);
         instance.RegisterParticleProviders(reg);
         instance.RegisterMenuScreens(reg);
+        instance.RegisterSpecialModelRenderers(reg);
 
         reg.RegisterToEventBus(mod_event_bus);
 

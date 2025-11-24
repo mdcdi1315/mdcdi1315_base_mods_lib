@@ -1,0 +1,42 @@
+
+// Update the below as needed.
+def log_4j_version = "2.22.1"
+def event_bus_version = "8.0.5"
+def merge_tool_version = "2.0.3"
+def fancy_mod_loader_version = "7.0.13"
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "NeoForge Maven"
+                url = uri("https://maven.neoforged.net/releases")
+            }
+        }
+        filter {
+            includeGroupAndSubgroups("cpw.mods")
+            includeGroupAndSubgroups("net.neoforged")
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Forge Maven"
+                url = uri("https://maven.minecraftforge.net")
+            }
+        }
+        filter {
+            includeGroupAndSubgroups("net.minecraftforge")
+        }
+    }
+}
+
+dependencies {
+    api "net.neoforged:mergetool:${merge_tool_version}"
+    implementation "net.neoforged:bus:${event_bus_version}"
+    implementation "net.neoforged.fancymodloader:loader:${fancy_mod_loader_version}"
+
+    implementation "org.apache.logging.log4j:log4j-api:${log_4j_version}"
+}

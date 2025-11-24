@@ -1,13 +1,13 @@
 package com.github.mdcdi1315.basemodslib.client;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func1;
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
-import com.github.mdcdi1315.DotNetLayer.System.Action1;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
 
+import com.mojang.serialization.MapCodec;
+import net.minecraft.client.renderer.special.SpecialModelRenderer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
@@ -23,6 +23,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 
+import net.minecraftforge.client.event.CreateSpecialBlockRendererEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
@@ -35,7 +37,8 @@ public final class ForgeClientArtifactsRegistrar
         IColorHandlersRegistrar,
         IModelDefinitionRegistrar,
         IParticleProviderRegistrar,
-        IMenuScreensRegistrar
+        IMenuScreensRegistrar,
+        ISpecialModelRendererRegistrar
 {
     private List<MenuScreenRegInfo<? , ?>> menu_screens_info;
     private List<ModelDefinitionRegistrationInfo> model_defs_infos;
@@ -43,9 +46,12 @@ public final class ForgeClientArtifactsRegistrar
     private List<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
     private List<SimpleParticleProviderRegistrationInfo<?>> simple_particle_reg;
     private List<AdvancedParticleProviderRegistrationInfo<?>> advanced_particle_reg;
+    private List<SpecialModelRendererRegistrationInfo> model_renderer_registrations;
     private List<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
+    private Action2<ResourceLocation, MapCodec<? extends SpecialModelRenderer.Unbaked>> id_mapper_special_model_renderers;
 
-    public ForgeClientArtifactsRegistrar() {
+    public ForgeClientArtifactsRegistrar(Action2<ResourceLocation, MapCodec<? extends SpecialModelRenderer.Unbaked>> id_mapper)
+    {
         model_defs_infos = new List<>();
         menu_screens_info = new List<>();
         simple_particle_reg = new List<>();
@@ -53,6 +59,8 @@ public final class ForgeClientArtifactsRegistrar
         entity_renderer_infos = new List<>();
         block_color_handler_infos = new List<>();
         block_entity_renderer_infos = new List<>();
+        model_renderer_registrations = new List<>();
+        id_mapper_special_model_renderers = id_mapper;
     }
 
     @Override
@@ -162,17 +170,41 @@ public final class ForgeClientArtifactsRegistrar
         menu_screens_info = null;
     }
 
+    private void OnRegisterSpecialBlockRenderers(CreateSpecialBlockRendererEvent event)
+    {
+        var en = model_renderer_registrations.GetEnumerator();
+        try {
+            SpecialModelRendererRegistrationInfo inf;
+            while (en.MoveNext()) {
+                inf = en.getCurrent();
+                event.register(inf.block().function() , inf.unbaked_renderer());
+            }
+        } finally {
+            en.Dispose();
+        }
+        // We can't delete this, because Minecraft can reload these renderers at some time.
+        // We are cooked if we destroy this object.
+        // model_renderer_registrations = null;
+    }
+
     private void OnClientSetupEvent(FMLClientSetupEvent event) {
         event.enqueueWork(this::RegisterMenuScreensAll);
     }
 
-    public void RegisterToEventBus(IEventBus bus)
+    @Override
+    public void RegisterCodec(SpecialModelRendererCodecRegistrationInfo info)
+            throws ArgumentNullException
     {
-        ForgeUtils.AddListener(bus, FMLClientSetupEvent.class, this::OnClientSetupEvent);
-        ForgeUtils.AddListener(bus, RegisterParticleProvidersEvent.class, this::OnRegisterParticleProviders);
-        ForgeUtils.AddListener(bus, RegisterColorHandlersEvent.Block.class, this::OnRegisterBlockColorHandlers);
-        ForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterRenderers.class, this::OnRegisterEntityRenderers);
-        ForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterLayerDefinitions.class, this::OnRegisterModelDefinitions);
+        ArgumentNullException.ThrowIfNull(info, "info");
+        id_mapper_special_model_renderers.action(info.location() , info.renderer_codec());
+    }
+
+    @Override
+    public void Register(SpecialModelRendererRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        model_renderer_registrations.Add(info);
     }
 
     private record MenuScreenRegInfo<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
@@ -286,5 +318,18 @@ public final class ForgeClientArtifactsRegistrar
         public void action(ModelDefinitionRegistrationInfo obj) {
             layer_defs.registerLayerDefinition(obj.location(), obj.definition());
         }
+    }
+
+    public void RegisterToEventBus(IEventBus bus)
+    {
+        ForgeUtils.AddListener(bus, FMLClientSetupEvent.class, this::OnClientSetupEvent);
+        ForgeUtils.AddListener(bus, RegisterParticleProvidersEvent.class, this::OnRegisterParticleProviders);
+        ForgeUtils.AddListener(bus, RegisterColorHandlersEvent.Block.class, this::OnRegisterBlockColorHandlers);
+        ForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterRenderers.class, this::OnRegisterEntityRenderers);
+        ForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterLayerDefinitions.class, this::OnRegisterModelDefinitions);
+        // Unlike all the other events, this is fired on the Forge event bus. Weird.
+        ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, CreateSpecialBlockRendererEvent.class , this::OnRegisterSpecialBlockRenderers);
+        // We can unreference this now, we are done
+        id_mapper_special_model_renderers = null;
     }
 }

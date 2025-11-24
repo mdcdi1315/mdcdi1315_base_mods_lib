@@ -91,6 +91,7 @@ public final class NeoForgeClientModLoaderLayer
         instance.RegisterBlockEntityRenderers(registrar);
         instance.RegisterParticleProviders(registrar);
         instance.RegisterMenuScreens(registrar);
+        instance.RegisterSpecialModelRenderers(registrar);
         registrar.RegisterToEventBus(mod_bus);
 
 

@@ -1,0 +1,25 @@
+// import java.nio.file.Files
+// import java.nio.file.StandardCopyOption
+
+plugins {
+    id 'java-library'
+}
+
+def lib_actual_version = "1.0.0"
+def lib_version = "[${lib_actual_version},)"
+
+base {
+    version = lib_version
+    archivesName = "bml_language_loader"
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+}
+
+jar {
+    manifest.attributes(["FMLModType": "LANGPROVIDER"])
+}
+
+apply from: rootProject.file('repositories.gradle')
+apply from: 'dependencies.gradle'

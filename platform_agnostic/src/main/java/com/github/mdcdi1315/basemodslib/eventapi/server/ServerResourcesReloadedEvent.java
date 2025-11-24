@@ -1,7 +1,9 @@
 package com.github.mdcdi1315.basemodslib.eventapi.server;
 
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
-import com.github.mdcdi1315.basemodslib.eventapi.IEvent;
+
+import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
+
 import net.minecraft.server.ReloadableServerResources;
 
 /**
@@ -9,4 +11,4 @@ import net.minecraft.server.ReloadableServerResources;
  * From this event you can get the actual reloaded resources.
  * @param resources The object containing the reloaded data.
  */
-public record ServerResourcesReloadedEvent(@NotNull ReloadableServerResources resources) implements IEvent { }
+public record ServerResourcesReloadedEvent(@NotNull ReloadableServerResources resources) implements IDestroyableIfUnusedEvent { }
