@@ -26,17 +26,26 @@ public final class NeoForgeWorldGenRegistrar
     }
 
     @Override
-    public <TF extends Feature<?>> void RegisterFeatureType(String name, Func1<TF> feature_type_creator) throws ArgumentNullException {
+    public <TF extends Feature<?>> void RegisterFeatureType(String name, Func1<TF> feature_type_creator)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(feature_type_creator, "feature_type_creator");
         FEATURE_REGISTER.register(name, feature_type_creator);
     }
 
     @Override
-    public <TPM extends PlacementModifierType<?>> void RegisterPlacementModifierType(String name, Func1<TPM> placement_modifier_type_creator) throws ArgumentNullException {
+    public <TPM extends PlacementModifierType<?>> void RegisterPlacementModifierType(String name, Func1<TPM> placement_modifier_type_creator)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(placement_modifier_type_creator, "placement_modifier_type_creator");
         FEATURE_PLACEMENT_MOD_REGISTER.register(name, placement_modifier_type_creator);
     }
 
     @Override
-    public <T extends PoiType> void RegisterPoiType(String name, Func1<T> poi_type_creator) throws ArgumentNullException {
+    public <T extends PoiType> void RegisterPoiType(String name, Func1<T> poi_type_creator)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(poi_type_creator, "poi_type_creator");
         POI_TYPE_REGISTER.register(name , poi_type_creator);
     }
 

@@ -3,10 +3,13 @@ package com.github.mdcdi1315.basemodslib.fluid;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
+import com.github.mdcdi1315.basemodslib.Contract;
+
 /**
  * Provides a way for registering new fluids to Minecraft.
  * @since 1.0.5
  */
+@Contract
 public interface IFluidRegistrar
 {
     /**

@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.block;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
+import com.github.mdcdi1315.basemodslib.Contract;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 
@@ -13,6 +14,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 /**
  * Defines methods for making known new Minecraft blocks to the mod loader.
  */
+@Contract
 public interface IBlockRegistrar
 {
     /**

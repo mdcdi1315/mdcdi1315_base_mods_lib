@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.menu;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
+import com.github.mdcdi1315.basemodslib.Contract;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 
@@ -15,6 +16,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
  * Provides a way for registering new container menus to Minecraft.
  * @since 1.0.6
  */
+@Contract
 public interface IMenuTypeRegistrar
 {
     /**

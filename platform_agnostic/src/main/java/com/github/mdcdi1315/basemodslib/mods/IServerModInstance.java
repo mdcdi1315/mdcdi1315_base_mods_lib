@@ -6,6 +6,7 @@ import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NetworkManager;
 import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.alchemy.IAlchemyRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ICommandRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar;
@@ -82,4 +83,11 @@ public interface IServerModInstance
      * @since 1.0.6
      */
     default void RegisterMenuTypes(IMenuTypeRegistrar registrar) {}
+
+    /**
+     * Registers alchemy-related objects for this mod instance.
+     * @param registrar The object responsible for registering alchemy-related objects to Minecraft.
+     * @since 1.0.12
+     */
+    default void RegisterAlchemyRelatedObjects(IAlchemyRegistrar registrar) {}
 }
