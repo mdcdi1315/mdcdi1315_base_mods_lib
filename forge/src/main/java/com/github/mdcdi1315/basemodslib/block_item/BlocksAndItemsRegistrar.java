@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.block_item;
 
+import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
@@ -18,6 +19,7 @@ import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.core.registries.Registries;
@@ -32,6 +34,9 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.function.Supplier;
 
 public final class BlocksAndItemsRegistrar
@@ -43,11 +48,15 @@ public final class BlocksAndItemsRegistrar
     private DeferredRegister<Block> BLOCKS_REGISTER;
     private DeferredRegister<CreativeModeTab> CREATIVE_MODE_TAB_REGISTER;
     private DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPE_REGISTER;
+    private Map<CreativeModeTab, ArrayList<ItemStack>> compiled_item_stacks;
     private List<Pair<CreativeModeTab[] , RegistryObject<Item>>> items_on_creative_tabs;
+    private Map<CreativeModeTab , ArrayList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
 
     public BlocksAndItemsRegistrar(String mod_id) {
         this.mod_id = mod_id;
+        compiled_item_stacks = null;
         items_on_creative_tabs = new List<>();
+        additional_creative_mode_tab_stacks = new HashMap<>();
         ITEM_REGISTER = DeferredRegister.create(ForgeRegistries.ITEMS, this.mod_id);
         FLUID_REGISTER = DeferredRegister.create(ForgeRegistries.FLUIDS , this.mod_id);
         BLOCKS_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCKS , this.mod_id);
@@ -162,8 +171,54 @@ public final class BlocksAndItemsRegistrar
         CREATIVE_MODE_TAB_REGISTER.register(name , new ElementSupplier<>(tab));
     }
 
+    @Override
+    public void RegisterCreativeModeTabStack(CreativeModeTab tab, Func1<ItemStack> stack)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(tab, "tab");
+        ArgumentNullException.ThrowIfNull(stack, "stack");
+
+        additional_creative_mode_tab_stacks.computeIfAbsent(tab, BlocksAndItemsRegistrar::ComputeIfAbsentWrapper1).add(stack);
+    }
+
+    private static ArrayList<Func1<ItemStack>> ComputeIfAbsentWrapper1(CreativeModeTab tab) {
+        return new ArrayList<>(10);
+    }
+
     private void OnCreativeModeTabsRegistering(BuildCreativeModeTabContentsEvent event)
     {
+        CreativeModeTab tab = event.getTab();
+
+        if (compiled_item_stacks != null) {
+            for (var kvp : compiled_item_stacks.entrySet())
+            {
+                if (kvp.getKey() == tab) {
+                    for (ItemStack is_additional : kvp.getValue()) { event.accept(is_additional); }
+                    // Do not continue searching if this is the tab we wanted for.
+                    break;
+                }
+            }
+        } else if (additional_creative_mode_tab_stacks != null && additional_creative_mode_tab_stacks.size() > 0) {
+            compiled_item_stacks = new HashMap<>();
+            // The below will run only once.
+            for (var kvp : additional_creative_mode_tab_stacks.entrySet())
+            {
+                if (kvp.getKey() == tab) {
+                    var v = kvp.getValue();
+                    ArrayList<ItemStack> cmp = new ArrayList<>(v.size());
+                    for (Func1<ItemStack> is_additional : v) {
+                        ItemStack is = is_additional.function();
+                        event.accept(is);
+                        cmp.add(is);
+                    }
+                    compiled_item_stacks.put(tab, cmp);
+                    // Do not continue searching if this is the tab we wanted for.
+                    break;
+                }
+            }
+        }
+        additional_creative_mode_tab_stacks = null;
+
         if (items_on_creative_tabs == null || items_on_creative_tabs.getCount() < 1) {
             items_on_creative_tabs = null;
             return;
@@ -176,7 +231,7 @@ public final class BlocksAndItemsRegistrar
                 p = en.getCurrent();
                 for (var i : p.first())
                 {
-                    if (i == event.getTab()) {
+                    if (i == tab) {
                         event.accept(p.second());
                         break;
                     }

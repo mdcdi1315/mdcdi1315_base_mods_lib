@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
@@ -12,14 +13,18 @@ import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.alchemy.IAlchemyRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.MenuTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.alchemy.PotionRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.entity.EntityTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.alchemy.ParticleTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.effect.MobEffectRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.client.DynamicItemRendererImplementation;
 import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
@@ -46,6 +51,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -65,36 +71,52 @@ public final class FabricCommonRegistryItemsRegistrar
         IRegistryRegistrar,
         IEntityTypeRegistrar,
         IFluidRegistrar,
-        IMenuTypeRegistrar
+        IMenuTypeRegistrar,
+        IAlchemyRegistrar
 {
     private String mod_id;
     private final boolean on_client;
     private HashMap<CreativeModeTab, ArrayList<Item>> modify_entries_register;
+    private HashMap<CreativeModeTab, ArrayList<ItemStack>> modify_entries_item_stack_register;
 
     public FabricCommonRegistryItemsRegistrar(String mod_id) {
         this.mod_id = mod_id;
         on_client = BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT;
         modify_entries_register = new HashMap<>(2);
+        modify_entries_item_stack_register = new HashMap<>(2);
     }
 
-    private record ModifyEntriesEventImpl(ArrayList<Item> item_enum)
+    private record ModifyEntriesEventImpl(ArrayList<Item> item_enum, @MaybeNull ArrayList<ItemStack> item_stack_enum)
             implements ItemGroupEvents.ModifyEntries
     {
         public ModifyEntriesEventImpl {
             // Trash unused array elements in the list. This will be possibly accessed many times.
             item_enum.trimToSize();
+            if (item_stack_enum != null) {
+                item_stack_enum.trimToSize();
+            }
         }
 
         @Override
         public void modifyEntries(FabricItemGroupEntries entries)
         {
+            var ds = entries.getDisplayStacks();
+            var sts = entries.getSearchTabStacks();
             var mapped = new DirectlyMappedList<>(item_enum , ItemStack::new);
-            entries.getDisplayStacks().addAll(mapped);
-            entries.getSearchTabStacks().addAll(mapped);
+            ds.addAll(mapped);
+            sts.addAll(mapped);
+            if (item_stack_enum != null) {
+                ds.addAll(item_stack_enum);
+                sts.addAll(item_stack_enum);
+            }
         }
     }
 
-    private static ArrayList<Item> ComputeIfAbsentWrapper(CreativeModeTab rk) {
+    private static ArrayList<Item> ComputeIfAbsentWrapper1(CreativeModeTab rk) {
+        return new ArrayList<>(10);
+    }
+
+    private static ArrayList<ItemStack> ComputeIfAbsentWrapper2(CreativeModeTab rk) {
         return new ArrayList<>(10);
     }
 
@@ -108,9 +130,10 @@ public final class FabricCommonRegistryItemsRegistrar
                 BaseModsLib.LOGGER.warn("Cannot get the resource key for the specified creative mode tab! Lookup failed.\nAll the items specified for this creative mode tab will not be applied.");
                 continue;
             }
-            ItemGroupEvents.modifyEntriesEvent(rk.get()).register(new ModifyEntriesEventImpl(kvp.getValue()));
+            ItemGroupEvents.modifyEntriesEvent(rk.get()).register(new ModifyEntriesEventImpl(kvp.getValue(), modify_entries_item_stack_register.get(kvp.getKey())));
         }
         modify_entries_register = null;
+        modify_entries_item_stack_register = null;
     }
 
     private ResourceLocation BuildAndValidateLocation(String path)
@@ -146,7 +169,7 @@ public final class FabricCommonRegistryItemsRegistrar
 
             for (var i : info.creative_mode_tabs_for_item()) {
                 // Add the item to be registered to the creative mode tabs.
-                modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).add(itm);
+                modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper1).add(itm);
             }
         }
     }
@@ -164,7 +187,7 @@ public final class FabricCommonRegistryItemsRegistrar
         if (on_client) { RegisterItemRenderer(itm); }
 
         for (var i : info.tabs()) {
-            modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).add(itm);
+            modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper1).add(itm);
         }
     }
 
@@ -181,6 +204,15 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(tab, "tab");
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB , BuildAndValidateLocation(name), tab);
+    }
+
+    @Override
+    public void RegisterCreativeModeTabStack(CreativeModeTab tab, Func1<ItemStack> stack)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(tab, "tab");
+        ArgumentNullException.ThrowIfNull(stack, "stack");
+        modify_entries_item_stack_register.computeIfAbsent(tab, FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper2).add(stack.function());
     }
 
     @Override
@@ -309,6 +341,30 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(info, "info");
         ResourceLocation location = BuildAndValidateLocation(name);
         Registry.register(BuiltInRegistries.FLUID , location , info.fluid_getter().function(location));
+    }
+
+    @Override
+    public void RegisterMobEffect(String name, MobEffectRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.MOB_EFFECT , BuildAndValidateLocation(name) , info.effect_getter().function());
+    }
+
+    @Override
+    public <T extends ParticleOptions> void RegisterParticleType(String name, ParticleTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, BuildAndValidateLocation(name) , info.particle_type_getter().function());
+    }
+
+    @Override
+    public void RegisterPotion(String name, PotionRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.POTION, BuildAndValidateLocation(name), info.potion_getter().function());
     }
 
     private record MenuCreaterToMenuSupplier<T extends AbstractContainerMenu>(MenuTypeCreater<T> crt)

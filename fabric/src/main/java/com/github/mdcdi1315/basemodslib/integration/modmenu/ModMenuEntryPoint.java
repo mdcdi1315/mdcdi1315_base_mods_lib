@@ -24,18 +24,5 @@ public final class ModMenuEntryPoint
     }
 
     @Override
-    public Map<String, ConfigScreenFactory<?>> getProvidedConfigScreenFactories() {
-        var en = BaseModsLibClient.GetConfigurationScreens().GetEnumerator();
-        Map<String, ConfigScreenFactory<?>> translated_map = new HashMap<>(10);
-        try {
-            Pair<String, ConfigurationScreenFactory<?>> pair;
-            while (en.MoveNext()) {
-                pair = en.getCurrent();
-                translated_map.put(pair.first(), new ConfigurationScreenFactoryToConfigScreenFactory<>(pair.second()));
-            }
-        } finally {
-            en.Dispose();
-        }
-        return translated_map;
-    }
+    public Map<String, ConfigScreenFactory<?>> getProvidedConfigScreenFactories() { return new ModMenuLazyLoadedMap(); }
 }

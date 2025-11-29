@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public final class MinecraftClientMixin
 {
-    @Inject(method = "<init>", at = @At("CTOR_HEAD"))
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/packs/repository/PackRepository;reload()V"))
     private void OnConstructingHead(GameConfig gameConfig, CallbackInfo info) {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
         CommonSetupEvent cse = new CommonSetupEvent();
@@ -23,7 +23,7 @@ public final class MinecraftClientMixin
         cse.Run();
     }
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/packs/repository/PackRepository;reload()V"))
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/telemetry/events/GameLoadTimesEvent;beginStep(Lnet/minecraft/client/telemetry/TelemetryProperty;)V"))
     private void OnConstructing(GameConfig gameConfig, CallbackInfo ci) {
         BaseModsLib.LOGGER.info("Client setup event realized. Dispatching client setup to implementing mods.");
         ClientSetupEvent cse = new ClientSetupEvent();

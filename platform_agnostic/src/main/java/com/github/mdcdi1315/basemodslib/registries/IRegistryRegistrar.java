@@ -3,6 +3,8 @@ package com.github.mdcdi1315.basemodslib.registries;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.Contract;
+
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
@@ -11,6 +13,7 @@ import net.minecraft.resources.ResourceKey;
 /**
  * Provides methods for registering registry objects and registries to mod loaders.
  */
+@Contract
 public interface IRegistryRegistrar
 {
     /**

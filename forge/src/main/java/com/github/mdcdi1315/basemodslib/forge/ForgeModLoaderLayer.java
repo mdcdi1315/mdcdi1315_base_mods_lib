@@ -9,6 +9,7 @@ import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
+import com.github.mdcdi1315.basemodslib.alchemy.ForgeAlchemyRegistrar;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
@@ -157,6 +158,9 @@ public final class ForgeModLoaderLayer
         instance.RegisterItems(reg);
         instance.RegisterFluids(reg);
         reg.RegisterToEventBus(mod_event_bus);
+        ForgeAlchemyRegistrar reg6 = new ForgeAlchemyRegistrar(mod_id);
+        instance.RegisterAlchemyRelatedObjects(reg6);
+        reg6.RegisterToEventBus(mod_event_bus);
         // tracker.AddDisposable(reg);
         ForgeRegistriesRegistrar reg2 = new ForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg2);
