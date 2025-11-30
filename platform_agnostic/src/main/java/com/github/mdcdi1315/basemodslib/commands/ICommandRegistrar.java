@@ -4,6 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.Contract;
+
 import com.mojang.brigadier.CommandDispatcher;
 
 import net.minecraft.commands.CommandSourceStack;
@@ -11,6 +13,7 @@ import net.minecraft.commands.CommandSourceStack;
 /**
  * Provides a way to register system chat commands to Minecraft.
  */
+@Contract
 public interface ICommandRegistrar
 {
     /**

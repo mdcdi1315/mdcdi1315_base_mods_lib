@@ -14,8 +14,9 @@ import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.IModLoaderRegistry;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
+import com.github.mdcdi1315.basemodslib.alchemy.ForgeAlchemyRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
 import com.github.mdcdi1315.basemodslib.entity.ForgeEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.ForgeBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
@@ -28,12 +29,12 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.forgespi.language.IModInfo;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.versions.forge.ForgeVersion;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 import java.util.List;
@@ -46,11 +47,12 @@ public final class ForgeModLoaderLayer
 {
     private List<IModInfo> forge_mod_info;
     // private DisposableObjectsTracker tracker;
-    private FMLJavaModLoadingContext baselibmodcontext;
     private ForgeCommandRegistrar global_command_registrar;
+    private final FMLJavaModLoadingContext baselibmodcontext;
     private Version minecraft_version, forge_modloader_version;
 
-    public ForgeModLoaderLayer(FMLJavaModLoadingContext baselibmodcontext) {
+    public ForgeModLoaderLayer(FMLJavaModLoadingContext baselibmodcontext)
+    {
         forge_mod_info = ModList.get().getMods();
         this.baselibmodcontext = baselibmodcontext;
         global_command_registrar = new ForgeCommandRegistrar();
@@ -78,12 +80,12 @@ public final class ForgeModLoaderLayer
         }
     }
 
-    private void DestroyLayerData() {
+    private void DestroyInternalResources() {
+        global_command_registrar = null;
         /*
         tracker.Dispose();
         tracker = null;
          */
-        global_command_registrar = null;
     }
 
     // REGISTRY FINALIZATION BEGIN
@@ -92,7 +94,7 @@ public final class ForgeModLoaderLayer
     public static int RegistryFinalization_GetEventCount() { return 6; } // 6 stages in total
 
     private record EventManagerFire_1<T>(IForgeRegistry<T> registry, Func2<IModLoaderRegistry<T> , RegistryFinalizedEvent<T>> event_getter, Runnable increment_meter_handler)
-        implements Action1<Void>
+            implements Action1<Void>
     {
         @Override
         public void action(Void obj) {
@@ -101,8 +103,8 @@ public final class ForgeModLoaderLayer
         }
     }
 
-    private record EventManagerFire_2<T>(IForgeRegistry<T> registry, Func2<IModLoaderRegistry<T> , RegistryFinalizedEvent<T>> event_getter, Runnable increment_meter_handler)
-        implements Func2<Void, Void>
+    private record EventManagerFire_2<T>(IForgeRegistry<T> registry, Func2<IModLoaderRegistry<T>, RegistryFinalizedEvent<T>> event_getter, Runnable increment_meter_handler)
+            implements Func2<Void, Void>
     {
         @Override
         public Void function(Void input) {
@@ -141,7 +143,7 @@ public final class ForgeModLoaderLayer
 
     private void OnModLoadingComplete(FMLLoadCompleteEvent event) {
         event.enqueueWork(BaseModsLib::Destroy);
-        event.enqueueWork(this::DestroyLayerData);
+        event.enqueueWork(this::DestroyInternalResources);
     }
 
     @Override
@@ -156,6 +158,9 @@ public final class ForgeModLoaderLayer
         instance.RegisterItems(reg);
         instance.RegisterFluids(reg);
         reg.RegisterToEventBus(mod_event_bus);
+        ForgeAlchemyRegistrar reg6 = new ForgeAlchemyRegistrar(mod_id);
+        instance.RegisterAlchemyRelatedObjects(reg6);
+        reg6.RegisterToEventBus(mod_event_bus);
         // tracker.AddDisposable(reg);
         ForgeRegistriesRegistrar reg2 = new ForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg2);
@@ -177,6 +182,13 @@ public final class ForgeModLoaderLayer
         reg5.RegisterToEventBus(mod_event_bus);
 
         instance.RegisterCommands(global_command_registrar);
+    }
+
+    @Override
+    public void Dispose() {
+        this.forge_modloader_version = null;
+        this.minecraft_version = null;
+        this.forge_mod_info = null;
     }
 
     @Override
@@ -224,14 +236,4 @@ public final class ForgeModLoaderLayer
 
     @Override
     public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
-
-    @Override
-    public void Dispose() {
-        // this.tracker = null;
-        this.forge_mod_info = null;
-        this.minecraft_version = null;
-        this.baselibmodcontext = null;
-        this.forge_modloader_version = null;
-        this.global_command_registrar = null;
-    }
 }

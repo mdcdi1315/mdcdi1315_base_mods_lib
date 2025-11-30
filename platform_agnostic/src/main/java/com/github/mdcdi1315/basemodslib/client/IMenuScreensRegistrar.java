@@ -3,6 +3,8 @@ package com.github.mdcdi1315.basemodslib.client;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.Contract;
+
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -13,6 +15,7 @@ import net.minecraft.client.gui.screens.inventory.MenuAccess;
  * This is typically provided after Minecraft itself is loaded.
  * @since 1.0.7
  */
+@Contract
 public interface IMenuScreensRegistrar
 {
     /**

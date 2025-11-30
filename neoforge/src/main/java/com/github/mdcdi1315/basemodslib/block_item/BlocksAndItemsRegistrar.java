@@ -20,6 +20,7 @@ import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
 
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
@@ -35,7 +36,10 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 public final class BlocksAndItemsRegistrar
         implements IBlockRegistrar,
@@ -50,6 +54,8 @@ public final class BlocksAndItemsRegistrar
     private DeferredRegister.DataComponents DATA_COMPONENT_TYPE_REGISTER;
     private DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS_REGISTER;
     private List<Pair<ItemLike, CreativeModeTab[]>> tabs_registration;
+    private Map<CreativeModeTab, ArrayList<ItemStack>> compiled_item_stacks;
+    private Map<CreativeModeTab , ArrayList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
 
     public BlocksAndItemsRegistrar(String mod_id)
     {
@@ -59,7 +65,10 @@ public final class BlocksAndItemsRegistrar
         BLOCK_ENTITY_REGISTER = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE , mod_id);
         CREATIVE_MODE_TABS_REGISTER = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB , mod_id);
         DATA_COMPONENT_TYPE_REGISTER = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE , mod_id);
+
+        compiled_item_stacks = null;
         tabs_registration = new List<>();
+        additional_creative_mode_tab_stacks = new HashMap<>(10);
     }
 
     @Override
@@ -146,8 +155,54 @@ public final class BlocksAndItemsRegistrar
         CREATIVE_MODE_TABS_REGISTER.register(name, new ElementSupplier<>(tab));
     }
 
+    @Override
+    public void RegisterCreativeModeTabStack(CreativeModeTab tab, Func1<ItemStack> stack)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(tab, "tab");
+        ArgumentNullException.ThrowIfNull(stack, "stack");
+
+        additional_creative_mode_tab_stacks.computeIfAbsent(tab, BlocksAndItemsRegistrar::ComputeIfAbsentWrapper1).add(stack);
+    }
+
+    private static ArrayList<Func1<ItemStack>> ComputeIfAbsentWrapper1(CreativeModeTab tab) {
+        return new ArrayList<>(10);
+    }
+
     private void RegisterCreativeModeTabsEvent(BuildCreativeModeTabContentsEvent event)
     {
+        CreativeModeTab current = event.getTab();
+
+        if (compiled_item_stacks != null) {
+            for (var kvp : compiled_item_stacks.entrySet())
+            {
+                if (kvp.getKey() == current) {
+                    for (ItemStack is_additional : kvp.getValue()) { event.accept(is_additional); }
+                    // Do not continue searching if this is the tab we wanted for.
+                    break;
+                }
+            }
+        } else if (additional_creative_mode_tab_stacks != null && additional_creative_mode_tab_stacks.size() > 0) {
+            compiled_item_stacks = new HashMap<>();
+            // The below will run only once.
+            for (var kvp : additional_creative_mode_tab_stacks.entrySet())
+            {
+                if (kvp.getKey() == current) {
+                    var v = kvp.getValue();
+                    ArrayList<ItemStack> cmp = new ArrayList<>(v.size());
+                    for (Func1<ItemStack> is_additional : v) {
+                        ItemStack is = is_additional.function();
+                        event.accept(is);
+                        cmp.add(is);
+                    }
+                    compiled_item_stacks.put(current, cmp);
+                    // Do not continue searching if this is the tab we wanted for.
+                    break;
+                }
+            }
+        }
+        additional_creative_mode_tab_stacks = null;
+
         if (tabs_registration == null || tabs_registration.getCount() < 1) {
             tabs_registration = null;
             return;
@@ -155,7 +210,6 @@ public final class BlocksAndItemsRegistrar
 
         var en = tabs_registration.GetEnumerator();
         try {
-            CreativeModeTab current = event.getTab();
             Pair<ItemLike , CreativeModeTab[]> p;
             while (en.MoveNext()) {
                 p = en.getCurrent();

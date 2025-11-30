@@ -3,8 +3,10 @@ package com.github.mdcdi1315.basemodslib.entity;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
+import com.github.mdcdi1315.basemodslib.Contract;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
+import com.github.mdcdi1315.basemodslib.entity.effect.MobEffectRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
@@ -20,6 +22,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
  * Provides a way for registering entity types and more!
  * @since 1.0.3
  */
+@Contract
 public interface IEntityTypeRegistrar
 {
     /**
@@ -58,6 +61,14 @@ public interface IEntityTypeRegistrar
      * @since 1.0.5
      */
     <T extends Sensor<?>> void RegisterSensorType(@ConstantExpected String name, SensorTypeRegistrationInfo<T> info) throws ArgumentNullException;
+
+    /**
+     * Registers a new mob effect to Minecraft.
+     * @param name The name of the newly created mob effect type that will be registered.
+     * @param info The mob effect information that is used to register the mob effect type.
+     * @throws ArgumentNullException {@code info} is {@code null}.
+     */
+    void RegisterMobEffect(@ConstantExpected String name, MobEffectRegistrationInfo info) throws ArgumentNullException;
 
     /**
      * Gets a previously registered entity type.

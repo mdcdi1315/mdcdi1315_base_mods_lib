@@ -13,6 +13,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
 import com.github.mdcdi1315.basemodslib.menu.NeoForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkBuilder;
 import com.github.mdcdi1315.basemodslib.world.NeoForgeWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.alchemy.NeoForgeAlchemyRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkingManager;
 import com.github.mdcdi1315.basemodslib.commands.NeoForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.block_item.BlocksAndItemsRegistrar;
@@ -122,6 +123,10 @@ public final class NeoForgeModLoaderLayer
         NeoForgeRegistriesRegistrar reg_2 = new NeoForgeRegistriesRegistrar(mod_id);
         instance.RegisterRegistryItems(reg_2);
         reg_2.RegisterToEventBus(mod_event_bus);
+
+        NeoForgeAlchemyRegistrar reg_7 = new NeoForgeAlchemyRegistrar(mod_id);
+        instance.RegisterAlchemyRelatedObjects(reg_7);
+        reg_7.RegisterToEventBus(mod_event_bus);
 
         NeoForgeWorldGenRegistrar reg_3 = new NeoForgeWorldGenRegistrar(mod_id);
         instance.RegisterWorldGenItems(reg_3);
