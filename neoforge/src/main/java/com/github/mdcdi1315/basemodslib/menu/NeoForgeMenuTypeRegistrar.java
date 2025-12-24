@@ -6,9 +6,11 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.network.IContainerFactory;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class NeoForgeMenuTypeRegistrar
@@ -29,12 +31,27 @@ public final class NeoForgeMenuTypeRegistrar
         }
     }
 
+    private record MenuCreaterExToIContainerFactory<T extends AbstractContainerMenu>(MenuTypeCreaterEx<T> crt)
+            implements IContainerFactory<T>
+    {
+        @Override
+        public T create(int p_create_1_, Inventory p_create_2_) {
+            return crt.Create(p_create_1_ , p_create_2_);
+        }
+
+        @Override
+        public T create(int i, Inventory inventory, RegistryFriendlyByteBuf friendlyByteBuf) {
+            return crt.Create(i , inventory, friendlyByteBuf);
+        }
+    }
+
     private record MenuTypeSupplier<T extends AbstractContainerMenu>(MenuTypeRegistrationInfo<T> info)
         implements Func1<MenuType<T>>
     {
         @Override
         public MenuType<T> function() {
-            return new MenuType<>(new MenuCreaterToMenuSupplier<>(info.creater()) , info.required_features());
+            MenuTypeCreater<T> crt = info.creater();
+            return new MenuType<>((crt instanceof MenuTypeCreaterEx<T> t_ex) ? new MenuCreaterExToIContainerFactory<>(t_ex) : new MenuCreaterToMenuSupplier<>(crt) , info.required_features());
         }
     }
 

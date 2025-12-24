@@ -13,6 +13,9 @@ repositories {
                 url = 'https://libraries.minecraft.net/'
             }
         }
-        filter { includeGroupAndSubgroups("com.mojang") }
+        filter {
+            includeGroupAndSubgroups("org.lwjgl")
+            includeGroupAndSubgroups("com.mojang")
+        }
     }
 }

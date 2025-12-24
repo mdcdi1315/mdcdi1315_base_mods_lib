@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.config;
 
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
@@ -21,6 +22,6 @@ public interface IModConfig
      */
     @MaybeNull
     default String GetComment() {
-        return "";
+        return StringUtils.Empty;
     }
 }

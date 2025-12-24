@@ -178,6 +178,37 @@ public final class BaseModsLibClient
     }
 
     /**
+     * Gets the associated {@link IClientModInstance} for the specified mod with the specified ID. <br />
+     * This is provided because a mod can provide multiple sub-mods that need to be interconnected, or
+     * for accessing API for an external mod that is provided through it's {@link IClientModInstance}. <br />
+     * This method will return {@code null} if the mod exists but is not registered with BML, and will return {@code null} if the specified mod is not loaded at all.
+     * @param mod_id The ID of the mod to retrieve it's {@link IClientModInstance} declaration.
+     * @return The declared instance of the mod with the specified ID, or {@code null} if the mod does not exist.
+     * @throws ArgumentNullException {@code mod_id} is {@code null}.
+     * @since 1.0.13
+     */
+    @MaybeNull
+    public static IClientModInstance GetBMLModInstance(String mod_id)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(mod_id);
+        if (mod_id.isBlank()) { return null; }
+        IClientModInstance smi;
+        IEnumerator<IClientModInstance> en = mod_instances.GetEnumerator();
+        try {
+            while (en.MoveNext()) {
+                smi = en.getCurrent();
+                if (smi.GetModId().equals(mod_id)) {
+                    return smi;
+                }
+            }
+            return null;
+        } finally {
+            en.Dispose();
+        }
+    }
+
+    /**
      * Called by Minecraft when it shuts down, do not call this by your code!!
      */
     @ApiStatus.Internal

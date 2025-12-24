@@ -1,24 +1,36 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.mojang.datafixers.util.Pair;
-import net.minecraft.core.HolderSet;
+
+import net.minecraft.tags.TagKey;
 import net.minecraft.core.Registry;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Set;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.ArrayList;
 import java.util.stream.Stream;
 
+/**
+ * Provides an {@link IModLoaderRegistry} implementation by wrapping {@link Registry} objects.
+ * @param <T> The type of the items that are managed by the mod loader registry.
+ */
 public final class MinecraftWrappedModLoaderRegistry<T>
     implements IModLoaderRegistry<T>
 {
-    private Registry<T> reg;
+    private final Registry<T> reg;
 
+    /**
+     * Initializes a new instance of the {@link MinecraftWrappedModLoaderRegistry} class by the specified Minecraft registry object to wrap.
+     * @param registry The registry object to be wrapped.
+     * @throws ArgumentNullException {@code registry} is {@code null}.
+     */
     public MinecraftWrappedModLoaderRegistry(Registry<T> registry)
+            throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(registry , "registry");
         reg = registry;
@@ -80,7 +92,7 @@ public final class MinecraftWrappedModLoaderRegistry<T>
     }
 
     @Override
-    public @NotNull Iterator<T> iterator() {
+    public Iterator<T> iterator() {
         return reg.iterator();
     }
 }

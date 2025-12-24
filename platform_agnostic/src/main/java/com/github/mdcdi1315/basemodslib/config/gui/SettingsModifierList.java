@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.Record;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.ArrayValue;
 import com.github.mdcdi1315.basemodslib.client.gui.ITickableGuiElement;
@@ -334,7 +335,7 @@ public class SettingsModifierList
             w[0] = Button.builder(Component.literal("<"), this::OnButtonPressed).bounds(0 , 0 , 14, ITEMS_HEIGHT-4).build();
             w[2] = Button.builder(Component.literal(">"), this::OnButtonPressed).bounds(0 , 0 , 14, ITEMS_HEIGHT-4).build();
             w[3] = Button.builder(Component.literal("Add..."), this::OnButtonPressed).bounds(0, 0 , 35, ITEMS_HEIGHT-4).build();
-            edit_box = new EditBox(minecraft.font,0 , 0 , 200, ITEMS_HEIGHT-4, Component.literal(""));
+            edit_box = new EditBox(minecraft.font,0 , 0 , 200, ITEMS_HEIGHT-4, Component.literal(StringUtils.Empty));
             w[1] = edit_box;
             return w;
         }
@@ -357,7 +358,7 @@ public class SettingsModifierList
 
         @Override
         protected String TransformEntryToString(String entry) {
-            return (entry == null) ? "" : entry;
+            return (entry == null) ? StringUtils.Empty : entry;
         }
 
         @Override

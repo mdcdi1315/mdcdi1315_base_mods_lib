@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.config.gui;
 
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.Record;
@@ -56,7 +57,7 @@ final class ConfigObjectEditScreen
                 .bounds(back_button_x, common_down_y, 90 , 20)
                 .build();
         list = new SettingsModifierList(minecraft, width, common_down_y-10, 17 + (title_strings.length * font.lineHeight));
-        list.CreateFromRecord("", cfg_record);
+        list.CreateFromRecord(StringUtils.Empty, cfg_record);
         addRenderableWidget(list);
     }
 

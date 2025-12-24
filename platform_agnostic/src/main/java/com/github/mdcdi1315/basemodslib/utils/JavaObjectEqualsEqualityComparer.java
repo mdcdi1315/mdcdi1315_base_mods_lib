@@ -4,6 +4,10 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComp
 
 import java.util.Objects;
 
+/**
+ * {@link IEqualityComparer} implementation for Java objects in general.
+ * @param <T> The type of the Java object to be compared.
+ */
 public final class JavaObjectEqualsEqualityComparer<T>
     implements IEqualityComparer<T>
 {

@@ -12,7 +12,7 @@ public class PlatformNotSupportedException
      * Initializes a new instance of the {@link PlatformNotSupportedException} class with default properties.
      */
     public PlatformNotSupportedException() {
-        super("");
+        super(StringUtils.Empty);
     }
 
     /**
@@ -29,5 +29,5 @@ public class PlatformNotSupportedException
      * @param inner The exception that is the cause of the current exception.
      *             If the {@code inner} parameter is not {@code null}, the current exception is raised in a {@code catch} block that handles the inner exception.
      */
-    public PlatformNotSupportedException(@MaybeNull String message, @MaybeNull Exception inner) { super(message, inner); }
+    public PlatformNotSupportedException(@MaybeNull String message, @MaybeNull Exception inner) { super(message , inner); }
 }

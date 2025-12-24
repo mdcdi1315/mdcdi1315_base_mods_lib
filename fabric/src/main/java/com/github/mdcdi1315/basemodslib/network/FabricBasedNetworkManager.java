@@ -103,11 +103,7 @@ public final class FabricBasedNetworkManager
         ArgumentNullException.ThrowIfNull(provider, "provider");
 
         if (player instanceof ServerPlayer sp) {
-            if (provider instanceof MenuProviderEx) {
-                throw new NotSupportedException("This feature is unsupported on Fabric due to how the Screen Handler API is written. Use that API directly instead.");
-            } else {
-                sp.openMenu(provider);
-            }
+            sp.openMenu(provider instanceof MenuProviderEx mpx ? new ExtendedScreenHandlerFactoryTranslation(mpx) : provider);
         }
     }
 }
