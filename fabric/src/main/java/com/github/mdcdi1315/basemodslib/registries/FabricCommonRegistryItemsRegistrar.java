@@ -10,6 +10,7 @@ import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreater;
 import com.github.mdcdi1315.basemodslib.item.IBlockEntityItem;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreaterEx;
 import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
@@ -37,6 +38,7 @@ import com.mojang.serialization.Lifecycle;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 
 import net.minecraft.core.Registry;
@@ -47,6 +49,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.core.RegistrationInfo;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.resources.ResourceLocation;
@@ -64,6 +67,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
 import java.util.*;
+import java.util.function.*;
 
 public final class FabricCommonRegistryItemsRegistrar
     implements IItemRegistrar,
@@ -285,7 +289,45 @@ public final class FabricCommonRegistryItemsRegistrar
         if (rg.isEmpty()) {
             throw new NotSupportedException("Registering objects to a non-existent registry is not allowed!");
         } else {
+            Registry.register((Registry<T>) rg.get(), location, supplier.Get(location));
+        }
+    }
+
+    @Override
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<ResourceLocation, T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+
+        ResourceLocation location = BuildAndValidateLocation(name);
+
+        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
+
+        if (rg.isEmpty()) {
+            throw new NotSupportedException("Registering objects to a non-existent registry is not allowed!");
+        } else {
             Registry.register((Registry<T>) rg.get(), location, supplier.apply(location));
+        }
+    }
+
+    @Override
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Supplier<T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+
+        ResourceLocation location = BuildAndValidateLocation(name);
+
+        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
+
+        if (rg.isEmpty()) {
+            throw new NotSupportedException("Registering objects to a non-existent registry is not allowed!");
+        } else {
+            Registry.register((Registry<T>) rg.get(), location, supplier.get());
         }
     }
 
@@ -386,15 +428,29 @@ public final class FabricCommonRegistryItemsRegistrar
         }
     }
 
+    private record MenuCreaterExToExtendedFactory<T extends AbstractContainerMenu>(MenuTypeCreaterEx<T> crt)
+            implements ExtendedScreenHandlerType.ExtendedFactory<T, FriendlyByteBuf>
+    {
+        @Override
+        public T create(int syncId, Inventory inventory, FriendlyByteBuf buf) {
+            T instance = crt.Create(syncId, inventory, buf);
+            buf.release();
+            return instance;
+        }
+    }
+
     @Override
     public <T extends AbstractContainerMenu> void Register(String name, MenuTypeRegistrationInfo<T> info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(
-                BuiltInRegistries.MENU,
-                BuildAndValidateLocation(name) ,
-                new MenuType<>(new MenuCreaterToMenuSupplier<>(info.creater()) , info.required_features())
-        );
+
+        MenuTypeCreater<T> crt = info.creater();
+
+        MenuType<T> mt = (crt instanceof MenuTypeCreaterEx<T> t_ex) ?
+                new ExtendedScreenHandlerType<>(new MenuCreaterExToExtendedFactory<>(t_ex), MenuCreaterExStreamCodec.INSTANCE) :
+                new MenuType<>(new MenuCreaterToMenuSupplier<>(crt) , info.required_features());
+
+        Registry.register(BuiltInRegistries.MENU, BuildAndValidateLocation(name) , mt);
     }
 }

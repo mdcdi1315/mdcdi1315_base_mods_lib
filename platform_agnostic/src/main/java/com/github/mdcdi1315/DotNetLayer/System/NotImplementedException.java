@@ -11,7 +11,7 @@ public class NotImplementedException
     /**
      * Initializes a new instance of the {@link NotImplementedException} class with default properties.
      */
-    public NotImplementedException() { super("" , null); }
+    public NotImplementedException() { super(StringUtils.Empty , null); }
 
     /**
      * Initializes a new instance of the {@link NotImplementedException} class with a specified error message.

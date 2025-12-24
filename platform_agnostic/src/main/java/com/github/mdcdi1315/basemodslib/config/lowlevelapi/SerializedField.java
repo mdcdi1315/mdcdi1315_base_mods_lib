@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.config.lowlevelapi;
 
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
@@ -21,7 +22,7 @@ public final class SerializedField
             codec = CodecUtils.CreateCodecDirect(
                     Codec.STRING.fieldOf("name").forGetter(SerializedField::GetName),
                     ConfigValueCodec.INSTANCE.fieldOf("value").forGetter(SerializedField::GetValue),
-                    Codec.STRING.optionalFieldOf("comment" , "").forGetter(SerializedField::GetComment),
+                    Codec.STRING.optionalFieldOf("comment" , StringUtils.Empty).forGetter(SerializedField::GetComment),
                     SerializedField::new
             );
         }

@@ -10,12 +10,15 @@ import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
+
+import java.util.function.Function;
 
 public final class NeoForgeRegistriesRegistrar
         implements IRegistryRegistrar
@@ -67,9 +70,20 @@ public final class NeoForgeRegistriesRegistrar
     }
 
     @Override
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<ResourceLocation, T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        CreateIfAbsentOrReturn(registry).register(name , supplier);
+    }
+
+    @Override
     public <T> void RegisterRegistry(ResourceKey<Registry<T>> registryResourceKey, Action1<IModLoaderRegistry<T>> on_registry_ready)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(on_registry_ready, "on_registry_ready");
         ArgumentNullException.ThrowIfNull(registryResourceKey, "registryResourceKey");
         registries_to_create.Add(new RegistryEntry<>(registryResourceKey, on_registry_ready));
     }

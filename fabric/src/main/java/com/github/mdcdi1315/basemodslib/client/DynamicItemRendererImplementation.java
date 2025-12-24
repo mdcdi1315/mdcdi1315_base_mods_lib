@@ -21,12 +21,12 @@ public final class DynamicItemRendererImplementation
     }
 
     @Override
-    public void render(ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, int packed_light, int packed_overlay)
+    public void render(ItemStack item_stack, ItemDisplayContext dc, PoseStack pose_stack, MultiBufferSource buffer, int packed_light, int packed_overlay)
     {
         Minecraft.getInstance().getBlockEntityRenderDispatcher().renderItem(
-                item_to_be_rendered.GetBlockEntity(),
-                poseStack,
-                multiBufferSource,
+                item_to_be_rendered.GetBlockEntity(item_stack),
+                pose_stack,
+                buffer,
                 packed_light,
                 packed_overlay
         );

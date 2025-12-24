@@ -76,15 +76,30 @@ public final class ForgeRegistriesRegistrar
         return t;
     }
 
-    @Override
-    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, RegistryObjectSupplier<T> supplier) throws ArgumentNullException {
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, RegistryObjectSupplier<T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+        ArgumentNullException.ThrowIfNull(registry, "registry");
         CreateIfAbsentOrReturn(registry).register(name, new ROSRegister<>(supplier , ResourceLocation.tryBuild(mod_id, name)));
+    }
+
+    @Override
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Supplier<T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        CreateIfAbsentOrReturn(registry).register(name , supplier);
     }
 
     @Override
     public <T> void RegisterRegistry(ResourceKey<Registry<T>> registryResourceKey, Action1<IModLoaderRegistry<T>> on_registry_ready)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(on_registry_ready, "on_registry_ready");
         ArgumentNullException.ThrowIfNull(registryResourceKey, "registryResourceKey");
         registries_to_create.Add(new RegistryEntry<>(registryResourceKey, on_registry_ready));
     }
