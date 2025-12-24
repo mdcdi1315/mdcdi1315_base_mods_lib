@@ -12,7 +12,7 @@ public class PlatformNotSupportedException
      * Initializes a new instance of the {@link PlatformNotSupportedException} class with default properties.
      */
     public PlatformNotSupportedException() {
-        super("");
+        super(StringUtils.Empty);
     }
 
     /**

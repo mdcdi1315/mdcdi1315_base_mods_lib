@@ -21,9 +21,20 @@ public final class Extensions
 {
     private Extensions() {}
 
+    /**
+     * Provides the value closer to the ratio of the circumference of a circle to its diameter, as a single floating-point number.
+     */
     public static final float PI = (float) Math.PI;
+    /**
+     * Provides the value closer to the ratio of the circumference of a circle to its diameter multiplied by 2, as a single floating-point number.
+     */
     public static final float TWO_PI = PI * 2;
 
+    /**
+     * Produces a random {@link Direction} value, excluding the {@link Direction#UP} and {@link Direction#DOWN} constant values.
+     * @param rs The {@link RandomSource} instance to produce the random direction from.
+     * @return The produced random direction.
+     */
     @Extension
     public static Direction GetRandomDirectionExcludingUpDown(RandomSource rs)
     {
@@ -47,35 +58,50 @@ public final class Extensions
         ) , rs);
     }
 
+    /**
+     * Computes the trigonometric sine of the specified angle. <br />
+     * For more information, see the {@link Math#sin(double)} function.
+     * @param v The angle to compute its trigonometric sine.
+     * @return The trigonometric sine of {@code v}.
+     */
     public static float Sin(float v)
     {
         return Mth.sin(v); // Currently forwards to Minecraft's math class, we need to find a better alternative for this
     }
 
-    public static double Sin(double v)
-    {
-        return Math.sin(v);
-    }
+    /**
+     * Computes the trigonometric sine of the specified angle. <br />
+     * For more information, see the {@link Math#sin(double)} function.
+     * @param v The angle to compute its trigonometric sine.
+     * @return The trigonometric sine of {@code v}.
+     */
+    public static double Sin(double v) { return Math.sin(v); }
 
+    /**
+     * Computes the trigonometric cosine of the specified angle. <br />
+     * For more information, see the {@link Math#cos(double)} function.
+     * @param v The angle to compute its trigonometric cosine.
+     * @return The trigonometric cosine of {@code v}.
+     */
     public static float Cos(float v)
     {
         return Mth.cos(v); // Currently forwards to Minecraft's math class, we need to find a better alternative for this
     }
 
+    /**
+     * Computes the trigonometric cosine of the specified angle. <br />
+     * For more information, see the {@link Math#cos(double)} function.
+     * @param v The angle to compute its trigonometric cosine.
+     * @return The trigonometric cosine of {@code v}.
+     */
     public static double Cos(double v)
     {
         return Math.cos(v);
     }
 
-    public static double InvertedSquareRoot(double d)
-    {
-        return 1.0d / Math.sqrt(d);
-    }
+    public static double InvertedSquareRoot(double d) { return 1.0d / Math.sqrt(d); }
 
-    public static float InvertedSquareRoot(float d)
-    {
-        return (float) (1.0d / Math.sqrt(d));
-    }
+    public static float InvertedSquareRoot(float d) { return (float) (1.0d / Math.sqrt(d)); }
 
     public static int Ceiling(float value) {
         // Borrowed from Minecraft's code, but this is roughly in all cases.

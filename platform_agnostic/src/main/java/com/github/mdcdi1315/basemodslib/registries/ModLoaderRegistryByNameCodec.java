@@ -28,8 +28,10 @@ public final class ModLoaderRegistryByNameCodec<TElement>
     /**
      * Creates a new instance of the {@link ModLoaderRegistryByNameCodec} class, with the specified registry object to read and write entries.
      * @param registry The registry object to use.
+     * @throws ArgumentNullException {@code registry} is {@code null}.
      */
     public ModLoaderRegistryByNameCodec(IModLoaderRegistry<TElement> registry)
+        throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(registry , "registry");
         this.registry = registry;
@@ -51,8 +53,7 @@ public final class ModLoaderRegistryByNameCodec<TElement>
         var err = ld.error();
 
         if (err.isPresent()) {
-            Supplier<String> m = err.get()::message;
-            return DataResult.error(m);
+            return DataResult.error(new StringSupplier(err.get().message()));
         } else {
             var result = ld.result().get();
 

@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.config.gui;
 
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
@@ -334,7 +335,7 @@ public class SettingsModifierList
             w[0] = Button.builder(Component.literal("<"), this::OnButtonPressed).bounds(0 , 0 , 14, ITEMS_HEIGHT-4).build();
             w[2] = Button.builder(Component.literal(">"), this::OnButtonPressed).bounds(0 , 0 , 14, ITEMS_HEIGHT-4).build();
             w[3] = Button.builder(Component.literal("Add..."), this::OnButtonPressed).bounds(0, 0 , 35, ITEMS_HEIGHT-4).build();
-            edit_box = new EditBox(minecraft.font,0 , 0 , 200, ITEMS_HEIGHT-4, Component.literal(""));
+            edit_box = new EditBox(minecraft.font,0 , 0 , 200, ITEMS_HEIGHT-4, Component.literal(StringUtils.Empty));
             w[1] = edit_box;
             return w;
         }
@@ -359,7 +360,7 @@ public class SettingsModifierList
 
         @Override
         protected String TransformEntryToString(String entry) {
-            return (entry == null) ? "" : entry;
+            return (entry == null) ? StringUtils.Empty : entry;
         }
 
         @Override
@@ -463,7 +464,7 @@ public class SettingsModifierList
         private final String culturized, comment , actual_setting_name;
 
         public FieldData(String culturized, String actual_setting_name) {
-            this(culturized, actual_setting_name, "");
+            this(culturized, actual_setting_name, StringUtils.Empty);
         }
 
         public FieldData(String culturized, String actual_setting_name, String comment)
@@ -494,7 +495,7 @@ public class SettingsModifierList
         @MaybeNull
         public List<Component> ConstructTooltipLinesFromComment()
         {
-            if (comment == null || comment.isEmpty()) {
+            if (StringUtils.IsNullOrEmpty(comment)) {
                 return null;
             } else {
                 var strings = comment.split("\n");

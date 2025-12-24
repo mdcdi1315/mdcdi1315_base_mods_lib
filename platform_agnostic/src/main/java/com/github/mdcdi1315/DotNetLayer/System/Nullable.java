@@ -105,5 +105,5 @@ public final class Nullable<T extends ValueType> // Java: T extends ValueType C#
      * if the {@link #GetHasValue} method is {@code true}, or an empty string ("") if the {@link #GetHasValue} method is {@code false}.
      */
     @MaybeNull
-    public String ToString() { return hasValue ? value.ToString() : ""; }
+    public String ToString() { return hasValue ? value.ToString() : StringUtils.Empty; }
 }

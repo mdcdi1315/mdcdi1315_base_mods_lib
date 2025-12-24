@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System.Diagnostics;
 
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
@@ -19,7 +20,7 @@ public abstract class Switch
     private volatile boolean _initialized;
     private boolean _initializing;
     @AllowNull
-    private volatile String _switchValueString = "";
+    private volatile String _switchValueString = StringUtils.Empty;
     private final String _defaultValue;
     private AtomicReference<Object> _initializedLock;
 
@@ -41,7 +42,7 @@ public abstract class Switch
      * @param description The description for the switch.
      */
     protected Switch(String displayName, @MaybeNull String description) {
-        this(displayName , description , "");
+        this(displayName , description , StringUtils.Empty);
     }
 
     /**
@@ -53,7 +54,7 @@ public abstract class Switch
     protected Switch(String displayName, @MaybeNull String description, String defaultSwitchValue)
     {
         _initializedLock = new AtomicReference<>();
-        _displayName = displayName == null ? "" : displayName;
+        _displayName = displayName == null ? StringUtils.Empty : displayName;
         _description = description;
         _defaultValue = defaultSwitchValue;
     }
@@ -191,7 +192,7 @@ public abstract class Switch
      */
     @NotNull
     public String GetDescription() {
-        return _description == null ? "" : _description;
+        return _description == null ? StringUtils.Empty : _description;
     }
 
     /**

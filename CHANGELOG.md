@@ -1,9 +1,17 @@
-### Now releasing 1.0.12:
+### Now releasing 1.0.13:
 
--> Fabric: Fixed the common and client setup events firing at incorrect times on Minecraft clients.
+-> This is the final release for 1.20.1 as we have been reached the end of the year.
 
--> Added custom item stack support for creative mode tabs
+-> Finalized support for extended screen handlers. Now the API properly translates screen handling with custom packet data for 1.20.1 .
 
--> (Fabric) Mod menu integration support: Mods declaring configuration screens through the library API should now be always recognized by Mod Menu.
+-> Potential fix for the Fabric rendering API layer that overrides `IBlockEntityItem` execution on NeoForge. This is done by the Sinytra's Forgified Fabric API that is used for e.g. Sodium on NeoForge.
+This change does also apply to 1.20.1, if a similar API with similar effects is discovered.
 
--> Added support for registering potions and particle types.
+-> Added a new `StringUtils` class to complement static methods found in `System.String` class in .NET .
+
+-> Added some additional documentation for some types
+
+-> Some minor bugfixes and improvements
+
+-> Added helper methods to `IRegistryRegistrar` contract to cope better with the `RegisterObject` method.
+

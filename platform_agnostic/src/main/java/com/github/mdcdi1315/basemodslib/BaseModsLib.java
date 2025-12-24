@@ -192,6 +192,37 @@ public final class BaseModsLib
     public static IEnumerable<IServerModInstance> GetModInstances() { return mod_instances; }
 
     /**
+     * Gets the associated {@link IServerModInstance} for the specified mod with the specified ID. <br />
+     * This is provided because a mod can provide multiple sub-mods that need to be interconnected, or
+     * for accessing API for an external mod that is provided through it's {@link IServerModInstance}. <br />
+     * This method will return {@code null} if the mod exists but is not registered with BML, and will return {@code null} if the specified mod is not loaded at all.
+     * @param mod_id The ID of the mod to retrieve it's {@link IServerModInstance} declaration.
+     * @return The declared instance of the mod with the specified ID, or {@code null} if the mod does not exist.
+     * @throws ArgumentNullException {@code mod_id} is {@code null}.
+     * @since 1.0.13
+     */
+    @MaybeNull
+    public static IServerModInstance GetBMLModInstance(String mod_id)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(mod_id);
+        if (mod_id.isBlank()) { return null; }
+        IServerModInstance smi;
+        IEnumerator<IServerModInstance> en = mod_instances.GetEnumerator();
+        try {
+            while (en.MoveNext()) {
+                smi = en.getCurrent();
+                if (smi.GetModId().equals(mod_id)) {
+                    return smi;
+                }
+            }
+            return null;
+        } finally {
+            en.Dispose();
+        }
+    }
+
+    /**
      * Gets a value whether the mod with the specified ID is loaded in this Minecraft instance.
      * @param mod_id The ID of the mod to query.
      * @return A value whether the specified mod is loaded.

@@ -181,11 +181,7 @@ public final class Version
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Version v) {
-            return Equals(v);
-        } else {
-            return false;
-        }
+        return obj instanceof Version v && Equals(v);
     }
 
     @Override
@@ -218,23 +214,23 @@ public final class Version
     {
         switch (fieldCount) {
             case 0 -> {
-                return "";
+                return StringUtils.Empty;
             }
             case 1 -> {
                 return Integer.toString(major);
             }
             case 2 -> {
-                return String.format("%d.%d", major, minor);
+                return StringUtils.Concat(major, '.', minor);
             }
             case 3 -> {
                 if (revision > -1) {
                     throw new ArgumentException("fieldCount is more than the number of components defined in the current Version object.", "fieldCount");
                 } else {
-                    return String.format("%d.%d.%d", major, minor, build);
+                    return StringUtils.Concat(major, '.', minor, '.', build);
                 }
             }
             case 4 -> {
-                return String.format("%d.%d.%d.%d", major, minor, build, revision);
+                return StringUtils.Concat(major, '.', minor, '.', build, '.', revision);
             }
             default -> throw new ArgumentException("The number of fields requested was not in the range [0..4].");
         }

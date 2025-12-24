@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.utils;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.mojang.datafixers.util.Either;
@@ -37,7 +38,7 @@ public final class OptionalDirectHolder<T>
      * @return A new {@link Holder} implementation.
      * @param <T> The type of the object that this holder will contain.
      */
-    public static <T> Holder<T> Create(@MaybeNull T value)
+    public static <T> Holder<T> Create(@AllowNull T value)
     {
         return new OptionalDirectHolder<>(value);
     }

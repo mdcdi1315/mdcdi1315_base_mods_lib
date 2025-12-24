@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.utils;
 
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
@@ -109,4 +110,22 @@ public final class StringSupplier
             throw new FormatException(ife.getMessage());
         }
     }
+
+    /**
+     * Creates a new instance of the {@link StringSupplier} class provided by the specified .NET-formatted string and it's arguments. <br />
+     * The created string is then passed to the {@link StringSupplier} constructor.
+     * @param format The string to format. Formatting rules are the same as those specified in the {@link String#format(String, Object...)} API.
+     * @param format_arguments The arguments to format the string from.
+     * @return A string supplier containing the result of formatting {@code format} with {@code format_arguments}.
+     * @throws FormatException A formatting error has been occurred. See exception details for more information.
+     * @throws ArgumentNullException {@code format} is {@code null}.
+     */
+    public static StringSupplier FromDotNetFormatted(String format , @MaybeNull Object... format_arguments)
+            throws FormatException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(format, "format");
+        return new StringSupplier(StringUtils.Format(format, format_arguments));
+    }
+
+
 }
