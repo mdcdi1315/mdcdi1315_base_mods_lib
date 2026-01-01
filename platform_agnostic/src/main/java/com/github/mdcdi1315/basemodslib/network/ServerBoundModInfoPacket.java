@@ -1,10 +1,12 @@
 package com.github.mdcdi1315.basemodslib.network;
 
 import com.github.mdcdi1315.DotNetLayer.System.Version;
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.network.codecs.VersionNetworkCodec;
 
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -21,12 +23,19 @@ public final class ServerBoundModInfoPacket
 {
     private static final byte ALLOW_FLAG_CLIENT = 1 << 0, ALLOW_FLAG_SERVER = 1 << 1;
 
-    public static final ResourceLocation LOCATION = ResourceLocation.tryBuild(BaseModsLib.MOD_ID, "mod_version_verifier");
+    public static final ResourceLocation LOCATION;
+    public static final Type<ServerBoundModInfoPacket> TYPE;
+
+    static {
+        LOCATION = ResourceLocation.tryBuild(BaseModsLib.MOD_ID, "mod_version_verifier");
+        if (LOCATION == null) {
+            throw new ArgumentException(StringUtils.Format("Cannot initialize resource location because we tried to build {0}:mod_version_verifier" , BaseModsLib.MOD_ID));
+        }
+        TYPE = new Type<>(LOCATION);
+    }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return new Type<>(LOCATION);
-    }
+    public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public static final class NetCodec
             implements StreamCodec<RegistryFriendlyByteBuf, ServerBoundModInfoPacket>
@@ -35,7 +44,7 @@ public final class ServerBoundModInfoPacket
         public ServerBoundModInfoPacket decode(RegistryFriendlyByteBuf buffer) {
             ServerBoundModInfoPacket p = new ServerBoundModInfoPacket();
             p.Mod_ID = buffer.readUtf();
-            p.Mod_Network_Version = Version.Parse(buffer.readUtf());
+            p.Mod_Network_Version = VersionNetworkCodec.INSTANCE.decode(buffer);
             p.Allow_Flags = buffer.readByte();
             return p;
         }
@@ -43,7 +52,7 @@ public final class ServerBoundModInfoPacket
         @Override
         public void encode(RegistryFriendlyByteBuf buffer, ServerBoundModInfoPacket p) {
             buffer.writeUtf(p.Mod_ID);
-            buffer.writeUtf(p.Mod_Network_Version.toString());
+            VersionNetworkCodec.INSTANCE.encode(buffer, p.Mod_Network_Version);
             buffer.writeByte(p.Allow_Flags);
         }
     }

@@ -34,14 +34,14 @@ public interface INetworkBuilder
 
     /**
      * Run this method during building to declare that your mod does not require the client side mod to have initialized the networking; <br />
-     * that is, the mod does only dispatch server bound packets. <br />
+     * that is, the mod does only dispatch client bound packets. <br />
      * NOTE: There is not a way to revert this intention from this builder instance, make sure that you this is what you want to do!
      */
     void DeclareClientOptionalPresence();
 
     /**
      * Run this method during building to declare that your mod does not require the server side mod to have initialized the networking; <br />
-     * that is, the mod does only dispatch client bound packets. <br />
+     * that is, the mod does only dispatch server bound packets. <br />
      * NOTE: There is not a way to revert this intention from this builder instance, make sure that you this is what you want to do!
      */
     void DeclareServerOptionalPresence();
@@ -59,7 +59,7 @@ public interface INetworkBuilder
     }
 
     /**
-     * Registers a packet that will be dispatched from the client to the server.
+     * Registers a packet that will be dispatched from the server to the client.
      * @param info The client-side packet registration information to use for registering the packet to use.
      * @param <T> The type of the packet to declare.
      * @throws ArgumentNullException {@code info} is {@code null}.
@@ -67,7 +67,7 @@ public interface INetworkBuilder
     <T extends CustomPacketPayload> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info) throws ArgumentNullException;
 
     /**
-     * Registers a packet that will be dispatched from the server to the client.
+     * Registers a packet that will be dispatched from the client to the server.
      * @param info The server-side packet registration information to use for registering the packet to use.
      * @param <T> The type of the packet to declare.
      * @throws ArgumentNullException {@code info} is {@code null}.

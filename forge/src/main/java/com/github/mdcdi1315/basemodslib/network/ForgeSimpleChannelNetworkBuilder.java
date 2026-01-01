@@ -41,14 +41,10 @@ public final class ForgeSimpleChannelNetworkBuilder
     }
 
     @Override
-    public void DeclareClientOptionalPresence() {
-        aco = true;
-    }
+    public void DeclareClientOptionalPresence() { aco = true; }
 
     @Override
-    public void DeclareServerOptionalPresence() {
-        aso = true;
-    }
+    public void DeclareServerOptionalPresence() { aso = true; }
 
     @Override
     public <T extends CustomPacketPayload> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info)
@@ -68,7 +64,7 @@ public final class ForgeSimpleChannelNetworkBuilder
 
     private void InitializePackets(SimpleChannel sc, ForgeBasedNetworkManager mgr)
     {
-        int packet_index = 0;
+        int packet_index = 1;
         IEnumerator<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_e = client_packet_reg_info.GetEnumerator();
         try {
             while (client_e.MoveNext()) {
@@ -77,6 +73,8 @@ public final class ForgeSimpleChannelNetworkBuilder
         } finally {
             client_e.Dispose();
         }
+        client_packet_reg_info = null; // We have registered all the packets, we can clean this list now.
+
         IEnumerator<ServerSideNetworkPacketRegistrationInfo<?>> server_e = server_packet_reg_info.GetEnumerator();
         try {
             while (server_e.MoveNext()) {
@@ -85,6 +83,7 @@ public final class ForgeSimpleChannelNetworkBuilder
         } finally {
             server_e.Dispose();
         }
+        server_packet_reg_info = null; // We have registered all the packets, we can clean this list now.
     }
 
     private record ClientHandlerAction<TP extends CustomPacketPayload>(ForgeBasedNetworkManager manager, Action2<Player, TP> handler)
@@ -137,9 +136,7 @@ public final class ForgeSimpleChannelNetworkBuilder
         implements Channel.VersionTest
     {
         @Override
-        public boolean accepts(Status status, int version) {
-            return status == Status.PRESENT && version == ver;
-        }
+        public boolean accepts(Status status, int version) { return status == Status.PRESENT && version == ver; }
     }
 
     public SimpleChannel Build(ForgeBasedNetworkManager manager)
@@ -147,17 +144,20 @@ public final class ForgeSimpleChannelNetworkBuilder
         var builder = ChannelBuilder.named(manager_channel_location);
         int packed = NetworkHelpers.PackVersion(network_version == null ? new Version(1, 0) : network_version);
         builder.networkProtocolVersion(packed);
+        // The below predicate object may be shared in both acceptedVersions methods,
+        // so it is best to just create a single predicate object that will be deallocated if not used at all.
+        StrictVersionTest svt = new StrictVersionTest(packed);
         if (aco) {
             builder.optionalClient();
         } else {
-            builder.clientAcceptedVersions(new StrictVersionTest(packed));
+            builder.clientAcceptedVersions(svt);
         }
         if (aso) {
             builder.optionalServer();
         } else {
-            builder.acceptedVersions(new StrictVersionTest(packed));
+            builder.acceptedVersions(svt);
         }
-        var sc = builder.simpleChannel();
+        SimpleChannel sc = builder.simpleChannel();
         InitializePackets(sc , manager);
         return sc.build();
     }

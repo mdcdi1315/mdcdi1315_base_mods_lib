@@ -106,9 +106,7 @@ public final class ForgeBasedNetworkManager
             implements Action1<FriendlyByteBuf>
     {
         @Override
-        public void action(FriendlyByteBuf obj) {
-            mpx.WriteScreenOpeningData(sp , obj);
-        }
+        public void action(FriendlyByteBuf obj) { mpx.WriteScreenOpeningData(sp , obj); }
     }
 
     @Override
