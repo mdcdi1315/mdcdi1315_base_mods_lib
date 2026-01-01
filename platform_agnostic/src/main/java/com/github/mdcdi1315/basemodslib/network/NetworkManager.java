@@ -24,6 +24,10 @@ import org.jetbrains.annotations.ApiStatus;
  */
 public abstract class NetworkManager
 {
+    // The networking builder instance is held temporarily by the manager, until
+    // it is time for the manager to actually register the packets.
+    // Once packet registration is done, this field becomes null
+    // and remains in that way until the mod instance is disposed of.
     private INetworkBuilder builder;
     private boolean build_phase_completed;
 
@@ -32,8 +36,22 @@ public abstract class NetworkManager
         builder = null;
     }
 
+    /**
+     * Creates the network builder to be used by mods. <br />
+     * Called through the {@link #GetBuilder()} method.
+     * @return An object that implements the {@link INetworkBuilder} interface.
+     */
+    @NotNull
     protected abstract INetworkBuilder CreateNetworkBuilder();
 
+    /**
+     * Gets a builder instance that allows to initialize a mod's networking. <br />
+     * After the mod has successfully declared the packets that is going to dispatch
+     * for the entire session, the current object can be then subsequently used to
+     * dispatch packets as the mod wishes to.
+     * @return An object that implements the {@link INetworkBuilder} interface.
+     * @throws InvalidOperationException Building has already been done and was finalized by the mod loader layer. As such, building again is invalid operation.
+     */
     @NotNull
     public final INetworkBuilder GetBuilder()
         throws InvalidOperationException
@@ -61,8 +79,25 @@ public abstract class NetworkManager
         return nb;
     }
 
-    public abstract <T extends CustomPacketPayload> void Reply(T message);
+    /**
+     * Replies to a previously sent packet. <br />
+     * This is typically called only by the handler action specified in the {@link ClientSideNetworkPacketRegistrationInfo} instance during registration. <br />
+     * For the reply mechanism to actually work, the packet to be dispatched must be a server-bound packet.
+     * @param message The packet to reply with.
+     * @param <T> The type of the packet to be dispatched.
+     * @throws InvalidOperationException This method was not called from the {@link ClientSideNetworkPacketRegistrationInfo#handler()} method.
+     */
+    public abstract <T extends CustomPacketPayload> void Reply(T message) throws InvalidOperationException;
 
+    /**
+     * Sends to the specified player the specified message. <br />
+     * Typically, this is dispatched by servers to the specified client,
+     * and as such, this corresponds as sending a client-bound packet. <br />
+     * See the {@link INetworkBuilder#RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo)} method for more information.
+     * @param player The player to dispatch the specified packet to.
+     * @param message The packet to be dispatched.
+     * @param <T> The type of the packet to be dispatched.
+     */
     public abstract <T extends CustomPacketPayload> void SendTo(Player player, T message);
 
     /**
@@ -83,7 +118,10 @@ public abstract class NetworkManager
     public abstract <T extends CustomPacketPayload> void SendToTracking(Entity entity, T message);
 
     /**
-     * Sends the specified packet to the players in the specified server.
+     * Sends the specified packet to the players in the specified server. <br />
+     * This is dispatched by the servers. <br />
+     * This corresponds as sending the specified client-bound packet to all the players. <br />
+     * See the {@link INetworkBuilder#RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo)} method for more information.
      * @param server The Minecraft server to use to find the players and dispatch to them the specified message.
      * @param message The message to dispatch to all the players.
      * @param <T> The type of the message to send.
@@ -91,7 +129,9 @@ public abstract class NetworkManager
     public abstract <T extends CustomPacketPayload> void SendToAllPlayers(MinecraftServer server, T message);
 
     /**
-     * Sends to the server the specified message.
+     * Sends to the server the specified message. <br />
+     * This corresponds as sending a server-bound packet.
+     * See the {@link INetworkBuilder#RegisterServerBoundPacket(ServerSideNetworkPacketRegistrationInfo)} method for more information.
      * @param message The message/packet to send.
      * @param <T> The type of the message to send.
      */

@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.codecs;
 
+import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.mojang.datafixers.util.*;
@@ -45,6 +46,12 @@ public final class CodecUtils
      * Gets a singleton of a codec that accepts zero or positive {@link Integer} values only.
      */
     public static final Codec<Integer> ZERO_OR_POSITIVE_INTEGER = new ZeroOrPositiveIntegerCodec();
+
+    /**
+     * Gets a singleton of a codec that can de/encode {@link Version} objects.
+     * @since 1.0.14
+     */
+    public static final Codec<Version> VERSION = new VersionCodec();
 
     /**
      * Returns a codec that ensures that the given list {@link Codec} will always have a non-empty list, that is a list at least containing one element.

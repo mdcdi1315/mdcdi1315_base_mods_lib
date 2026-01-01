@@ -22,10 +22,10 @@ public final class NetworkHelpers
     {
         ArgumentNullException.ThrowIfNull(v, "v");
         int build = v.Build();
-        if (build < 0) { build = 0; } else { build &= 0xFF; }
+        build = (build < 0) ? 0 : build & 0xFF;
         int revision = v.Revision();
-        if (revision < 0) { revision = 0; } else { revision &= 0xFF; }
-        return (v.Major() & 0xFF) << 24 | (v.Minor() & 0xFF) << 16 | build | revision;
+        revision = (revision < 0) ? 0 : revision & 0xFF;
+        return (v.Major() & 0xFF) << 24 | (v.Minor() & 0xFF) << 16 | build << 8 | revision;
     }
 
     /**

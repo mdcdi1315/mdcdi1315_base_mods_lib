@@ -92,13 +92,21 @@ public final class ForgeBasedNetworkManager
             SendToServerInternal(message);
         }
     }
+
+    private <T extends CustomPacketPayload> void SendToServerInternal(T msg)
+    {
+        if (Minecraft.getInstance().getConnection() == null) {
+            BaseModsLib.LOGGER.warn("NETWORKING: Not dispatching packet {} because we are not connected to a server!" , msg);
+        }
+
+        channel.send(msg , PacketDistributor.SERVER.noArg());
+    }
+
     private record WriteScreenDataTranslater(ServerPlayer sp, MenuProviderEx mpx)
             implements Action1<FriendlyByteBuf>
     {
         @Override
-        public void action(FriendlyByteBuf obj) {
-            mpx.WriteScreenOpeningData(sp , obj);
-        }
+        public void action(FriendlyByteBuf obj) { mpx.WriteScreenOpeningData(sp , obj); }
     }
 
     @Override
@@ -115,14 +123,5 @@ public final class ForgeBasedNetworkManager
                 sp.openMenu(provider);
             }
         }
-    }
-
-    private <T extends CustomPacketPayload> void SendToServerInternal(T msg)
-    {
-        if (Minecraft.getInstance().getConnection() == null) {
-            BaseModsLib.LOGGER.warn("NETWORKING: Not dispatching packet {} because we are not connected to a server!" , msg);
-        }
-
-        channel.send(msg , PacketDistributor.SERVER.noArg());
     }
 }

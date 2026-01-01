@@ -5,6 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
+
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -110,7 +112,7 @@ public final class NeoForgeNetworkBuilder
 
     private static <T extends CustomPacketPayload> void RegisterServerSidePacket(NeoForgeNetworkingManager manager, PayloadRegistrar registrar , ServerSideNetworkPacketRegistrationInfo<T> info)
     {
-        registrar.playToClient(
+        registrar.playToServer(
                 info.type(),
                 info.codec(),
                 new PayloadHandler_Server<>(manager , info.handler())
@@ -118,7 +120,7 @@ public final class NeoForgeNetworkBuilder
     }
 
     public void Build(IEventBus event_bus) {
-        event_bus.addListener(this::RegisterPacketsEvent);
+        NeoForgeUtils.AddListener(event_bus, RegisterPayloadHandlersEvent.class, this::RegisterPacketsEvent);
     }
 
     private void RegisterPacketsEvent(RegisterPayloadHandlersEvent event)
