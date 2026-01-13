@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.Contract;
 
+import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
@@ -65,6 +66,17 @@ public interface IRegistryRegistrar
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
         RegisterObject(registry, name, new RegistryObjectSupplierInternal_2<>(supplier));
     }
+
+    /**
+     * Gets an instance of the {@link IBulkRegistryObjectRegister} class for cases that you want to add a lot of items to a specific Minecraft registry.
+     * @param registry_resource_key The resource key of the registry that you wish to get a bulk register object for.
+     * @return The bulk register instance for {@code registry_resource_key}.
+     * @param <T> The type of objects the registry does store.
+     * @throws ArgumentNullException {@code registry_resource_key} is {@code null}.
+     * @since 1.0.15
+     */
+    <T> IBulkRegistryObjectRegister<T> GetBulkRegister(ResourceKey<? extends Registry<T>> registry_resource_key)
+            throws ArgumentNullException, RegistryNotFoundException;
 
     /**
      * Registers a registry to the mod loader. <br />

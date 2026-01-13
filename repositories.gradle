@@ -1,8 +1,17 @@
 repositories {
     maven {
+        name = "Curse Maven"
         url = "https://www.cursemaven.com"
         content {
             includeGroup 'curse.maven'
+        }
+    }
+
+    maven {
+        name = "Shedaniel Maven"
+        url = "https://maven.shedaniel.me/"
+        content {
+            includeGroup "me.shedaniel.cloth"
         }
     }
 

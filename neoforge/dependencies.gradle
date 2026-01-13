@@ -1,3 +1,5 @@
 dependencies {
     jarJar(project(":neoforge_bml_lang_provider"))
+
+    api("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_api_version}")
 }

@@ -12,6 +12,7 @@ import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.sounds.ForgeSoundRegistrar;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.IModLoaderRegistry;
 import com.github.mdcdi1315.basemodslib.alchemy.ForgeAlchemyRegistrar;
@@ -91,7 +92,7 @@ public final class ForgeModLoaderLayer
     // REGISTRY FINALIZATION BEGIN
     // The below 3 public methods are called in by the DispatchFinalizeRegistriesEventLoadingState class. See that class for more information.
 
-    public static int RegistryFinalization_GetEventCount() { return 6; } // 6 stages in total
+    public static int RegistryFinalization_GetEventCount() { return 7; } // 7 stages in total
 
     private record EventManagerFire_1<T>(IForgeRegistry<T> registry, Func2<IModLoaderRegistry<T> , RegistryFinalizedEvent<T>> event_getter, Runnable increment_meter_handler)
             implements Action1<Void>
@@ -129,6 +130,7 @@ public final class ForgeModLoaderLayer
         // The below tasks can be dispatched at the same time.
         root = root.thenApplyAsync(new EventManagerFire_2<>(ForgeRegistries.ENTITY_TYPES, EntityTypeRegistryFinalizedEvent::new, increment_meter_handler));
         root = root.thenApplyAsync(new EventManagerFire_2<>(ForgeRegistries.MENU_TYPES, MenuTypeRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire_2<>(ForgeRegistries.SOUND_EVENTS, SoundEventRegistryFinalizedEvent::new, increment_meter_handler));
         return root;
     }
 
@@ -147,7 +149,8 @@ public final class ForgeModLoaderLayer
     }
 
     @Override
-    public void InitializeServerModInstance(IServerModInstance instance, Object mod_object) {
+    public void InitializeServerModInstance(IServerModInstance instance, Object mod_object)
+    {
         IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
         String mod_id = instance.GetModId();
 
@@ -176,6 +179,10 @@ public final class ForgeModLoaderLayer
         ForgeBasedNetworkManager net_manager = new ForgeBasedNetworkManager(mod_id);
         instance.InitializeNetwork(net_manager);
         net_manager.InitializeNetworkManager(net_manager.GetBuilderAndDestroy());
+
+        ForgeSoundRegistrar reg7 = new ForgeSoundRegistrar(mod_id);
+        instance.RegisterSoundObjects(reg7);
+        reg7.RegisterToEventBus(mod_event_bus);
 
         ForgeMenuTypeRegistrar reg5 = new ForgeMenuTypeRegistrar(mod_id);
         instance.RegisterMenuTypes(reg5);

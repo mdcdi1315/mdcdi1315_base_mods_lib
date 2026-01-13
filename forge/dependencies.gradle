@@ -3,4 +3,6 @@ dependencies {
         jarJar.pin(g , "[1.0.0,)") // Keep in sync with the value in that project
         transitive = false
     }
+
+    api("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")
 }

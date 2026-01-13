@@ -37,6 +37,7 @@ public final class FabricModsEntryPointsManager
         manager.FireEvent(new FluidRegistryFinalizedEvent(BuiltInRegistries.FLUID));
         manager.FireEvent(new EntityTypeRegistryFinalizedEvent(BuiltInRegistries.ENTITY_TYPE));
         manager.FireEvent(new MenuTypeRegistryFinalizedEvent(BuiltInRegistries.MENU));
+        manager.FireEvent(new SoundEventRegistryFinalizedEvent(BuiltInRegistries.SOUND_EVENT));
         BaseModsLib.LOGGER.info("Registry finalization events dispatched successfully.");
     }
 

@@ -12,8 +12,10 @@ import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreaterEx;
 import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.sounds.ISoundRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
 import com.github.mdcdi1315.basemodslib.alchemy.IAlchemyRegistrar;
 import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.MenuTypeRegistrationInfo;
@@ -43,6 +45,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 
 import net.minecraft.core.Registry;
 import net.minecraft.world.item.Item;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.world.item.ItemStack;
@@ -78,7 +81,8 @@ public final class FabricCommonRegistryItemsRegistrar
         IEntityTypeRegistrar,
         IFluidRegistrar,
         IMenuTypeRegistrar,
-        IAlchemyRegistrar
+        IAlchemyRegistrar,
+        ISoundRegistrar
 {
     private String mod_id;
     private final boolean on_client;
@@ -132,11 +136,11 @@ public final class FabricCommonRegistryItemsRegistrar
         Optional<ResourceKey<CreativeModeTab>> rk;
         for (var kvp : modify_entries_register.entrySet()) {
             rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(kvp.getKey());
-            if (rk.isEmpty()) {
+            if (rk.isPresent()) {
+                ItemGroupEvents.modifyEntriesEvent(rk.get()).register(new ModifyEntriesEventImpl(kvp.getValue(), modify_entries_item_stack_register.get(kvp.getKey())));
+            } else {
                 BaseModsLib.LOGGER.warn("Cannot get the resource key for the specified creative mode tab! Lookup failed.\nAll the items specified for this creative mode tab will not be applied.");
-                continue;
             }
-            ItemGroupEvents.modifyEntriesEvent(rk.get()).register(new ModifyEntriesEventImpl(kvp.getValue(), modify_entries_item_stack_register.get(kvp.getKey())));
         }
         modify_entries_register = null;
         modify_entries_item_stack_register = null;
@@ -332,6 +336,13 @@ public final class FabricCommonRegistryItemsRegistrar
     }
 
     @Override
+    public <T> IBulkRegistryObjectRegister<T> GetBulkRegister(ResourceKey<? extends Registry<T>> registry_resource_key)
+            throws ArgumentNullException, RegistryNotFoundException
+    {
+        return new FabricBridgedBulkRegister<>(mod_id, RegistryUtils.GetRootRegistry(registry_resource_key));
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> void RegisterRegistry(ResourceKey<Registry<T>> registryResourceKey, Action1<IModLoaderRegistry<T>> on_registry_ready)
             throws ArgumentNullException
@@ -352,6 +363,14 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(registry_name, "registry_name");
         ArgumentNullException.ThrowIfNull(element_codec, "element_codec");
         DynamicRegistries.register(registry_name, element_codec);
+    }
+
+    @Override
+    public void RegisterSoundEvent(SoundEvent event, String name)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        Registry.register(BuiltInRegistries.SOUND_EVENT, BuildAndValidateLocation(name), event);
     }
 
     @Override

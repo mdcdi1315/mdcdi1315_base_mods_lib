@@ -43,7 +43,8 @@
 		"${mod_id}.fabric.mixins.json"
 	],
 	"suggests": {
-		"modmenu": ">=${mod_menu_version}"
+		"modmenu": ">=${mod_menu_version}",
+		"cloth_config": ">=${cloth_config_api_version}"
 	},
 	"depends": {
 		"java": ">=${java_version}",

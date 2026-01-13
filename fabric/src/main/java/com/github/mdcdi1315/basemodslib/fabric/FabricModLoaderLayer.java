@@ -179,6 +179,7 @@ public final class FabricModLoaderLayer
         mod_instance.RegisterRegistryItems(registrar);
         mod_instance.RegisterEntityTypes(registrar);
         mod_instance.RegisterMenuTypes(registrar);
+        mod_instance.RegisterSoundObjects(registrar);
 
         mod_instance.RegisterCommands(global_commands_registrar);
 

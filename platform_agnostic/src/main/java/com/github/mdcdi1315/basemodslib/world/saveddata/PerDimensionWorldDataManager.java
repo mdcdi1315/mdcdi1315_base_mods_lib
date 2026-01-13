@@ -1,33 +1,28 @@
 package com.github.mdcdi1315.basemodslib.world.saveddata;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
+import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
+
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.datafix.DataFixTypes;
-import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
-import java.util.function.Supplier;
-
 /**
- * Provides a layering class for getting around the limitations of Minecraft saved data mechanism through {@link SavedDataWrapper} instances. <br />
+ * Provides a layering class for getting around the limitations of Minecraft saved data mechanism through {@link ISavedData} instances. <br />
  * You provide the level you wish to manipulate and all the other things are done through dedicated methods defined in this class.
  */
 public final class PerDimensionWorldDataManager
 {
-    public static final String EXPECTED_SAVED_DATA_PREFIX = "MDCDI1315_SD_";
-    private final DimensionDataStorage storage;
+    /**
+     * This field was used for BML versions < 1.0.15, and it is now unused.
+     */
+    @Deprecated(since = "1.0.15")
+    public static final String EXPECTED_SAVED_DATA_PREFIX = IBMLCustomDataStorage.COMPAT_EXPECTED_SAVED_DATA_PREFIX;
 
-    private static void VerifySavedDataPrefix(String name)
-    {
-        ArgumentNullException.ThrowIfNull(name, "name");
-        if (!name.startsWith(EXPECTED_SAVED_DATA_PREFIX)) {
-            throw new ArgumentException("For the saved data API to work, the saved data file name must begin with the saved data prefix string." , "name");
-        }
-    }
+    private final IBMLCustomDataStorage storage;
 
     /**
      * Creates a new instance of the {@link PerDimensionWorldDataManager} from the specified {@link DimensionDataStorage} object.
@@ -38,7 +33,7 @@ public final class PerDimensionWorldDataManager
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(storage , "storage");
-        this.storage = storage;
+        this.storage = (IBMLCustomDataStorage) storage;
     }
 
     /**
@@ -50,106 +45,69 @@ public final class PerDimensionWorldDataManager
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(level, "level");
-        this.storage = level.getDataStorage();
-    }
-
-    private static <T extends ISavedData> SavedData.Factory<SavedDataWrapper<T>> CreateFactory(Func1<T> creater)
-    {
-        return new SavedData.Factory<>(
-                new InternalCreater<>(creater),
-                SavedDataWrapper.CreateLoadFunction(creater),
-                DataFixTypes.LEVEL
-        );
-    }
-
-    private record InternalCreater<T extends ISavedData>(Func1<T> actualcreater)
-            implements Supplier<SavedDataWrapper<T>>
-    {
-        @Override
-        public SavedDataWrapper<T> get() {
-            return new SavedDataWrapper<>(actualcreater.function());
-        }
+        this.storage = (IBMLCustomDataStorage) level.getDataStorage();
     }
 
     /**
-     * If the specified saved data with the name passed does not exist, a new saved data object is created on the fly. <br />
-     * Otherwise, if there is such a file, it returns the loaded data.
-     * @param name The name of the saved data file to retrieve or create.
-     * @param creater A factory function allowing creating instances of type {@linkplain T}.
-     * @return A new {@link SavedDataWrapper} class instance representing the loaded or new data.
-     * @param <T> The type of the saved data to retrieve or create.
-     * @exception ArgumentNullException {@code creater} was {@code null}.
+     * This method is deprecated since the 1.0.15 version.
+     * Do not use it or call it.
      */
+    @Deprecated(since = "1.0.15", forRemoval = true)
     public <T extends ISavedData> SavedDataWrapper<T> ComputeIfAbsentAsWrapper(String name , Func1<T> creater)
-            throws ArgumentNullException
+            throws NotSupportedException
     {
-        VerifySavedDataPrefix(name);
-        return storage.computeIfAbsent(CreateFactory(creater) , name);
+        throw new NotSupportedException("ComputeIfAbsentAsWrapper is deprecated since 1.0.15 and will be removed in a future release.");
     }
 
     /**
-     * Gets the existing saved data instance of the specified name. If such instance does not exist, {@code null} is returned.
-     * @param name The name of the saved data file to retrieve.
-     * @param creater A factory function allowing creating instances of type {@linkplain T}.
-     * @return A new {@link SavedDataWrapper} class instance representing the loaded data.
-     * @param <T> The type of the saved data to retrieve.
-     * @exception ArgumentNullException {@code creater} was {@code null}.
+     * This method is deprecated since the 1.0.15 version.
+     * Do not use it or call it.
      */
-    @MaybeNull
+    @Deprecated(since = "1.0.15", forRemoval = true)
     public <T extends ISavedData> SavedDataWrapper<T> GetAsWrapper(String name, Func1<T> creater)
-            throws ArgumentNullException
+            throws NotSupportedException
     {
-        VerifySavedDataPrefix(name);
-        return storage.get(CreateFactory(creater) , name);
+        throw new NotSupportedException("GetAsWrapper is deprecated since 1.0.15 and will be removed in a future release.");
     }
 
     /**
-     * Updates saved data, if existing. If not, this is the first time that the data will be added.
-     * @param data The saved data wrapper to save.
-     * @param name The name of the saved data file to finally store the results to.
-     * @param <T> The type of the saved data to set.
-     * @throws ArgumentNullException {@code data} was {@code null}.
+     * This method is deprecated since the 1.0.15 version.
+     * Do not use it or call it.
      */
+    @Deprecated(since = "1.0.15", forRemoval = true)
     public <T extends ISavedData> void SetAsWrapper(SavedDataWrapper<T> data, String name)
-            throws ArgumentNullException
+            throws NotSupportedException
     {
-        VerifySavedDataPrefix(name);
-        ArgumentNullException.ThrowIfNull(data, "data");
-        storage.set(name , data);
+        throw new NotSupportedException("SetAsWrapper is deprecated since 1.0.15 and will be removed in a future release.");
     }
 
     /**
      * If the specified saved data with the name passed does not exist, a new saved data object is created on the fly. <br />
      * Otherwise, if there is such a file, it returns the loaded data.
      * @param name The name of the saved data file to retrieve or create.
-     * @param creater A factory function allowing creating instances of type {@linkplain T}.
+     * @param creator A factory function allowing creating instances of type {@linkplain T}.
      * @return The saved data requested, cast to type {@linkplain T}.
      * @param <T> The type of the saved data to retrieve or create.
-     * @exception ArgumentNullException {@code creater} was {@code null}.
+     * @exception ArgumentNullException {@code creator} and/or {@code name} are {@code null}.
      */
-    public <T extends ISavedData> T ComputeIfAbsent(String name , Func1<T> creater) {
-        var w = ComputeIfAbsentAsWrapper(name , creater);
-        w.MarkAsDirty();
-        return w.Instance();
+    public <T extends ISavedData> T ComputeIfAbsent(String name , Func1<T> creator) {
+        return (T) storage.MDCDI1315$BML$RegisterSavedData(name, creator);
     }
 
     /**
      * Gets the existing saved data instance of the specified name. If such instance does not exist, {@code null} is returned.
      * @param name The name of the saved data file to retrieve.
-     * @param creater A factory function allowing creating instances of type {@linkplain T}.
+     * @param creator This parameter was used for BML versions < 1.0.15, it now becomes unused and can have any value.
      * @return The saved data requested, cast to type {@linkplain T}.
      * @param <T> The type of the saved data to retrieve.
-     * @exception ArgumentNullException {@code creater} was {@code null}.
+     * @exception ArgumentNullException {@code name} is {@code null}.
      */
+    // Note: Do not delete the 'creator' parameter!!! It is still defined for ABI compatibility.
     @MaybeNull
-    public <T extends ISavedData> T Get(String name , Func1<T> creater) {
-        SavedDataWrapper<T> wrapper = GetAsWrapper(name , creater);
-        if (wrapper == null) {
-            return null;
-        } else {
-            wrapper.MarkAsDirty();
-            return wrapper.Instance();
-        }
+    public <T extends ISavedData> T Get(String name , @MaybeNull Func1<T> creator)
+        throws ArgumentNullException
+    {
+        return (T) storage.MDCDI1315$BML$RetrieveSavedData(name);
     }
 
     /**
@@ -160,8 +118,6 @@ public final class PerDimensionWorldDataManager
      * @throws ArgumentNullException {@code data} was {@code null}.
      */
     public <T extends ISavedData> void Set(T instance, String name) {
-        var w = new SavedDataWrapper<>(instance);
-        w.MarkAsDirty();
-        storage.set(name , w);
+        storage.MDCDI1315$BML$RegisterSavedData(name, new ElementSupplier<>(instance));
     }
 }

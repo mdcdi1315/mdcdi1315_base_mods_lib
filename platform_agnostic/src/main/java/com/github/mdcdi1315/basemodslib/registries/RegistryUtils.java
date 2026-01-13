@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
@@ -106,4 +107,29 @@ public final class RegistryUtils
         }
     }
 
+    /**
+     * Gets a Minecraft registry by the specified resource key. <br />
+     * See the {@link Registries} class for which Minecraft registries can be returned by this function.
+     * @param resource_key The resource key that points to a Minecraft registry.
+     * @return The {@link Registry} object for {@code resource_key}
+     * @param <T> The type of the objects the returned registry object retains.
+     * @since 1.0.15
+     * @throws ArgumentNullException {@code resource_key} is {@code null}.
+     * @throws RegistryNotFoundException {@code resource_key} does not point to a valid Minecraft registry.
+     */
+    public static <T> Registry<T> GetRootRegistry(ResourceKey<? extends Registry<T>> resource_key)
+        throws ArgumentNullException, RegistryNotFoundException
+    {
+        ArgumentNullException.ThrowIfNull(resource_key, "resource_key");
+        if (resource_key.registry().equals(Registries.ROOT_REGISTRY_NAME)) {
+            var ro = BuiltInRegistries.REGISTRY.getOptional(resource_key.location());
+            if (ro.isPresent()) {
+                return (Registry<T>) ro.get();
+            } else {
+                throw new RegistryNotFoundException(resource_key.location());
+            }
+        } else {
+            throw new InvalidOperationException("The specified resource key does not represent a root registry key: " + resource_key);
+        }
+    }
 }
