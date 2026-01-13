@@ -21,7 +21,5 @@ public interface IModConfig
      * @return A comment describing the configuration file in general.
      */
     @MaybeNull
-    default String GetComment() {
-        return StringUtils.Empty;
-    }
+    default String GetComment() { return StringUtils.Empty; }
 }

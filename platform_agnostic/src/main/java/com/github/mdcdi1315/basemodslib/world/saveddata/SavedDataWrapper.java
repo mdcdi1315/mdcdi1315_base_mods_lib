@@ -13,20 +13,22 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.level.saveddata.SavedData;
 
-import java.util.function.Function;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Defines the compatibility layer between {@link ISavedData} instances and {@link SavedData} instances.
  * @param <TD> The type of the {@link ISavedData} object to hold.
+ * @deprecated This class is deprecated since 1.0.15, and it is unusable.
  */
+@Deprecated(since = "1.0.15", forRemoval = true)
 public final class SavedDataWrapper<TD extends ISavedData>
-        extends SavedData
+    extends SavedData
 {
     private final TD instance;
 
     public SavedDataWrapper(TD instance)
-            throws ArgumentNullException
+        throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(instance , "instance");
         this.instance = instance;
@@ -83,6 +85,7 @@ public final class SavedDataWrapper<TD extends ISavedData>
             return new SavedDataWrapper<>(sd);
         }
     }
+
 
     /**
      * Retrieves the instance associated with this wrapper object.

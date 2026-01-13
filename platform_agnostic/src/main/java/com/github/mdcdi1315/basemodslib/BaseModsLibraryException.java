@@ -1,8 +1,8 @@
 package com.github.mdcdi1315.basemodslib;
 
+import com.github.mdcdi1315.DotNetLayer.System.Exception;
 import com.github.mdcdi1315.DotNetLayer.System.ApplicationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
-import com.github.mdcdi1315.DotNetLayer.System.Exception;
 
 /**
  * Defines the base class where all other exceptions originating from the Base Mods Library are thrown. <br />

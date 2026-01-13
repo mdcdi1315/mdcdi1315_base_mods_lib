@@ -3,4 +3,7 @@ dependencies {
         jarJar.pin(g , "[1.0.0,)") // Keep in sync with the value in that project
         transitive = false
     }
+
+    // Cloth config is not supported for forge 1.21.5+
+    // api("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")
 }

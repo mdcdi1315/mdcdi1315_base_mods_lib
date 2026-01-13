@@ -6,6 +6,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
+import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
+import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
 
 import com.mojang.serialization.Codec;
 
@@ -57,7 +59,7 @@ public final class ForgeRegistriesRegistrar
     }
 
     @SuppressWarnings("unchecked")
-    private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<Registry<T>> registry_key)
+    private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<? extends Registry<T>> registry_key)
     {
         var en = registers.GetEnumerator();
         try {
@@ -95,10 +97,31 @@ public final class ForgeRegistriesRegistrar
         CreateIfAbsentOrReturn(registry).register(name , supplier);
     }
 
+    private record DeferredRegisterImplementedBulkRegistryRegister<T>(DeferredRegister<T> reg)
+            implements IBulkRegistryObjectRegister<T>
+    {
+        @Override
+        public void Add(String name, T object)
+                throws ArgumentNullException
+        {
+            ArgumentNullException.ThrowIfNull(name, "name");
+            reg.register(name, new ElementSupplier<>(object));
+        }
+    }
+
+    @Override
+    public <T> IBulkRegistryObjectRegister<T> GetBulkRegister(ResourceKey<? extends Registry<T>> registry_resource_key)
+            throws ArgumentNullException, RegistryNotFoundException
+    {
+        ArgumentNullException.ThrowIfNull(registry_resource_key, "registry_resource_key");
+        return new DeferredRegisterImplementedBulkRegistryRegister<>(CreateIfAbsentOrReturn(registry_resource_key));
+    }
+
     @Override
     public <T> void RegisterRegistry(ResourceKey<Registry<T>> registryResourceKey, Action1<IModLoaderRegistry<T>> on_registry_ready)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(on_registry_ready, "on_registry_ready");
         ArgumentNullException.ThrowIfNull(registryResourceKey, "registryResourceKey");
         registries_to_create.Add(new RegistryEntry<>(registryResourceKey, on_registry_ready));
     }

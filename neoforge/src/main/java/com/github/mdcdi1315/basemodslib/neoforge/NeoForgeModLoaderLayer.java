@@ -9,6 +9,7 @@ import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
+import com.github.mdcdi1315.basemodslib.sounds.NeoForgeSoundRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
 import com.github.mdcdi1315.basemodslib.menu.NeoForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NeoForgeNetworkBuilder;
@@ -67,7 +68,7 @@ public final class NeoForgeModLoaderLayer
         // tracker = new DisposableObjectsTracker();
         NeoForgeUtils.AddListener(this.event_bus, FMLCommonSetupEvent.class, this::OnCommonSetupEvent);
         NeoForgeUtils.AddListener(this.event_bus, FMLLoadCompleteEvent.class, this::OnModLoadingCompleteEvent);
-        // RegisterCodec bake callbacks instead. This does not require a mixin, and it is OK since this will call in as appropriate.
+        // Register bake callbacks instead. This does not require a mixin, and it is OK since this will call in as appropriate.
         // Also, it is far more practical than the Forge solution.
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK, BlockRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityTypeRegistryFinalizedEvent::new);
@@ -75,6 +76,7 @@ public final class NeoForgeModLoaderLayer
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.FLUID, FluidRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ENTITY_TYPE, EntityTypeRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.MENU, MenuTypeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.SOUND_EVENT, SoundEventRegistryFinalizedEvent::new);
     }
 
     private static IEventBus GetEventBusOrFail(Object mod_object) {
@@ -143,6 +145,10 @@ public final class NeoForgeModLoaderLayer
         if (builder != null) {
             ((NeoForgeNetworkBuilder)builder).Build(mod_event_bus);
         }
+
+        NeoForgeSoundRegistrar reg_8 = new NeoForgeSoundRegistrar(mod_id);
+        instance.RegisterSoundObjects(reg_8);
+        reg_8.RegisterToEventBus(mod_event_bus);
 
         NeoForgeMenuTypeRegistrar reg_6 = new NeoForgeMenuTypeRegistrar(mod_id);
         instance.RegisterMenuTypes(reg_6);

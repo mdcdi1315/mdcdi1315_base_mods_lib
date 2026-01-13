@@ -5,6 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
+import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
+import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
 
 import com.mojang.serialization.Codec;
 
@@ -25,8 +27,8 @@ public final class NeoForgeRegistriesRegistrar
 {
     private String mod_id;
     private List<DeferredRegister<?>> registers;
-    private List<DatapackRegistryEntry<?>> datapack_registries;
     private List<RegistryEntry<?>> registries_to_create;
+    private List<DatapackRegistryEntry<?>> datapack_registries;
 
     public NeoForgeRegistriesRegistrar(String mod_id) {
         this.mod_id = mod_id;
@@ -40,7 +42,7 @@ public final class NeoForgeRegistriesRegistrar
     private record DatapackRegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Codec<T> element_codec) {}
 
     @SuppressWarnings("unchecked")
-    private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<Registry<T>> registry_key)
+    private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<? extends Registry<T>> registry_key)
     {
         var en = registers.GetEnumerator();
         try {
@@ -57,6 +59,26 @@ public final class NeoForgeRegistriesRegistrar
         DeferredRegister<T> t = DeferredRegister.create(registry_key , mod_id);
         registers.Add(t);
         return t;
+    }
+
+    private record DeferredRegisterImplementedBulkRegistryRegister<T>(DeferredRegister<T> reg)
+        implements IBulkRegistryObjectRegister<T>
+    {
+        @Override
+        public void Add(String name, T object)
+                throws ArgumentNullException
+        {
+            ArgumentNullException.ThrowIfNull(name, "name");
+            reg.register(name, new ElementSupplier<>(object));
+        }
+    }
+
+    @Override
+    public <T> IBulkRegistryObjectRegister<T> GetBulkRegister(ResourceKey<? extends Registry<T>> registry_resource_key)
+            throws ArgumentNullException, RegistryNotFoundException
+    {
+        ArgumentNullException.ThrowIfNull(registry_resource_key, "registry_resource_key");
+        return new DeferredRegisterImplementedBulkRegistryRegister<>(CreateIfAbsentOrReturn(registry_resource_key));
     }
 
     @Override
@@ -83,6 +105,7 @@ public final class NeoForgeRegistriesRegistrar
     public <T> void RegisterRegistry(ResourceKey<Registry<T>> registryResourceKey, Action1<IModLoaderRegistry<T>> on_registry_ready)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(on_registry_ready, "on_registry_ready");
         ArgumentNullException.ThrowIfNull(registryResourceKey, "registryResourceKey");
         registries_to_create.Add(new RegistryEntry<>(registryResourceKey, on_registry_ready));
     }

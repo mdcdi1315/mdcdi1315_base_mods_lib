@@ -25,4 +25,12 @@ public interface ISavedData
      * Restoring it later through the {@link #LoadFrom(SavedDataCommonHeader)} method should contain the data before the object was serialized.
      */
     SavedDataCommonHeader Save();
+
+    /**
+     * Gets a value whether this instance has been tampered and the data it retains needs to be saved again. <br />
+     * By default, this does always return {@code true} for backwards compatibility.
+     * @return A value whether the current saved data should be saved to disk.
+     * @since 1.0.15
+     */
+    default boolean ShouldSave() { return true; }
 }

@@ -8,8 +8,6 @@ base {
     version = project.version
 }
 
-def publishing_project_id = "${mod_id}-${project.name}-${minecraft_version}";
-
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(java_version)
     withSourcesJar()
@@ -101,6 +99,7 @@ processResources {
             'neoforge_version_range'       : neoforge_version_range,
             'neoforge_loader_version_range': neoforge_loader_version_range,
             'mod_menu_version'             : mod_menu_version,
+            'cloth_config_api_version'     : cloth_config_api_version,
             'mod_name'                     : mod_name,
             'mod_author'                   : mod_author,
             'mod_id'                       : mod_id,

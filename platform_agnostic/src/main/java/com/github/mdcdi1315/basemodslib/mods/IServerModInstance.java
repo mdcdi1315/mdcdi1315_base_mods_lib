@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.mods;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
+import com.github.mdcdi1315.basemodslib.sounds.ISoundRegistrar;
 import com.github.mdcdi1315.basemodslib.network.NetworkManager;
 import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
@@ -90,4 +91,11 @@ public interface IServerModInstance
      * @since 1.0.12
      */
     default void RegisterAlchemyRelatedObjects(IAlchemyRegistrar registrar) {}
+
+    /**
+     * Registers sound-related objects for this mod instance.
+     * @param registrar The object responsible for registering sound-related objects to Minecraft.
+     * @since 1.0.15
+     */
+    default void RegisterSoundObjects(ISoundRegistrar registrar) {}
 }
