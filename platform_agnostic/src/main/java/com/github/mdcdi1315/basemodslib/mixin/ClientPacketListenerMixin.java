@@ -27,7 +27,7 @@ public final class ClientPacketListenerMixin
     private void OnPlayerDisconnected(CallbackInfo ci)
     {
         var details = ((ClientPacketListener) (Object)this).getConnection().getDisconnectionDetails();
-        if (details == null) {
+        if (details == null || details.report().isEmpty()) {
             BaseModsLib.LOGGER.debug("EVENTS_MANAGER: Received disconnection event. Dispatching server disconnection event.");
             BaseModsLib.GetEventsManager().FireEvent(new ClientDisconnectedFromServerEvent(null));
         } else {

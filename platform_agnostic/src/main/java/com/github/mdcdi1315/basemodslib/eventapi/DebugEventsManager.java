@@ -77,6 +77,7 @@ public final class DebugEventsManager
             throws ArgumentNullException, InvalidOperationException
     {
         ArgumentNullException.ThrowIfNull(event_data, "event_data");
+        BaseModsLib.LOGGER.debug("EVENTS_MANAGER: Dispatching event of type {}." , event_data.getClass().getName());
         FireEventInternal(event_data , GetActions().get(event_data.getClass()));
     }
 
