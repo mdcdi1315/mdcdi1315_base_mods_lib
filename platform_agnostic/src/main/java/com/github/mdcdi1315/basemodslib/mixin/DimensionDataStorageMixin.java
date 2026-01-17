@@ -41,7 +41,7 @@ public abstract class DimensionDataStorageMixin
         BML$saved_data = null;
     }
 
-    @Inject(method = "scheduleSave", at = @At("TAIL"))
+    @Inject(method = "scheduleSave", at = @At("RETURN"), cancellable = true)
     private void OnSave(CallbackInfoReturnable<CompletableFuture<?>> ci)
     {
         if (BML$saved_data != null) {
