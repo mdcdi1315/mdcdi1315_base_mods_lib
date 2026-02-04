@@ -2,12 +2,12 @@ package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
-
-import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
+import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
@@ -26,15 +26,15 @@ public final class NeoForgeRegistriesRegistrar
         implements IRegistryRegistrar
 {
     private String mod_id;
-    private List<DeferredRegister<?>> registers;
-    private List<RegistryEntry<?>> registries_to_create;
-    private List<DatapackRegistryEntry<?>> datapack_registries;
+    private SingleLinkedList<DeferredRegister<?>> registers;
+    private SingleLinkedList<RegistryEntry<?>> registries_to_create;
+    private SingleLinkedList<DatapackRegistryEntry<?>> datapack_registries;
 
     public NeoForgeRegistriesRegistrar(String mod_id) {
         this.mod_id = mod_id;
-        registers = new List<>();
-        datapack_registries = new List<>();
-        registries_to_create = new List<>();
+        registers = new SingleLinkedList<>();
+        datapack_registries = new SingleLinkedList<>();
+        registries_to_create = new SingleLinkedList<>();
     }
 
     private record RegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Action1<IModLoaderRegistry<T>> on_ready) {}
@@ -172,5 +172,6 @@ public final class NeoForgeRegistriesRegistrar
         registers = null; // We can now sweep up memory.
         NeoForgeUtils.AddListener(bus, NewRegistryEvent.class, this::CreateRegistries);
         NeoForgeUtils.AddListener(bus, DataPackRegistryEvent.NewRegistry.class , this::DatapackRegistries);
+        mod_id = null;
     }
 }

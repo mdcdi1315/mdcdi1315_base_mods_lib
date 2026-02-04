@@ -3,9 +3,9 @@ package com.github.mdcdi1315.basemodslib.client;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
@@ -35,25 +35,25 @@ public final class NeoForgeClientArtifactsRegistrar
         IParticleProviderRegistrar,
         IMenuScreensRegistrar
 {
-    private List<MenuScreenRegInfo<? , ?>> menu_screens_info;
-    private List<ModelDefinitionRegistrationInfo> model_infos;
-    private List<ItemColorHandlerRegistrationInfo> item_colors;
-    private List<BlockColorHandlerRegistrationInfo> block_colors;
-    private List<EntityRendererRegistrationInfo<? extends Entity>> entities;
-    private List<BlockEntityRendererRegistrationInfo<? extends BlockEntity>> block_entities;
-    private List<SimpleParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_simple;
-    private List<AdvancedParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_advanced;
+    private SingleLinkedList<MenuScreenRegInfo<? , ?>> menu_screens_info;
+    private SingleLinkedList<ModelDefinitionRegistrationInfo> model_infos;
+    private SingleLinkedList<ItemColorHandlerRegistrationInfo> item_colors;
+    private SingleLinkedList<BlockColorHandlerRegistrationInfo> block_colors;
+    private SingleLinkedList<EntityRendererRegistrationInfo<? extends Entity>> entities;
+    private SingleLinkedList<BlockEntityRendererRegistrationInfo<? extends BlockEntity>> block_entities;
+    private SingleLinkedList<SimpleParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_simple;
+    private SingleLinkedList<AdvancedParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_advanced;
 
     public NeoForgeClientArtifactsRegistrar()
     {
-        entities = new List<>();
-        model_infos = new List<>();
-        item_colors = new List<>();
-        block_colors = new List<>();
-        block_entities = new List<>();
-        particles_simple = new List<>();
-        menu_screens_info = new List<>();
-        particles_advanced = new List<>();
+        entities = new SingleLinkedList<>();
+        model_infos = new SingleLinkedList<>();
+        item_colors = new SingleLinkedList<>();
+        block_colors = new SingleLinkedList<>();
+        block_entities = new SingleLinkedList<>();
+        particles_simple = new SingleLinkedList<>();
+        menu_screens_info = new SingleLinkedList<>();
+        particles_advanced = new SingleLinkedList<>();
     }
 
     @Override

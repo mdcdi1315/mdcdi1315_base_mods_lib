@@ -16,6 +16,7 @@ import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -24,11 +25,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
+import java.util.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 public final class FabricModLoaderLayer
     implements IModLoaderLayer
@@ -45,12 +43,15 @@ public final class FabricModLoaderLayer
     {
         minecraft_version = new Version(1, 21, 1);
 
-        mod_ids = new ArrayList<>(10);
         networking_versions_map = new HashMap<>(10);
         var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
         minecraft_dir = loader.getGameDir();
         dev_env = loader.isDevelopmentEnvironment();
+        var l = new ArrayList<String>(10);
+        for (ModContainer m : loader.getAllMods()) { l.add(m.getMetadata().getId()); }
+        l.trimToSize();
+        mod_ids = l;
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;

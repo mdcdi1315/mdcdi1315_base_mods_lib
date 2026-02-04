@@ -10,9 +10,10 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
+import com.github.mdcdi1315.basemodslib.sounds.ForgeSoundRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
-import com.github.mdcdi1315.basemodslib.sounds.ForgeSoundRegistrar;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.IModLoaderRegistry;
 import com.github.mdcdi1315.basemodslib.alchemy.ForgeAlchemyRegistrar;
@@ -40,7 +41,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 import java.util.List;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 public final class ForgeModLoaderLayer
@@ -210,11 +210,7 @@ public final class ForgeModLoaderLayer
 
     @Override
     public List<String> GetLoadedMods() {
-        List<String> mod_ids = new ArrayList<>(forge_mod_info.size());
-        for (var i : forge_mod_info) {
-            mod_ids.add(i.getModId());
-        }
-        return mod_ids;
+        return new DirectlyMappedList<>(forge_mod_info, IModInfo::getModId);
     }
 
     @Override

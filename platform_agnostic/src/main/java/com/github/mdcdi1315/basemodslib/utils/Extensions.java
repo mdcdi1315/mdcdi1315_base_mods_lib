@@ -96,19 +96,41 @@ public final class Extensions
      */
     public static double Cos(double v)
     {
-        return Math.cos(v);
+        return Math.cos(v); // Currently forwards to Minecraft's math class, we need to find a better alternative for this
     }
 
+    /**
+     * Computes the inverted square root of {@code d}.
+     * @param d The value to compute it's inverted square root.
+     * @return The inverted square root of {@code d}.
+     */
     public static double InvertedSquareRoot(double d) { return 1.0d / Math.sqrt(d); }
 
+    /**
+     * Computes the inverted square root of {@code d}.
+     * @param d The value to compute it's inverted square root.
+     * @return The inverted square root of {@code d}.
+     */
     public static float InvertedSquareRoot(float d) { return (float) (1.0d / Math.sqrt(d)); }
 
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is added before the method returns.
+     * @param value The value to be computed as {@link Integer}.
+     * @return The {@link Integer} corresponding to {@code value}.
+     */
     public static int Ceiling(float value) {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         int i = (int)value;
         return value > (float)i ? i + 1 : i;
     }
 
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is added before the method returns.
+     * @param value The value to be computed as {@link Integer}.
+     * @return The {@link Integer} corresponding to {@code value}.
+     */
     public static int Ceiling(double value) {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         int i = (int)value;
@@ -118,13 +140,13 @@ public final class Extensions
     public static float Lerp(float delta, float start, float end)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
-        return start + delta * (end - start);
+        return start + (delta * (end - start));
     }
 
     public static double Lerp(double delta, double start, double end)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
-        return start + delta * (end - start);
+        return start + (delta * (end - start));
     }
 
     public static int Floor(float value) {

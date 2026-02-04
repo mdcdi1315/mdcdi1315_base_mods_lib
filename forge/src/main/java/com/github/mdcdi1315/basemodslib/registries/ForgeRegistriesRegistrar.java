@@ -2,12 +2,12 @@ package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import com.mojang.serialization.Codec;
 
@@ -25,15 +25,15 @@ public final class ForgeRegistriesRegistrar
     implements IRegistryRegistrar
 {
     private String mod_id;
-    private List<DeferredRegister<?>> registers;
-    private List<DatapackRegistryEntry<?>> datapack_registries;
-    private List<RegistryEntry<?>> registries_to_create;
+    private SingleLinkedList<DeferredRegister<?>> registers;
+    private SingleLinkedList<DatapackRegistryEntry<?>> datapack_registries;
+    private SingleLinkedList<RegistryEntry<?>> registries_to_create;
 
     public ForgeRegistriesRegistrar(String mod_id) {
         this.mod_id = mod_id;
-        registers = new List<>();
-        datapack_registries = new List<>();
-        registries_to_create = new List<>();
+        registers = new SingleLinkedList<>();
+        datapack_registries = new SingleLinkedList<>();
+        registries_to_create = new SingleLinkedList<>();
     }
 
     private record ROSRegister<T>(RegistryObjectSupplier<T> ts , ResourceLocation location)
@@ -189,5 +189,6 @@ public final class ForgeRegistriesRegistrar
         registers = null;
         ForgeUtils.AddListener(evb , NewRegistryEvent.class , this::CreateRegistries);
         ForgeUtils.AddListener(evb , DataPackRegistryEvent.NewRegistry.class , this::RegisterDatapackRegistries);
+        mod_id = null;
     }
 }

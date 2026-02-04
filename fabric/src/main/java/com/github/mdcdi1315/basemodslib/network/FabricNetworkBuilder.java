@@ -1,10 +1,10 @@
 package com.github.mdcdi1315.basemodslib.network;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -21,14 +21,14 @@ public final class FabricNetworkBuilder
     private String mod_id;
     private boolean aso, aco;
     private Version network_version;
-    private List<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_side_info;
-    private List<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_side_info;
+    private SingleLinkedList<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_side_info;
+    private SingleLinkedList<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_side_info;
 
     public FabricNetworkBuilder(String mod_id)
     {
         this.mod_id = mod_id;
-        client_side_info = new List<>();
-        server_side_info = new List<>();
+        client_side_info = new SingleLinkedList<>();
+        server_side_info = new SingleLinkedList<>();
         network_version = null;
         aso = false;
         aco = false;
@@ -114,6 +114,7 @@ public final class FabricNetworkBuilder
     public void Build(FabricBasedNetworkManager manager)
     {
         manager.Mod_Info = new ServerBoundModInfoPacket(mod_id, network_version == null ? new Version(1,0) : network_version, aco, aso);
+        mod_id = null;
         IEnumerator<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_e = server_side_info.GetEnumerator();
         try {
             ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload> inf;

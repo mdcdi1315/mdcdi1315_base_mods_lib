@@ -4,9 +4,9 @@ import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
@@ -36,24 +36,24 @@ public final class ForgeClientArtifactsRegistrar
         IParticleProviderRegistrar,
         IMenuScreensRegistrar
 {
-    private List<MenuScreenRegInfo<? , ?>> menu_screens_info;
-    private List<ModelDefinitionRegistrationInfo> model_defs_infos;
-    private List<EntityRendererRegistrationInfo<?>> entity_renderer_infos;
-    private List<ItemColorHandlerRegistrationInfo> item_color_handler_infos;
-    private List<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
-    private List<SimpleParticleProviderRegistrationInfo<?>> simple_particle_reg;
-    private List<AdvancedParticleProviderRegistrationInfo<?>> advanced_particle_reg;
-    private List<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
+    private SingleLinkedList<MenuScreenRegInfo<? , ?>> menu_screens_info;
+    private SingleLinkedList<ModelDefinitionRegistrationInfo> model_defs_infos;
+    private SingleLinkedList<EntityRendererRegistrationInfo<?>> entity_renderer_infos;
+    private SingleLinkedList<ItemColorHandlerRegistrationInfo> item_color_handler_infos;
+    private SingleLinkedList<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
+    private SingleLinkedList<SimpleParticleProviderRegistrationInfo<?>> simple_particle_reg;
+    private SingleLinkedList<AdvancedParticleProviderRegistrationInfo<?>> advanced_particle_reg;
+    private SingleLinkedList<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
 
     public ForgeClientArtifactsRegistrar() {
-        model_defs_infos = new List<>();
-        menu_screens_info = new List<>();
-        simple_particle_reg = new List<>();
-        advanced_particle_reg = new List<>();
-        entity_renderer_infos = new List<>();
-        item_color_handler_infos = new List<>();
-        block_color_handler_infos = new List<>();
-        block_entity_renderer_infos = new List<>();
+        model_defs_infos = new SingleLinkedList<>();
+        menu_screens_info = new SingleLinkedList<>();
+        simple_particle_reg = new SingleLinkedList<>();
+        advanced_particle_reg = new SingleLinkedList<>();
+        entity_renderer_infos = new SingleLinkedList<>();
+        item_color_handler_infos = new SingleLinkedList<>();
+        block_color_handler_infos = new SingleLinkedList<>();
+        block_entity_renderer_infos = new SingleLinkedList<>();
     }
 
     @Override
@@ -170,9 +170,7 @@ public final class ForgeClientArtifactsRegistrar
         menu_screens_info = null;
     }
 
-    private void OnClientSetupEvent(FMLClientSetupEvent event) {
-        event.enqueueWork(this::RegisterMenuScreensAll);
-    }
+    private void OnClientSetupEvent(FMLClientSetupEvent event) { event.enqueueWork(this::RegisterMenuScreensAll); }
 
     public void RegisterToEventBus(IEventBus bus)
     {

@@ -3,10 +3,10 @@ package com.github.mdcdi1315.basemodslib.commands;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import com.mojang.brigadier.CommandDispatcher;
 
@@ -18,10 +18,10 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 public final class ForgeCommandRegistrar
     implements ICommandRegistrar
 {
-    private final List<Action1<CommandDispatcher<CommandSourceStack>>> commands;
+    private final SingleLinkedList<Action1<CommandDispatcher<CommandSourceStack>>> commands;
 
     public ForgeCommandRegistrar() {
-        commands = new List<>(4);
+        commands = new SingleLinkedList<>();
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS , RegisterCommandsEvent.class , this::RunCommandsRegistration);
     }
 

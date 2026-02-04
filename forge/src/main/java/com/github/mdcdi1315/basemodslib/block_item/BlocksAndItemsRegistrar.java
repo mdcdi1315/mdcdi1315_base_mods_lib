@@ -1,10 +1,10 @@
 package com.github.mdcdi1315.basemodslib.block_item;
 
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
@@ -14,6 +14,7 @@ import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
@@ -51,14 +52,14 @@ public final class BlocksAndItemsRegistrar
     private DeferredRegister<CreativeModeTab> CREATIVE_MODE_TAB_REGISTER;
     private DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPE_REGISTER;
     private DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPE_REGISTER;
-    private Map<CreativeModeTab, ArrayList<ItemStack>> compiled_item_stacks;
-    private List<Pair<CreativeModeTab[] , RegistryObject<Item>>> items_on_creative_tabs;
+    private Map<CreativeModeTab, SingleLinkedList<ItemStack>> compiled_item_stacks;
     private Map<CreativeModeTab , ArrayList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
+    private SingleLinkedList<Pair<CreativeModeTab[] , RegistryObject<Item>>> items_on_creative_tabs;
 
     public BlocksAndItemsRegistrar(String mod_id) {
         this.mod_id = mod_id;
         compiled_item_stacks = null;
-        items_on_creative_tabs = new List<>();
+        items_on_creative_tabs = new SingleLinkedList<>();
         additional_creative_mode_tab_stacks = new HashMap<>();
         ITEM_REGISTER = DeferredRegister.create(ForgeRegistries.ITEMS, this.mod_id);
         FLUID_REGISTER = DeferredRegister.create(ForgeRegistries.FLUIDS , this.mod_id);
@@ -207,7 +208,12 @@ public final class BlocksAndItemsRegistrar
             for (var kvp : compiled_item_stacks.entrySet())
             {
                 if (kvp.getKey() == tab) {
-                    for (ItemStack is_additional : kvp.getValue()) { event.accept(is_additional); }
+                    IEnumerator<ItemStack> iso = kvp.getValue().GetEnumerator();
+                    try {
+                        while (iso.MoveNext()) { event.accept(iso.getCurrent()); }
+                    } finally {
+                        iso.Dispose();
+                    }
                     // Do not continue searching if this is the tab we wanted for.
                     break;
                 }
@@ -219,13 +225,15 @@ public final class BlocksAndItemsRegistrar
             {
                 if (kvp.getKey() == tab) {
                     var v = kvp.getValue();
-                    ArrayList<ItemStack> cmp = new ArrayList<>(v.size());
+                    SingleLinkedList<ItemStack> lst = new SingleLinkedList<>();
                     for (Func1<ItemStack> is_additional : v) {
                         ItemStack is = is_additional.function();
                         event.accept(is);
-                        cmp.add(is);
+                        lst.Add(is);
                     }
-                    compiled_item_stacks.put(tab, cmp);
+                    v.clear();
+                    v.trimToSize();
+                    compiled_item_stacks.put(tab, lst);
                     // Do not continue searching if this is the tab we wanted for.
                     break;
                 }
@@ -264,7 +272,6 @@ public final class BlocksAndItemsRegistrar
         BLOCK_ENTITY_TYPE_REGISTER.register(evb);
         CREATIVE_MODE_TAB_REGISTER.register(evb);
         DATA_COMPONENT_TYPE_REGISTER.register(evb);
-        items_on_creative_tabs.TrimExcess();
         ForgeUtils.AddListener(evb, BuildCreativeModeTabContentsEvent.class, this::OnCreativeModeTabsRegistering);
         // Clean up what we can clean.
         mod_id = null;

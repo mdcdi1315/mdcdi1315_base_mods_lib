@@ -3,10 +3,10 @@ package com.github.mdcdi1315.basemodslib.network;
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -22,13 +22,13 @@ public final class ForgeSimpleChannelNetworkBuilder
     private boolean aso, aco;
     private Version network_version;
     private final ResourceLocation manager_channel_location;
-    private List<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_packet_reg_info;
-    private List<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_packet_reg_info;
+    private SingleLinkedList<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_packet_reg_info;
+    private SingleLinkedList<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_packet_reg_info;
 
     public ForgeSimpleChannelNetworkBuilder(String mod_id) {
         manager_channel_location = ResourceLocation.tryBuild(mod_id, "mdcdi1315_bml_networking_manager");
-        client_packet_reg_info = new List<>();
-        server_packet_reg_info = new List<>();
+        client_packet_reg_info = new SingleLinkedList<>();
+        server_packet_reg_info = new SingleLinkedList<>();
         network_version = null;
         aso = false;
         aco = false;
