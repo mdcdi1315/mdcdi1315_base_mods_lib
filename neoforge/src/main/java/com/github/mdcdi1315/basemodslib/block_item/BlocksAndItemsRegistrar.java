@@ -4,7 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
@@ -14,6 +14,7 @@ import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
@@ -36,8 +37,8 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
-import java.util.Map;
 import java.util.Set;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 
@@ -53,9 +54,9 @@ public final class BlocksAndItemsRegistrar
     private DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_REGISTER;
     private DeferredRegister.DataComponents DATA_COMPONENT_TYPE_REGISTER;
     private DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS_REGISTER;
-    private List<Pair<ItemLike, CreativeModeTab[]>> tabs_registration;
-    private Map<CreativeModeTab, ArrayList<ItemStack>> compiled_item_stacks;
-    private Map<CreativeModeTab , ArrayList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
+    private SingleLinkedList<Pair<ItemLike, CreativeModeTab[]>> tabs_registration;
+    private Map<CreativeModeTab, SingleLinkedList<ItemStack>> compiled_item_stacks;
+    private Map<CreativeModeTab, ArrayList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
 
     public BlocksAndItemsRegistrar(String mod_id)
     {
@@ -67,7 +68,7 @@ public final class BlocksAndItemsRegistrar
         DATA_COMPONENT_TYPE_REGISTER = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE , mod_id);
 
         compiled_item_stacks = null;
-        tabs_registration = new List<>();
+        tabs_registration = new SingleLinkedList<>();
         additional_creative_mode_tab_stacks = new HashMap<>(10);
     }
 
@@ -177,7 +178,12 @@ public final class BlocksAndItemsRegistrar
             for (var kvp : compiled_item_stacks.entrySet())
             {
                 if (kvp.getKey() == current) {
-                    for (ItemStack is_additional : kvp.getValue()) { event.accept(is_additional); }
+                    IEnumerator<ItemStack> iso = kvp.getValue().GetEnumerator();
+                    try {
+                        while (iso.MoveNext()) { event.accept(iso.getCurrent()); }
+                    } finally {
+                        iso.Dispose();
+                    }
                     // Do not continue searching if this is the tab we wanted for.
                     break;
                 }
@@ -189,13 +195,15 @@ public final class BlocksAndItemsRegistrar
             {
                 if (kvp.getKey() == current) {
                     var v = kvp.getValue();
-                    ArrayList<ItemStack> cmp = new ArrayList<>(v.size());
+                    SingleLinkedList<ItemStack> lst = new SingleLinkedList<>();
                     for (Func1<ItemStack> is_additional : v) {
                         ItemStack is = is_additional.function();
                         event.accept(is);
-                        cmp.add(is);
+                        lst.Add(is);
                     }
-                    compiled_item_stacks.put(current, cmp);
+                    v.clear();
+                    v.trimToSize();
+                    compiled_item_stacks.put(current, lst);
                     // Do not continue searching if this is the tab we wanted for.
                     break;
                 }

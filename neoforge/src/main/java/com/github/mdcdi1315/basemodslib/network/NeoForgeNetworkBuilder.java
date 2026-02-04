@@ -3,9 +3,9 @@ package com.github.mdcdi1315.basemodslib.network;
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -24,15 +24,15 @@ public final class NeoForgeNetworkBuilder
     private boolean optional;
     private Version networking_version;
     private NeoForgeNetworkingManager manager;
-    private List<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_side_infos;
-    private List<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_side_infos;
+    private SingleLinkedList<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_side_infos;
+    private SingleLinkedList<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_side_infos;
 
     public NeoForgeNetworkBuilder(NeoForgeNetworkingManager manager)
     {
         optional = false;
         this.manager = manager;
-        client_side_infos = new List<>();
-        server_side_infos = new List<>();
+        client_side_infos = new SingleLinkedList<>();
+        server_side_infos = new SingleLinkedList<>();
     }
 
     @Override

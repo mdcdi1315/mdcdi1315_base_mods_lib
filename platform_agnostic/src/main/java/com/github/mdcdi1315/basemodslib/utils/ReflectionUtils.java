@@ -67,6 +67,41 @@ public final class ReflectionUtils
         return false;
     }
 
+    private record SuperClassIterable(Class<?> root)
+        implements Iterable<Class<?>>
+    {
+        private static final class SuperClassIterator
+                implements Iterator<Class<?>>
+        {
+            private Class<?> current;
+
+            public SuperClassIterator(Class<?> en) { current = en; }
+
+            @Override
+            public boolean hasNext()
+            {
+                if (current == null) {
+                    return false;
+                } else {
+                    Class<?> next = current.getSuperclass();
+                    if (next == null) {
+                        current = null;
+                        return false;
+                    } else {
+                        current = next;
+                        return true;
+                    }
+                }
+            }
+
+            @Override
+            public Class<?> next() { return current; }
+        }
+
+        @Override
+        public Iterator<Class<?>> iterator() { return new SuperClassIterator(root); }
+    }
+
     /**
      * Gets ALL the super classes extended by the current class object.
      * @param class_to_search The class object to search for it's super classes.
@@ -78,13 +113,7 @@ public final class ReflectionUtils
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(class_to_search, "class_to_search");
-        Set<Class<?>> set = new HashSet<>();
-        Class<?> cls_current = class_to_search.getSuperclass();
-        while (cls_current != null) {
-            set.add(cls_current);
-            cls_current = cls_current.getSuperclass();
-        }
-        return set;
+        return new SuperClassIterable(class_to_search);
     }
 
     /**

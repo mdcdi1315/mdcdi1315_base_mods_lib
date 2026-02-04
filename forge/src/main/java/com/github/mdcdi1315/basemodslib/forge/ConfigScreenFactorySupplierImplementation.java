@@ -17,9 +17,7 @@ public record ConfigScreenFactorySupplierImplementation<T extends Screen>(Config
         implements BiFunction<Minecraft, Screen, Screen>
     {
         @Override
-        public T apply(Minecraft minecraft, Screen screen) {
-            return factory.Create(screen);
-        }
+        public T apply(Minecraft minecraft, Screen screen) { return factory.Create(screen); }
     }
 
     @Override

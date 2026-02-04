@@ -15,13 +15,14 @@ public final class FMLBMLLanguageProvider
     implements IModLanguageLoader
 {
     public static final Logger LOGGER;
+    private static String bml_module_name;
 
     private static final String LANG_PROVIDER_NAME = "bml_java_fml";
     private static final String MOD_INFO_SERVER_INSTANCE_CLASS_NAME = "server_mod_instance_class_name";
     private static final String MOD_INFO_CLIENT_INSTANCE_CLASS_NAME = "client_mod_instance_class_name";
 
     static {
-        LOGGER = LogManager.getLogger();
+        LOGGER = LogManager.getLogger("Base Mods Library NFG Language Provider");
         LOGGER.info("FMLBMLLanguageProvider is loaded and now active!");
     }
 
@@ -29,12 +30,18 @@ public final class FMLBMLLanguageProvider
     public String name() { return LANG_PROVIDER_NAME; }
 
     @Override
-    public String version() { return "1.0.0"; }
+    public String version() { return "1.0.1"; }
 
     @Override
     public ModContainer loadMod(IModInfo info, ModFileScanData modFileScanResults, ModuleLayer layer)
             throws ModLoadingException
     {
+        synchronized (this) {
+            if (bml_module_name == null) {
+                bml_module_name = GetBMLModuleName();
+                LOGGER.info("Identified BML library module: {}", bml_module_name);
+            }
+        }
         // It seems that in NeoForge we can access the mod container class without transitioning.
         // Clever enough, I have to say.
 
@@ -47,17 +54,17 @@ public final class FMLBMLLanguageProvider
             // Client-side only workflow
             if (client == null) {
                 // No server or client, dispatch a warning message.
-                LOGGER.warn("Mod with ID {} did not registered any client or server instance. This may be invalid. Ignoring this entry.", id);
+                LOGGER.warn("FMLBMLLanguageProvider: Mod with ID {} did not registered any client or server instance. This may be invalid. Ignoring this entry.", id);
             } else if (FMLEnvironment.dist == Dist.CLIENT) {
-                return new FMLBMLModContainer(info , null , client , layer , layer.findModule(GetBMLModuleName()).get());
+                return new FMLBMLModContainer(info , null , client , layer , layer.findModule(bml_module_name).get());
             } else {
                 // Attempted to run a client-side mod on the server! This is of course invalid.
-                LOGGER.warn("Attempted to run client-side only mod with ID {} on a server instance! The BML will skip this mod, and you should remove it from your server mods list.", id);
+                LOGGER.warn("FMLBMLLanguageProvider: Attempted to run client-side only mod with ID {} on a server instance! The BML will skip this mod, and you should remove it from your server mods list.", id);
             }
         } else {
             // Put our mod to be constructed any way if it's server mod instance is valid.
             // Handling for both parameters against null is anyway done.
-            return new FMLBMLModContainer(info , server , client , layer , layer.findModule(GetBMLModuleName()).get());
+            return new FMLBMLModContainer(info , server , client , layer , layer.findModule(bml_module_name).get());
         }
         return null;
     }

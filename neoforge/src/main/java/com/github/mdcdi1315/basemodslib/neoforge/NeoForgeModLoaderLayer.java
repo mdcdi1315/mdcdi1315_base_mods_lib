@@ -8,6 +8,7 @@ import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 import com.github.mdcdi1315.basemodslib.sounds.NeoForgeSoundRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
@@ -35,7 +36,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 public final class NeoForgeModLoaderLayer
     implements IModLoaderLayer
@@ -170,11 +170,7 @@ public final class NeoForgeModLoaderLayer
 
     @Override
     public List<String> GetLoadedMods() {
-        List<String> mod_ids = new ArrayList<>(mods.size());
-        for (var i : mods) {
-            mod_ids.add(i.getModId());
-        }
-        return mod_ids;
+        return new DirectlyMappedList<>(mods, IModInfo::getModId);
     }
 
     @Override

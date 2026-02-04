@@ -1,18 +1,18 @@
 package com.github.mdcdi1315.basemodslib.client;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.client.renderer.special.SpecialModelRenderer;
-import net.minecraft.resources.ResourceLocation;
+
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.particles.ParticleOptions;
@@ -22,14 +22,15 @@ import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.client.renderer.special.SpecialModelRenderer;
 
-import net.minecraftforge.client.event.CreateSpecialBlockRendererEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
+import net.minecraftforge.client.event.CreateSpecialBlockRendererEvent;
 
 public final class ForgeClientArtifactsRegistrar
     implements IBlockEntityRendererRegistrar,
@@ -40,26 +41,26 @@ public final class ForgeClientArtifactsRegistrar
         IMenuScreensRegistrar,
         ISpecialModelRendererRegistrar
 {
-    private List<MenuScreenRegInfo<? , ?>> menu_screens_info;
-    private List<ModelDefinitionRegistrationInfo> model_defs_infos;
-    private List<EntityRendererRegistrationInfo<?>> entity_renderer_infos;
-    private List<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
-    private List<SimpleParticleProviderRegistrationInfo<?>> simple_particle_reg;
-    private List<AdvancedParticleProviderRegistrationInfo<?>> advanced_particle_reg;
-    private List<SpecialModelRendererRegistrationInfo> model_renderer_registrations;
-    private List<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
+    private SingleLinkedList<MenuScreenRegInfo<? , ?>> menu_screens_info;
+    private SingleLinkedList<ModelDefinitionRegistrationInfo> model_defs_infos;
+    private SingleLinkedList<EntityRendererRegistrationInfo<?>> entity_renderer_infos;
+    private SingleLinkedList<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
+    private SingleLinkedList<SimpleParticleProviderRegistrationInfo<?>> simple_particle_reg;
+    private SingleLinkedList<AdvancedParticleProviderRegistrationInfo<?>> advanced_particle_reg;
+    private SingleLinkedList<SpecialModelRendererRegistrationInfo> model_renderer_registrations;
+    private SingleLinkedList<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
     private Action2<ResourceLocation, MapCodec<? extends SpecialModelRenderer.Unbaked>> id_mapper_special_model_renderers;
 
     public ForgeClientArtifactsRegistrar(Action2<ResourceLocation, MapCodec<? extends SpecialModelRenderer.Unbaked>> id_mapper)
     {
-        model_defs_infos = new List<>();
-        menu_screens_info = new List<>();
-        simple_particle_reg = new List<>();
-        advanced_particle_reg = new List<>();
-        entity_renderer_infos = new List<>();
-        block_color_handler_infos = new List<>();
-        block_entity_renderer_infos = new List<>();
-        model_renderer_registrations = new List<>();
+        model_defs_infos = new SingleLinkedList<>();
+        menu_screens_info = new SingleLinkedList<>();
+        simple_particle_reg = new SingleLinkedList<>();
+        advanced_particle_reg = new SingleLinkedList<>();
+        entity_renderer_infos = new SingleLinkedList<>();
+        block_color_handler_infos = new SingleLinkedList<>();
+        block_entity_renderer_infos = new SingleLinkedList<>();
+        model_renderer_registrations = new SingleLinkedList<>();
         id_mapper_special_model_renderers = id_mapper;
     }
 
