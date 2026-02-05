@@ -167,5 +167,6 @@ public final class ForgeRegistriesRegistrar
         registers = null;
         ForgeUtils.AddListener(evb , NewRegistryEvent.class , this::CreateRegistries);
         ForgeUtils.AddListener(evb , DataPackRegistryEvent.NewRegistry.class , this::RegisterDatapackRegistries);
+        mod_id = null;
     }
 }

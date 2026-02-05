@@ -79,14 +79,12 @@ public final class ForgeSimpleChannelNetworkBuilder
         implements Predicate<String>
     {
         @Override
-        public boolean test(String s) {
-            return version.equals(s);
-        }
+        public boolean test(String s) { return version.equals(s); }
     }
 
     private void InitializePackets(SimpleChannel sc, ForgeBasedNetworkManager mgr)
     {
-        int id_index = 0;
+        int id_index = 1;
         IEnumerator<ClientSideNetworkPacketRegistrationInfo<?>> client_e = client_packet_reg_info.GetEnumerator();
         try {
             while (client_e.MoveNext()) {

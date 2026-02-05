@@ -1,8 +1,8 @@
 package com.github.mdcdi1315.basemodslib.network;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
@@ -33,6 +33,7 @@ public final class FabricNetworkBuilder
 
     public FabricNetworkBuilder(String mod_id)
     {
+        this.mod_id = mod_id;
         client_side_info = new List<>();
         server_side_info = new List<>();
         network_version = null;
@@ -133,7 +134,7 @@ public final class FabricNetworkBuilder
             ServerSideNetworkPacketRegistrationInfo<?> inf;
             while (server_e.MoveNext()) {
                 inf = server_e.getCurrent();
-                temp_location = ResourceLocation.tryBuild(mod_id, "networking_packet_id_" + packet_ordinal++);
+                temp_location = ResourceLocation.tryBuild(mod_id, "bml_networking_packet_id_" + packet_ordinal++);
                 if (temp_location == null) {
                     BaseModsLib.LOGGER.warn("NETWORKING: Failed to register a packet because the packet location could not be constructed.");
                 } else {
@@ -143,13 +144,14 @@ public final class FabricNetworkBuilder
         } finally {
             server_e.Dispose();
         }
+        server_side_info = null;
 
         IEnumerator<ClientSideNetworkPacketRegistrationInfo<?>> client_e = client_side_info.GetEnumerator();
         try {
             ClientSideNetworkPacketRegistrationInfo<?> inf; // It is OK this class object to be allocated on server-only, since itself does not access any client-only classes.
             while (client_e.MoveNext()) {
                 inf = client_e.getCurrent();
-                temp_location = ResourceLocation.tryBuild(mod_id, "networking_packet_id_" + packet_ordinal++);
+                temp_location = ResourceLocation.tryBuild(mod_id, "bml_networking_packet_id_" + packet_ordinal++);
                 if (temp_location == null) {
                     BaseModsLib.LOGGER.warn("NETWORKING: Failed to register a packet because the packet location could not be constructed.");
                 } else {
@@ -159,5 +161,7 @@ public final class FabricNetworkBuilder
         } finally {
             server_e.Dispose();
         }
+        client_side_info = null;
+        mod_id = null;
     }
 }

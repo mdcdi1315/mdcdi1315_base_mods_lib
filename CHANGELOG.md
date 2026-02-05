@@ -1,17 +1,7 @@
-### Now releasing 1.0.13:
+### Now releasing 1.0.13-Patch 0:
 
--> This is the final release for 1.20.1 as we have been reached the end of the year.
+-> Patches for 1.0.13 version for 1.20.1 Minecraft only, to support older mods that are still 
+depending on this. The library with 1.20.1 is not recommended on any modded scenario as 
+it is explicitly deprecated. This is just a patch to ensure that those older mods run smoothly.
 
--> Finalized support for extended screen handlers. Now the API properly translates screen handling with custom packet data for 1.20.1 .
-
--> Potential fix for the Fabric rendering API layer that overrides `IBlockEntityItem` execution on NeoForge. This is done by the Sinytra's Forgified Fabric API that is used for e.g. Sodium on NeoForge.
-This change does also apply to 1.20.1, if a similar API with similar effects is discovered.
-
--> Added a new `StringUtils` class to complement static methods found in `System.String` class in .NET .
-
--> Added some additional documentation for some types
-
--> Some minor bugfixes and improvements
-
--> Added helper methods to `IRegistryRegistrar` contract to cope better with the `RegisterObject` method.
-
+No developer archives will be uploaded for this version.

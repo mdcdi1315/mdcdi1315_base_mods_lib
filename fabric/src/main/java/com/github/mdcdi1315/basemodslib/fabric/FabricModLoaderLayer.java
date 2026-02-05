@@ -14,11 +14,11 @@ import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStoppingEvent;
 import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.impl.FabricLoaderImpl;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -55,12 +55,15 @@ public final class FabricModLoaderLayer
             throw new InvalidOperationException("Cannot construct the mod version verifier channel!");
         }
 
-        mod_ids = new ArrayList<>(10);
         networking_versions_map = new HashMap<>(10);
         var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
         minecraft_dir = loader.getGameDir();
         dev_env = loader.isDevelopmentEnvironment();
+        var l = new ArrayList<String>(10);
+        for (ModContainer m : loader.getAllMods()) { l.add(m.getMetadata().getId()); }
+        l.trimToSize();
+        mod_ids = l;
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;

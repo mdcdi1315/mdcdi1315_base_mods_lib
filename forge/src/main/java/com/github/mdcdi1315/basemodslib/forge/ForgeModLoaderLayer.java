@@ -14,6 +14,7 @@ import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 import com.github.mdcdi1315.basemodslib.menu.ForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.registries.IModLoaderRegistry;
+import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.world.ForgeWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.commands.ForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
@@ -202,13 +203,7 @@ public final class ForgeModLoaderLayer
     }
 
     @Override
-    public List<String> GetLoadedMods() {
-        List<String> mod_ids = new ArrayList<>(forge_mod_info.size());
-        for (var i : forge_mod_info) {
-            mod_ids.add(i.getModId());
-        }
-        return mod_ids;
-    }
+    public List<String> GetLoadedMods() { return new DirectlyMappedList<>(forge_mod_info, IModInfo::getModId); }
 
     @Override
     public ModdingEnvironment GetEnvironment()
