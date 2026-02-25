@@ -18,5 +18,5 @@ tasks.register("full_publish") {
     group = 'publishing'
     description = "Publishes all the Jar archives to GitHub for developers, and CurseForge for consumers."
 
-    it.dependsOn(":fabric:publish", ":forge:publish", ":neoforge:publish", ":fabric:curseforge", ":forge:curseforge", ":neoforge:curseforge")
+    it.dependsOn(":fabric:publish", ":forge:publish", ":neoforge:publish", ":fabric:curseforge", ":forge:curseforge", ":neoforge:curseforge", ":platform_agnostic:publish")
 }
