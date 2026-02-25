@@ -11,7 +11,6 @@ base {
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(java_version)
     withSourcesJar()
-    withJavadocJar()
 }
 
 repositories {
@@ -47,8 +46,8 @@ dependencies {
 
 // Declare capabilities on the outgoing configurations.
 // Read more about capabilities here: https://docs.gradle.org/current/userguide/component_capabilities.html#sec:declaring-additional-capabilities-for-a-local-component
-['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
-    configurations."$variant".outgoing {
+['apiElements', 'runtimeElements', 'sourcesElements'].each { variant ->
+    configurations."${variant}".outgoing {
         capability("$group:${mod_id.replace('_', '-')}:$version")
         capability("$group:${mod_id.replace('_', '-')}-${project.name}:$version")
     }
@@ -80,11 +79,6 @@ jar {
                 'MixinConfigs'          : "${mod_id}.mixins.json,${mod_id}.${project.name}.mixins.json",
         ])
     }
-}
-
-javadoc {
-    setFailOnError(false)
-    options {}
 }
 
 processResources {
@@ -129,4 +123,47 @@ processResources {
     }
 
     inputs.properties(expandProps)
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "mdcdi1315_BML_Repo"
+            url = uri("https://maven.pkg.github.com/mdcdi1315/mdcdi1315_base_mods_lib")
+            credentials {
+                username = project.findProperty("github.user") ?: System.getenv("GITHUB_PKG_USERNAME")
+                password = project.findProperty("github.key") ?: System.getenv("GITHUB_PKG_API_TOKEN")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            defaultTasks("jar", "sources")
+            pom {
+                groupId = project.group
+                artifactId = "bml-${project.name}-${minecraft_version}"
+                version = project.version
+
+                name = "mdcdi1315's BML"
+                description = "mdcdi1315's Base Mods Library - ${project.name} project - Version ${project.version}"
+                scm {
+                    url = "https://github.com/mdcdi1315/mdcdi1315_base_mods_lib"
+                }
+                developers {
+                    developer {
+                        id = 'mdcdi1315'
+                        name = 'mdcdi1315'
+                    }
+                }
+                licenses {
+                    license {
+                        name = "MIT License"
+                        url = "https://github.com/mdcdi1315/mdcdi1315_base_mods_lib/tree/1.21.1/LICENSE"
+                    }
+                }
+            }
+
+            from components.java
+        }
+    }
 }

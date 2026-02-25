@@ -10,7 +10,7 @@ import java.util.Iterator;
  * @since 1.0.15
  */
 public record EmptyIterable<T>()
-    implements Iterable<T>
+    implements Iterable<T>, ISynchronized
 {
     @Override
     public @NotNull Iterator<T> iterator() { return new EmptyIterator<>(); }

@@ -4,8 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableEvent;
-
-import java.util.concurrent.ConcurrentLinkedDeque;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedQueue;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -17,14 +16,12 @@ import org.jetbrains.annotations.ApiStatus;
 public abstract class AbstractSetupEvent
     implements IDestroyableEvent
 {
-    private final ConcurrentLinkedDeque<Runnable> runnable_queue;
+    private final SingleLinkedListBasedQueue<Runnable> runnable_queue;
 
     /**
      * Initializes a new instance of the {@link AbstractSetupEvent} class.
      */
-    public AbstractSetupEvent() {
-        runnable_queue = new ConcurrentLinkedDeque<>();
-    }
+    public AbstractSetupEvent() { runnable_queue = new SingleLinkedListBasedQueue<>(); }
 
     /**
      * Executes all the {@link Runnable}s provided in the event. <br />
@@ -34,13 +31,23 @@ public abstract class AbstractSetupEvent
     public void Run()
     {
         Runnable r;
-        while ((r = runnable_queue.pollFirst()) != null) {
+        while ((r = DequeueItem()) != null)
+        {
             try {
                 r.run();
             } catch (Exception e) {
                 BaseModsLib.LOGGER.warn("BASEMODSLIB: One of the runnables provided has thrown an exception.", e);
             }
         }
+    }
+
+    // Dequeues an item from the event queue, ensuring that the thread that is dispatching the Run
+    // call has the lock on the queue. If needed, the method will wait until a new work item has been registered on the queue.
+    private Runnable DequeueItem()
+    {
+        Runnable r;
+        synchronized (runnable_queue) { r = runnable_queue.TryDequeue(); }
+        return r;
     }
 
     /**
@@ -52,6 +59,6 @@ public abstract class AbstractSetupEvent
         throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(work, "work");
-        runnable_queue.add(work);
+        synchronized (runnable_queue) { runnable_queue.Enqueue(work); }
     }
 }

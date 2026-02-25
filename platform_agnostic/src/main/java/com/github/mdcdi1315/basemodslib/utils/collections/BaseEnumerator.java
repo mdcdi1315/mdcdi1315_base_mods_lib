@@ -1,0 +1,61 @@
+package com.github.mdcdi1315.basemodslib.utils.collections;
+
+import com.github.mdcdi1315.DotNetLayer.System.ObjectDisposedException;
+import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+
+/**
+ * Provides the base layout and enumeration services for all the {@link IEnumerator} implementations provided in this package.
+ * @param <T> The type of the elements to be enumerated.
+ */
+public abstract class BaseEnumerator<T>
+        implements IEnumerator<T>
+{
+    private volatile boolean not_disposed;
+
+    /**
+     * Initializes an instance of the {@link BaseEnumerator} class.
+     */
+    protected BaseEnumerator()
+    {
+        not_disposed = true;
+    }
+
+    @MaybeNull
+    public abstract T getCurrent();
+
+    /**
+     * Disposes this {@link BaseEnumerator} instance. <br />
+     * Implementers overriding this MUST also call this method as well.
+     */
+    public void Dispose()
+    {
+        not_disposed = false;
+    }
+
+    public final boolean MoveNext() throws InvalidOperationException { return not_disposed && MoveNextImpl(); }
+
+    /**
+     * Sets the enumerator to its initial position, which is before the first element in the collection.
+     * @throws ObjectDisposedException The current enumerator instance is now disposed.
+     * @throws InvalidOperationException The collection was modified after the enumerator was created.
+     */
+    public final void Reset()
+            throws ObjectDisposedException, InvalidOperationException
+    {
+        ObjectDisposedException.ThrowIf(!not_disposed , this);
+        ResetImpl();
+    }
+
+    /**
+     * Defines the actual implementation of the {@link #Reset()} method.
+     */
+    protected abstract void ResetImpl();
+
+    /**
+     * Defines the actual implementation of the {@link #MoveNext()} method.
+     * @return A value whether the enumerator moved successfully to the next element.
+     */
+    protected abstract boolean MoveNextImpl();
+}

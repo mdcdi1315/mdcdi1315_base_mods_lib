@@ -10,6 +10,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -37,7 +38,7 @@ public final class BaseModsLib
     private static ProxyManager proxy_manager;
     private static EventManager events_manager;
     private static volatile boolean initialized;
-    private static List<IServerModInstance> mod_instances;
+    private static SingleLinkedList<IServerModInstance> mod_instances;
 
     public static Logger LOGGER;
 
@@ -47,7 +48,7 @@ public final class BaseModsLib
         proxy_manager = null; // Initialized once the layer is ready.
         events_manager = new EarlyEventsManager();
         LOGGER = LoggerFactory.getLogger("mdcdi1315's Base Mods Lib logger");
-        LOGGER.info("Now initializing mdcdi1315's Base Mods Library!!!");
+        LOGGER.info("BML Library is statically initialized - initialization will start in a bit.");
     }
 
     // Do not let anyone instantiate this class.
@@ -94,11 +95,10 @@ public final class BaseModsLib
                 events_manager = nem;
             }
             LOGGER.debug("Hand out completed.");
-            mod_instances = new List<>();
+            mod_instances = new SingleLinkedList<>();
             proxy_manager = new ProxyManager();
             LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion(), layer.GetMinecraftVersion(), layer.GetEnvironment());
             sw.Stop();
-            LOGGER.info("The library took {} seconds to initialize.", sw.GetElapsed().GetTotalSeconds());
         } catch (Exception e) {
             layer = null;
             initialized = true;
@@ -106,7 +106,9 @@ public final class BaseModsLib
             LOGGER.error("Library failed to be initialized after {} seconds! Inspecting exception and throwing back." , sw.GetElapsed().GetTotalSeconds());
             throw new CriticalLibraryInitializationException(e);
         }
+        LOGGER.info("Now marking the library as initialized.");
         initialized = true;
+        LOGGER.info("The library took {} seconds to initialize.", sw.GetElapsed().GetTotalSeconds());
     }
 
     /**

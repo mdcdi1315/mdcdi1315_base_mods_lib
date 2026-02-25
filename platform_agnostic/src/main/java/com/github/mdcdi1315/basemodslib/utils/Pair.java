@@ -24,7 +24,7 @@ import java.util.Map;
  */
 @SuppressWarnings("unused")
 public record Pair<T1, T2>(@AllowNull T1 first, @AllowNull T2 second)
-    implements Map.Entry<T1, T2>
+    implements Map.Entry<T1, T2>, ISynchronized
 {
     /**
      * Creates a key-value pair {@link Codec} of the specified key and value codec. <br />
@@ -58,18 +58,12 @@ public record Pair<T1, T2>(@AllowNull T1 first, @AllowNull T2 second)
 
     @Override
     @MaybeNull
-    public T1 getKey() {
-        return first;
-    }
+    public T1 getKey() { return first; }
 
     @Override
     @MaybeNull
-    public T2 getValue() {
-        return second;
-    }
+    public T2 getValue() { return second; }
 
     @Override
-    public T2 setValue(T2 value) {
-        throw new NotSupportedException("Cannot modify the values of a Pair instance.");
-    }
+    public T2 setValue(T2 value) { throw new NotSupportedException("Cannot modify the values of a Pair instance."); }
 }

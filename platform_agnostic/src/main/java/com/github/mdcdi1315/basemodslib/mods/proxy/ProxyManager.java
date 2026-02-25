@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
 
+import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
 import com.github.mdcdi1315.basemodslib.CommonModLoaderBranding;
 
@@ -20,7 +21,7 @@ import java.lang.reflect.InvocationTargetException;
  * Provides the proxy objects manager, a service that can create proxy objects for consuming them in mod loader cross-operating scenarios.
  */
 public final class ProxyManager
-    implements IDisposable
+    implements IDisposable, ISynchronized
 {
     private volatile boolean finalized;
     private Map<String , Class<? extends IProxyable>> registrations;

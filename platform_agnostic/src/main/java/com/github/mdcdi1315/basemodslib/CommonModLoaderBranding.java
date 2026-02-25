@@ -3,11 +3,14 @@ package com.github.mdcdi1315.basemodslib;
 import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
+
 /**
  * Defines hard-coded constants and utility methods for handling mod-loader code from platform-agnostic projects.
  * @since 1.0.11
  */
 public enum CommonModLoaderBranding
+    implements ISynchronized
 {
     /**
      * The library runs into a non-common or currently unknown mod loader.

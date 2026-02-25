@@ -2,7 +2,6 @@ package com.github.mdcdi1315.basemodslib.eventapi;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
@@ -12,6 +11,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.mods.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.eventapi.gameplay.*;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 abstract class EventManagerBase
     extends EventManager
 {
-    private Map<Class<? extends IEvent>, List<Action1<? extends IEvent>>> actions;
+    private Map<Class<? extends IEvent>, SingleLinkedList<Action1<? extends IEvent>>> actions;
 
     /**
      * Initializes a new instance of the {@link EventManagerBase} class.
@@ -68,7 +68,7 @@ abstract class EventManagerBase
     private <TEvent extends IEvent> void AddEventFast(Class<TEvent> cls)
     {
         ArgumentNullException.ThrowIfNull(cls, "cls");
-        actions.put(cls, new List<>(4));
+        actions.put(cls, new SingleLinkedList<>());
     }
 
     @Override
@@ -82,7 +82,7 @@ abstract class EventManagerBase
             throw new InvalidOperationException("Cannot add event listeners after mod loading is complete!");
         }
 
-        List<Action1<? extends IEvent>> acts = actions.get(event_class);
+        SingleLinkedList<Action1<? extends IEvent>> acts = actions.get(event_class);
 
         if (acts == null) {
             throw new InvalidOperationException(String.format("The event with type %s is not registered to this instance!", event_class.getName()));
@@ -107,7 +107,7 @@ abstract class EventManagerBase
                 throw new InvalidOperationException("Attempted to fire an event not yet registered!");
             }
         }
-        var e = ((List<Action1<TEvent>>)actions).GetEnumerator();
+        var e = ((SingleLinkedList<Action1<TEvent>>)actions).GetEnumerator();
         try {
             while (e.MoveNext())
             {
@@ -137,22 +137,21 @@ abstract class EventManagerBase
         ArgumentNullException.ThrowIfNull(cls, "cls");
         if (HasBeenFinalized()) {
             throw new InvalidOperationException("Cannot add event types after mod loading is complete!");
-        }
-        synchronized (actions) {
-            // Typically, events are added by the library, but mods may add their own as well. So locking on the object avoids to double-register an existing event class.
-            actions.computeIfAbsent(cls, EventManagerBase::ListProvider);
+        } else {
+            synchronized (actions) {
+                // Typically, events are added by the library, but mods may add their own as well. So locking on the object avoids to double-register an existing event class.
+                actions.computeIfAbsent(cls, EventManagerBase::ListProvider);
+            }
         }
     }
 
-    private static <T extends IEvent> List<Action1<? extends IEvent>> ListProvider(Class<T> cls) {
-        return new List<>(4);
-    }
+    private static <T extends IEvent> SingleLinkedList<Action1<? extends IEvent>> ListProvider(Class<T> cls) { return new SingleLinkedList<>(); }
 
     /**
      * Gets the map that is used to register actions. Used to gain access of the registered stuff for other event manager classes.
      * @return The backing map.
      */
-    protected Map<Class<? extends IEvent>, List<Action1<? extends IEvent>>> GetActions() { return actions; }
+    protected Map<Class<? extends IEvent>, SingleLinkedList<Action1<? extends IEvent>>> GetActions() { return actions; }
 
     /**
      * Gets a value whether the extending event manager instance has been finalized. Typically happens after the mod loading complete event has been fired.
@@ -161,7 +160,5 @@ abstract class EventManagerBase
     protected abstract boolean HasBeenFinalized();
 
     @Override
-    public void DestroyManager() {
-        actions = null;
-    }
+    public void DestroyManager() { actions = null; }
 }

@@ -9,20 +9,16 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
  * @param <T> The type of the elements to return.
  */
 public record EmptyEnumerable<T>()
-    implements IEnumerable<T>
+    implements IEnumerable<T>, ISynchronized
 {
     private record EmptyEnumerator<T>()
-        implements IEnumerator<T>
+        implements IEnumerator<T>, ISynchronized
     {
         @Override
-        public T getCurrent() {
-            return null;
-        }
+        public T getCurrent() { return null; }
 
         @Override
-        public boolean MoveNext() {
-            return false;
-        }
+        public boolean MoveNext() { return false; }
 
         @Override
         public void Reset() {}
@@ -32,12 +28,8 @@ public record EmptyEnumerable<T>()
     }
 
     @Override
-    public IEnumerator<T> GetEnumerator() {
-        return new EmptyEnumerator<>();
-    }
+    public IEnumerator<T> GetEnumerator() { return new EmptyEnumerator<>(); }
 
     @Override
-    public boolean equals(Object obj) {
-        return obj instanceof EmptyEnumerable;
-    }
+    public boolean equals(Object obj) { return obj instanceof EmptyEnumerable; }
 }

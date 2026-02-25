@@ -9,7 +9,7 @@ import java.util.Objects;
  * @param <T> The type of the Java object to be compared.
  */
 public final class JavaObjectEqualsEqualityComparer<T>
-    implements IEqualityComparer<T>
+    implements IEqualityComparer<T>, ISynchronized
 {
     public JavaObjectEqualsEqualityComparer() { }
 

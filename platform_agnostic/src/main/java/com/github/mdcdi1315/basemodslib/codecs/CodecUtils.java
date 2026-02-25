@@ -3,6 +3,8 @@ package com.github.mdcdi1315.basemodslib.codecs;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.codecs.internal.*;
+
 import com.mojang.datafixers.util.*;
 import com.mojang.serialization.Codec;
 import com.mojang.datafixers.kinds.App;
@@ -122,11 +124,7 @@ public final class CodecUtils
             Function<C1T, TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_1<>(codecfield1, instancecreatefunction));
     }
 
     /**
@@ -145,12 +143,7 @@ public final class CodecUtils
             BiFunction<C1T, C2T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_2<>(codecfield1, codecfield2, instancecreatefunction));
     }
 
     /**
@@ -172,13 +165,7 @@ public final class CodecUtils
             Function3<C1T, C2T , C3T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_3<>(codecfield1, codecfield2, codecfield3, instancecreatefunction));
     }
 
     /**
@@ -203,14 +190,7 @@ public final class CodecUtils
             Function4<C1T, C2T , C3T , C4T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_4<>(codecfield1, codecfield2, codecfield3, codecfield4, instancecreatefunction));
     }
 
     /**
@@ -238,15 +218,14 @@ public final class CodecUtils
             Function5<C1T , C2T , C3T , C4T , C5T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_5<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -277,16 +256,15 @@ public final class CodecUtils
             Function6<C1T , C2T , C3T , C4T , C5T , C6T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_6<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -320,17 +298,16 @@ public final class CodecUtils
             Function7<C1T , C2T , C3T , C4T , C5T , C6T , C7T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_7<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -367,18 +344,17 @@ public final class CodecUtils
             Function8<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_8<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -418,19 +394,18 @@ public final class CodecUtils
             Function9<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_9<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -473,20 +448,19 @@ public final class CodecUtils
             Function10<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_10<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -532,21 +506,20 @@ public final class CodecUtils
             Function11<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10,
-                        codecfield11
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_11<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -595,22 +568,21 @@ public final class CodecUtils
             Function12<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10,
-                        codecfield11,
-                        codecfield12
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_12<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -662,23 +634,22 @@ public final class CodecUtils
             Function13<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10,
-                        codecfield11,
-                        codecfield12,
-                        codecfield13
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_13<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                codecfield13,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -733,24 +704,177 @@ public final class CodecUtils
             Function14<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.create(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10,
-                        codecfield11,
-                        codecfield12,
-                        codecfield13,
-                        codecfield14
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.create(new CreateCodecDirect_14<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                codecfield13,
+                codecfield14,
+                instancecreatefunction
+        ));
+    }
+
+    /**
+     * Creates a record codec directly from the specified applicative objects.
+     * @param codecfield1 The applicative object representing the first field of the record.
+     * @param codecfield2 The applicative object representing the second field of the record.
+     * @param codecfield3 The applicative object representing the third field of the record.
+     * @param codecfield4 The applicative object representing the fourth field of the record.
+     * @param codecfield5 The applicative object representing the fifth field of the record.
+     * @param codecfield6 The applicative object representing the sixth field of the record.
+     * @param codecfield7 The applicative object representing the seventh field of the record.
+     * @param codecfield8 The applicative object representing the eighth field of the record.
+     * @param codecfield9 The applicative object representing the ninth field of the record.
+     * @param codecfield10 The applicative object representing the tenth field of the record.
+     * @param codecfield11 The applicative object representing the eleventh field of the record.
+     * @param codecfield12 The applicative object representing the twelveth field of the record.
+     * @param codecfield13 The applicative object representing the thirteenth field of the record.
+     * @param codecfield14 The applicative object representing the fourteenth field of the record.
+     * @param codecfield15 The applicative object representing the fifteenth field of the record.
+     * @param instancecreatefunction A function able to create a new instance of type {@link TCODEC}.
+     * @return The constructed record codec.
+     * @param <TCODEC> The type of the record to de/encode.
+     * @param <C1T> The type of the first field of the created record codec.
+     * @param <C2T> The type of the second field of the created record codec.
+     * @param <C3T> The type of the third field of the created record codec.
+     * @param <C4T> The type of the fourth field of the created record codec.
+     * @param <C5T> The type of the fifth field of the created record codec.
+     * @param <C6T> The type of the sixth field of the created record codec.
+     * @param <C7T> The type of the seventh field of the created record codec.
+     * @param <C8T> The type of the eighth field of the created record codec.
+     * @param <C9T> The type of the ninth field of the created record codec.
+     * @param <C10T> The type of the tenth field of the created record codec.
+     * @param <C11T> The type of the eleventh field of the created record codec.
+     * @param <C12T> The type of the twelveth field of the created record codec.
+     * @param <C13T> The type of the thirteenth field of the created record codec.
+     * @param <C14T> The type of the fourteenth field of the created record codec.
+     * @param <C15T> The type of the fifteenth field of the created record codec.
+     * @since 1.0.18
+     */
+    public static <TCODEC , C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T, C15T> Codec<TCODEC> CreateCodecDirect(
+            App<RecordCodecBuilder.Mu<TCODEC> , C1T> codecfield1,
+            App<RecordCodecBuilder.Mu<TCODEC> , C2T> codecfield2,
+            App<RecordCodecBuilder.Mu<TCODEC> , C3T> codecfield3,
+            App<RecordCodecBuilder.Mu<TCODEC> , C4T> codecfield4,
+            App<RecordCodecBuilder.Mu<TCODEC> , C5T> codecfield5,
+            App<RecordCodecBuilder.Mu<TCODEC> , C6T> codecfield6,
+            App<RecordCodecBuilder.Mu<TCODEC> , C7T> codecfield7,
+            App<RecordCodecBuilder.Mu<TCODEC> , C8T> codecfield8,
+            App<RecordCodecBuilder.Mu<TCODEC> , C9T> codecfield9,
+            App<RecordCodecBuilder.Mu<TCODEC> , C10T> codecfield10,
+            App<RecordCodecBuilder.Mu<TCODEC> , C11T> codecfield11,
+            App<RecordCodecBuilder.Mu<TCODEC> , C12T> codecfield12,
+            App<RecordCodecBuilder.Mu<TCODEC> , C13T> codecfield13,
+            App<RecordCodecBuilder.Mu<TCODEC> , C14T> codecfield14,
+            App<RecordCodecBuilder.Mu<TCODEC> , C15T> codecfield15,
+            Function15<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T, C15T, TCODEC> instancecreatefunction
+    )
+    {
+        return RecordCodecBuilder.create(new CreateCodecDirect_15<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                codecfield13,
+                codecfield14,
+                codecfield15,
+                instancecreatefunction
+        ));
+    }
+
+    /**
+     * Creates a record codec directly from the specified applicative objects.
+     * @param codecfield1 The applicative object representing the first field of the record.
+     * @param codecfield2 The applicative object representing the second field of the record.
+     * @param codecfield3 The applicative object representing the third field of the record.
+     * @param codecfield4 The applicative object representing the fourth field of the record.
+     * @param codecfield5 The applicative object representing the fifth field of the record.
+     * @param codecfield6 The applicative object representing the sixth field of the record.
+     * @param codecfield7 The applicative object representing the seventh field of the record.
+     * @param codecfield8 The applicative object representing the eighth field of the record.
+     * @param codecfield9 The applicative object representing the ninth field of the record.
+     * @param codecfield10 The applicative object representing the tenth field of the record.
+     * @param codecfield11 The applicative object representing the eleventh field of the record.
+     * @param codecfield12 The applicative object representing the twelveth field of the record.
+     * @param codecfield13 The applicative object representing the thirteenth field of the record.
+     * @param codecfield14 The applicative object representing the fourteenth field of the record.
+     * @param codecfield15 The applicative object representing the fifteenth field of the record.
+     * @param instancecreatefunction A function able to create a new instance of type {@link TCODEC}.
+     * @return The constructed record codec.
+     * @param <TCODEC> The type of the record to de/encode.
+     * @param <C1T> The type of the first field of the created record codec.
+     * @param <C2T> The type of the second field of the created record codec.
+     * @param <C3T> The type of the third field of the created record codec.
+     * @param <C4T> The type of the fourth field of the created record codec.
+     * @param <C5T> The type of the fifth field of the created record codec.
+     * @param <C6T> The type of the sixth field of the created record codec.
+     * @param <C7T> The type of the seventh field of the created record codec.
+     * @param <C8T> The type of the eighth field of the created record codec.
+     * @param <C9T> The type of the ninth field of the created record codec.
+     * @param <C10T> The type of the tenth field of the created record codec.
+     * @param <C11T> The type of the eleventh field of the created record codec.
+     * @param <C12T> The type of the twelveth field of the created record codec.
+     * @param <C13T> The type of the thirteenth field of the created record codec.
+     * @param <C14T> The type of the fourteenth field of the created record codec.
+     * @param <C15T> The type of the fifteenth field of the created record codec.
+     * @since 1.0.18
+     */
+    public static <TCODEC , C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T, C15T, C16T> Codec<TCODEC> CreateCodecDirect(
+            App<RecordCodecBuilder.Mu<TCODEC> , C1T> codecfield1,
+            App<RecordCodecBuilder.Mu<TCODEC> , C2T> codecfield2,
+            App<RecordCodecBuilder.Mu<TCODEC> , C3T> codecfield3,
+            App<RecordCodecBuilder.Mu<TCODEC> , C4T> codecfield4,
+            App<RecordCodecBuilder.Mu<TCODEC> , C5T> codecfield5,
+            App<RecordCodecBuilder.Mu<TCODEC> , C6T> codecfield6,
+            App<RecordCodecBuilder.Mu<TCODEC> , C7T> codecfield7,
+            App<RecordCodecBuilder.Mu<TCODEC> , C8T> codecfield8,
+            App<RecordCodecBuilder.Mu<TCODEC> , C9T> codecfield9,
+            App<RecordCodecBuilder.Mu<TCODEC> , C10T> codecfield10,
+            App<RecordCodecBuilder.Mu<TCODEC> , C11T> codecfield11,
+            App<RecordCodecBuilder.Mu<TCODEC> , C12T> codecfield12,
+            App<RecordCodecBuilder.Mu<TCODEC> , C13T> codecfield13,
+            App<RecordCodecBuilder.Mu<TCODEC> , C14T> codecfield14,
+            App<RecordCodecBuilder.Mu<TCODEC> , C15T> codecfield15,
+            App<RecordCodecBuilder.Mu<TCODEC> , C16T> codecfield16,
+            Function16<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T, C15T, C16T, TCODEC> instancecreatefunction
+    )
+    {
+        return RecordCodecBuilder.create(new CreateCodecDirect_16<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                codecfield13,
+                codecfield14,
+                codecfield15,
+                codecfield16,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -762,7 +886,7 @@ public final class CodecUtils
      * @param <C1T> The type of the first field of the created record codec.
      */
     public static <TCODEC , C1T> MapCodec<TCODEC> CreateMapCodecDirect(App<RecordCodecBuilder.Mu<TCODEC> , C1T> codecfield1, Function<C1T, TCODEC> instancecreatefunction) {
-        return RecordCodecBuilder.mapCodec((RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(codecfield1).apply(instance , instancecreatefunction));
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_1<>(codecfield1, instancecreatefunction));
     }
 
     /**
@@ -781,12 +905,7 @@ public final class CodecUtils
             BiFunction<C1T, C2T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_2<>(codecfield1, codecfield2, instancecreatefunction));
     }
 
     /**
@@ -808,13 +927,7 @@ public final class CodecUtils
             Function3<C1T, C2T , C3T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_3<>(codecfield1, codecfield2, codecfield3, instancecreatefunction));
     }
 
     /**
@@ -839,14 +952,7 @@ public final class CodecUtils
             Function4<C1T, C2T , C3T , C4T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_4<>(codecfield1, codecfield2, codecfield3, codecfield4, instancecreatefunction));
     }
 
     /**
@@ -874,15 +980,14 @@ public final class CodecUtils
             Function5<C1T , C2T , C3T , C4T , C5T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_5<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -913,16 +1018,15 @@ public final class CodecUtils
             Function6<C1T , C2T , C3T , C4T , C5T , C6T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_6<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -956,17 +1060,16 @@ public final class CodecUtils
             Function7<C1T , C2T , C3T , C4T , C5T , C6T , C7T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_7<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -1003,18 +1106,17 @@ public final class CodecUtils
             Function8<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_8<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -1054,19 +1156,18 @@ public final class CodecUtils
             Function9<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_9<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -1109,20 +1210,19 @@ public final class CodecUtils
             Function10<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_10<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -1168,21 +1268,20 @@ public final class CodecUtils
             Function11<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10,
-                        codecfield11
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_11<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -1231,22 +1330,21 @@ public final class CodecUtils
             Function12<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10,
-                        codecfield11,
-                        codecfield12
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_12<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -1298,23 +1396,22 @@ public final class CodecUtils
             Function13<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10,
-                        codecfield11,
-                        codecfield12,
-                        codecfield13
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_13<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                codecfield13,
+                instancecreatefunction
+        ));
     }
 
     /**
@@ -1369,24 +1466,177 @@ public final class CodecUtils
             Function14<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T , TCODEC> instancecreatefunction
     )
     {
-        return RecordCodecBuilder.mapCodec(
-                (RecordCodecBuilder.Instance<TCODEC> instance) -> instance.group(
-                        codecfield1,
-                        codecfield2,
-                        codecfield3,
-                        codecfield4,
-                        codecfield5,
-                        codecfield6,
-                        codecfield7,
-                        codecfield8,
-                        codecfield9,
-                        codecfield10,
-                        codecfield11,
-                        codecfield12,
-                        codecfield13,
-                        codecfield14
-                ).apply(instance , instancecreatefunction)
-        );
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_14<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                codecfield13,
+                codecfield14,
+                instancecreatefunction
+        ));
+    }
+
+    /**
+     * Creates a record map codec directly from the specified applicative objects.
+     * @param codecfield1 The applicative object representing the first field of the record.
+     * @param codecfield2 The applicative object representing the second field of the record.
+     * @param codecfield3 The applicative object representing the third field of the record.
+     * @param codecfield4 The applicative object representing the fourth field of the record.
+     * @param codecfield5 The applicative object representing the fifth field of the record.
+     * @param codecfield6 The applicative object representing the sixth field of the record.
+     * @param codecfield7 The applicative object representing the seventh field of the record.
+     * @param codecfield8 The applicative object representing the eighth field of the record.
+     * @param codecfield9 The applicative object representing the ninth field of the record.
+     * @param codecfield10 The applicative object representing the tenth field of the record.
+     * @param codecfield11 The applicative object representing the eleventh field of the record.
+     * @param codecfield12 The applicative object representing the twelveth field of the record.
+     * @param codecfield13 The applicative object representing the thirteenth field of the record.
+     * @param codecfield14 The applicative object representing the fourteenth field of the record.
+     * @param codecfield15 The applicative object representing the fifteenth field of the record.
+     * @param instancecreatefunction A function able to create a new instance of type {@link TCODEC}.
+     * @return The constructed record codec.
+     * @param <TCODEC> The type of the record to de/encode.
+     * @param <C1T> The type of the first field of the created record codec.
+     * @param <C2T> The type of the second field of the created record codec.
+     * @param <C3T> The type of the third field of the created record codec.
+     * @param <C4T> The type of the fourth field of the created record codec.
+     * @param <C5T> The type of the fifth field of the created record codec.
+     * @param <C6T> The type of the sixth field of the created record codec.
+     * @param <C7T> The type of the seventh field of the created record codec.
+     * @param <C8T> The type of the eighth field of the created record codec.
+     * @param <C9T> The type of the ninth field of the created record codec.
+     * @param <C10T> The type of the tenth field of the created record codec.
+     * @param <C11T> The type of the eleventh field of the created record codec.
+     * @param <C12T> The type of the twelveth field of the created record codec.
+     * @param <C13T> The type of the thirteenth field of the created record codec.
+     * @param <C14T> The type of the fourteenth field of the created record codec.
+     * @param <C15T> The type of the fifteenth field of the created record codec.
+     * @since 1.0.18
+     */
+    public static <TCODEC , C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T, C15T> MapCodec<TCODEC> CreateMapCodecDirect(
+            App<RecordCodecBuilder.Mu<TCODEC> , C1T> codecfield1,
+            App<RecordCodecBuilder.Mu<TCODEC> , C2T> codecfield2,
+            App<RecordCodecBuilder.Mu<TCODEC> , C3T> codecfield3,
+            App<RecordCodecBuilder.Mu<TCODEC> , C4T> codecfield4,
+            App<RecordCodecBuilder.Mu<TCODEC> , C5T> codecfield5,
+            App<RecordCodecBuilder.Mu<TCODEC> , C6T> codecfield6,
+            App<RecordCodecBuilder.Mu<TCODEC> , C7T> codecfield7,
+            App<RecordCodecBuilder.Mu<TCODEC> , C8T> codecfield8,
+            App<RecordCodecBuilder.Mu<TCODEC> , C9T> codecfield9,
+            App<RecordCodecBuilder.Mu<TCODEC> , C10T> codecfield10,
+            App<RecordCodecBuilder.Mu<TCODEC> , C11T> codecfield11,
+            App<RecordCodecBuilder.Mu<TCODEC> , C12T> codecfield12,
+            App<RecordCodecBuilder.Mu<TCODEC> , C13T> codecfield13,
+            App<RecordCodecBuilder.Mu<TCODEC> , C14T> codecfield14,
+            App<RecordCodecBuilder.Mu<TCODEC> , C15T> codecfield15,
+            Function15<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T, C15T, TCODEC> instancecreatefunction
+    )
+    {
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_15<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                codecfield13,
+                codecfield14,
+                codecfield15,
+                instancecreatefunction
+        ));
+    }
+
+    /**
+     * Creates a record map codec directly from the specified applicative objects.
+     * @param codecfield1 The applicative object representing the first field of the record.
+     * @param codecfield2 The applicative object representing the second field of the record.
+     * @param codecfield3 The applicative object representing the third field of the record.
+     * @param codecfield4 The applicative object representing the fourth field of the record.
+     * @param codecfield5 The applicative object representing the fifth field of the record.
+     * @param codecfield6 The applicative object representing the sixth field of the record.
+     * @param codecfield7 The applicative object representing the seventh field of the record.
+     * @param codecfield8 The applicative object representing the eighth field of the record.
+     * @param codecfield9 The applicative object representing the ninth field of the record.
+     * @param codecfield10 The applicative object representing the tenth field of the record.
+     * @param codecfield11 The applicative object representing the eleventh field of the record.
+     * @param codecfield12 The applicative object representing the twelveth field of the record.
+     * @param codecfield13 The applicative object representing the thirteenth field of the record.
+     * @param codecfield14 The applicative object representing the fourteenth field of the record.
+     * @param codecfield15 The applicative object representing the fifteenth field of the record.
+     * @param instancecreatefunction A function able to create a new instance of type {@link TCODEC}.
+     * @return The constructed record codec.
+     * @param <TCODEC> The type of the record to de/encode.
+     * @param <C1T> The type of the first field of the created record codec.
+     * @param <C2T> The type of the second field of the created record codec.
+     * @param <C3T> The type of the third field of the created record codec.
+     * @param <C4T> The type of the fourth field of the created record codec.
+     * @param <C5T> The type of the fifth field of the created record codec.
+     * @param <C6T> The type of the sixth field of the created record codec.
+     * @param <C7T> The type of the seventh field of the created record codec.
+     * @param <C8T> The type of the eighth field of the created record codec.
+     * @param <C9T> The type of the ninth field of the created record codec.
+     * @param <C10T> The type of the tenth field of the created record codec.
+     * @param <C11T> The type of the eleventh field of the created record codec.
+     * @param <C12T> The type of the twelveth field of the created record codec.
+     * @param <C13T> The type of the thirteenth field of the created record codec.
+     * @param <C14T> The type of the fourteenth field of the created record codec.
+     * @param <C15T> The type of the fifteenth field of the created record codec.
+     * @since 1.0.18
+     */
+    public static <TCODEC , C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T, C15T, C16T> MapCodec<TCODEC> CreateMapCodecDirect(
+            App<RecordCodecBuilder.Mu<TCODEC> , C1T> codecfield1,
+            App<RecordCodecBuilder.Mu<TCODEC> , C2T> codecfield2,
+            App<RecordCodecBuilder.Mu<TCODEC> , C3T> codecfield3,
+            App<RecordCodecBuilder.Mu<TCODEC> , C4T> codecfield4,
+            App<RecordCodecBuilder.Mu<TCODEC> , C5T> codecfield5,
+            App<RecordCodecBuilder.Mu<TCODEC> , C6T> codecfield6,
+            App<RecordCodecBuilder.Mu<TCODEC> , C7T> codecfield7,
+            App<RecordCodecBuilder.Mu<TCODEC> , C8T> codecfield8,
+            App<RecordCodecBuilder.Mu<TCODEC> , C9T> codecfield9,
+            App<RecordCodecBuilder.Mu<TCODEC> , C10T> codecfield10,
+            App<RecordCodecBuilder.Mu<TCODEC> , C11T> codecfield11,
+            App<RecordCodecBuilder.Mu<TCODEC> , C12T> codecfield12,
+            App<RecordCodecBuilder.Mu<TCODEC> , C13T> codecfield13,
+            App<RecordCodecBuilder.Mu<TCODEC> , C14T> codecfield14,
+            App<RecordCodecBuilder.Mu<TCODEC> , C15T> codecfield15,
+            App<RecordCodecBuilder.Mu<TCODEC> , C16T> codecfield16,
+            Function16<C1T , C2T , C3T , C4T , C5T , C6T , C7T , C8T , C9T , C10T , C11T , C12T , C13T , C14T, C15T, C16T, TCODEC> instancecreatefunction
+    )
+    {
+        return RecordCodecBuilder.mapCodec(new CreateCodecDirect_16<>(
+                codecfield1,
+                codecfield2,
+                codecfield3,
+                codecfield4,
+                codecfield5,
+                codecfield6,
+                codecfield7,
+                codecfield8,
+                codecfield9,
+                codecfield10,
+                codecfield11,
+                codecfield12,
+                codecfield13,
+                codecfield14,
+                codecfield15,
+                codecfield16,
+                instancecreatefunction
+        ));
     }
 
 }

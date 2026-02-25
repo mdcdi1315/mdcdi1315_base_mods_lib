@@ -55,7 +55,7 @@ public final class BlocksAndItemsRegistrar
     private DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS_REGISTER;
     private SingleLinkedList<Pair<ItemLike, CreativeModeTab[]>> tabs_registration;
     private Map<CreativeModeTab, SingleLinkedList<ItemStack>> compiled_item_stacks;
-    private Map<CreativeModeTab, ArrayList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
+    private Map<CreativeModeTab, SingleLinkedList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
 
     public BlocksAndItemsRegistrar(String mod_id)
     {
@@ -163,12 +163,10 @@ public final class BlocksAndItemsRegistrar
         ArgumentNullException.ThrowIfNull(tab, "tab");
         ArgumentNullException.ThrowIfNull(stack, "stack");
 
-        additional_creative_mode_tab_stacks.computeIfAbsent(tab, BlocksAndItemsRegistrar::ComputeIfAbsentWrapper1).add(stack);
+        additional_creative_mode_tab_stacks.computeIfAbsent(tab, BlocksAndItemsRegistrar::ComputeIfAbsentWrapper1).Add(stack);
     }
 
-    private static ArrayList<Func1<ItemStack>> ComputeIfAbsentWrapper1(CreativeModeTab tab) {
-        return new ArrayList<>(10);
-    }
+    private static SingleLinkedList<Func1<ItemStack>> ComputeIfAbsentWrapper1(CreativeModeTab tab) { return new SingleLinkedList<>(); }
 
     private void RegisterCreativeModeTabsEvent(BuildCreativeModeTabContentsEvent event)
     {
@@ -191,22 +189,27 @@ public final class BlocksAndItemsRegistrar
         } else if (additional_creative_mode_tab_stacks != null && additional_creative_mode_tab_stacks.size() > 0) {
             compiled_item_stacks = new HashMap<>();
             // The below will run only once.
+            CreativeModeTab k;
+            SingleLinkedList<Func1<ItemStack>> stacks;
             for (var kvp : additional_creative_mode_tab_stacks.entrySet())
             {
-                if (kvp.getKey() == current) {
-                    var v = kvp.getValue();
-                    SingleLinkedList<ItemStack> lst = new SingleLinkedList<>();
-                    for (Func1<ItemStack> is_additional : v) {
-                        ItemStack is = is_additional.function();
-                        event.accept(is);
-                        lst.Add(is);
+                stacks = kvp.getValue();
+                IEnumerator<Func1<ItemStack>> e = stacks.GetEnumerator();
+                SingleLinkedList<ItemStack> lst = new SingleLinkedList<>();
+                try {
+                    if ((k = kvp.getKey()) == current) {
+                        // Current key agrees with the creative mode tab we want for - so register the enumerated items to the event as well.
+                        ItemStack is;
+                        while (e.MoveNext()) { is = e.getCurrent().function(); event.accept(is); lst.Add(is); }
+                    } else {
+                        while (e.MoveNext()) { lst.Add(e.getCurrent().function()); }
                     }
-                    v.clear();
-                    v.trimToSize();
-                    compiled_item_stacks.put(current, lst);
-                    // Do not continue searching if this is the tab we wanted for.
-                    break;
+                } finally {
+                    stacks.Clear(); // Clean origin list to minimize mem as possible.
+                    e.Dispose();
                 }
+                // Put only when no exceptions do occur.
+                compiled_item_stacks.put(k, lst);
             }
         }
         additional_creative_mode_tab_stacks = null;
