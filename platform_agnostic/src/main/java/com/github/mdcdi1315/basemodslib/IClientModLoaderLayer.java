@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 
+import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 
 /**
@@ -9,7 +10,7 @@ import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
  */
 @ClientOnlyEnvironment
 public interface IClientModLoaderLayer
-    extends IDisposable
+    extends IDisposable, ISynchronized
 {
     /**
      * Initializes a new client-side mod instance.

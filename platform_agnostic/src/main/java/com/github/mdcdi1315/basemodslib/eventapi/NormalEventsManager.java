@@ -1,7 +1,7 @@
 package com.github.mdcdi1315.basemodslib.eventapi;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.*;
@@ -9,6 +9,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.eventapi.gameplay.*;
 import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -71,16 +72,24 @@ public class NormalEventsManager
         BaseModsLib.LOGGER.info("EVENTS_MANAGER: Successfully removed {} destroyable events" , removed);
     }
 
-    private static <T extends IEvent> List<Action1<? extends IEvent>> ListProvider(Class<T> cls) {
-        return new List<>(4);
-    }
+    private static <T extends IEvent> SingleLinkedList<Action1<? extends IEvent>> ListProvider(Class<T> cls) { return new SingleLinkedList<>(); }
 
     public void HandEventsFromEarly(EarlyEventsManager early)
     {
         var c_actions = GetActions();
-        synchronized (c_actions) {
-            for (var kvp : early.GetActions().entrySet()) {
-                c_actions.computeIfAbsent(kvp.getKey() , NormalEventsManager::ListProvider).AddRange(kvp.getValue());
+        synchronized (c_actions)
+        {
+            IEnumerator<Action1<? extends IEvent>> et;
+            SingleLinkedList<Action1<? extends IEvent>> actions;
+            for (var kvp : early.GetActions().entrySet())
+            {
+                et = kvp.getValue().GetEnumerator();
+                try {
+                    actions = c_actions.computeIfAbsent(kvp.getKey() , NormalEventsManager::ListProvider);
+                    while (et.MoveNext()) { actions.Add(et.getCurrent()); }
+                } finally {
+                    et.Dispose();
+                }
             }
         }
     }

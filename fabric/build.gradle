@@ -104,7 +104,7 @@ modrinth {
 publishing {
     publications {
         gpr(MavenPublication) {
-            defaultTasks("remapJar")
+            defaultTasks("remapJar", "sourcesJar")
         }
     }
 }

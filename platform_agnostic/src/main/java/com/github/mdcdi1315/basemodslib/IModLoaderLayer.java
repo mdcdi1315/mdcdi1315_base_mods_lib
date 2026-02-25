@@ -4,6 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
+import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 
 import java.util.List;
@@ -19,7 +20,7 @@ import java.nio.file.Path;
  * This is the server loader layer implementation. For the client, see the {@link IClientModLoaderLayer} interface.
  */
 public interface IModLoaderLayer
-    extends IDisposable
+    extends IDisposable, ISynchronized
 {
     /**
      * Initializes a new server-side mod instance.

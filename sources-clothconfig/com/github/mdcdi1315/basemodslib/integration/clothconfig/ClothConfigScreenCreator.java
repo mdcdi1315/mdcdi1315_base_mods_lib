@@ -14,7 +14,7 @@ import com.github.mdcdi1315.basemodslib.config.lowlevelapi.ConfigRecord;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.IConfigField;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.configfields.*;
 import com.github.mdcdi1315.basemodslib.client.gui.InformationalDialogScreen;
-import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
+import com.github.mdcdi1315.basemodslib.config.gui.IClothConfigScreenCreator;
 import com.github.mdcdi1315.basemodslib.integration.clothconfig.errorsuppliers.*;
 import com.github.mdcdi1315.basemodslib.integration.clothconfig.valueconsumers.*;
 
@@ -31,7 +31,7 @@ import java.util.Optional;
 
 @ClientOnlyEnvironment
 public class ClothConfigScreenCreator
-    extends ConfigurationScreenFactory<Screen>
+    implements IClothConfigScreenCreator
 {
     private final IModConfig config;
 
@@ -144,8 +144,7 @@ public class ClothConfigScreenCreator
             return builder
                     .startStrField(setting_name, rcf.GetValue().toString())
                     .setTooltip(comment_lines)
-                    // TODO: inherently support constraints for resource location fields.
-                    .setErrorSupplier(new ResourceLocationErrorSupplier())
+                    .setErrorSupplier(new ResourceLocationErrorSupplier(rcf))
                     .setSaveConsumer(new AssignValueConsumer_ResourceLocation(record, field))
                     .build();
         } else if (field instanceof ListConfigField lcf) {

@@ -8,7 +8,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.config.IModConfig;
-import com.github.mdcdi1315.basemodslib.config.ConfigField;
 import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.configfields.*;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.listsupport.ConfigListCodec;

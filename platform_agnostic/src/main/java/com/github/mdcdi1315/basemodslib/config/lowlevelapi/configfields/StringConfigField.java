@@ -3,7 +3,6 @@ package com.github.mdcdi1315.basemodslib.config.lowlevelapi.configfields;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
-import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.IConfigFieldConstraint;
 
 /**

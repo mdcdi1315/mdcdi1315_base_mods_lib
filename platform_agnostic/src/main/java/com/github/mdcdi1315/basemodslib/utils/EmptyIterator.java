@@ -8,7 +8,7 @@ import java.util.Iterator;
  * @since 1.0.15
  */
 public record EmptyIterator<T>()
-    implements Iterator<T>
+    implements Iterator<T>, ISynchronized
 {
     @Override
     public boolean hasNext() { return false; }

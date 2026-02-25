@@ -40,7 +40,6 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.function.Supplier;
 
 public final class BlocksAndItemsRegistrar
@@ -54,8 +53,8 @@ public final class BlocksAndItemsRegistrar
     private DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPE_REGISTER;
     private DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPE_REGISTER;
     private Map<CreativeModeTab, SingleLinkedList<ItemStack>> compiled_item_stacks;
-    private Map<CreativeModeTab , ArrayList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
     private SingleLinkedList<Pair<CreativeModeTab[] , RegistryObject<Item>>> items_on_creative_tabs;
+    private Map<CreativeModeTab , SingleLinkedList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
 
     public BlocksAndItemsRegistrar(String mod_id) {
         this.mod_id = mod_id;
@@ -88,15 +87,6 @@ public final class BlocksAndItemsRegistrar
         FLUID_REGISTER.register(name, new FluidRegistrySupplier(info.fluid_getter() , registry_object_location));
     }
 
-    private record FluidRegistrySupplier(Func2<ResourceLocation, Fluid> fc, ResourceLocation location)
-        implements Supplier<Fluid>
-    {
-        @Override
-        public Fluid get() {
-            return fc.function(location);
-        }
-    }
-
     private record BlockEntityRegistrySupplier<T extends BlockEntity>(IBlockEntityFactory<T> factory)
         implements Supplier<BlockEntityType<T>>
     {
@@ -111,27 +101,28 @@ public final class BlocksAndItemsRegistrar
         implements Supplier<Block>
     {
         @Override
-        public Block get() {
-            return bs.function(loc);
-        }
+        public Block get() { return bs.function(loc); }
+    }
+
+    private record FluidRegistrySupplier(Func2<ResourceLocation, Fluid> fc, ResourceLocation location)
+        implements Supplier<Fluid>
+    {
+        @Override
+        public Fluid get() { return fc.function(location); }
     }
 
     private record ItemAsBlockRegistrySupplier(Func3<Block, ResourceLocation, Item> bs, RegistryObject<Block> ro, ResourceLocation location)
         implements Supplier<Item>
     {
         @Override
-        public Item get() {
-            return bs.function(ro.get(), location);
-        }
+        public Item get() { return bs.function(ro.get(), location); }
     }
 
     private record ItemRegistrySupplier(Func2<ResourceLocation, Item> bs, ResourceLocation location)
         implements Supplier<Item>
     {
         @Override
-        public Item get() {
-            return bs.function(location);
-        }
+        public Item get() { return bs.function(location); }
     }
 
     @Override
@@ -194,21 +185,19 @@ public final class BlocksAndItemsRegistrar
         ArgumentNullException.ThrowIfNull(tab, "tab");
         ArgumentNullException.ThrowIfNull(stack, "stack");
 
-        additional_creative_mode_tab_stacks.computeIfAbsent(tab, BlocksAndItemsRegistrar::ComputeIfAbsentWrapper1).add(stack);
+        additional_creative_mode_tab_stacks.computeIfAbsent(tab, BlocksAndItemsRegistrar::ComputeIfAbsentWrapper1).Add(stack);
     }
 
-    private static ArrayList<Func1<ItemStack>> ComputeIfAbsentWrapper1(CreativeModeTab tab) {
-        return new ArrayList<>(10);
-    }
+    private static SingleLinkedList<Func1<ItemStack>> ComputeIfAbsentWrapper1(CreativeModeTab tab) { return new SingleLinkedList<>(); }
 
     private void OnCreativeModeTabsRegistering(BuildCreativeModeTabContentsEvent event)
     {
-        CreativeModeTab tab = event.getTab();
+        CreativeModeTab current = event.getTab();
 
         if (compiled_item_stacks != null) {
             for (var kvp : compiled_item_stacks.entrySet())
             {
-                if (kvp.getKey() == tab) {
+                if (kvp.getKey() == current) {
                     IEnumerator<ItemStack> iso = kvp.getValue().GetEnumerator();
                     try {
                         while (iso.MoveNext()) { event.accept(iso.getCurrent()); }
@@ -222,22 +211,27 @@ public final class BlocksAndItemsRegistrar
         } else if (additional_creative_mode_tab_stacks != null && additional_creative_mode_tab_stacks.size() > 0) {
             compiled_item_stacks = new HashMap<>();
             // The below will run only once.
+            CreativeModeTab k;
+            SingleLinkedList<Func1<ItemStack>> stacks;
             for (var kvp : additional_creative_mode_tab_stacks.entrySet())
             {
-                if (kvp.getKey() == tab) {
-                    var v = kvp.getValue();
-                    SingleLinkedList<ItemStack> lst = new SingleLinkedList<>();
-                    for (Func1<ItemStack> is_additional : v) {
-                        ItemStack is = is_additional.function();
-                        event.accept(is);
-                        lst.Add(is);
+                stacks = kvp.getValue();
+                IEnumerator<Func1<ItemStack>> e = stacks.GetEnumerator();
+                SingleLinkedList<ItemStack> lst = new SingleLinkedList<>();
+                try {
+                    if ((k = kvp.getKey()) == current) {
+                        // Current key agrees with the creative mode tab we want for - so register the enumerated items to the event as well.
+                        ItemStack is;
+                        while (e.MoveNext()) { is = e.getCurrent().function(); event.accept(is); lst.Add(is); }
+                    } else {
+                        while (e.MoveNext()) { lst.Add(e.getCurrent().function()); }
                     }
-                    v.clear();
-                    v.trimToSize();
-                    compiled_item_stacks.put(tab, lst);
-                    // Do not continue searching if this is the tab we wanted for.
-                    break;
+                } finally {
+                    stacks.Clear(); // Clean origin list to minimize mem as possible.
+                    e.Dispose();
                 }
+                // Put only when no exceptions do occur.
+                compiled_item_stacks.put(k, lst);
             }
         }
         additional_creative_mode_tab_stacks = null;
@@ -254,7 +248,7 @@ public final class BlocksAndItemsRegistrar
                 p = en.getCurrent();
                 for (var i : p.first())
                 {
-                    if (i == tab) {
+                    if (i == current) {
                         event.accept(p.second());
                         break;
                     }

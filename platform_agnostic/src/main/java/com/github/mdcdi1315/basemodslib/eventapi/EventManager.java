@@ -4,6 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
+import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
+
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -11,6 +13,7 @@ import org.jetbrains.annotations.ApiStatus;
  * The class has now became abstract in order to avoid loading issues with the layer itself.
  */
 public abstract class EventManager
+    implements ISynchronized
 {
     /**
      * Adds an event listener to listen for the associated event provided through type {@link TEvent}.

@@ -1,10 +1,13 @@
 package com.github.mdcdi1315.basemodslib.utils;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.KeyValuePair;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.Extension;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
+
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
 import net.minecraft.util.Mth;
 import net.minecraft.core.Direction;
@@ -39,14 +42,21 @@ public final class Extensions
     public static Direction GetRandomDirectionExcludingUpDown(RandomSource rs)
     {
         Direction ret;
-        var values = Direction.values();
+        Direction[] values = Direction.values();
         int len = values.length - 1;
         do {
-            ret = values[rs.nextIntBetweenInclusive(0 , len)];
+            ret = values[RandomBetweenInclusiveUnsafe(rs, 0 , len)];
         } while (ret == Direction.UP || ret == Direction.DOWN);
         return ret;
     }
 
+    /**
+     * Gets a random direction pair, excluding {@link Direction#UP} and {@link Direction#DOWN} constant values.
+     * @param rs The {@link RandomSource} instance to use for selecting the direction pair.
+     * @return A {@link KeyValuePair} instance containing two randomly-selected {@link Direction} values.
+     * @apiNote Note that the API does not validate input arguments at all. <br />
+     * This is done to avoid the overhead that the validation methods do have.
+     */
     @Extension
     public static KeyValuePair<Direction , Direction> GetRandomDirectionPairNonUpDown(RandomSource rs)
     {
@@ -137,45 +147,83 @@ public final class Extensions
         return value > (double)i ? i + 1 : i;
     }
 
+    /**
+     * Linearly interpolates a value ranging from 0 to 1 to the specified range, and returns the result.
+     * @param delta The value to linearly interpolate.
+     * @param start The minimum inclusive bound of the mapped range.
+     * @param end The maximum inclusive bound of the mapped range.
+     * @return The interpolated value.
+     */
     public static float Lerp(float delta, float start, float end)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         return start + (delta * (end - start));
     }
 
+    /**
+     * Linearly interpolates a value ranging from 0 to 1 to the specified range, and returns the result.
+     * @param delta The value to linearly interpolate.
+     * @param start The minimum inclusive bound of the mapped range.
+     * @param end The maximum inclusive bound of the mapped range.
+     * @return The interpolated value.
+     */
     public static double Lerp(double delta, double start, double end)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         return start + (delta * (end - start));
     }
 
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is removed before the method returns.
+     * @param value The value to be computed as {@link Integer}.
+     * @return The {@link Integer} corresponding to {@code value}.
+     */
     public static int Floor(float value) {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         int i = (int)value;
         return value < (float)i ? i - 1 : i;
     }
 
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is removed before the method returns.
+     * @param value The value to be computed as {@link Integer}.
+     * @return The {@link Integer} corresponding to {@code value}.
+     */
     public static int Floor(double value) {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         int i = (int)value;
         return value < (double)i ? i - 1 : i;
     }
 
-    public static float Square(float input) {
-        return input * input;
-    }
+    /**
+     * Computes the power of {@code input} raised to 2.
+     * @param input The input argument.
+     * @return The square of {@code input}.
+     */
+    public static float Square(float input) { return input * input; }
 
-    public static double Square(double input) {
-        return input * input;
-    }
+    /**
+     * Computes the power of {@code input} raised to 2.
+     * @param input The input argument.
+     * @return The square of {@code input}.
+     */
+    public static double Square(double input) { return input * input; }
 
-    public static int Square(int input) {
-        return input * input;
-    }
+    /**
+     * Computes the power of {@code input} raised to 2.
+     * @param input The input argument.
+     * @return The square of {@code input}.
+     */
+    public static int Square(int input) { return input * input; }
 
-    public static float SquareRoot(float value) {
-        return (float)Math.sqrt(value);
-    }
+    /**
+     * Computes the square root of {@code value}.
+     * @param value The value to compute it's square root.
+     * @return The square root of {@code value}.
+     */
+    public static float SquareRoot(float value) { return (float)Math.sqrt(value); }
 
     /**
      * Gets a random item from the specified list, and returns that item.
@@ -216,14 +264,14 @@ public final class Extensions
      * @param rs The random source to use for getting the random item.
      * @return The random item.
      * @param <T> The type of the items to select from. An item of such type is returned.
+     * @apiNote This is the unsafe variant of {@link #SelectRandomFromList(List, RandomSource)}. 
+     * When you are unsure about the input arguments, use that method to validate them instead. <br />
+     * Using this without ensuring that the objects passed to this method are valid, this call can cause unspecified issues.
      */
-    public static <T> T SelectRandomFromListUnsafe(List<T> elements, RandomSource rs)
-    {
-        return elements.get(rs.nextIntBetweenInclusive(0 , elements.size()-1));
-    }
+    public static <T> T SelectRandomFromListUnsafe(List<T> elements, RandomSource rs) { return elements.get(RandomBetweenInclusiveUnsafe(rs, 0, elements.size() - 1)); }
 
     /**
-     * Gets a random item from the specified list, and returns that item.
+     * Unsafely gets a random item from the specified list, and returns that item.
      * Additionally, it ensures that the specified item is not selected in any way.
      * @param list The list of items to get a random item from.
      * @param item_to_exclude The item instance to exclude from the possible outcomes.
@@ -231,6 +279,9 @@ public final class Extensions
      * @param comparer The equality comparer to use for testing the objects for equality.
      * @return The random item, ensuring that is not the instance specified in {@code item_to_exclude}.
      * @param <T> The type of the items to select from. An item of such type is returned.
+     * @apiNote This is the unsafe variant of {@link #SelectRandomFromListWithExclusion(List, Object, RandomSource)}. 
+     * When you are unsure about the input arguments, use that method to validate them instead. <br />
+     * Using this without ensuring that the objects passed to this method are valid, this call can cause unspecified issues.
      */
     public static <T> T SelectRandomFromListWithExclusionUnsafe(List<T> list , @MaybeNull T item_to_exclude , IEqualityComparer<T> comparer, RandomSource source)
     {
@@ -240,7 +291,7 @@ public final class Extensions
             return list.get(0);
         }
         do {
-            item = list.get(source.nextIntBetweenInclusive(0, size));
+            item = list.get(RandomBetweenInclusiveUnsafe(source ,0, size));
         } while (comparer.Equals(item_to_exclude , item));
         return item;
     }
@@ -265,14 +316,14 @@ public final class Extensions
      * Attempts to dispose all the elements defined in an iterable.
      * @param iterable The iterable to dispose all it's elements.
      * @param <T> The type of the elements contained in the iterable and are to be disposed of.
-     * @throws ArgumentNullException {@code iterable} was {@code null}.
+     * @throws ArgumentNullException {@code iterable} is {@code null}.
      * @throws AggregateException One or more exceptions occurred while calling {@linkplain T#Dispose()}.
      */
     public static <T extends IDisposable> void DisposeAll(Iterable<T> iterable)
             throws ArgumentNullException, AggregateException
     {
         ArgumentNullException.ThrowIfNull(iterable , "iterable");
-        var exceptions = new com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List<com.github.mdcdi1315.DotNetLayer.System.Exception>();
+        var exceptions = new SingleLinkedList<com.github.mdcdi1315.DotNetLayer.System.Exception>();
         for (T i : iterable)
         {
             try {
@@ -286,6 +337,68 @@ public final class Extensions
         }
     }
 
+    /**
+     * Attempts to dispose all the elements defined in an enumerable.
+     * @param enumerable The enumerable to dispose all it's elements.
+     * @param <T> The type of the elements contained in the enumerable and are to be disposed of.
+     * @throws ArgumentNullException {@code enumerable} is {@code null}.
+     * @throws AggregateException One or more exceptions occurred while calling {@linkplain T#Dispose()}.
+     * @since 1.0.18
+     */
+    public static <T extends IDisposable> void DisposeAll(IEnumerable<T> enumerable)
+            throws ArgumentNullException, AggregateException
+    {
+        ArgumentNullException.ThrowIfNull(enumerable , "enumerable");
+        var exceptions = new SingleLinkedList<com.github.mdcdi1315.DotNetLayer.System.Exception>();
+        var en = enumerable.GetEnumerator();
+        try {
+            while (en.MoveNext()) {
+                try {
+                    en.getCurrent().Dispose();
+                } catch (com.github.mdcdi1315.DotNetLayer.System.Exception e) {
+                    exceptions.Add(e);
+                }
+            }
+        } finally {
+            en.Dispose();
+        }
+        if (exceptions.getCount() > 0) {
+            throw new AggregateException("One or more elements failed to be disposed of.", exceptions);
+        }
+    }
+
+    /**
+     * Enumerates all the items contained in the specified enumerable object, and executes the specified {@link Action1} on them.
+     * @param enumerable The enumerable to iterate all of its elements.
+     * @param action The action to execute in each one of the items returned by {@code enumerable}.
+     * @param <T> The type of the elements contained in the enumerable.
+     * @throws ArgumentNullException {@code enumerable} is {@code null}.
+     * @throws AggregateException An exception was occurred while calling {@link Action1#action(Object)}.
+     * @since 1.0.18
+     */
+    public static <T> void ForEachInEnumerable(IEnumerable<T> enumerable, Action1<T> action)
+            throws ArgumentNullException, AggregateException
+    {
+        ArgumentNullException.ThrowIfNull(action, "action");
+        ArgumentNullException.ThrowIfNull(enumerable , "enumerable");
+        var en = enumerable.GetEnumerator();
+        try {
+            while (en.MoveNext()) { action.action(en.getCurrent()); }
+        } catch (com.github.mdcdi1315.DotNetLayer.System.Exception e) {
+            throw new AggregateException("An exception was occurred while iterating an enumerable.", e);
+        } finally {
+            en.Dispose();
+        }
+    }
+
+    /**
+     * Computes a random integer between {@code min_inclusive} and {@code max_inclusive} values.
+     * @param rs The {@link RandomSource} to compute the random integer from.
+     * @param min_inclusive The minimum inclusive bound of the returned value.
+     * @param max_inclusive The maximum inclusive bound of the returned value.
+     * @return A random integer value between {@code min_inclusive} and {@code max_inclusive} values.
+     * @throws ArgumentNullException {@code rs} is {@code null}.
+     */
     public static int RandomBetweenInclusive(RandomSource rs , int min_inclusive , int max_inclusive)
             throws ArgumentNullException
     {
@@ -293,11 +406,24 @@ public final class Extensions
         return RandomBetweenInclusiveUnsafe(rs , min_inclusive , max_inclusive);
     }
 
-    public static int RandomBetweenInclusiveUnsafe(RandomSource rs , int min_inclusive , int max_inclusive)
-    {
-        return rs.nextInt(max_inclusive - min_inclusive + 1) + min_inclusive;
-    }
+    /**
+     * Unsafely computes a random integer between {@code min_inclusive} and {@code max_inclusive} values.
+     * @param rs The {@link RandomSource} to compute the random integer from.
+     * @param min_inclusive The minimum inclusive bound of the returned value.
+     * @param max_inclusive The maximum inclusive bound of the returned value.
+     * @return A random integer value between {@code min_inclusive} and {@code max_inclusive} values.
+     */
+    public static int RandomBetweenInclusiveUnsafe(RandomSource rs, int min_inclusive, int max_inclusive) { return rs.nextInt(max_inclusive - min_inclusive + 1) + min_inclusive; }
 
+    /**
+     * Computes a random value between {@code min_inclusive} and {@code max_exclusive} values.
+     * @implNote From 1.0.18, this method forwards to {@link #Lerp(float, float, float)} passing as the 'delta' parameter the value computed by {@link RandomSource#nextFloat()} method.
+     * @param rs The {@link RandomSource} to compute the random value from.
+     * @param min_inclusive The minimum inclusive bound of the returned value.
+     * @param max_exclusive The maximum exclusive bound of the returned value.
+     * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
+     * @throws ArgumentNullException {@code rs} is {@code null}.
+     */
     public static float RandomBetween(RandomSource rs, float min_inclusive, float max_exclusive)
         throws ArgumentNullException
     {
@@ -305,6 +431,15 @@ public final class Extensions
         return RandomBetweenUnsafe(rs , min_inclusive , max_exclusive);
     }
 
+    /**
+     * Computes a random value between {@code min_inclusive} and {@code max_exclusive} values.
+     * @implNote From 1.0.18, this method forwards to {@link #Lerp(double, double, double)} passing as the 'delta' parameter the value computed by {@link RandomSource#nextDouble()} method.
+     * @param rs The {@link RandomSource} to compute the random value from.
+     * @param min_inclusive The minimum inclusive bound of the returned value.
+     * @param max_exclusive The maximum exclusive bound of the returned value.
+     * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
+     * @throws ArgumentNullException {@code rs} is {@code null}.
+     */
     public static double RandomBetween(RandomSource rs, double min_inclusive, double max_exclusive)
             throws ArgumentNullException
     {
@@ -312,13 +447,25 @@ public final class Extensions
         return RandomBetweenUnsafe(rs , min_inclusive , max_exclusive);
     }
 
-    public static float RandomBetweenUnsafe(RandomSource random, float min_inclusive, float max_exclusive) {
-        return random.nextFloat() * (max_exclusive - min_inclusive) + min_inclusive;
-    }
+    /**
+     * Unsafely computes a random value between {@code min_inclusive} and {@code max_exclusive} values.
+     * @implNote From 1.0.18, this method forwards to {@link #Lerp(float, float, float)} passing as the 'delta' parameter the value computed by {@link RandomSource#nextFloat()} method.
+     * @param random The {@link RandomSource} to compute the random value from.
+     * @param min_inclusive The minimum inclusive bound of the returned value.
+     * @param max_exclusive The maximum exclusive bound of the returned value.
+     * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
+     */
+    public static float RandomBetweenUnsafe(RandomSource random, float min_inclusive, float max_exclusive) { return Lerp(random.nextFloat(), min_inclusive, max_exclusive); }
 
-    public static double RandomBetweenUnsafe(RandomSource random, double min_inclusive, double max_exclusive) {
-        return random.nextDouble() * (max_exclusive - min_inclusive) + min_inclusive;
-    }
+    /**
+     * Unsafely computes a random value between {@code min_inclusive} and {@code max_exclusive} values.
+     * @implNote From 1.0.18, this method forwards to {@link #Lerp(double, double, double)} passing as the 'delta' parameter the value computed by {@link RandomSource#nextDouble()} method.
+     * @param random The {@link RandomSource} to compute the random value from.
+     * @param min_inclusive The minimum inclusive bound of the returned value.
+     * @param max_exclusive The maximum exclusive bound of the returned value.
+     * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
+     */
+    public static double RandomBetweenUnsafe(RandomSource random, double min_inclusive, double max_exclusive) { return Lerp(random.nextDouble(), min_inclusive, max_exclusive); }
 
     /**
      * Initializes appropriately the given random number generator.
@@ -334,25 +481,17 @@ public final class Extensions
         }
     }
 
-    public static double NumberMap(double input , double inputbase , double outputbase)
-    {
-        return ((input / inputbase) * outputbase);
-    }
+    /**
+     * This method call is deprecated. Use the {@link #Lerp(double, double, double)} method instead.
+     */
+    @Deprecated(forRemoval = true, since = "1.0.18")
+    public static double NumberMap(double input , double inputbase , double outputbase) { return ((input / inputbase) * outputbase); }
 
-    public static double Clamp(double value , double minimum , double maximum)
-    {
-        return value < minimum ? minimum : Math.min(value, maximum);
-    }
+    public static double Clamp(double value , double minimum , double maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
-    public static float Clamp(float value , float minimum , float maximum)
-    {
-        return value < minimum ? minimum : Math.min(value, maximum);
-    }
+    public static float Clamp(float value , float minimum , float maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
-    public static int Clamp(int value , int minimum , int maximum)
-    {
-        return value < minimum ? minimum : Math.min(value, maximum);
-    }
+    public static int Clamp(int value , int minimum , int maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
     public static float ToNormalRange(float v, float min, float max) { return Math.abs(v - min) / Math.abs(min - max); }
 

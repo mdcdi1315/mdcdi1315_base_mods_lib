@@ -12,14 +12,12 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
  * @param <T> The type of the element to supply.
  */
 public class ElementSupplier<T>
-    implements Func1<T>
+    implements Func1<T>, ISynchronized
 {
     @AllowNull
     private final T value;
 
-    public ElementSupplier(@MaybeNull T item) {
-        value = item;
-    }
+    public ElementSupplier(@MaybeNull T item) { value = item; }
 
     @Override
     @MaybeNull

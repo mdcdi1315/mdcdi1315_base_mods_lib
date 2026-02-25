@@ -1,12 +1,25 @@
-### Now releasing 1.0.17:
+### Now releasing 1.0.18:
 
--> Fabric: Loaded mods list was not ever completed and as such the library never knew about the loaded mods. This release fixes that.
+-> Large feature update!
 
--> Added some custom collection types - there will be more in the future!
+-> Forge/NeoForge: Custom Creative Mode Tab stacks were not appropriately registered, and as such only one was registered for each given mod.
+This release fixes that.
 
--> Removed the usage of the List class in most registrars implementing contracts.
-They are now instead using the SingleLinkedList class which is faster and occupies less memory than the List class.
+-> Most classes have now migrated away from `List` class and now use the `SingleLinkedList` class instead
 
--> Updated LICENSE file for 2026
+-> Expanded the collections API package
 
--> NeoForge BML Language Provider: Accelerated mod container creation by looking up for the BML library only once.
+-> Added miscellaneous additional API's
+
+-> Added more network codecs
+
+-> Development upgrade: Dropping support for Developer Archives, now anyone wanting to consume the library must use GitHub packages from now on.
+The template will be appropriately updated for 1.21.1+ variants.
+
+-> Made CodecUtils to not use lambda expressions for CreateCodecDirect API's
+
+-> Added more documentation!
+
+-> Added the weight API introduced in one of my mods here. 
+
+-> Updated copyright in `LICENSE` for 2026

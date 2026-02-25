@@ -14,6 +14,7 @@ import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 
 import net.minecraft.client.Minecraft;
@@ -29,10 +30,10 @@ public final class BaseModsLibClient
 {
     private static IClientModLoaderLayer layer;
     private static volatile boolean initialized;
-    private static List<IClientModInstance> mod_instances;
+    private static SingleLinkedList<IClientModInstance> mod_instances;
     // The below field is created lazily on first registration.
     // Even if the method that should call this calls in but remains null, it will keep it as null.
-    private static List<Pair<String, ConfigurationScreenFactory<?>>> config_factories;
+    private static SingleLinkedList<Pair<String, ConfigurationScreenFactory<?>>> config_factories;
 
     static {
         if (BaseModsLib.GetEnvironment() != ModdingEnvironment.CLIENT) {
@@ -74,7 +75,7 @@ public final class BaseModsLibClient
             if (layer == null) {
                 throw new InvalidOperationException("Returned an empty client mod loader layer through the mod loader layer constructor. This is unexpected.");
             }
-            mod_instances = new List<>();
+            mod_instances = new SingleLinkedList<>();
             var em = BaseModsLib.GetEventsManager();
             em.AddEvent(ClientSetupEvent.class);
             em.AddEvent(ClientStartedEvent.class);
@@ -154,7 +155,7 @@ public final class BaseModsLibClient
     private static void AddConfigScreenFactory(String mod_id, ConfigurationScreenFactory<?> fact)
     {
         if (config_factories == null) {
-            config_factories = new List<>();
+            config_factories = new SingleLinkedList<>();
         }
         config_factories.Add(new Pair<>(mod_id, fact));
     }

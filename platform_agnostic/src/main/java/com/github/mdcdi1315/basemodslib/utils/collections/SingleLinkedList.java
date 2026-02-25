@@ -8,6 +8,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComp
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
+import com.github.mdcdi1315.basemodslib.utils.Extensions;
 import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
 
 /**
@@ -246,18 +247,8 @@ public class SingleLinkedList<T>
         return false;
     }
 
-    public void ForEach(Action1<T> action)
-    {
-        ArgumentNullException.ThrowIfNull(action , "action");
-
-        IEnumerator<T> en = new Enumerator<>(root);
-
-        try {
-            while (en.MoveNext()) { action.action(en.getCurrent()); }
-        } finally {
-            en.Dispose();
-        }
-    }
+    // Now forwards to ForEachInEnumerable, and it provides better input validation + better controlling over when an exception was occurred in the passed method argument.
+    public void ForEach(Action1<T> action) { Extensions.ForEachInEnumerable(this, action); }
 
     @Override
     public IEnumerator<T> GetEnumerator() { return new Enumerator<>(root); }

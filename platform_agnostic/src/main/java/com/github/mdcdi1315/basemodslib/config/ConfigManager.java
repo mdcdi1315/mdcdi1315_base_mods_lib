@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.ConfigCodec;
 
 import com.google.gson.Gson;
@@ -30,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Manages, loads, and saves configuration files for mods.
  */
 public final class ConfigManager
+    implements ISynchronized
 {
     private final JsonConfigFileFormat json_file_format;
     private final Map<Class<?> , AssociatedConfigInfo<?>> configuration_files;

@@ -46,7 +46,7 @@ public final class DefaultConfigurationScreenFactory<TCFG extends IModConfig>
     {
         InformationalDialogScreen ids;
         try {
-            return ((ConfigurationScreenFactory<Screen>) Class.forName("com.github.mdcdi1315.basemodslib.integration.clothconfig.ClothConfigScreenCreator").getConstructor(IModConfig.class).newInstance(config)).Create(parent);
+            return IClothConfigScreenCreator.CreateInstance(config).Create(parent);
         } catch (InstantiationException e) {
             ids = new InformationalDialogScreen(new String[] { "Cannot instantiate Cloth Config: ", e.toString() }, parent);
         } catch (IllegalAccessException e) {
