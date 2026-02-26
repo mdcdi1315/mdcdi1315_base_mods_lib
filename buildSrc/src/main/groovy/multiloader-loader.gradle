@@ -15,11 +15,7 @@ configurations {
 }
 
 dependencies {
-    compileOnly(project(':platform_agnostic')) {
-        capabilities {
-            requireCapability "$group:${mod_id.replace('_', '-')}"
-        }
-    }
+    compileOnly project(':platform_agnostic')
     commonJava project(path: ':platform_agnostic', configuration: 'commonJava')
     commonResources project(path: ':platform_agnostic', configuration: 'commonResources')
     commonGeneratedResources project(path: ':platform_agnostic', configuration: 'commonGeneratedResources')
