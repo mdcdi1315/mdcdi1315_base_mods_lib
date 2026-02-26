@@ -20,3 +20,10 @@ tasks.register("full_publish") {
 
     it.dependsOn(":fabric:publish", ":forge:publish", ":neoforge:publish", ":fabric:curseforge", ":forge:curseforge", ":neoforge:curseforge", ":platform_agnostic:publish")
 }
+
+tasks.register("publish_to_packages_only") {
+    group = 'publishing'
+    description = "Publishes all the Jar archives to GitHub for developers. Use full_publish for also publishing to CurseForge."
+
+    it.dependsOn(":fabric:publish", ":forge:publish", ":neoforge:publish", ":platform_agnostic:publish")
+}
