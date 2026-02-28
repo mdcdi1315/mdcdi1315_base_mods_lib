@@ -9,6 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 import com.github.mdcdi1315.basemodslib.utils.Extensions;
+import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
 
 /**
@@ -68,6 +69,56 @@ public class SingleLinkedList<T>
         public void Dispose() { root = current = null; }
     }
 
+    private static final class Synchronized<T>
+        extends SingleLinkedList<T>
+        implements ISynchronizedByObject
+    {
+        private final Object lock;
+
+        public Synchronized() { super(); lock = new Object(); }
+
+        public Synchronized(IEqualityComparer<T> comparer) { super(comparer); lock = new Object(); }
+
+        @Override
+        public Object GetSyncObject() { return lock; }
+
+        @Override
+        public T getItem(int index) { synchronized(lock) { return super.getItem(index); } }
+
+        @Override
+        public void setItem(int index, T value) { synchronized(lock) { super.setItem(index, value); } }
+
+        @Override
+        public int IndexOf(T item) { synchronized(lock) { return super.IndexOf(item); } }
+
+        @Override
+        public void Insert(int index, T item) { synchronized(lock) { super.Insert(index, item); } }
+
+        @Override
+        public void RemoveAt(int index) { synchronized(lock) { super.RemoveAt(index); } }
+
+        @Override
+        public void Add(T item) { synchronized(lock) { super.Add(item); } }
+
+        @Override
+        public void Clear() { synchronized(lock) { super.Clear(); } }
+
+        @Override
+        public boolean Contains(T item) { synchronized(lock) { return super.Contains(item); } }
+
+        @Override
+        public void CopyTo(T[] array, int arrayIndex) throws ArgumentNullException, ArgumentException { synchronized(lock) { super.CopyTo(array, arrayIndex); } }
+
+        @Override
+        public boolean Remove(T item) { synchronized(lock) { return super.Remove(item); } }
+
+        @Override
+        public void ForEach(Action1<T> action) { synchronized(lock) { super.ForEach(action); } }
+
+        @Override
+        public IEnumerator<T> GetEnumerator() { synchronized(lock) { return super.GetEnumerator(); } }
+    }
+
     private int count;
     @AllowNull
     private Node<T> root, current;
@@ -95,6 +146,21 @@ public class SingleLinkedList<T>
         root = current = null;
         this.comparer = (comparer == null) ? new JavaObjectEqualsEqualityComparer<>() : comparer;
     }
+
+    /**
+     * Creates a new thread-safe single linked list.
+     * @return A new instance of the {@link SingleLinkedList} class that is thread-safe.
+     * @since 1.0.19
+     */
+    public static <T> SingleLinkedList<T> CreateSynchronized() { return new Synchronized<>(); }
+
+    /**
+     * Creates a new thread-safe single linked list, which does utilize the specified
+     * {@link IEqualityComparer} for comparing and determining equality of the list's items.
+     * @return A new instance of the {@link SingleLinkedList} class that is thread-safe.
+     * @since 1.0.19
+     */
+    public static <T> SingleLinkedList<T> CreateSynchronized(@AllowNull IEqualityComparer<T> comparer) { return new Synchronized<>(comparer); }
 
     @Override
     public T getItem(int index)

@@ -40,15 +40,15 @@ public class EnumCodec<T extends Enum<T>>
     @Override
     public <T1> DataResult<Pair<T, T1>> decode(DynamicOps<T1> ops, T1 input) {
         var dsv = ops.getStringValue(input);
-        if (dsv.error().isPresent()) {
-            return DataResult.error(StringSupplier.FromFormatted("Not a string value: %s" , input));
-        } else {
+        if (dsv.isSuccess()) {
             String constant = dsv.result().get();
             try {
                 return DataResult.success(new Pair<>(T.valueOf(enum_class, constant) , input));
             } catch (IllegalArgumentException iae) {
                 return DataResult.error(StringSupplier.FromFormatted("Cannot find the enumeration constant %s in class %s." , constant , enum_class.getName()));
             }
+        } else {
+            return DataResult.error(StringSupplier.FromFormatted("Not a string value: %s" , input));
         }
     }
 

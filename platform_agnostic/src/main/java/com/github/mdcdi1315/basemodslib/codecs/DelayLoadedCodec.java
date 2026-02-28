@@ -32,7 +32,7 @@ public final class DelayLoadedCodec<T>
         actual = null;
     }
 
-    private void EnsureLoaded()
+    private synchronized void EnsureLoaded()
     {
         if (actual == null)
         {

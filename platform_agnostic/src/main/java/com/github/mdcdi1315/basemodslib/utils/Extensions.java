@@ -481,6 +481,68 @@ public final class Extensions
         }
     }
 
+    private record ThenExecuteMethod_1<TS, TM, TR>(Func2<TS, TM> first, Func2<TM, TR> second)
+        implements Func2<TS, TR>
+    {
+        @Override
+        public TR function(TS input) { return second.function(first.function(input)); }
+    }
+
+    private record ThenExecuteMethod_2(Action0 first, Action0 second)
+        implements Action0
+    {
+        @Override
+        public void action() { first.action(); second.action(); }
+    }
+
+    /**
+     * Chains a second function to a function of type {@link Func2} and it maps the result to {@link TR}, as such
+     * a transformation happens such as that {@link TS} -&gt; {@link TM} -&gt; {@link TR}.
+     * @param first The first {@link Func2} that accepts a parameter of type {@link TS} and returns an object of type {@link TM}.
+     * @param second The second {@link Func2} that accepts a parameter of type {@link TM } and returns an object of type {@link TR}.
+     * @return A new {@link Func2} that now accepts an argument of type {@link TS} and converts it to an object of type {@link TR}.
+     * @param <TS> The type of the parameter that is passed on the returned method reference.
+     * @param <TM> The type of the parameter that it's converted object from the {@code first} parameter is fed as an argument to the {@code second} parameter.
+     * @param <TR> The type that is returned as a result of invoking the returned function.
+     * @throws ArgumentNullException {@code first} and/or {@code second} is {@code null}.
+     * @since 1.0.19
+     */
+    public static <TS, TM, TR> Func2<TS, TR> ThenExecute(Func2<TS, TM> first, Func2<TM, TR> second)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(first, "first");
+        ArgumentNullException.ThrowIfNull(second, "second");
+        return new ThenExecuteMethod_1<>(first, second);
+    }
+
+    /**
+     * Chains a second action to a function of type {@link Action0}.
+     * @param first The first {@link Action0} to chain.
+     * @param second The second {@link Action0} to chain.
+     * @return An {@link Action0} that first executes the function reference provided in {@code first}, then the second one provided in {@code second}.
+     * @throws ArgumentNullException {@code first} and/or {@code second} is {@code null}.
+     * @since 1.0.19
+     */
+    public static Action0 ThenExecute(Action0 first, Action0 second)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(first, "first");
+        ArgumentNullException.ThrowIfNull(second, "second");
+        return new ThenExecuteMethod_2(first, second);
+    }
+
+    /**
+     * Type-casts the specified object to the specified type.
+     * @param o The {@link Object} to cast.
+     * @return The cast type, if casting is possible to {@link TR}; otherwise {@code null}.
+     * @param <TR> The type to cast to.
+     * @since 1.0.19
+     */
+    public static <TR> TR TypeCast(Object o)
+    {
+        try { return (TR) o; } catch (ClassCastException e) { return null; }
+    }
+
     /**
      * This method call is deprecated. Use the {@link #Lerp(double, double, double)} method instead.
      */

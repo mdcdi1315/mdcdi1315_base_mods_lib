@@ -1,8 +1,12 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
+
+import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 
 /**
  * An implementation of the {@link ITraversableQueue} interface by using a technique similar to the {@link java.util.LinkedList} class implementation.
@@ -48,6 +52,52 @@ public class SingleLinkedListBasedQueue<T>
         public void Reset() { current = null; }
     }
 
+    private static final class Synchronized<T>
+            extends SingleLinkedListBasedQueue<T>
+            implements ISynchronizedByObject
+    {
+        private final Object lock;
+
+        public Synchronized() { super(); lock = new Object(); }
+
+        @Override
+        public Object GetSyncObject() { return lock; }
+
+        @Override
+        public T TryDequeue() { synchronized (lock) { return super.TryDequeue(); } }
+
+        @Override
+        public T TryPeek() { synchronized (lock) { return super.TryPeek(); } }
+
+        @Override
+        public void Enqueue(T item) { synchronized(lock) { super.Enqueue(item); } }
+
+        @Override
+        public IEnumerator<T> GetEnumerator() { synchronized(lock) { return super.GetEnumerator(); } }
+
+        @Override
+        public void Clear() { synchronized(lock) { super.Clear(); } }
+
+        @Override
+        public T GetItem(int index) throws ArgumentOutOfRangeException { synchronized(lock) { return super.GetItem(index); } }
+
+        @Override
+        public void EnqueueAll(IEnumerable<T> items)
+                throws ArgumentNullException
+        {
+            ArgumentNullException.ThrowIfNull(items, "items");
+            // Instead of taking the lock each time on every enqueue, we will get it only once.
+            synchronized (lock) {
+                IEnumerator<T> enumerator = items.GetEnumerator();
+                try {
+                    while (enumerator.MoveNext()) { super.Enqueue(enumerator.getCurrent()); }
+                } finally {
+                    enumerator.Dispose();
+                }
+            }
+        }
+    }
+
     private int count;
     private Node<T> tail, head;
 
@@ -59,6 +109,13 @@ public class SingleLinkedListBasedQueue<T>
         count = 0;
         tail = head = null;
     }
+
+    /**
+     * Creates a thread-safe queue.
+     * @return An object extending the {@link SingleLinkedListBasedQueue} class and is thread-safe.
+     * @since 1.0.19
+     */
+    public static <T> SingleLinkedListBasedQueue<T> CreateSynchronized() { return new Synchronized<>(); }
 
     @Override
     public T TryDequeue()

@@ -2,11 +2,16 @@ package com.github.mdcdi1315.basemodslib.world;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtAccounter;
+import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+
+import net.minecraft.nbt.*;
 
 import java.io.*;
+import java.util.UUID;
+import java.util.Optional;
 
 /**
  * Provides utilities for loading .NBT files.
@@ -96,5 +101,244 @@ public final class NBTUtils
                 FileOutputStream fos = new FileOutputStream(file);
                 DataOutputStream dos = new DataOutputStream(fos)
         ) { NbtIo.write(tag, dos); }
+    }
+
+    /**
+     * Gets a byte field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Byte} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<Byte> GetByte(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof ByteTag btg) ? Optional.of(btg.byteValue()) : Optional.empty();
+    }
+
+    /**
+     * Gets a short field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Short} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<Short> GetShort(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof ShortTag stg) ? Optional.of(stg.shortValue()) : Optional.empty();
+    }
+
+    /**
+     * Gets an int field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Integer} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<Integer> GetInt(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof IntTag itg) ? Optional.of(itg.intValue()) : Optional.empty();
+    }
+
+    /**
+     * Gets a long field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Long} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<Long> GetLong(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof LongTag ltg) ? Optional.of(ltg.longValue()) : Optional.empty();
+    }
+
+    /**
+     * Gets a float field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Float} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<Float> GetFloat(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof FloatTag ftg) ? Optional.of(ftg.floatValue()) : Optional.empty();
+    }
+
+    /**
+     * Gets a double field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Double} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<Double> GetDouble(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof DoubleTag dtg) ? Optional.of(dtg.doubleValue()) : Optional.empty();
+    }
+
+    /**
+     * Gets a boolean field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Boolean} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<Boolean> GetBoolean(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof ByteTag btg) ? Optional.of(btg.intValue() != 0) : Optional.empty();
+    }
+
+    /**
+     * Gets a string field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link String} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<String> GetString(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof StringTag stg) ? stg.asString() : Optional.empty();
+    }
+
+    /**
+     * Gets a compound tag field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link CompoundTag} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<CompoundTag> GetCompound(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof CompoundTag ctg) ? Optional.of(ctg) : Optional.empty();
+    }
+
+    /**
+     * Gets an integer array tag field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Integer}[] that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<int[]> GetIntArray(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof IntArrayTag itg) ? Optional.of(itg.getAsIntArray()) : Optional.empty();
+    }
+
+    /**
+     * Gets a long array tag field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Long}[] that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<long[]> GetLongArray(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof LongArrayTag ltg) ? Optional.of(ltg.getAsLongArray()) : Optional.empty();
+    }
+
+    /**
+     * Gets a byte array tag field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link Byte}[] that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<byte[]> GetByteArray(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof ByteArrayTag btg) ? Optional.of(btg.getAsByteArray()) : Optional.empty();
+    }
+
+    /**
+     * Gets a list tag field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link ListTag} that contains the field's value, if that exists.
+     * @since 1.0.19
+     */
+    public static Optional<ListTag> GetListTag(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        return (t instanceof ListTag ltg) ? Optional.of(ltg) : Optional.empty();
+    }
+
+    /**
+     * Gets a {@link UUID} field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return An {@link Optional} of {@link UUID} that contains the field's value, if that exists.
+     * @apiNote To retrieve the UUID value using this method, you must use the {@link #PutUUID(CompoundTag, String, UUID)} method.
+     * @since 1.0.19
+     */
+    public static Optional<UUID> GetUUID(CompoundTag tag, String key)
+    {
+        Tag t = tag.get(key);
+        if (t instanceof LongArrayTag lat) {
+            if (lat.size() == 2) {
+                return Optional.of(
+                        new UUID(
+                                lat.get(0).longValue(),
+                                lat.get(1).longValue()
+                        )
+                );
+            } else {
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Gets a custom value field in the current compound tag.
+     * @param tag The {@link CompoundTag} to read the field from.
+     * @param key The field's name to get its value.
+     * @return A {@link DataResult} of {@link T} that contains the field's value, if that exists and is valid.
+     * @since 1.0.19
+     */
+    public static <T> DataResult<T> GetByCodec(CompoundTag tag, String key, Codec<T> codec)
+    {
+        Tag t = tag.get(key);
+        if (t == null) {
+            return DataResult.error(StringSupplier.FromDotNetFormatted("No field '{0}' in compound tag", key));
+        } else {
+            return codec.parse(NbtOps.INSTANCE, t);
+        }
+    }
+
+    /**
+     * Puts a {@link UUID} field in the current {@link CompoundTag}.
+     * @param tag The {@link CompoundTag} to store the field to.
+     * @param key The field's name.
+     * @param uuid The {@link UUID} to be stored.
+     * @since 1.0.19
+     */
+    public static void PutUUID(CompoundTag tag, String key, UUID uuid)
+    {
+        tag.putLongArray(key, new long[] { uuid.getMostSignificantBits(), uuid.getLeastSignificantBits() });
+    }
+
+    /**
+     * Puts a custom value encoded in NBT to the current {@link CompoundTag}.
+     * @param tag The {@link CompoundTag} to store the field to.
+     * @param key The field's name.
+     * @param codec The {@link Codec} to use for encoding {@link T}.
+     * @param input The instance to encode to NBT.
+     * @param <T> The type of the object to be stored as NBT.
+     * @since 1.0.19
+     */
+    public static <T> void PutByCodec(CompoundTag tag, String key, Codec<T> codec, T input)
+    {
+        tag.put(key, codec.encode(input, NbtOps.INSTANCE, NbtOps.INSTANCE.empty()).getOrThrow());
     }
 }

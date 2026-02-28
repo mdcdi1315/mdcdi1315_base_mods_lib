@@ -7,10 +7,10 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 
-/// <seealso cref="ReversedArrayEnumerator{T}"/>
 /**
  * A rather simple {@link com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator} implementation for arrays.
  * @param <T> The type of the array elements to enumerate.
+ * @see ReversedArrayEnumerator
  * @since 1.0.18
  */
 public abstract class ArrayEnumerator<T>

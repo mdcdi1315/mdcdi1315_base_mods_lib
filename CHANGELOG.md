@@ -1,25 +1,13 @@
-### Now releasing 1.0.18:
+### Now releasing 1.0.19:
 
--> Large feature update!
+-> Finalized the support for the Collections package - minor stuff left to be defined
 
--> Forge/NeoForge: Custom Creative Mode Tab stacks were not appropriately registered, and as such only one was registered for each given mod.
-This release fixes that.
+-> Added a lot of codecs and improved the behavior on LazyUnitCodec and DelayLoadedCodec classes.
 
--> Most classes have now migrated away from `List` class and now use the `SingleLinkedList` class instead
+-> Deprecated the VersionableCodec class
 
--> Expanded the collections API package
+-> Added some utilities for manipulating NBT.
 
--> Added miscellaneous additional API's
+-> Minor bug fixes and added some missing classes, some others were fixed
 
--> Added more network codecs
-
--> Development upgrade: Dropping support for Developer Archives, now anyone wanting to consume the library must use GitHub packages from now on.
-The template will be appropriately updated for 1.21.1+ variants.
-
--> Made CodecUtils to not use lambda expressions for CreateCodecDirect API's
-
--> Added more documentation!
-
--> Added the weight API introduced in one of my mods here. 
-
--> Updated copyright in `LICENSE` for 2026
+-> Added more documentation on code that was undocumented.
