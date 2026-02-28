@@ -1,8 +1,12 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
+
+import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 
 /**
  * A default implementation of the {@link IStack} interface, by using a reverse single linked list. <br />
@@ -68,6 +72,52 @@ public class SingleLinkedListBasedStack<T>
         public T getCurrent() { return (current == null) ? null : current.Value; }
     }
 
+    private static final class Synchronized<T>
+            extends SingleLinkedListBasedStack<T>
+            implements ISynchronizedByObject
+    {
+        private final Object lock;
+
+        public Synchronized() { super(); lock = new Object(); }
+
+        @Override
+        public Object GetSyncObject() { return lock; }
+
+        @Override
+        public T TryPop() { synchronized (lock) { return super.TryPop(); } }
+
+        @Override
+        public T TryPeek() { synchronized (lock) { return super.TryPeek(); } }
+
+        @Override
+        public void Push(T item) { synchronized (lock) { super.Push(item); } }
+
+        @Override
+        public void Clear() { synchronized (lock) { super.Clear(); } }
+
+        @Override
+        public IEnumerator<T> GetEnumerator() { synchronized (lock) { return super.GetEnumerator(); } }
+
+        @Override
+        public T GetItem(int index) throws ArgumentOutOfRangeException { synchronized (lock) { return super.GetItem(index); } }
+
+        @Override
+        public void PushAll(IEnumerable<T> items)
+                throws ArgumentNullException
+        {
+            ArgumentNullException.ThrowIfNull(items, "items");
+            // Instead of taking the lock each time on every push, we will get it only once.
+            synchronized (lock) {
+                IEnumerator<T> enumerator = items.GetEnumerator();
+                try {
+                    while (enumerator.MoveNext()) { super.Push(enumerator.getCurrent()); }
+                } finally {
+                    enumerator.Dispose();
+                }
+            }
+        }
+    }
+
     private int count;
     private Node<T> current;
 
@@ -79,6 +129,13 @@ public class SingleLinkedListBasedStack<T>
         count = 0;
         current = null;
     }
+
+    /**
+     * Creates a thread-safe stack.
+     * @return An object extending the {@link SingleLinkedListBasedStack} class and is thread-safe.
+     * @since 1.0.19
+     */
+    public static <T> SingleLinkedListBasedStack<T> CreateSynchronized() { return new Synchronized<>(); }
 
     @Override
     public T TryPop()

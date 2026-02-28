@@ -366,13 +366,31 @@ public final class NetworkHelpers
         buffer.writeDoubleLE(pos.z());
     }
 
+    /**
+     * Writes a {@link Position} to the specified byte buffer.
+     * @param buffer The byte buffer to write the current {@link Position} to.
+     * @param pos The position to write to {@code buffer}.
+     * @throws ArgumentNullException {@code buffer} and/or {@code pos} are {@code null}.
+     * @since 1.0.18
+     */
     public static void WritePosition(ByteBuf buffer, Position pos)
+        throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(pos, "pos");
         ArgumentNullException.ThrowIfNull(buffer, "buffer");
         WritePositionUnsafe(buffer, pos);
     }
 
+    /**
+     * Reads a user-defined derived {@link Position} class from the specified byte buffer. <br />
+     * The function to specify is possibly the constructor of the derived {@link Position} class.
+     * @param buffer The byte buffer where to read from the specified derived {@link Position} class.
+     * @param func The function to read the derived {@link Position} class.
+     * @return The derived {@link Position} object constructed by {@code func}.
+     * @param <T> The type of the derived {@link Position} class to read as.
+     * @apiNote This is the unsafe method variant of {@link #ReadDerivedPosition(ByteBuf, Func4)} method.
+     * @since 1.0.18
+     */
     public static <T extends Position> T ReadDerivedPositionUnsafe(ByteBuf buffer, Func4<Double, Double, Double, T> func)
     {
         double x = buffer.readDoubleLE();
@@ -381,6 +399,16 @@ public final class NetworkHelpers
         return func.function(x, y, z);
     }
 
+    /**
+     * Reads a user-defined derived {@link Position} class from the specified byte buffer. <br />
+     * The function to specify is possibly the constructor of the derived {@link Position} class.
+     * @param buffer The byte buffer where to read from the specified derived {@link Position} class.
+     * @param func The function to read the derived {@link Position} class.
+     * @return The derived {@link Position} object constructed by {@code func}.
+     * @param <T> The type of the derived {@link Position} class to read as.
+     * @throws ArgumentNullException {@code buffer} and/or {@code func} are {@code null}.
+     * @since 1.0.18
+     */
     public static <T extends Position> T ReadDerivedPosition(ByteBuf buffer, Func4<Double, Double, Double, T> func)
             throws ArgumentNullException
     {

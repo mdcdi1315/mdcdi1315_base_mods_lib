@@ -3,12 +3,14 @@ package com.github.mdcdi1315.basemodslib.world.saveddata;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.world.NBTUtils;
 import com.github.mdcdi1315.basemodslib.codecs.CodecUtils;
 
 import com.mojang.serialization.Codec;
 
-import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.CompoundTag;
+
+import java.util.Optional;
 
 /**
  * Defines the common header for all saved data provided by the mods using this library. <br />
@@ -26,7 +28,7 @@ public final class SavedDataCommonHeader
     public static Codec<SavedDataCommonHeader> GetCodec()
     {
         return CodecUtils.CreateCodecDirect(
-                Codec.SHORT.fieldOf(VERSION_HEADER).forGetter((h) -> h.version),
+                Codec.SHORT.fieldOf(VERSION_HEADER).forGetter(SavedDataCommonHeader::GetVersion),
                 CompoundTag.CODEC.fieldOf(DATA_HEADER).forGetter(SavedDataCommonHeader::GetData),
                 SavedDataCommonHeader::CreateHeader
         );
@@ -34,22 +36,21 @@ public final class SavedDataCommonHeader
 
     public SavedDataCommonHeader(CompoundTag tag)
     {
-        if (tag.contains(VERSION_HEADER , Tag.TAG_SHORT)) {
-            version = tag.getShort(VERSION_HEADER);
+        Optional<Short> o = NBTUtils.GetShort(tag, VERSION_HEADER);
+        if (o.isPresent()) {
+            this.version = o.get();
         } else {
             throw new IncorrectSavedDataFormatException("Cannot find the saved data versioning field!");
         }
-        if (tag.contains(DATA_HEADER , Tag.TAG_COMPOUND)) {
-            this.tag = tag.getCompound(DATA_HEADER);
+        Optional<CompoundTag> o2 = NBTUtils.GetCompound(tag, DATA_HEADER);
+        if (o2.isPresent()) {
+            this.tag = o2.get();
         } else {
             throw new IncorrectSavedDataFormatException("Cannot find the saved data data field!");
         }
     }
 
-    private SavedDataCommonHeader() {
-        version = 0;
-        tag = null;
-    }
+    private SavedDataCommonHeader() { version = 0; tag = null; }
 
     /**
      * Creates a new header, providing the version and the initial data to store. <br />
@@ -66,31 +67,21 @@ public final class SavedDataCommonHeader
         return s;
     }
 
-    public short GetVersion() {
-        return version;
-    }
+    public short GetVersion() { return version; }
 
-    public void SetVersion(short newversion) {
-        version = newversion;
-    }
+    public void SetVersion(short newversion) { version = newversion; }
 
     /**
      * Gets a value whether the last saved data were failed to be saved. <br />
      * This method identifies that by whether the versioning field holds the invalid version.
      * @return A value whether the currently held version is invalid, meaning that the saved data were not saved in the last time due to an error.
      */
-    public boolean IsInvalidVersion() {
-        return version == INVALID_VERSION;
-    }
+    public boolean IsInvalidVersion() { return version == INVALID_VERSION; }
 
     @NotNull
-    public CompoundTag GetData() {
-        return tag == null ? new CompoundTag() : tag;
-    }
+    public CompoundTag GetData() { return tag == null ? new CompoundTag() : tag; }
 
-    public void SetData(@MaybeNull CompoundTag t) {
-        tag = t;
-    }
+    public void SetData(@MaybeNull CompoundTag t) { tag = t; }
 
     /**
      * Creates a new {@link CompoundTag} that can be used to save the data to the drive.

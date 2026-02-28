@@ -2,11 +2,14 @@ package com.github.mdcdi1315.DotNetLayer.System;
 
 import com.github.mdcdi1315.DotNetLayer.ByRefParameterType;
 import com.github.mdcdi1315.DotNetLayer.DotNetByRefParameter;
+import com.github.mdcdi1315.DotNetLayer.DotNetDelegateInterface;
 
 /**
  * Represents the method that compares two objects of the same type.
  * @param <T> The type of the objects to compare.
  */
+@FunctionalInterface
+@DotNetDelegateInterface
 public interface Comparison<@DotNetByRefParameter(ByRefParameterType.IN) T>
 {
     /**

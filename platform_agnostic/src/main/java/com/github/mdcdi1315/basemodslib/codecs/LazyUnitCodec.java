@@ -47,7 +47,7 @@ public final class LazyUnitCodec<T>
         value_getter = null;
     }
 
-    private void EnsureLoaded()
+    private synchronized void EnsureLoaded()
     {
         if (value == null)
         {

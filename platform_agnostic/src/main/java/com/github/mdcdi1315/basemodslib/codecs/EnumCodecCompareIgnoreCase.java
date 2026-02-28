@@ -28,9 +28,7 @@ public class EnumCodecCompareIgnoreCase<T extends Enum<T>>
     public <T1> DataResult<Pair<T, T1>> decode(DynamicOps<T1> ops, T1 input)
     {
         var dsv = ops.getStringValue(input);
-        if (dsv.error().isPresent()) {
-            return DataResult.error(StringSupplier.FromFormatted("Not a string value: %s" , input));
-        } else {
+        if (dsv.isSuccess()) {
             String constant = dsv.result().get();
             for (T value : enum_class.getEnumConstants())
             {
@@ -39,6 +37,8 @@ public class EnumCodecCompareIgnoreCase<T extends Enum<T>>
                 }
             }
             return DataResult.error(StringSupplier.FromFormatted("Cannot find the enumeration constant %s in class %s." , constant , enum_class.getName()));
+        } else {
+            return DataResult.error(StringSupplier.FromFormatted("Not a string value: %s" , input));
         }
     }
 }
