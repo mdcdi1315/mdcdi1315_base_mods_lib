@@ -41,7 +41,7 @@ public final class FabricModLoaderLayer
 
     public FabricModLoaderLayer()
     {
-        minecraft_version = new Version(1, 21, 1);
+        minecraft_version = new Version(1, 21, 5);
 
         networking_versions_map = new HashMap<>(10);
         var loader = FabricLoader.getInstance();

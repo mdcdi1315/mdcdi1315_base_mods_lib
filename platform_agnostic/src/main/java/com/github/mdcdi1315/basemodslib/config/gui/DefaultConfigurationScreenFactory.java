@@ -4,6 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.config.IModConfig;
+import com.github.mdcdi1315.basemodslib.CommonModLoaderBranding;
 import com.github.mdcdi1315.basemodslib.client.gui.InformationalDialogScreen;
 
 import net.minecraft.network.chat.Component;
@@ -12,24 +13,26 @@ import net.minecraft.client.gui.screens.Screen;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Provides a default class implementation of the {@link ConfigurationScreenFactory} class by using as a screen the {@link DefaultConfigurationScreen} class.
+ * Provides a default class implementation of the {@link ConfigurationScreenFactory} class by using the Cloth Config API as the implementation of the screen.
  * @param <TCFG> The class type of the configuration file that this factory instance will manipulate.
  */
 public final class DefaultConfigurationScreenFactory<TCFG extends IModConfig>
     extends ConfigurationScreenFactory<Screen>
 {
     private TCFG config;
+    private final boolean is_fabric;
 
     public DefaultConfigurationScreenFactory(TCFG config, String mod_id)
     {
         ArgumentNullException.ThrowIfNull(config, "config");
         this.config = config;
+        this.is_fabric = BaseModsLib.GetCommonModLoaderBranding() == CommonModLoaderBranding.FABRIC;
     }
 
     @Override
     public Screen Create(Screen parent)
     {
-        if (BaseModsLib.IsModLoaded("cloth_config")) {
+        if (BaseModsLib.IsModLoaded(is_fabric ? "cloth-config" : "cloth_config")) {
             return InstantiateClothConfig(parent);
         } else {
             return new InformationalDialogScreen(
@@ -58,8 +61,9 @@ public final class DefaultConfigurationScreenFactory<TCFG extends IModConfig>
         } catch (ClassNotFoundException e) {
             ids = new InformationalDialogScreen(new String[] {
                     "Cloth config layer class could not be found.",
-                    "This may suggest that the mod itself is broken.",
-                    "Please report this issue to mdcdi1315."
+                    "This may suggest that the Base Mods Library itself is broken.",
+                    "Please report this issue to mdcdi1315.",
+                    "Report URL: https://github.com/mdcdi1315/mdcdi1315_base_mods_lib/issues"
             }, parent);
         }
         return ids;

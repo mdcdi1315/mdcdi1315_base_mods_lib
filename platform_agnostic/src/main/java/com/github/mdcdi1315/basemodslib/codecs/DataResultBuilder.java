@@ -1,10 +1,9 @@
 package com.github.mdcdi1315.basemodslib.codecs;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
-import com.github.mdcdi1315.DotNetLayer.System.Func3;
-import com.github.mdcdi1315.DotNetLayer.System.Func4;
-import com.github.mdcdi1315.DotNetLayer.System.Predicate;
+import com.github.mdcdi1315.DotNetLayer.System.*;
 
+import com.github.mdcdi1315.basemodslib.codecs.internal.DataResultBuilderOfFive;
+import com.github.mdcdi1315.basemodslib.codecs.internal.DataResultBuilderOfFour;
 import com.github.mdcdi1315.basemodslib.codecs.internal.DataResultBuilderOfThree;
 import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 import com.github.mdcdi1315.basemodslib.codecs.internal.DataResultBuilderOfTwo;
@@ -158,6 +157,44 @@ public abstract class DataResultBuilder<TResult>
      * @param <TR> The result type that is returned from the builder by applying the function given in {@code creator}.
      */
     public static <T1, T2, T3, TR> DataResultBuilder<TR> Of(DataResult<T1> v1, DataResult<T2> v2, DataResult<T3> v3, Func4<T1, T2, T3, TR> creator) { return new DataResultBuilderOfThree<>(v1, v2, v3, creator); }
+
+    /**
+     * Creates a new {@link DataResultBuilder} instance from four {@link DataResult} instances. <br />
+     * The function specified in {@code creator} parameter specifies how the two inputs will be transformed.
+     * @param v1 The first {@link DataResult} instance.
+     * @param v2 The second {@link DataResult} instance.
+     * @param v3 The third {@link DataResult} instance.
+     * @param v4 The fourth {@link DataResult} instance.
+     * @param creator The function that converts the results of the {@code v1} and {@code v2} and {@code v3} parameters into an instance of type {@link TR}.
+     * @return A new {@link DataResultBuilder} that returns an object of type {@link TR}.
+     * @param <T1> Type that is returned from the first {@link DataResult} parameter.
+     * @param <T2> Type that is returned from the second {@link DataResult} parameter.
+     * @param <T3> Type that is returned from the third {@link DataResult} parameter.
+     * @param <T4> Type that is returned from the fourth {@link DataResult} parameter.
+     * @param <TR> The result type that is returned from the builder by applying the function given in {@code creator}.
+     * @since 1.0.20
+     */
+    public static <T1, T2, T3, T4, TR> DataResultBuilder<TR> Of(DataResult<T1> v1, DataResult<T2> v2, DataResult<T3> v3, DataResult<T4> v4, Func5<T1, T2, T3, T4, TR> creator) { return new DataResultBuilderOfFour<>(v1, v2, v3, v4, creator); }
+
+    /**
+     * Creates a new {@link DataResultBuilder} instance from five {@link DataResult} instances. <br />
+     * The function specified in {@code creator} parameter specifies how the two inputs will be transformed.
+     * @param v1 The first {@link DataResult} instance.
+     * @param v2 The second {@link DataResult} instance.
+     * @param v3 The third {@link DataResult} instance.
+     * @param v4 The fourth {@link DataResult} instance.
+     * @param v5 The fifth {@link DataResult} instance.
+     * @param creator The function that converts the results of the {@code v1} and {@code v2} and {@code v3} parameters into an instance of type {@link TR}.
+     * @return A new {@link DataResultBuilder} that returns an object of type {@link TR}.
+     * @param <T1> Type that is returned from the first {@link DataResult} parameter.
+     * @param <T2> Type that is returned from the second {@link DataResult} parameter.
+     * @param <T3> Type that is returned from the third {@link DataResult} parameter.
+     * @param <T4> Type that is returned from the fourth {@link DataResult} parameter.
+     * @param <T5> Type that is returned from the fifth {@link DataResult} parameter.
+     * @param <TR> The result type that is returned from the builder by applying the function given in {@code creator}.
+     * @since 1.0.20
+     */
+    public static <T1, T2, T3, T4, T5, TR> DataResultBuilder<TR> Of(DataResult<T1> v1, DataResult<T2> v2, DataResult<T3> v3, DataResult<T4> v4, DataResult<T5> v5, Func6<T1, T2, T3, T4, T5, TR> creator) { return new DataResultBuilderOfFive<>(v1, v2, v3, v4, v5, creator); }
 
 }
 

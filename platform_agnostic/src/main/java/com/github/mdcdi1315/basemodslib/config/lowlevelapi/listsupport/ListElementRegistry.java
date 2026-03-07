@@ -7,6 +7,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.mojang.serialization.Codec;
 
+import net.minecraft.resources.ResourceLocation;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,6 +23,7 @@ public final class ListElementRegistry
 
     static {
         serializers = new ConcurrentHashMap<>(10);
+        serializers.put(ResourceLocation.class, ResourceLocation.CODEC);
     }
 
     private static Codec<?> ResolveCodecOfPrimitive(Class<?> cls)

@@ -1,13 +1,21 @@
-### Now releasing 1.0.19:
+### Now releasing 1.0.20:
 
--> Finalized the support for the Collections package - minor stuff left to be defined
+-> Added a new 'function' package in the 'utils' package. It provides helper methods for transforming and using functional interfaces.
 
--> Added a lot of codecs and improved the behavior on LazyUnitCodec and DelayLoadedCodec classes.
+-> Added the `DirectlyMappedSet` and the `DirectlyMappedSpliterator` classes.
 
--> Deprecated the VersionableCodec class
+-> NBT Utilities: Optimized the lookup by directly checking for `instanceof` rather than allocating the tag into a new variable first.
 
--> Added some utilities for manipulating NBT.
+-> `DefaultConfigurationScreenFactory`: Fixed the issue where the Fabric distribution of the library 
+failed to instantiate the Cloth Config API screen due to the naming of the mod in Fabric environments.
 
--> Minor bug fixes and added some missing classes, some others were fixed
+-> Added networking helpers around Minecraft's `Vec2` type.
 
--> Added more documentation on code that was undocumented.
+-> (Config) `ListElementRegistry`: Fixed an issue with the List Element Registry not able to recognize `ResourceLocation` instances.
+
+-> Event API: Added new registry finalized events, and reordered all the registry finalized 
+events so that they are dispatched in the exact same way as they are created at the beginning.
+Note, only Forge keeps a custom pattern due to how it conceives the concept of registries and the mods.
+
+-> [1.21.5]: Fixed misreported Minecraft Version on all implementations. 
+This is not a problem in typical environments, however.

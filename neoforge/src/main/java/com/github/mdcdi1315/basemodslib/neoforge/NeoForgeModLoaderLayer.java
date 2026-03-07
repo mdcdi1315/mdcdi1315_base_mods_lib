@@ -54,7 +54,7 @@ public final class NeoForgeModLoaderLayer
         this.event_bus = event_bus;
         mod_loading_complete = false;
         mods = ModList.get().getMods();
-        minecraft_version = new Version(1, 21, 1);
+        minecraft_version = new Version(1, 21, 5);
         global_command_registrar = new NeoForgeCommandRegistrar();
         global_command_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
         Version fg_ver;
@@ -70,13 +70,16 @@ public final class NeoForgeModLoaderLayer
         NeoForgeUtils.AddListener(this.event_bus, FMLLoadCompleteEvent.class, this::OnModLoadingCompleteEvent);
         // Register bake callbacks instead. This does not require a mixin, and it is OK since this will call in as appropriate.
         // Also, it is far more practical than the Forge solution.
-        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK, BlockRegistryFinalizedEvent::new);
-        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityTypeRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ITEM, ItemRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.FLUID, FluidRegistryFinalizedEvent::new);
-        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ENTITY_TYPE, EntityTypeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK, BlockRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.MENU, MenuTypeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.POTION, PotionRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ENTITY_TYPE, EntityTypeRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.SOUND_EVENT, SoundEventRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ATTRIBUTE, EntityAttributeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.PARTICLE_TYPE, ParticleTypeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityTypeRegistryFinalizedEvent::new);
     }
 
     private static IEventBus GetEventBusOrFail(Object mod_object) {
@@ -169,11 +172,6 @@ public final class NeoForgeModLoaderLayer
     }
 
     @Override
-    public List<String> GetLoadedMods() {
-        return new DirectlyMappedList<>(mods, IModInfo::getModId);
-    }
-
-    @Override
     public ModdingEnvironment GetEnvironment() {
         return switch (FMLEnvironment.dist) {
             case CLIENT -> ModdingEnvironment.CLIENT;
@@ -185,19 +183,22 @@ public final class NeoForgeModLoaderLayer
     public String GetModLoaderBranding() { return "NeoForge"; }
 
     @Override
-    public Version GetMinecraftVersion() { return minecraft_version; }
-
-    @Override
     public Version GetModLoaderVersion() { return neoforge_version; }
 
     @Override
-    public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
+    public Version GetMinecraftVersion() { return minecraft_version; }
 
     @Override
     public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
 
     @Override
+    public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
+
+    @Override
     public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
+
+    @Override
+    public List<String> GetLoadedMods() { return new DirectlyMappedList<>(mods, IModInfo::getModId); }
 
     @Override
     public void Dispose() {

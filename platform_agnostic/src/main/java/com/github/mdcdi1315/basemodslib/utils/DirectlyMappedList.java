@@ -3,8 +3,7 @@ package com.github.mdcdi1315.basemodslib.utils;
 import com.github.mdcdi1315.DotNetLayer.System.Array;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-
-import org.jetbrains.annotations.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import java.util.*;
 
@@ -37,18 +36,22 @@ public class DirectlyMappedList<TA , TR>
     }
 
     @Override
+    public void clear() { underlying.clear(); }
+
+    @Override
     public int size() { return underlying.size(); }
 
     @Override
     public boolean isEmpty() { return underlying.isEmpty(); }
 
     @Override
-    public boolean contains(Object o) {
-        throw new UnsupportedOperationException("This operation is not supported.");
-    }
+    public boolean removeAll(@NotNull Collection<?> c) { return underlying.removeAll(c); }
 
     @Override
-    public @NotNull Iterator<TR> iterator() { return listIterator(); }
+    public boolean retainAll(@NotNull Collection<?> c) { return underlying.retainAll(c); }
+
+    @Override
+    public boolean containsAll(@NotNull Collection<?> c) { return underlying.containsAll(c); }
 
     @Override
     public @NotNull Object[] toArray() {
@@ -62,8 +65,9 @@ public class DirectlyMappedList<TA , TR>
         return objects;
     }
 
+    @NotNull
     @Override
-    public <T> T @NotNull [] toArray(T @NotNull [] a) {
+    public <T> T[] toArray(@NotNull T[] a) {
         List<TA> local_list = underlying;
         int size = local_list.size(), I = 0;
         T[] final_array = (size > a.length) ? (T[])Array.CreateInstance(a.getClass().getComponentType() , size) : a;
@@ -75,44 +79,6 @@ public class DirectlyMappedList<TA , TR>
     }
 
     @Override
-    public boolean add(TR tr) {
-        throw new UnsupportedOperationException("This operation is not supported.");
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException("This operation is not supported.");
-    }
-
-    @Override
-    public boolean containsAll(@NotNull Collection<?> c) {
-        return new HashSet<>(underlying).containsAll(c);
-    }
-
-    @Override
-    public boolean addAll(@NotNull Collection<? extends TR> c) {
-        throw new UnsupportedOperationException("This operation is not supported.");
-    }
-
-    @Override
-    public boolean addAll(int index, @NotNull Collection<? extends TR> c) {
-        throw new UnsupportedOperationException("This operation is not supported.");
-    }
-
-    @Override
-    public boolean removeAll(@NotNull Collection<?> c) {
-        return new HashSet<>(underlying).removeAll(c);
-    }
-
-    @Override
-    public boolean retainAll(@NotNull Collection<?> c) {
-        return new HashSet<>(underlying).retainAll(c);
-    }
-
-    @Override
-    public void clear() { underlying.clear(); }
-
-    @Override
     public TR get(int index) {
         TA element = underlying.get(index);
         if (element != null) {
@@ -120,16 +86,6 @@ public class DirectlyMappedList<TA , TR>
         } else {
             return null;
         }
-    }
-
-    @Override
-    public TR set(int index, TR element) {
-        throw new UnsupportedOperationException("This operation is not supported.");
-    }
-
-    @Override
-    public void add(int index, TR element) {
-        throw new UnsupportedOperationException("This operation is not supported.");
     }
 
     @Override
@@ -143,81 +99,78 @@ public class DirectlyMappedList<TA , TR>
     }
 
     @Override
-    public int indexOf(Object o) {
-        throw new UnsupportedOperationException("This operation is not supported.");
-    }
+    public boolean add(TR tr) { throw new UnsupportedOperationException("This operation is not supported."); }
 
     @Override
-    public int lastIndexOf(Object o) {
-        throw new UnsupportedOperationException("This operation is not supported.");
-    }
+    public int indexOf(Object o) { throw new UnsupportedOperationException("This operation is not supported."); }
 
-    private static class InternalIterator<TA , TR>
-        implements ListIterator<TR>
+    @Override
+    public boolean remove(Object o) { throw new UnsupportedOperationException("This operation is not supported."); }
+
+    @Override
+    public int lastIndexOf(Object o) { throw new UnsupportedOperationException("This operation is not supported."); }
+
+    @Override
+    public boolean contains(Object o) { throw new UnsupportedOperationException("This operation is not supported."); }
+
+    @Override
+    public TR set(int index, TR element) { throw new UnsupportedOperationException("This operation is not supported."); }
+
+    @Override
+    public void add(int index, TR element) { throw new UnsupportedOperationException("This operation is not supported."); }
+
+    @Override
+    public @NotNull Iterator<TR> iterator() { return new InternalIterator<>(underlying.listIterator(), mapping_function); }
+
+    @Override
+    public @NotNull ListIterator<TR> listIterator() { return new InternalIterator<>(underlying.listIterator() , mapping_function); }
+
+    @Override
+    public boolean addAll(@NotNull Collection<? extends TR> c) { throw new UnsupportedOperationException("This operation is not supported."); }
+
+    @Override
+    public @NotNull ListIterator<TR> listIterator(int index) { return new InternalIterator<>(underlying.listIterator(index) , mapping_function); }
+
+    @Override
+    public boolean addAll(int index, @NotNull Collection<? extends TR> c) { throw new UnsupportedOperationException("This operation is not supported."); }
+
+    @Override
+    public @NotNull List<TR> subList(int fromIndex, int toIndex) { return new DirectlyMappedList<>(underlying.subList(fromIndex , toIndex) , mapping_function); }
+
+    private record InternalIterator<TA, TR>(ListIterator<TA> original, Func2<TA, TR> mapping_function)
+            implements ListIterator<TR>
     {
-        private final ListIterator<TA> original;
-        private final Func2<TA , TR> mapping_function;
-
-        public InternalIterator(ListIterator<TA> iter, Func2<TA, TR> mapper) { original = iter; mapping_function = mapper; }
-
-        @Override
-        public boolean hasNext() { return original.hasNext(); }
-
         @Override
         public TR next() {
             TA element = original.next();
-            if (element == null) {
-                return null;
-            } else {
-                return mapping_function.function(element);
-            }
+            return (element == null) ? null : mapping_function.function(element);
         }
-
-        @Override
-        public boolean hasPrevious() { return original.hasPrevious(); }
 
         @Override
         public TR previous() {
             TA element = original.previous();
-            if (element == null) {
-                return null;
-            } else {
-                return mapping_function.function(element);
-            }
+            return (element == null) ? null : mapping_function.function(element);
         }
-
-        @Override
-        public int nextIndex() { return original.nextIndex(); }
-
-        @Override
-        public int previousIndex() { return original.previousIndex(); }
 
         @Override
         public void remove() { original.remove(); }
 
         @Override
-        public void set(TR tr) {
-            throw new UnsupportedOperationException("This operation is not supported.");
-        }
+        public boolean hasNext() { return original.hasNext(); }
 
         @Override
-        public void add(TR tr) {
-            throw new UnsupportedOperationException("This operation is not supported.");
-        }
-    }
+        public int nextIndex() { return original.nextIndex(); }
 
-    @Override
-    public @NotNull ListIterator<TR> listIterator() {
-        return new InternalIterator<>(underlying.listIterator() , mapping_function);
-    }
+        @Override
+        public boolean hasPrevious() { return original.hasPrevious(); }
 
-    @Override
-    public @NotNull ListIterator<TR> listIterator(int index) {
-        return new InternalIterator<>(underlying.listIterator(index) , mapping_function);
-    }
+        @Override
+        public int previousIndex() { return original.previousIndex(); }
 
-    @Override
-    public @NotNull List<TR> subList(int fromIndex, int toIndex) {
-        return new DirectlyMappedList<>(underlying.subList(fromIndex , toIndex) , mapping_function);
+        @Override
+        public void set(TR tr) { throw new UnsupportedOperationException("This operation is not supported."); }
+
+        @Override
+        public void add(TR tr) { throw new UnsupportedOperationException("This operation is not supported."); }
     }
 }

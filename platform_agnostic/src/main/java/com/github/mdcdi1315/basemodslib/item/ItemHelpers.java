@@ -13,6 +13,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
@@ -112,5 +113,19 @@ public final class ItemHelpers
      */
     public static Item GetItemForBlockSimple(Block b , ResourceLocation location) {
         return new BlockItem(b, new Item.Properties());
+    }
+
+    /**
+     * Gets a previously registered data component type by the specified location in the data component type registry.
+     * @param location The location of the data component type to get.
+     * @return The item corresponding to the specified resource location, if found.
+     * @param <T> The type that is de/serialized by the data component type.
+     * @throws ArgumentNullException {@code location} is {@code null}.
+     * @throws RegistryObjectNotFoundException {@code location} is not a valid data component type declaration registered in the data component types registry.
+     * @since 1.0.20
+     */
+    public static <T> DataComponentType<T> GetDataComponentType(ResourceLocation location)
+    {
+        return (DataComponentType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.DATA_COMPONENT_TYPE, location);
     }
 }
