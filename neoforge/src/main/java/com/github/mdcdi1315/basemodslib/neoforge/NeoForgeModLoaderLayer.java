@@ -70,13 +70,16 @@ public final class NeoForgeModLoaderLayer
         NeoForgeUtils.AddListener(this.event_bus, FMLLoadCompleteEvent.class, this::OnModLoadingCompleteEvent);
         // Register bake callbacks instead. This does not require a mixin, and it is OK since this will call in as appropriate.
         // Also, it is far more practical than the Forge solution.
-        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK, BlockRegistryFinalizedEvent::new);
-        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityTypeRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ITEM, ItemRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.FLUID, FluidRegistryFinalizedEvent::new);
-        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ENTITY_TYPE, EntityTypeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK, BlockRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.MENU, MenuTypeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.POTION, PotionRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ENTITY_TYPE, EntityTypeRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.SOUND_EVENT, SoundEventRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ATTRIBUTE, EntityAttributeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.PARTICLE_TYPE, ParticleTypeRegistryFinalizedEvent::new);
+        NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityTypeRegistryFinalizedEvent::new);
     }
 
     private static IEventBus GetEventBusOrFail(Object mod_object) {

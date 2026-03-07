@@ -112,8 +112,7 @@ public final class NBTUtils
      */
     public static Optional<Byte> GetByte(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof ByteTag btg) ? Optional.of(btg.getAsByte()) : Optional.empty();
+        return (tag.get(key) instanceof ByteTag btg) ? Optional.of(btg.getAsByte()) : Optional.empty();
     }
 
     /**
@@ -125,8 +124,7 @@ public final class NBTUtils
      */
     public static Optional<Short> GetShort(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof ShortTag stg) ? Optional.of(stg.getAsShort()) : Optional.empty();
+        return (tag.get(key) instanceof ShortTag stg) ? Optional.of(stg.getAsShort()) : Optional.empty();
     }
 
     /**
@@ -138,8 +136,7 @@ public final class NBTUtils
      */
     public static Optional<Integer> GetInt(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof IntTag itg) ? Optional.of(itg.getAsInt()) : Optional.empty();
+        return (tag.get(key) instanceof IntTag itg) ? Optional.of(itg.getAsInt()) : Optional.empty();
     }
 
     /**
@@ -151,8 +148,7 @@ public final class NBTUtils
      */
     public static Optional<Long> GetLong(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof LongTag ltg) ? Optional.of(ltg.getAsLong()) : Optional.empty();
+        return (tag.get(key) instanceof LongTag ltg) ? Optional.of(ltg.getAsLong()) : Optional.empty();
     }
 
     /**
@@ -164,8 +160,7 @@ public final class NBTUtils
      */
     public static Optional<Float> GetFloat(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof FloatTag ftg) ? Optional.of(ftg.getAsFloat()) : Optional.empty();
+        return (tag.get(key) instanceof FloatTag ftg) ? Optional.of(ftg.getAsFloat()) : Optional.empty();
     }
 
     /**
@@ -177,8 +172,7 @@ public final class NBTUtils
      */
     public static Optional<Double> GetDouble(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof DoubleTag dtg) ? Optional.of(dtg.getAsDouble()) : Optional.empty();
+        return (tag.get(key) instanceof DoubleTag dtg) ? Optional.of(dtg.getAsDouble()) : Optional.empty();
     }
 
     /**
@@ -190,8 +184,7 @@ public final class NBTUtils
      */
     public static Optional<Boolean> GetBoolean(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof ByteTag btg) ? Optional.of(btg.getAsInt() != 0) : Optional.empty();
+        return (tag.get(key) instanceof ByteTag btg) ? Optional.of(btg.getAsInt() != 0) : Optional.empty();
     }
 
     /**
@@ -203,8 +196,7 @@ public final class NBTUtils
      */
     public static Optional<String> GetString(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof StringTag stg) ? Optional.of(stg.getAsString()) : Optional.empty();
+        return (tag.get(key) instanceof StringTag stg) ? Optional.of(stg.getAsString()) : Optional.empty();
     }
 
     /**
@@ -216,8 +208,7 @@ public final class NBTUtils
      */
     public static Optional<CompoundTag> GetCompound(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof CompoundTag ctg) ? Optional.of(ctg) : Optional.empty();
+        return (tag.get(key) instanceof CompoundTag ctg) ? Optional.of(ctg) : Optional.empty();
     }
 
     /**
@@ -229,8 +220,7 @@ public final class NBTUtils
      */
     public static Optional<int[]> GetIntArray(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof IntArrayTag itg) ? Optional.of(itg.getAsIntArray()) : Optional.empty();
+        return (tag.get(key) instanceof IntArrayTag itg) ? Optional.of(itg.getAsIntArray()) : Optional.empty();
     }
 
     /**
@@ -242,8 +232,7 @@ public final class NBTUtils
      */
     public static Optional<long[]> GetLongArray(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof LongArrayTag ltg) ? Optional.of(ltg.getAsLongArray()) : Optional.empty();
+        return (tag.get(key) instanceof LongArrayTag ltg) ? Optional.of(ltg.getAsLongArray()) : Optional.empty();
     }
 
     /**
@@ -255,8 +244,7 @@ public final class NBTUtils
      */
     public static Optional<byte[]> GetByteArray(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof ByteArrayTag btg) ? Optional.of(btg.getAsByteArray()) : Optional.empty();
+        return (tag.get(key) instanceof ByteArrayTag btg) ? Optional.of(btg.getAsByteArray()) : Optional.empty();
     }
 
     /**
@@ -268,8 +256,7 @@ public final class NBTUtils
      */
     public static Optional<ListTag> GetListTag(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        return (t instanceof ListTag ltg) ? Optional.of(ltg) : Optional.empty();
+        return (tag.get(key) instanceof ListTag ltg) ? Optional.of(ltg) : Optional.empty();
     }
 
     /**
@@ -282,8 +269,7 @@ public final class NBTUtils
      */
     public static Optional<UUID> GetUUID(CompoundTag tag, String key)
     {
-        Tag t = tag.get(key);
-        if (t instanceof LongArrayTag lat) {
+        if (tag.get(key) instanceof LongArrayTag lat) {
             if (lat.size() == 2) {
                 return Optional.of(
                         new UUID(

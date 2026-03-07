@@ -9,6 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComp
 
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 
+import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
 import net.minecraft.util.Mth;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -481,20 +482,6 @@ public final class Extensions
         }
     }
 
-    private record ThenExecuteMethod_1<TS, TM, TR>(Func2<TS, TM> first, Func2<TM, TR> second)
-        implements Func2<TS, TR>
-    {
-        @Override
-        public TR function(TS input) { return second.function(first.function(input)); }
-    }
-
-    private record ThenExecuteMethod_2(Action0 first, Action0 second)
-        implements Action0
-    {
-        @Override
-        public void action() { first.action(); second.action(); }
-    }
-
     /**
      * Chains a second function to a function of type {@link Func2} and it maps the result to {@link TR}, as such
      * a transformation happens such as that {@link TS} -&gt; {@link TM} -&gt; {@link TR}.
@@ -505,15 +492,11 @@ public final class Extensions
      * @param <TM> The type of the parameter that it's converted object from the {@code first} parameter is fed as an argument to the {@code second} parameter.
      * @param <TR> The type that is returned as a result of invoking the returned function.
      * @throws ArgumentNullException {@code first} and/or {@code second} is {@code null}.
+     * @deprecated This method forwards to {@link FunctionManipulations#ThenMap(Func2, Func2)} since 1.0.20. There are no plans to remove this method, but newer consumers should use the mentioned method instead.
      * @since 1.0.19
      */
-    public static <TS, TM, TR> Func2<TS, TR> ThenExecute(Func2<TS, TM> first, Func2<TM, TR> second)
-        throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(first, "first");
-        ArgumentNullException.ThrowIfNull(second, "second");
-        return new ThenExecuteMethod_1<>(first, second);
-    }
+    @Deprecated(since = "1.0.20")
+    public static <TS, TM, TR> Func2<TS, TR> ThenExecute(Func2<TS, TM> first, Func2<TM, TR> second) throws ArgumentNullException { return FunctionManipulations.ThenMap(first, second); }
 
     /**
      * Chains a second action to a function of type {@link Action0}.
@@ -521,15 +504,11 @@ public final class Extensions
      * @param second The second {@link Action0} to chain.
      * @return An {@link Action0} that first executes the function reference provided in {@code first}, then the second one provided in {@code second}.
      * @throws ArgumentNullException {@code first} and/or {@code second} is {@code null}.
+     * @deprecated This method forwards to {@link FunctionManipulations#ThenMap(Func2, Func2)} since 1.0.20. There are no plans to remove this method, but newer consumers should use the mentioned method instead.
      * @since 1.0.19
      */
-    public static Action0 ThenExecute(Action0 first, Action0 second)
-        throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(first, "first");
-        ArgumentNullException.ThrowIfNull(second, "second");
-        return new ThenExecuteMethod_2(first, second);
-    }
+    @Deprecated(since = "1.0.20")
+    public static Action0 ThenExecute(Action0 first, Action0 second) throws ArgumentNullException { return FunctionManipulations.ThenDo(first, second); }
 
     /**
      * Type-casts the specified object to the specified type.
@@ -538,10 +517,7 @@ public final class Extensions
      * @param <TR> The type to cast to.
      * @since 1.0.19
      */
-    public static <TR> TR TypeCast(Object o)
-    {
-        try { return (TR) o; } catch (ClassCastException e) { return null; }
-    }
+    public static <TR> TR TypeCast(Object o) { try { return (TR) o; } catch (ClassCastException e) { return null; } }
 
     /**
      * This method call is deprecated. Use the {@link #Lerp(double, double, double)} method instead.
@@ -549,14 +525,54 @@ public final class Extensions
     @Deprecated(forRemoval = true, since = "1.0.18")
     public static double NumberMap(double input , double inputbase , double outputbase) { return ((input / inputbase) * outputbase); }
 
+    /**
+     * Clamps a value to the range specified by the {@code minimum} and {@code maximum} parameters.
+     * @param value The value to clamp into [{@code minimum}..{@code maximum}].
+     * @param minimum The minimum inclusive bound of the range to clamp {@code value}.
+     * @param maximum The maximum inclusive bound of the range to clamp {@code value}.
+     * @return The value of the {@code value} parameter, or if less than the {@code minimum} value, the value of {@code minimum}.
+     * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
+     */
     public static double Clamp(double value , double minimum , double maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
+    /**
+     * Clamps a value to the range specified by the {@code minimum} and {@code maximum} parameters.
+     * @param value The value to clamp into [{@code minimum}..{@code maximum}].
+     * @param minimum The minimum inclusive bound of the range to clamp {@code value}.
+     * @param maximum The maximum inclusive bound of the range to clamp {@code value}.
+     * @return The value of the {@code value} parameter, or if less than the {@code minimum} value, the value of {@code minimum}.
+     * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
+     */
     public static float Clamp(float value , float minimum , float maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
+    /**
+     * Clamps a value to the range specified by the {@code minimum} and {@code maximum} parameters.
+     * @param value The value to clamp into [{@code minimum}..{@code maximum}].
+     * @param minimum The minimum inclusive bound of the range to clamp {@code value}.
+     * @param maximum The maximum inclusive bound of the range to clamp {@code value}.
+     * @return The value of the {@code value} parameter, or if less than the {@code minimum} value, the value of {@code minimum}.
+     * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
+     */
     public static int Clamp(int value , int minimum , int maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
+    /**
+     * Normalizes the specified value to the range [0..1].
+     * The {@code min} and {@code max} parameters specify the range of the input number.
+     * @param v The value to normalize.
+     * @param min The minimum inclusive bound of values that the {@code v} parameter can accept.
+     * @param max The maximum inclusive bound of values that the {@code v} parameter can accept.
+     * @return A value in the range [0..1].
+     */
     public static float ToNormalRange(float v, float min, float max) { return Math.abs(v - min) / Math.abs(min - max); }
 
+    /**
+     * Normalizes the specified value to the range [0..1].
+     * The {@code min} and {@code max} parameters specify the range of the input number.
+     * @param v The value to normalize.
+     * @param min The minimum inclusive bound of values that the {@code v} parameter can accept.
+     * @param max The maximum inclusive bound of values that the {@code v} parameter can accept.
+     * @return A value in the range [0..1].
+     */
     public static double ToNormalRange(double v, double min, double max) { return Math.abs(v - min) / Math.abs(min - max); }
 
     public static double MapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)

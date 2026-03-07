@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.forge;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
-import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
@@ -92,45 +91,34 @@ public final class ForgeModLoaderLayer
     // REGISTRY FINALIZATION BEGIN
     // The below 3 public methods are called in by the DispatchFinalizeRegistriesEventLoadingState class. See that class for more information.
 
-    public static int RegistryFinalization_GetEventCount() { return 7; } // 7 stages in total
+    public static int RegistryFinalization_GetEventCount() { return 10; } // 10 stages in total
 
-    private record EventManagerFire_1<T>(IForgeRegistry<T> registry, Func2<IModLoaderRegistry<T> , RegistryFinalizedEvent<T>> event_getter, Runnable increment_meter_handler)
-            implements Action1<Void>
-    {
-        @Override
-        public void action(Void obj) {
-            BaseModsLib.GetEventsManager().FireEvent(event_getter.function(new ForgeRegistryWrappedInRegistry<>(registry)));
-            increment_meter_handler.run();
-        }
-    }
-
-    private record EventManagerFire_2<T>(IForgeRegistry<T> registry, Func2<IModLoaderRegistry<T>, RegistryFinalizedEvent<T>> event_getter, Runnable increment_meter_handler)
+    private record EventManagerFire<T>(IForgeRegistry<T> registry, Func2<IModLoaderRegistry<T>, RegistryFinalizedEvent<T>> event_getter, Runnable increment_meter_handler)
             implements Func2<Void, Void>
     {
         @Override
         public Void function(Void input) {
+            BaseModsLib.LOGGER.info("Dispatching registry finalized event for {}", registry.getRegistryName());
             BaseModsLib.GetEventsManager().FireEvent(event_getter.function(new ForgeRegistryWrappedInRegistry<>(registry)));
             increment_meter_handler.run();
+            BaseModsLib.LOGGER.info("Finished dispatching registry finalized event for {}", registry.getRegistryName());
             return input;
         }
     }
 
-    public static CompletableFuture<Void> RegistryFinalization_GetSynchronizedTasks(CompletableFuture<Void> root, Runnable increment_meter_handler)
+    public static CompletableFuture<Void> RegistryFinalization_GetTasks(CompletableFuture<Void> root, Runnable increment_meter_handler)
     {
-        // The below tasks must be executed one after the other
-        root = root.thenAcceptAsync(new EventManagerFire_1<>(ForgeRegistries.BLOCKS, BlockRegistryFinalizedEvent::new , increment_meter_handler));
-        root = root.thenAcceptAsync(new EventManagerFire_1<>(ForgeRegistries.ITEMS, ItemRegistryFinalizedEvent::new, increment_meter_handler));
-        root = root.thenAcceptAsync(new EventManagerFire_1<>(ForgeRegistries.BLOCK_ENTITY_TYPES, BlockEntityTypeRegistryFinalizedEvent::new, increment_meter_handler));
-        root = root.thenAcceptAsync(new EventManagerFire_1<>(ForgeRegistries.FLUIDS, FluidRegistryFinalizedEvent::new, increment_meter_handler));
-        return root;
-    }
-
-    public static CompletableFuture<Void> RegistryFinalization_GetParallelTasks(CompletableFuture<Void> root, Runnable increment_meter_handler)
-    {
-        // The below tasks can be dispatched at the same time.
-        root = root.thenApplyAsync(new EventManagerFire_2<>(ForgeRegistries.ENTITY_TYPES, EntityTypeRegistryFinalizedEvent::new, increment_meter_handler));
-        root = root.thenApplyAsync(new EventManagerFire_2<>(ForgeRegistries.MENU_TYPES, MenuTypeRegistryFinalizedEvent::new, increment_meter_handler));
-        root = root.thenApplyAsync(new EventManagerFire_2<>(ForgeRegistries.SOUND_EVENTS, SoundEventRegistryFinalizedEvent::new, increment_meter_handler));
+        // The below tasks are the registry finalized events.
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.SOUND_EVENTS, SoundEventRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.FLUIDS, FluidRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.BLOCKS, BlockRegistryFinalizedEvent::new , increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.ENTITY_TYPES, EntityTypeRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.ITEMS, ItemRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.POTIONS, PotionRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.PARTICLE_TYPES, ParticleTypeRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.BLOCK_ENTITY_TYPES, BlockEntityTypeRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.MENU_TYPES, MenuTypeRegistryFinalizedEvent::new, increment_meter_handler));
+        root = root.thenApplyAsync(new EventManagerFire<>(ForgeRegistries.ATTRIBUTES, EntityAttributeRegistryFinalizedEvent::new, increment_meter_handler));
         return root;
     }
 
@@ -209,11 +197,6 @@ public final class ForgeModLoaderLayer
     }
 
     @Override
-    public List<String> GetLoadedMods() {
-        return new DirectlyMappedList<>(forge_mod_info, IModInfo::getModId);
-    }
-
-    @Override
     public ModdingEnvironment GetEnvironment()
     {
         return switch (FMLEnvironment.dist) {
@@ -229,14 +212,17 @@ public final class ForgeModLoaderLayer
     public Version GetMinecraftVersion() { return minecraft_version; }
 
     @Override
+    public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
+
+    @Override
     public Version GetModLoaderVersion() { return forge_modloader_version; }
 
     @Override
     public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
 
     @Override
-    public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
+    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
 
     @Override
-    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
+    public List<String> GetLoadedMods() { return new DirectlyMappedList<>(forge_mod_info, IModInfo::getModId); }
 }

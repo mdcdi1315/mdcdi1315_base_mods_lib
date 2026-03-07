@@ -302,7 +302,7 @@ public final class NetworkHelpers
         int x = Read7BitEncodedIntUnsafe(buffer);
         int y = Read7BitEncodedIntUnsafe(buffer);
         int z = Read7BitEncodedIntUnsafe(buffer);
-        return new BlockPos(x, y, z);
+        return (x == 0 && y == 0 && z == 0) ? BlockPos.ZERO : new BlockPos(x, y, z);
     }
 
     /**
@@ -334,7 +334,7 @@ public final class NetworkHelpers
         int x = Read7BitEncodedIntUnsafe(buffer);
         int y = Read7BitEncodedIntUnsafe(buffer);
         int z = Read7BitEncodedIntUnsafe(buffer);
-        return new Vec3i(x, y, z);
+        return (x == 0 && y == 0 && z == 0) ? Vec3i.ZERO : new Vec3i(x, y, z);
     }
 
     /**
@@ -429,7 +429,7 @@ public final class NetworkHelpers
         double x = buffer.readDoubleLE();
         double y = buffer.readDoubleLE();
         double z = buffer.readDoubleLE();
-        return new Vec3(x, y, z);
+        return (x == 0.0d && y == 0.0d && z == 0.0d) ? Vec3.ZERO : new Vec3(x, y, z);
     }
 
     /**
@@ -444,5 +444,67 @@ public final class NetworkHelpers
     {
         ArgumentNullException.ThrowIfNull(buffer, "buffer");
         return ReadVec3Unsafe(buffer);
+    }
+
+    /**
+     * Writes a {@link Vec2} to the specified byte buffer.
+     * @param buffer The byte buffer to write the {@link Vec2} to.
+     * @param vec2 The two-component vector to write to the specified byte buffer.
+     * @apiNote This is the unsafe method variant of {@link #WriteVec2(ByteBuf, Vec2)} method.
+     * @since 1.0.20
+     */
+    public static void WriteVec2Unsafe(ByteBuf buffer, Vec2 vec2)
+    {
+        buffer.writeFloatLE(vec2.x);
+        buffer.writeFloatLE(vec2.y);
+    }
+
+    /**
+     * Writes a {@link Vec2} to the specified byte buffer.
+     * @param buffer The byte buffer to write the {@link Vec2} to.
+     * @param vec2 The two-component vector to write to the specified byte buffer.
+     * @throws ArgumentNullException {@code buffer} and/or {@code vec2} are {@code null}.
+     * @since 1.0.20
+     */
+    public static void WriteVec2(ByteBuf buffer, Vec2 vec2)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(buffer, "buffer");
+        ArgumentNullException.ThrowIfNull(vec2, "vec2");
+        WriteVec2Unsafe(buffer, vec2);
+    }
+
+    /**
+     * Reads a {@link Vec2} class instance from the specified byte buffer.
+     * @param buffer The byte buffer to read the {@link Vec2} from.
+     * @return The read {@link Vec2} instance.
+     * @apiNote This is the unsafe method variant of {@link #ReadVec2(ByteBuf)} method.
+     * @since 1.0.20
+     */
+    public static Vec2 ReadVec2Unsafe(ByteBuf buffer)
+    {
+        float x = buffer.readFloatLE();
+        float y = buffer.readFloatLE();
+        if (x == 0.0f && y == 0.0f) {
+            return Vec2.ZERO;
+        } else if (x == 1.0f && y == 1.0f) {
+            return Vec2.ONE;
+        } else {
+            return new Vec2(x, y);
+        }
+    }
+
+    /**
+     * Reads a {@link Vec2} class instance from the specified byte buffer.
+     * @param buffer The byte buffer to read the {@link Vec2} from.
+     * @return The read {@link Vec2} instance.
+     * @throws ArgumentNullException {@code buffer} is {@code null}.
+     * @since 1.0.20
+     */
+    public static Vec2 ReadVec2(ByteBuf buffer)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(buffer, "buffer");
+        return ReadVec2Unsafe(buffer);
     }
 }

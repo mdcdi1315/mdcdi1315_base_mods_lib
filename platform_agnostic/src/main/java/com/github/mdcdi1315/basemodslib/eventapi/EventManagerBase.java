@@ -51,9 +51,12 @@ abstract class EventManagerBase
         AddEventFast(ItemRegistryFinalizedEvent.class);
         AddEventFast(BlockRegistryFinalizedEvent.class);
         AddEventFast(FluidRegistryFinalizedEvent.class);
+        AddEventFast(PotionRegistryFinalizedEvent.class);
         AddEventFast(MenuTypeRegistryFinalizedEvent.class);
         AddEventFast(EntityTypeRegistryFinalizedEvent.class);
         AddEventFast(SoundEventRegistryFinalizedEvent.class);
+        AddEventFast(ParticleTypeRegistryFinalizedEvent.class);
+        AddEventFast(EntityAttributeRegistryFinalizedEvent.class);
         AddEventFast(BlockEntityTypeRegistryFinalizedEvent.class);
         // Gameplay events.
         // Note that all the below events will be removed once the mod loading complete event is dispatched and mods are using them.

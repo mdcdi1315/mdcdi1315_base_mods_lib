@@ -1,8 +1,10 @@
 package com.github.mdcdi1315.basemodslib.utils;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 
 /**
  * Like the {@link DirectlyMappedList} class, this provides an {@link Iterator} implementation that directly maps all its elements to the {@link TR} type.
@@ -42,4 +44,11 @@ public class DirectlyMappedIterator<TA , TR>
     // This is supported if the underlying iterator supports it.
     @Override
     public void remove() { underlying.remove(); }
+
+    @Override
+    public void forEachRemaining(Consumer<? super TR> action)
+    {
+        ArgumentNullException.ThrowIfNull(action, "action");
+        while (hasNext()) { action.accept(next()); }
+    }
 }
