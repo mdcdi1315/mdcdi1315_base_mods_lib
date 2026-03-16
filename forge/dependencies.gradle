@@ -1,7 +1,138 @@
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.artifacts.capability.CapabilitySelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
+
+// we need to create a new class implementing the ProjectDependencyInternal interface
+// so that we can override the version and specify the weird Maven version that MinecraftForge JarInJar requires.
+class JJDependencyImpl
+    implements ProjectDependencyInternal
+{
+    private String g_name;
+    private String g_group;
+    private String g_version;
+    private ProjectDependency dep;
+
+    JJDependencyImpl(ProjectDependency d) {
+        dep = d;
+        g_name = g_group = g_version = null;
+    }
+
+    @Override
+    String getGroup() { return g_group == null ? dep.group : g_group }
+
+    @Override
+    String getName() { return g_name == null ? dep.name : g_name; }
+
+    @Override
+    String getVersion() { return g_version == null ? dep.version : g_version; }
+
+    void setName(String n) { g_name = n; }
+
+    void setGroup(String g) { g_group = g; }
+
+    void setVersion(String ver) { g_version = ver; }
+
+    @Override
+    boolean contentEquals(Dependency dependency) { return dep.contentEquals(dependency); }
+
+    @Override
+    String getPath() { return dep.path; }
+
+    @Override
+    Project getDependencyProject() { return dep.dependencyProject; }
+
+    @Override
+    ProjectDependency copy() {
+        JJDependencyImpl i = new JJDependencyImpl(dep);
+        i.g_version = g_version;
+        i.g_group = g_group;
+        i.g_name = g_name;
+        return i;
+    }
+
+    @Override
+    TaskDependency getBuildDependencies() { return dep.buildDependencies }
+
+    @Override
+    Set<File> resolve() { return dep.resolve() }
+
+    @Override
+    Set<File> resolve(boolean transitive) { return dep.resolve(transitive) }
+
+    @Override
+    AttributeContainer getAttributes() { return dep.getAttributes() }
+
+    @Override
+    ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction) { return dep.capabilities(configureAction); }
+
+    @Override
+    ModuleDependency attributes(Action<? super AttributeContainer> configureAction) { return dep.attributes(configureAction); }
+
+    @Override
+    List<Capability> getRequestedCapabilities() { return dep.getRequestedCapabilities() }
+
+    @Override
+    Set<CapabilitySelector> getCapabilitySelectors() { return dep.getCapabilitySelectors() }
+
+    @Override
+    void endorseStrictVersions() { dep.endorseStrictVersions() }
+
+    @Override
+    void doNotEndorseStrictVersions() { dep.doNotEndorseStrictVersions() }
+
+    @Override
+    boolean isEndorsingStrictVersions() { return dep.isEndorsingStrictVersions() }
+
+    @Override
+    String getReason() { return dep.reason }
+
+    @Override
+    void because(String reason) { dep.reason = reason; }
+
+    @Override
+    ModuleDependency exclude(Map<String, String> excludeProperties) { return dep.exclude(excludeProperties) }
+
+    @Override
+    Set<ExcludeRule> getExcludeRules() { return dep.getExcludeRules() }
+
+    @Override
+    Set<DependencyArtifact> getArtifacts() { return dep.getArtifacts() }
+
+    @Override
+    ModuleDependency addArtifact(DependencyArtifact artifact) { return dep.addArtifact(artifact); }
+
+    @Override
+    DependencyArtifact artifact(@DelegatesTo(value = DependencyArtifact.class, strategy = 1) Closure configureClosure) { return dep.artifact(configureClosure); }
+
+    @Override
+    DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction) { return dep.artifact(configureAction); }
+
+    @Override
+    boolean isTransitive() { return dep.isTransitive() }
+
+    ModuleDependency setTransitive(boolean t) { return dep.setTransitive(t); }
+
+    @Override
+    String getTargetConfiguration() { return dep.targetConfiguration }
+
+    @Override
+    void setTargetConfiguration(String name) { dep.setTargetConfiguration(name) }
+
+    @Override
+    org.gradle.util.Path getIdentityPath() { return ((ProjectDependencyInternal)dep).getIdentityPath(); }
+
+    @Override
+    ProjectIdentity getTargetProjectIdentity() { return ((ProjectDependencyInternal)dep).getTargetProjectIdentity(); }
+}
+
 dependencies {
-    jarJar(project(":forge_bml_lang_provider")) { ProjectDependency g ->
-        jarJar.pin(g , "[1.0.0,)") // Keep in sync with the value in that project
+    jarJar(new JJDependencyImpl(new DefaultProjectDependency(project(":forge_bml_lang_provider"), true))) { JJDependencyImpl g ->
+        name = "forge_bml_lang_loader"
+        group = properties.group
+        version = "[1.0.0,)"
         transitive = false
+        jarJar.pin(g , project(":forge_bml_lang_provider").version)
     }
 
     api("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")

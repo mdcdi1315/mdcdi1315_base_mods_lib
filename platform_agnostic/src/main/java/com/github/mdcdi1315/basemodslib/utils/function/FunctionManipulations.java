@@ -103,8 +103,8 @@ public final class FunctionManipulations
     @NotNull
     public static <T> Predicate<T> NullableEither(@AllowNull Predicate<T> predicate_1, @AllowNull Predicate<T> predicate_2)
     {
-        boolean p1null = predicate_1 == null, p2null = predicate_2 == null;
-        if (p1null) {
+        boolean p2null = predicate_2 == null;
+        if (predicate_1 == null) {
             return p2null ? new AlwaysFalsePredicate<>() : predicate_2;
         } else if (p2null) {
             // We already asserted that predicate_1 is not null above.
@@ -143,7 +143,49 @@ public final class FunctionManipulations
     {
         ArgumentNullException.ThrowIfNull(predicate_1, "predicate_1");
         ArgumentNullException.ThrowIfNull(predicate_2, "predicate_2");
-        return new XorPredicateFromTwo<>(predicate_1, predicate_2);
+        return ConstructXorPredicate(predicate_1, predicate_2);
+    }
+
+    /**
+     * Returns an aggregated predicate instance that does perform an XOR operation on the two provided predicates.
+     * This method variant specially handles the input arguments when either of them are {@code null}. <br />
+     * If at least one of the input parameters is {@code null}, the {@code null} parameter is treated as &quot;implicitly {@code false}&quot;. <br />
+     * The below 4 bullets describe how this method treats input parameters:
+     * <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is {@code null} as well, an always-false predicate is returned.</li>
+     * <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is not {@code null}, the value of the {@code predicate_2} parameter is returned.</li>
+     * <li>If {@code predicate_1} is not {@code null}, and {@code predicate_2} is {@code null}, the value of the {@code predicate_1} parameter is returned.</li>
+     * <li>Otherwise, the aggregated predicate is created.</li>
+     * @param predicate_1 The first predicate.
+     * @param predicate_2 The second predicate.
+     * @return A new {@link Predicate} instance providing the either result of {@code predicate_1} and {@code predicate_2} arguments.
+     * @param <T> The type of the elements that are to be tested against.
+     * @throws ArgumentNullException {@code predicate_1} and/or {@code predicate_2} are {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static <T> Predicate<T> NullableXor(@AllowNull Predicate<T> predicate_1, @AllowNull Predicate<T> predicate_2)
+    {
+        boolean p1null = predicate_1 == null, p2null = predicate_2 == null;
+        if (p1null) {
+            return (p2null) ? new AlwaysFalsePredicate<>() : predicate_2;
+        } else if (p2null) {
+            return predicate_1;
+        } else {
+            return ConstructXorPredicate(predicate_1, predicate_2);
+        }
+    }
+
+    @NotNull
+    private static <T> Predicate<T> ConstructXorPredicate(
+            @DisallowNull Predicate<T> p1,
+            @DisallowNull Predicate<T> p2
+    ) {
+        if ((p1 instanceof AlwaysFalsePredicate<T> && p2 instanceof AlwaysFalsePredicate<T>) ||
+                (p1 instanceof AlwaysTruePredicate<T> && p2 instanceof AlwaysTruePredicate<T>)) {
+            return new AlwaysFalsePredicate<>();
+        } else {
+            return new OrPredicateFromTwo<>(p1, p2);
+        }
     }
 
     /**
@@ -184,6 +226,16 @@ public final class FunctionManipulations
     public static <T> Predicate<T> AlwaysTrue() { return new AlwaysTruePredicate<>(); }
 
     /**
+     * Provides a way for external API's to optimize their code, if the passed in predicate is a predicate object returned through the {@link #AlwaysTrue()} method. <br />
+     * Note: The method will additionally return {@code false} if {@code predicate} is {@code null}.
+     * @param predicate The predicate to test.
+     * @return A value whether this predicate is a predicate object returned through the {@link #AlwaysTrue()} method.
+     * @param <T> The type of input that the predicate accepts.
+     * @since 1.0.21
+     */
+    public static <T> boolean IsAlwaysTrue(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof AlwaysTruePredicate<T>; }
+
+    /**
      * Returns a predicate instance that does always return {@code false}, regardlessly of the value of the predicate's input parameter.
      * @return A new {@link Predicate} that does always return {@code false}.
      * @param <T> Type of the input that will be given to the predicate.
@@ -197,6 +249,16 @@ public final class FunctionManipulations
     public static <T> Predicate<T> AlwaysFalse() { return new AlwaysFalsePredicate<>(); }
 
     /**
+     * Provides a way for external API's to optimize their code, if the passed in predicate is a predicate object returned through the {@link #AlwaysFalse()} method. <br />
+     * Note: The method will additionally return {@code false} if {@code predicate} is {@code null}.
+     * @param predicate The predicate to test.
+     * @return A value whether this predicate is a predicate object returned through the {@link #AlwaysFalse()} method.
+     * @param <T> The type of input that the predicate accepts.
+     * @since 1.0.21
+     */
+    public static <T> boolean IsAlwaysFalse(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof AlwaysFalsePredicate<T>; }
+
+    /**
      * Provides a {@link Func2} that does always return the input argument.
      * @return A {@link Func2} instance that does always return whatever value was given in it's input.
      * @param <T> The type of the element to be fed as input and to be returned by the function.
@@ -204,6 +266,7 @@ public final class FunctionManipulations
      * <li>The returned function does always return the value of the input parameter when the function returned is invoked. This, however, means that {@code null} is also returned if the input is {@code null}.</li>
      * <li>Calling {@link java.util.function.Function#compose(Function)} will always return the value of the input parameter.</li>
      * <li>Calling {@link java.util.function.Function#andThen(Function)} will always return the value of the input parameter.</li>
+     * <li>Starting from 1.0.21, the returned function does also implement the {@link java.util.function.UnaryOperator} functional interface.</li>
      */
     @NotNull
     public static <T> Func2<T, T> Identity() { return new IdentityFunction<>(); }
@@ -451,4 +514,109 @@ public final class FunctionManipulations
         ArgumentNullException.ThrowIfNull(second, "second");
         return new MapTwoFunctions_Func3Func2<>(first, second);
     }
+
+    /**
+     * Reinterprets the specified {@link java.util.function.Consumer} as a {@link Action1} functional interface.
+     * @param consumer The consumer to reinterpret.
+     * @return The reinterpreted consumer.
+     * @param <T> The type of the input argument.
+     * @throws ArgumentNullException {@code consumer} is {@code null}.
+     * @since 1.0.21
+     * @apiNote This API is provided for upcasting Consumer instances to Action1 instances. <br />
+     * This is useful if an API requires an object of type {@link Action1} but you have an object of type {@link java.util.function.Consumer}.
+     */
+    @NotNull
+    public static <T> Action1<T> AsAction1(java.util.function.Consumer<T> consumer)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(consumer, "consumer");
+        return (consumer instanceof Action1<T> a) ? a : new TranslateConsumerToAction1<>(consumer);
+    }
+
+    /**
+     * Reinterprets the specified {@link java.util.function.BiConsumer} as a {@link Action2} functional interface.
+     * @param consumer The consumer to reinterpret.
+     * @return The reinterpreted consumer.
+     * @param <T1> The type of the first input argument.
+     * @param <T2> The type of the second input argument.
+     * @throws ArgumentNullException {@code consumer} is {@code null}.
+     * @since 1.0.21
+     * @apiNote This API is provided for upcasting BiConsumer instances to Action2 instances. <br />
+     * This is useful if an API requires an object of type {@link Action2} but you have an object of type {@link java.util.function.BiConsumer}.
+     */
+    @NotNull
+    public static <T1, T2> Action2<T1, T2> AsAction2(java.util.function.BiConsumer<T1, T2> consumer)
+    {
+        ArgumentNullException.ThrowIfNull(consumer, "consumer");
+        return (consumer instanceof Action2<T1,T2> a) ? a : new TranslateBiConsumerToAction2<>(consumer);
+    }
+
+    /**
+     * Reinterprets the specified {@link Runnable} as a {@link Action0} functional interface.
+     * @param runnable The runnable to reinterpret.
+     * @return The reinterpreted runnable.
+     * @throws ArgumentNullException {@code runnable} is {@code null}.
+     * @since 1.0.21
+     * @apiNote This API is provided for upcasting Runnable instances to Action0 instances. <br />
+     * This is useful if an API requires an object of type {@link Action0} but you have an object of type {@link Runnable}.
+     */
+    @NotNull
+    public static Action0 AsAction0(Runnable runnable)
+    {
+        ArgumentNullException.ThrowIfNull(runnable, "runnable");
+        return (runnable instanceof Action0 a) ? a : new TranslateRunnableToAction0(runnable);
+    }
+
+    /**
+     * Reinterprets the specified {@link java.util.function.Function} as a {@link Func2} functional interface.
+     * @param function The function to reinterpret.
+     * @return The reinterpreted function.
+     * @throws ArgumentNullException {@code function} is {@code null}.
+     * @since 1.0.21
+     * @apiNote This API is provided for upcasting Function instances to Func2 instances. <br />
+     * This is useful if an API requires an object of type {@link Func2} but you have an object of type {@link java.util.function.Function}.
+     */
+    @NotNull
+    public static <T, TR> Func2<T, TR> AsFunc2(java.util.function.Function<T, TR> function)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(function, "function");
+        return new TranslateFunctionToFunc2<>(function);
+    }
+
+    /**
+     * Reinterprets the specified {@link java.util.function.Supplier} as a {@link Func1} functional interface.
+     * @param supplier The supplier to reinterpret.
+     * @return The reinterpreted supplier.
+     * @throws ArgumentNullException {@code supplier} is {@code null}.
+     * @since 1.0.21
+     * @apiNote This API is provided for upcasting Supplier instances to Func1 instances. <br />
+     * This is useful if an API requires an object of type {@link Func1} but you have an object of type {@link java.util.function.Supplier}.
+     */
+    @NotNull
+    public static <T> Func1<T> AsFunc1(java.util.function.Supplier<T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+        return new TranslateSupplierToFunc1<>(supplier);
+    }
+
+    /**
+     * Reinterprets the specified {@link java.util.function.BiFunction} as a {@link Func3} functional interface.
+     * @param function The function to reinterpret.
+     * @return The reinterpreted function.
+     * @throws ArgumentNullException {@code function} is {@code null}.
+     * @since 1.0.21
+     * @apiNote This API is provided for upcasting BiFunction instances to Func1 instances. <br />
+     * This is useful if an API requires an object of type {@link Func3} but you have an object of type {@link java.util.function.BiFunction}.
+     */
+    @NotNull
+    public static <T1, T2, TR> Func3<T1, T2, TR> AsFunc3(java.util.function.BiFunction<T1, T2, TR> function)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(function, "function");
+        return new TranslateBiFunctionToFunc3<>(function);
+    }
+
+
 }

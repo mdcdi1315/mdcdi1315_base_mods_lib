@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.world;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 
@@ -11,6 +12,7 @@ import net.minecraft.nbt.*;
 
 import java.io.*;
 import java.util.UUID;
+import java.nio.file.*;
 import java.util.Optional;
 
 /**
@@ -22,6 +24,7 @@ public final class NBTUtils
 {
     private static final int GZIP_HEADER = 35615;
 
+    // Do not let anyone be able to instantiate this class.
     private NBTUtils() {}
 
     private static boolean IsGZip(PushbackInputStream inputStream)
@@ -50,6 +53,7 @@ public final class NBTUtils
      * @throws IOException An I/O exception was occurred.
      * @throws ArgumentNullException {@code file} is {@code null}.
      */
+    @NotNull
     public static CompoundTag LoadNBTFile(File file)
             throws IOException, ArgumentNullException
     {
@@ -59,6 +63,35 @@ public final class NBTUtils
                 PushbackInputStream pushbackinputstream = new PushbackInputStream(fileinputstream, 2)
         ) {
             CompoundTag compoundtag;
+            if (IsGZip(pushbackinputstream)) {
+                compoundtag = NbtIo.readCompressed(pushbackinputstream, NbtAccounter.unlimitedHeap());
+            } else {
+                try (DataInputStream datainputstream = new DataInputStream(pushbackinputstream)) {
+                    compoundtag = NbtIo.read(datainputstream);
+                }
+            }
+            return compoundtag;
+        }
+    }
+
+    /**
+     * Loads the specified NBT file.
+     * @param path The {@link Path} to load as an NBT file.
+     * @return The loaded NBT file, as an instance of the {@link CompoundTag} class.
+     * @throws IOException An I/O exception was occurred.
+     * @throws ArgumentNullException {@code file} is {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static CompoundTag LoadNBTFile(Path path)
+            throws IOException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(path, "path");
+        CompoundTag compoundtag;
+        try (
+                InputStream is = Files.newInputStream(path, StandardOpenOption.READ);
+                PushbackInputStream pushbackinputstream = new PushbackInputStream(is, 2)
+        ) {
             if (IsGZip(pushbackinputstream)) {
                 compoundtag = NbtIo.readCompressed(pushbackinputstream, NbtAccounter.unlimitedHeap());
             } else {
@@ -86,6 +119,22 @@ public final class NBTUtils
     }
 
     /**
+     * Saves the specified NBT data to a new .NBT file, compressed with GZip as well.
+     * @param path The {@link Path} to save the data to.
+     * @param tag The compound tag representing the data to save.
+     * @throws IOException An I/O exception was occurred.
+     * @throws ArgumentNullException {@code file} and/or {@code tag} are {@code null}.
+     * @since 1.0.21
+     */
+    public static void SaveNBTFileAsGZip(Path path, CompoundTag tag)
+            throws IOException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(tag, "tag");
+        ArgumentNullException.ThrowIfNull(path, "path");
+        try (OutputStream os = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) { NbtIo.writeCompressed(tag, os); }
+    }
+
+    /**
      * Saves the specified NBT data to a new .NBT file.
      * @param file The {@link File} to save the data to.
      * @param tag The compound tag representing the data to save.
@@ -100,6 +149,24 @@ public final class NBTUtils
         try (
                 FileOutputStream fos = new FileOutputStream(file);
                 DataOutputStream dos = new DataOutputStream(fos)
+        ) { NbtIo.write(tag, dos); }
+    }
+
+    /**
+     * Saves the specified NBT data to a new .NBT file.
+     * @param path The {@link Path} to save the data to.
+     * @param tag The compound tag representing the data to save.
+     * @throws IOException An I/O exception was occurred.
+     * @throws ArgumentNullException {@code file} and/or {@code tag} are {@code null}.
+     */
+    public static void SaveNBTFile(Path path, CompoundTag tag)
+            throws IOException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(tag, "tag");
+        ArgumentNullException.ThrowIfNull(path, "path");
+        try (
+                OutputStream os = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                DataOutputStream dos = new DataOutputStream(os)
         ) { NbtIo.write(tag, dos); }
     }
 

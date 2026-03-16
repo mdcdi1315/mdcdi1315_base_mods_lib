@@ -19,7 +19,6 @@ public class MinecraftClientMixin
     @Inject(method = "destroy", at = @At("HEAD"))
     private void OnDestroy(CallbackInfo ci) {
         BaseModsLib.GetEventsManager().FireEvent(new ClientStoppingEvent((Minecraft) ((Object)this)));
-        BaseModsLib.LOGGER.info("Stopping mdcdi1315's Base Mods Library.");
         BaseModsLib.DestroySelf();
         BaseModsLibClient.DestroySelf();
     }

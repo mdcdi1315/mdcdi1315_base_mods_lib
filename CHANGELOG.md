@@ -1,18 +1,17 @@
-### Now releasing 1.0.20:
+### Now releasing 1.0.21:
 
--> Added a new 'function' package in the 'utils' package. It provides helper methods for transforming and using functional interfaces.
+-> Further expanded the 'function' package.
 
--> Added the `DirectlyMappedSet` and the `DirectlyMappedSpliterator` classes.
+-> Fixed the BML initialization and shutdown code to predict mod loading failure cases while Mixins from the library are loaded.
 
--> NBT Utilities: Optimized the lookup by directly checking for `instanceof` rather than allocating the tag into a new variable first.
+-> Introducing the Fast Binary Format, a NBT-like format that intends to be smaller than NBT and execute faster than it.
 
--> `DefaultConfigurationScreenFactory`: Fixed the issue where the Fabric distribution of the library 
-failed to instantiate the Cloth Config API screen due to the naming of the mod in Fabric environments.
+-> Improved performance and reliability on several codecs
 
--> Added networking helpers around Minecraft's `Vec2` type.
+-> NBT utilities now include convenience methods for interacting with `java.nio.file.Path` objects instead.
 
--> (Config) `ListElementRegistry`: Fixed an issue with the List Element Registry not able to recognize `ResourceLocation` instances.
+-> Added some more convenience factory methods for the StringSupplier class.
 
--> Event API: Added new registry finalized events, and reordered all the registry finalized 
-events so that they are dispatched in the exact same way as they are created at the beginning.
-Note, only Forge keeps a custom pattern due to how it conceives the concept of registries and the mods.
+-> Improved the `ToNormalRange` mathematical method overloads and added missing mathematical methods such as cube root computations.
+
+-> Added some commands that provide more information about the BML and the environment is loaded into.

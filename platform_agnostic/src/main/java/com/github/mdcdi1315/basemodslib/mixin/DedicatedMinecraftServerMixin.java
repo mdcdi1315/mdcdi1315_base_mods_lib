@@ -13,8 +13,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class DedicatedMinecraftServerMixin
 {
     @Inject(at = @At("HEAD") , method = "onServerExit")
-    private void OnServerExiting(CallbackInfo ci) {
-        BaseModsLib.LOGGER.info("Stopping mdcdi1315's Base Mods Library.");
-        BaseModsLib.DestroySelf();
-    }
+    private void OnServerExiting(CallbackInfo ci) { BaseModsLib.DestroySelf(); }
 }

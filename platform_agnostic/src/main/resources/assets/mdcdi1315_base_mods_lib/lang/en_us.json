@@ -33,5 +33,15 @@
 	"mdcdi1315_base_mods_lib.devcmds.describe_held_item.cannot_encode_stack": "Cannot encode the specified item stack. See server error log for more information.",
 
 	"mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.list_encoding_failed": "Cannot encode the biome temperatures list to JSON! See server error log for more information.",
-	"mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.not_multi_noise_source": "This command can be only used for multi-noise biome sources. The specified dimension is not defined using a multi-noise biome source."
+	"mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.not_multi_noise_source": "This command can be only used for multi-noise biome sources. The specified dimension is not defined using a multi-noise biome source.",
+
+	"mdcdi1315_base_mods_lib.devcmds.get_loaded_mods.mods_banner": "Displaying BML Mods: ",
+	"mdcdi1315_base_mods_lib.devcmds.get_loaded_mods.mod_info_msg": "Mod ID: %s, instance hash code: %d",
+
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.header": "Displaying BML information: ",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.mc_version": "Minecraft Version: %s",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.mod_loader": "Mod Loader: Brand: %s, Version: %s",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.loaded_instances": "Loaded BML mod instances: %d",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.is_dev_env_no": "Is development environment: No",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.is_dev_env_yes": "Is development environment: Yes"
 }

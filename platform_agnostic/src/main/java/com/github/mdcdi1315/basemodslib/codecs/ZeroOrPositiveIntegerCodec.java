@@ -1,8 +1,7 @@
 package com.github.mdcdi1315.basemodslib.codecs;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 
 /**
  * Provides a primitive codec that validates whether the read integer value is zero or a positive value. <br />
@@ -14,14 +13,15 @@ public final class ZeroOrPositiveIntegerCodec
     extends PrimitiveCodecWithValidation<Integer>
 {
     @Override
-    protected Integer Mapper(Number number) {
-        return number.intValue();
-    }
+    protected Integer Mapper(Number number) { return number.intValue(); }
+
+    @Override
+    protected <T> T Write(DynamicOps<T> ops, Integer value) { return ops.createInt(value); }
 
     @Override
     protected DataResult<Integer> Validate(Integer integer) {
         return (integer < 0) ?
-            DataResult.error(StringSupplier.FromFormatted("Integer not positive or zero: %d" , integer), integer) :
+            CodecUtils.CreateJavaFormattedErrorDataResult("Integer not positive or zero: %d" , integer) :
             DataResult.success(integer);
     }
 }

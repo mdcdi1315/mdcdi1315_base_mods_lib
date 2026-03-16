@@ -194,6 +194,13 @@ public final class BaseModsLib
     public static IEnumerable<IServerModInstance> GetModInstances() { return mod_instances; }
 
     /**
+     * Gets the number of mod instances that should be returned through the {@link #GetModInstances()} method.
+     * @return The number of mod instances contained in the return value of {@link #GetModInstances()} method.
+     * @since 1.0.21
+     */
+    public static int GetModInstancesCount() { return mod_instances.getCount(); }
+
+    /**
      * Gets the associated {@link IServerModInstance} for the specified mod with the specified ID. <br />
      * This is provided because a mod can provide multiple sub-mods that need to be interconnected, or
      * for accessing API for an external mod that is provided through it's {@link IServerModInstance}. <br />
@@ -249,7 +256,7 @@ public final class BaseModsLib
      * @return The modding environment that the library is running into.
      */
     @NotNull
-    public static ModdingEnvironment GetEnvironment() { return layer.GetEnvironment(); }
+    public static ModdingEnvironment GetEnvironment() { return layer == null ? ModdingEnvironment.UNKNOWN : layer.GetEnvironment(); }
 
     /**
      * Gets the branding of the underlying mod loader where the library is initialized to. <br />
@@ -329,25 +336,30 @@ public final class BaseModsLib
      * Called by Minecraft when it shuts down, do not call this by your code!!
      */
     @ApiStatus.Internal
-    public static void DestroySelf() {
-        IServerModInstance mi;
-        IEnumerator<IServerModInstance> i = null;
-        try {
-            i = mod_instances.GetEnumerator();
-            while (i.MoveNext())
-            {
-                mi = i.getCurrent();
-                try {
-                    // Invoke to all mod instances the Dispose method.
-                    mi.Dispose();
-                } catch (Exception e) {
-                    BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+    public static void DestroySelf()
+    {
+        BaseModsLib.LOGGER.info("Destroying mdcdi1315's Base Mods Library.");
+        if (layer != null)
+        {
+            IServerModInstance mi;
+            IEnumerator<IServerModInstance> i = null;
+            try {
+                i = mod_instances.GetEnumerator();
+                while (i.MoveNext())
+                {
+                    mi = i.getCurrent();
+                    try {
+                        // Invoke to all mod instances the Dispose method.
+                        mi.Dispose();
+                    } catch (Exception e) {
+                        BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+                    }
                 }
+            } catch (Exception e) {
+                BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
+            } finally {
+                if (i != null) { i.Dispose(); }
             }
-        } catch (Exception e) {
-            BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
-        } finally {
-            if (i != null) { i.Dispose(); }
         }
         // Additional disposal code to be run.
         mod_instances = null;

@@ -8,8 +8,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.Extensio
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
-
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
+
 import net.minecraft.util.Mth;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -111,20 +111,6 @@ public final class Extensions
     }
 
     /**
-     * Computes the inverted square root of {@code d}.
-     * @param d The value to compute it's inverted square root.
-     * @return The inverted square root of {@code d}.
-     */
-    public static double InvertedSquareRoot(double d) { return 1.0d / Math.sqrt(d); }
-
-    /**
-     * Computes the inverted square root of {@code d}.
-     * @param d The value to compute it's inverted square root.
-     * @return The inverted square root of {@code d}.
-     */
-    public static float InvertedSquareRoot(float d) { return (float) (1.0d / Math.sqrt(d)); }
-
-    /**
      * Computes the integer closest to {@code value}. <br />
      * If the value has a fractional part, a value of 1 is added before the method returns.
      * @param value The value to be computed as {@link Integer}.
@@ -220,11 +206,89 @@ public final class Extensions
     public static int Square(int input) { return input * input; }
 
     /**
+     * Computes the power of {@code input} raised to 3.
+     * @param input The input argument.
+     * @return The cube of {@code input}.
+     * @since 1.0.21
+     */
+    public static float Cube(float input) { return Square(input) * input; }
+
+    /**
+     * Computes the power of {@code input} raised to 3.
+     * @param input The input argument.
+     * @return The cube of {@code input}.
+     * @since 1.0.21
+     */
+    public static double Cube(double input) { return Square(input) * input; }
+
+    /**
+     * Computes the power of {@code input} raised to 3.
+     * @param input The input argument.
+     * @return The cube of {@code input}.
+     * @since 1.0.21
+     */
+    public static int Cube(int input) { return Square(input) * input; }
+
+    /**
      * Computes the square root of {@code value}.
      * @param value The value to compute it's square root.
      * @return The square root of {@code value}.
      */
     public static float SquareRoot(float value) { return (float)Math.sqrt(value); }
+
+    /**
+     * Computes the square root of {@code value}.
+     * @param value The value to compute it's square root.
+     * @return The square root of {@code value}.
+     * @since 1.0.21
+     */
+    public static double SquareRoot(double value) { return Math.sqrt(value); }
+
+    /**
+     * Computes the inverted square root of {@code d}.
+     * @param d The value to compute it's inverted square root.
+     * @return The inverted square root of {@code d}.
+     */
+    public static float InvertedSquareRoot(float d) { return (float) (1.0d / Math.sqrt(d)); }
+
+    /**
+     * Computes the inverted square root of {@code d}.
+     * @param d The value to compute it's inverted square root.
+     * @return The inverted square root of {@code d}.
+     */
+    public static double InvertedSquareRoot(double d) { return 1.0d / Math.sqrt(d); }
+
+    /**
+     * Computes the cube root of {@code value}.
+     * @param value The value to compute it's cube root.
+     * @return The cube root of {@code value}.
+     * @since 1.0.21
+     */
+    public static float CubeRoot(float value) { return (float)Math.cbrt(value); }
+
+    /**
+     * Computes the cube root of {@code value}.
+     * @param value The value to compute it's cube root.
+     * @return The cube root of {@code value}.
+     * @since 1.0.21
+     */
+    public static double CubeRoot(double value) { return Math.cbrt(value); }
+
+    /**
+     * Computes the inverted cube root of {@code d}.
+     * @param d The value to compute it's inverted cube root.
+     * @return The inverted cube root of {@code d}.
+     * @since 1.0.21
+     */
+    public static float InvertedCubeRoot(float d) { return (float)(1.0d / Math.cbrt(d)); }
+
+    /**
+     * Computes the inverted cube root of {@code d}.
+     * @param d The value to compute it's inverted cube root.
+     * @return The inverted cube root of {@code d}.
+     * @since 1.0.21
+     */
+    public static double InvertedCubeRoot(double d) { return 1.0d / Math.cbrt(d); }
 
     /**
      * Gets a random item from the specified list, and returns that item.
@@ -389,6 +453,92 @@ public final class Extensions
             throw new AggregateException("An exception was occurred while iterating an enumerable.", e);
         } finally {
             en.Dispose();
+        }
+    }
+
+    /**
+     * Enumerates all the items contained in the specified iterable object, and executes the specified {@link Action1} on them.
+     * @param iterable The iterable to iterate all of its elements.
+     * @param action The action to execute in each one of the items returned by {@code iterable}.
+     * @param <T> The type of the elements contained in the iterable.
+     * @throws ArgumentNullException {@code iterable} is {@code null}.
+     * @throws AggregateException An exception was occurred while calling {@link Action1#action(Object)}.
+     * @since 1.0.21
+     */
+    public static <T> void ForEachInIterable(Iterable<T> iterable, Action1<T> action)
+            throws ArgumentNullException, AggregateException
+    {
+        ArgumentNullException.ThrowIfNull(action, "action");
+        ArgumentNullException.ThrowIfNull(iterable, "iterable");
+        var it = iterable.iterator();
+        try {
+            while (it.hasNext()) { action.action(it.next()); }
+        } catch (com.github.mdcdi1315.DotNetLayer.System.Exception e) {
+            throw new AggregateException("An exception was occurred while iterating an enumerable.", e);
+        }
+    }
+
+    /**
+     * Enumerates all the items contained in the specified enumerable object, but executes the specified {@link Action1} on them when the currently iterated element passes the specified {@link Predicate} object.
+     * @param enumerable The enumerable to iterate all of its elements.
+     * @param predicate The predicate to test against all the elements in the enumerable.
+     * @param action The action to execute in each one of the items returned by {@code enumerable}, if {@code predicate} returns {@code true} for the element.
+     * @param <T> The type of the elements contained in the enumerable.
+     * @apiNote This is the filter specialization of the {@link #ForEachInEnumerable(IEnumerable, Action1)} method.
+     * @throws ArgumentNullException {@code enumerable} is {@code null}.
+     * @throws AggregateException An exception was occurred while calling {@link Action1#action(Object)}.
+     * @since 1.0.21
+     */
+    public static <T> void ForEachInEnumerableFiltered(IEnumerable<T> enumerable, Predicate<T> predicate, Action1<T> action)
+            throws ArgumentNullException, AggregateException
+    {
+        ArgumentNullException.ThrowIfNull(action, "action");
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
+        ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
+        if (FunctionManipulations.IsAlwaysFalse(predicate)) { return; }
+        else if (FunctionManipulations.IsAlwaysTrue(predicate)) { ForEachInEnumerable(enumerable, action); return; }
+        var en = enumerable.GetEnumerator();
+        try {
+            T current;
+            while (en.MoveNext()) {
+                current = en.getCurrent();
+                if (predicate.predicate(current)) { action.action(current); }
+            }
+        } catch (com.github.mdcdi1315.DotNetLayer.System.Exception e) {
+            throw new AggregateException("An exception was occurred while iterating an enumerable.", e);
+        } finally {
+            en.Dispose();
+        }
+    }
+
+    /**
+     * Enumerates all the items contained in the specified iterable object, but executes the specified {@link Action1} on them when the currently iterated element passes the specified {@link Predicate} object.
+     * @param iterable The iterable to iterate all of its elements.
+     * @param predicate The predicate to test against all the elements in the iterable.
+     * @param action The action to execute in each one of the items returned by {@code iterable}, if {@code predicate} returns {@code true} for the element.
+     * @param <T> The type of the elements contained in the iterable.
+     * @apiNote This is the filter specialization of the {@link #ForEachInIterable(Iterable, Action1)} method.
+     * @throws ArgumentNullException {@code iterable} is {@code null}.
+     * @throws AggregateException An exception was occurred while calling {@link Action1#action(Object)}.
+     * @since 1.0.21
+     */
+    public static <T> void ForEachInIterableFiltered(Iterable<T> iterable, Predicate<T> predicate, Action1<T> action)
+            throws ArgumentNullException, AggregateException
+    {
+        ArgumentNullException.ThrowIfNull(action, "action");
+        ArgumentNullException.ThrowIfNull(iterable, "iterable");
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
+        if (FunctionManipulations.IsAlwaysFalse(predicate)) { return; }
+        else if (FunctionManipulations.IsAlwaysTrue(predicate)) { ForEachInIterable(iterable, action); return; }
+        var it = iterable.iterator();
+        try {
+            T current;
+            while (it.hasNext()) {
+                current = it.next();
+                if (predicate.predicate(current)) { action.action(current); }
+            }
+        } catch (com.github.mdcdi1315.DotNetLayer.System.Exception e) {
+            throw new AggregateException("An exception was occurred while iterating an enumerable.", e);
         }
     }
 
@@ -562,8 +712,9 @@ public final class Extensions
      * @param min The minimum inclusive bound of values that the {@code v} parameter can accept.
      * @param max The maximum inclusive bound of values that the {@code v} parameter can accept.
      * @return A value in the range [0..1].
+     * @implNote From 1.0.21, this method has been further optimized and reliably predicts negative to positive ranges.
      */
-    public static float ToNormalRange(float v, float min, float max) { return Math.abs(v - min) / Math.abs(min - max); }
+    public static float ToNormalRange(float v, float min, float max) { return (v - min) / (max - min); }
 
     /**
      * Normalizes the specified value to the range [0..1].
@@ -572,8 +723,9 @@ public final class Extensions
      * @param min The minimum inclusive bound of values that the {@code v} parameter can accept.
      * @param max The maximum inclusive bound of values that the {@code v} parameter can accept.
      * @return A value in the range [0..1].
+     * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
-    public static double ToNormalRange(double v, double min, double max) { return Math.abs(v - min) / Math.abs(min - max); }
+    public static double ToNormalRange(double v, double min, double max) { return (v - min) / (max - min); }
 
     public static double MapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)
     {

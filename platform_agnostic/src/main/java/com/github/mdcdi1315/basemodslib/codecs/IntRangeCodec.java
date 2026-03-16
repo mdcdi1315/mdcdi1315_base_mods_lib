@@ -1,8 +1,7 @@
 package com.github.mdcdi1315.basemodslib.codecs;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 
 /**
  * Provides a primitive codec with validation that validates whether a {@link Integer} value is into the specified bounds.
@@ -24,14 +23,15 @@ public final class IntRangeCodec
     }
 
     @Override
-    protected Integer Mapper(Number number) {
-        return number.intValue();
-    }
+    protected Integer Mapper(Number number) { return number.intValue(); }
+
+    @Override
+    protected <T> T Write(DynamicOps<T> ops, Integer value) { return ops.createInt(value); }
 
     @Override
     protected DataResult<Integer> Validate(Integer number) {
         return (number < min_value || number > max_value) ?
-                DataResult.error(StringSupplier.FromFormatted("Value %d outside of range [%d..%d]" , number , min_value , max_value), number) :
+                CodecUtils.CreateJavaFormattedErrorDataResultWithPartial("Value %d outside of range [%d..%d]", number, number, min_value, max_value) :
                 DataResult.success(number);
     }
 }

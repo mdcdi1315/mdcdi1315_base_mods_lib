@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.utils;
 import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import java.util.function.Supplier;
@@ -24,9 +25,7 @@ public final class StringSupplier
      * Constructs a new instance of the {@link StringSupplier} class.
      * @param str The {@link String} to provide as the supplied value. Can be {@code null} as well.
      */
-    public StringSupplier(@MaybeNull String str) {
-        super(str);
-    }
+    public StringSupplier(@MaybeNull String str) { super(str); }
 
     /**
      * Creates a new instance of the {@link StringSupplier} class provided by the specified formatted string and it's arguments. <br />
@@ -37,6 +36,7 @@ public final class StringSupplier
      * @throws FormatException A formatting error has been occurred. See exception details for more information.
      * @throws ArgumentNullException {@code format} is {@code null}.
      */
+    @NotNull
     public static StringSupplier FromFormatted(String format , @MaybeNull Object... format_arguments)
         throws FormatException, ArgumentNullException
     {
@@ -57,6 +57,7 @@ public final class StringSupplier
      * @throws FormatException A formatting error has been occurred. See exception details for more information.
      * @throws ArgumentNullException {@code format} is {@code null}.
      */
+    @NotNull
     public static StringSupplier FromFormatted(String format, Object arg_0)
         throws FormatException, ArgumentNullException
     {
@@ -78,6 +79,7 @@ public final class StringSupplier
      * @throws FormatException A formatting error has been occurred. See exception details for more information.
      * @throws ArgumentNullException {@code format} is {@code null}.
      */
+    @NotNull
     public static StringSupplier FromFormatted(String format, Object arg_0, Object arg_1)
             throws FormatException, ArgumentNullException
     {
@@ -100,6 +102,7 @@ public final class StringSupplier
      * @throws FormatException A formatting error has been occurred. See exception details for more information.
      * @throws ArgumentNullException {@code format} is {@code null}.
      */
+    @NotNull
     public static StringSupplier FromFormatted(String format, Object arg_0, Object arg_1, Object arg_2)
             throws FormatException, ArgumentNullException
     {
@@ -112,6 +115,63 @@ public final class StringSupplier
     }
 
     /**
+     * Creates a new instance of the {@link StringSupplier} class provided by the specified .NET-formatted string and it's argument. <br />
+     * The created string is then passed to the {@link StringSupplier} constructor.
+     * @param format The string to format. Formatting rules are the same as those specified in the {@link String#format(String, Object...)} API.
+     * @param arg_0 The first argument to format the string from.
+     * @return A string supplier containing the result of formatting {@code format} with {@code arg_0}.
+     * @throws FormatException A formatting error has been occurred. See exception details for more information.
+     * @throws ArgumentNullException {@code format} is {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static StringSupplier FromDotNetFormatted(String format, Object arg_0)
+            throws FormatException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(format, "format");
+        return new StringSupplier(StringUtils.Format(format, arg_0));
+    }
+
+    /**
+     * Creates a new instance of the {@link StringSupplier} class provided by the specified .NET-formatted string and it's argument. <br />
+     * The created string is then passed to the {@link StringSupplier} constructor.
+     * @param format The string to format. Formatting rules are the same as those specified in the {@link String#format(String, Object...)} API.
+     * @param arg_0 The first argument to format the string from.
+     * @param arg_1 The second argument to format the string from.
+     * @return A string supplier containing the result of formatting {@code format} with {@code arg_0} and {@code arg_1}.
+     * @throws FormatException A formatting error has been occurred. See exception details for more information.
+     * @throws ArgumentNullException {@code format} is {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static StringSupplier FromDotNetFormatted(String format, Object arg_0, Object arg_1)
+            throws FormatException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(format, "format");
+        return new StringSupplier(StringUtils.Format(format, arg_0, arg_1));
+    }
+
+    /**
+     * Creates a new instance of the {@link StringSupplier} class provided by the specified .NET-formatted string and it's argument. <br />
+     * The created string is then passed to the {@link StringSupplier} constructor.
+     * @param format The string to format. Formatting rules are the same as those specified in the {@link String#format(String, Object...)} API.
+     * @param arg_0 The first argument to format the string from.
+     * @param arg_1 The second argument to format the string from.
+     * @param arg_2 The third argument to format the string from.
+     * @return A string supplier containing the result of formatting {@code format} with {@code arg_0}, {@code arg_1} and {@code arg_2}.
+     * @throws FormatException A formatting error has been occurred. See exception details for more information.
+     * @throws ArgumentNullException {@code format} is {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static StringSupplier FromDotNetFormatted(String format , Object arg_0, Object arg_1, Object arg_2)
+            throws FormatException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(format, "format");
+        return new StringSupplier(StringUtils.Format(format, arg_0, arg_1, arg_2));
+    }
+
+    /**
      * Creates a new instance of the {@link StringSupplier} class provided by the specified .NET-formatted string and it's arguments. <br />
      * The created string is then passed to the {@link StringSupplier} constructor.
      * @param format The string to format. Formatting rules are the same as those specified in the {@link String#format(String, Object...)} API.
@@ -120,7 +180,8 @@ public final class StringSupplier
      * @throws FormatException A formatting error has been occurred. See exception details for more information.
      * @throws ArgumentNullException {@code format} is {@code null}.
      */
-    public static StringSupplier FromDotNetFormatted(String format , @MaybeNull Object... format_arguments)
+    @NotNull
+    public static StringSupplier FromDotNetFormatted(String format, @MaybeNull Object... format_arguments)
             throws FormatException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(format, "format");

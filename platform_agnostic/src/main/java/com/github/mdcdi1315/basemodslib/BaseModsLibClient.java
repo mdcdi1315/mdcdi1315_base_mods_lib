@@ -36,11 +36,12 @@ public final class BaseModsLibClient
     private static SingleLinkedList<Pair<String, ConfigurationScreenFactory<?>>> config_factories;
 
     static {
-        if (BaseModsLib.GetEnvironment() != ModdingEnvironment.CLIENT) {
+        if (BaseModsLib.GetEnvironment() == ModdingEnvironment.SERVER) {
             // Perpetually crash Minecraft to avoid having weird crash reports due to class loading.
             // We will have a crash report anyway; just this will save some time finding bugs...
             throw new InvalidOperationException("Base mods library client was touched but it should not!");
         }
+        // Note: when env returns UNKNOWN the lib cannot assume the environment, so I assume it is OK and init continues normally.
         layer = null;
         initialized = false;
         mod_instances = null;
@@ -165,9 +166,7 @@ public final class BaseModsLibClient
      * @return The {@link Player} that has created this particular Minecraft instance.
      */
     @MaybeNull
-    public static Player GetLoggedInPlayer() {
-        return Minecraft.getInstance().player;
-    }
+    public static Player GetLoggedInPlayer() { return Minecraft.getInstance().player; }
 
     /**
      * Gets an enumerable implementation that enumerates through the available configuration screens detected by the library.
@@ -213,28 +212,33 @@ public final class BaseModsLibClient
      * Called by Minecraft when it shuts down, do not call this by your code!!
      */
     @ApiStatus.Internal
-    public static void DestroySelf() {
-        IClientModInstance mi;
-        IEnumerator<IClientModInstance> i = null;
-        try {
-            // Invoke to all mod instances the Dispose method.
-            i = mod_instances.GetEnumerator();
-            while (i.MoveNext())
-            {
-                mi = i.getCurrent();
-                try {
-                    mi.Dispose();
-                } catch (Exception e) {
-                    BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+    public static void DestroySelf()
+    {
+        if (layer != null)
+        {
+            IClientModInstance mi;
+            IEnumerator<IClientModInstance> i = null;
+            try {
+                // Invoke to all mod instances the Dispose method.
+                i = mod_instances.GetEnumerator();
+                while (i.MoveNext())
+                {
+                    mi = i.getCurrent();
+                    try {
+                        mi.Dispose();
+                    } catch (Exception e) {
+                        BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+                    }
                 }
+            } catch (Exception e) {
+                BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
+            } finally {
+                if (i != null) { i.Dispose(); }
             }
-        } catch (Exception e) {
-            BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
-        } finally {
-            if (i != null) { i.Dispose(); }
+            layer.Dispose();
         }
-        mod_instances = null;
-        layer.Dispose();
         layer = null;
+        mod_instances = null;
+        config_factories = null;
     }
 }

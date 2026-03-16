@@ -10,22 +10,18 @@ import com.mojang.serialization.DynamicOps;
 public abstract class PrimitiveCodecWithValidation<TPR extends Number> // Only valid for numeric types
     extends PrimitiveCodec<TPR>
 {
-    private static <T> DataResult<T> ErrorMapper(DataResult.Error<Number> pr) {
-        return DataResult.error(pr::message);
-    }
+    @Override
+    protected <T> T Write(DynamicOps<T> ops, TPR value) { return ops.createNumeric(value); }
 
     @Override
-    protected <T> T Write(DynamicOps<T> ops, TPR value) {
-        return ops.createNumeric(value);
-    }
-
-    @Override
-    protected <T> DataResult<TPR> Read(DynamicOps<T> ops, T input) {
+    protected <T> DataResult<TPR> Read(DynamicOps<T> ops, T input)
+    {
         DataResult<Number> n = ops.getNumberValue(input);
-        var e = n.error();
-        return e
-                .<DataResult<TPR>>map(PrimitiveCodecWithValidation::ErrorMapper)
-                .orElse(Validate(Mapper(n.result().get())));
+        // IMPORTANT: Do not modify the below line.
+        // We do not want to use OrElse because when we do that we always load the value, which is something we don't want to.
+        return n.isError() ?
+                DataResult.error(n.error().get().messageSupplier()) :
+                Validate(Mapper(n.result().get()));
     }
 
     /**
