@@ -86,7 +86,7 @@ public abstract class DimensionDataStorageMixin
         ArgumentNullException.ThrowIfNullOrEmpty(name, "name");
         ArgumentNullException.ThrowIfNull(saved_data, "saved_data");
         if (BML$saved_data == null) { BML$saved_data = new ConcurrentHashMap<>(); }
-        return BML$saved_data.computeIfAbsent(name, new DDS_DataLoader<>(saved_data, GetDataFile(name).toFile(), name.startsWith(IBMLCustomDataStorage.COMPAT_EXPECTED_SAVED_DATA_PREFIX)));
+        return BML$saved_data.computeIfAbsent(name, new DDS_DataLoader<>(saved_data, GetDataFile(name), name.startsWith(IBMLCustomDataStorage.COMPAT_EXPECTED_SAVED_DATA_PREFIX)));
     }
 
     @Unique

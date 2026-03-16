@@ -22,9 +22,7 @@ public abstract class PrimitiveCodec<TP>
         implements Function<TP , Pair<TP, T>>
     {
         @Override
-        public Pair<TP , T> apply(TP tp) {
-            return Pair.of(tp , empty);
-        }
+        public Pair<TP , T> apply(TP tp) { return Pair.of(tp , empty); }
     }
 
     /**

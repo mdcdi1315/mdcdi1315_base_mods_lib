@@ -5,12 +5,17 @@ import com.github.mdcdi1315.basemodslib.commands.RegistersSubCommandsAbstractCom
 public final class BaseModsLibraryCommand
     extends RegistersSubCommandsAbstractCommand
 {
-    public BaseModsLibraryCommand() {
-        super("bml",
+    public BaseModsLibraryCommand()
+    {
+        super(
+                "bml",
                 new BaseModsLibraryDevPermission(),
                 new UpdateStructureTemplateCommand(),
                 new UpdateStructureTemplatesCommand(),
                 new DescribeHeldItemCommand(),
-                new GetDimensionBiomeTemperaturesCommand());
+                new GetDimensionBiomeTemperaturesCommand(),
+                new DisplayLoadedBMLModsCommand(),
+                new BMLInfoCommand()
+        );
     }
 }

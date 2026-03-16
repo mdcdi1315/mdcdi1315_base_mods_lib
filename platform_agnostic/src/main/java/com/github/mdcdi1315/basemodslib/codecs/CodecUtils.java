@@ -2,12 +2,16 @@ package com.github.mdcdi1315.basemodslib.codecs;
 
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
 import com.github.mdcdi1315.basemodslib.codecs.internal.*;
+import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 
 import com.mojang.datafixers.util.*;
 import com.mojang.serialization.Codec;
 import com.mojang.datafixers.kinds.App;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -109,6 +113,114 @@ public final class CodecUtils
     public static Codec<Byte> ByteRange(int min_inclusive, int max_inclusive)
     {
         return new ByteRangeCodec(min_inclusive , max_inclusive);
+    }
+
+    /**
+     * Creates an error data result of the specified error message and returns it back to the caller.
+     * @param message The message to represent as an error.
+     * @return An error {@link DataResult} object.
+     * @param <T> The type that would be returned if the {@link DataResult} object was a successful instance.
+     * @throws ArgumentNullException {@code message} is {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static <T> DataResult<T> CreateErrorDataResult(@ConstantExpected String message)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(message, "message");
+        return DataResult.error(new StringSupplier(message));
+    }
+
+    /**
+     * Creates an error data result of the specified error message and partial result and returns it back to the caller.
+     * @param message The message to represent as an error.
+     * @param partial_result The partial result to also provide.
+     * @return An error {@link DataResult} object.
+     * @param <T> The type that would be returned if the {@link DataResult} object was a successful instance.
+     * @throws ArgumentNullException {@code message} and/or {@code partial_result} are {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static <T> DataResult<T> CreateErrorDataResult(@ConstantExpected String message, T partial_result)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(message, "message");
+        ArgumentNullException.ThrowIfNull(partial_result, "partial_result");
+        return DataResult.error(new StringSupplier(message), partial_result);
+    }
+
+    /**
+     * Creates an error data result of the specified error message formatted by the Java formatting rules, the format arguments that transform the format string, and returns it back to the caller.
+     * @param message The message to represent as an error.
+     * @param format_args The formatting arguments that transform the message string.
+     * @return An error {@link DataResult} object.
+     * @param <T> The type that would be returned if the {@link DataResult} object was a successful instance.
+     * @throws ArgumentNullException {@code message} and/or {@code format_args} are {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static <T> DataResult<T> CreateJavaFormattedErrorDataResult(@ConstantExpected String message, Object... format_args)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(message, "message");
+        ArgumentNullException.ThrowIfNull(format_args, "format_args");
+        return DataResult.error(StringSupplier.FromFormatted(message, format_args));
+    }
+
+    /**
+     * Creates an error data result of the specified error message formatted by the Java formatting rules, the format arguments that transform the format string, and returns it back to the caller.
+     * @param message The message to represent as an error.
+     * @param partial_result The partial result to also provide.
+     * @param format_args The formatting arguments that transform the message string.
+     * @return An error {@link DataResult} object.
+     * @param <T> The type that would be returned if the {@link DataResult} object was a successful instance.
+     * @throws ArgumentNullException {@code message} and/or {@code partial_result} and/or {@code format_args} are {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static <T> DataResult<T> CreateJavaFormattedErrorDataResultWithPartial(@ConstantExpected String message, T partial_result, Object... format_args)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(message, "message");
+        ArgumentNullException.ThrowIfNull(format_args, "format_args");
+        return DataResult.error(StringSupplier.FromFormatted(message, format_args));
+    }
+
+    /**
+     * Creates an error data result of the specified error message formatted by the .NET formatting rules, the format arguments that transform the format string, and returns it back to the caller.
+     * @param message The message to represent as an error.
+     * @param format_args The formatting arguments that transform the message string.
+     * @return An error {@link DataResult} object.
+     * @param <T> The type that would be returned if the {@link DataResult} object was a successful instance.
+     * @throws ArgumentNullException {@code message} and/or {@code format_args} are {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static <T> DataResult<T> CreateDotNetFormattedErrorDataResult(@ConstantExpected String message, Object... format_args)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(message, "message");
+        ArgumentNullException.ThrowIfNull(format_args, "format_args");
+        return DataResult.error(StringSupplier.FromDotNetFormatted(message, format_args));
+    }
+
+    /**
+     * Creates an error data result of the specified error message formatted by the Java formatting rules, the format arguments that transform the format string, and returns it back to the caller.
+     * @param message The message to represent as an error.
+     * @param partial_result The partial result to also provide.
+     * @param format_args The formatting arguments that transform the message string.
+     * @return An error {@link DataResult} object.
+     * @param <T> The type that would be returned if the {@link DataResult} object was a successful instance.
+     * @throws ArgumentNullException {@code message} and/or {@code partial_result} and/or {@code format_args} are {@code null}.
+     * @since 1.0.21
+     */
+    @NotNull
+    public static <T> DataResult<T> CreateDotNetFormattedErrorDataResultWithPartial(@ConstantExpected String message, T partial_result, Object... format_args)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(message, "message");
+        ArgumentNullException.ThrowIfNull(format_args, "format_args");
+        return DataResult.error(StringSupplier.FromDotNetFormatted(message, format_args));
     }
 
     /**

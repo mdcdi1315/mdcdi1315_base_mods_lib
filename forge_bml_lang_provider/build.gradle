@@ -6,10 +6,9 @@ plugins {
 }
 
 def lib_actual_version = "1.0.0"
-def lib_version = "[${lib_actual_version},)"
 
 base {
-    version = lib_version
+    version = lib_actual_version
     archivesName = "bml_language_loader"
 }
 
@@ -18,7 +17,15 @@ java {
 }
 
 jar {
-    manifest.attributes(["FMLModType": "LANGPROVIDER"])
+    manifest.attributes([
+            'FMLModType'            : "LANGPROVIDER",
+            'Specification-Title'   : "BML_LANGUAGE_PROVIDER",
+            'Specification-Vendor'  : "mdcdi1315",
+            'Specification-Version' : lib_actual_version,
+            'Implementation-Title'  : "BML_LANGUAGE_PROVIDER_FORGE_FML",
+            'Implementation-Vendor' : "mdcdi1315",
+            'Implementation-Version': "55"
+    ])
 }
 
 apply from: rootProject.file('repositories.gradle')

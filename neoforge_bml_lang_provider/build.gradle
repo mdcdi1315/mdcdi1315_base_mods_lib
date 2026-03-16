@@ -14,7 +14,15 @@ java {
 }
 
 jar {
-    manifest.attributes(["FMLModType": "LIBRARY"])
+    manifest.attributes([
+            'FMLModType'            : "LIBRARY",
+            'Specification-Title'   : "BML_LANGUAGE_PROVIDER",
+            'Specification-Vendor'  : "mdcdi1315",
+            'Specification-Version' : lib_version,
+            'Implementation-Title'  : "BML_LANGUAGE_PROVIDER_NEOFORGE_FML",
+            'Implementation-Vendor' : "mdcdi1315",
+            'Implementation-Version': "1.0.1"
+    ])
 }
 
 apply from: rootProject.file('repositories.gradle')

@@ -1,12 +1,13 @@
 package com.github.mdcdi1315.basemodslib.utils.function;
 
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 record IdentityFunction<T>()
-    implements Func2<T, T>
+    implements Func2<T, T>, UnaryOperator<T>
 {
     @Override
     public T apply(T t) { return t; } // Also override this for faster path

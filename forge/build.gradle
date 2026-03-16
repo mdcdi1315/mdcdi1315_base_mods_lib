@@ -131,12 +131,6 @@ processResources {
 }
 */
 
-jar {
-    manifest.attributes([
-            "MixinConfigs": "${mod_id}.mixins.json,${mod_id}.forge.mixins.json"
-    ])
-}
-
 apply from: rootProject.file('repositories.gradle')
 apply from: 'dependencies.gradle'
 

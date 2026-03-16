@@ -1,8 +1,7 @@
 package com.github.mdcdi1315.basemodslib.codecs;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 
 /**
  * Provides the implementation for decoding floating-point probability values,
@@ -15,15 +14,16 @@ public final class FloatProbabilityCodec
     extends PrimitiveCodecWithValidation<Float>
 {
     @Override
-    protected Float Mapper(Number number) {
-        return number.floatValue();
-    }
+    protected Float Mapper(Number number) { return number.floatValue(); }
+
+    @Override
+    protected <T> T Write(DynamicOps<T> ops, Float value) { return ops.createFloat(value); }
 
     @Override
     protected DataResult<Float> Validate(Float number)
     {
         return (number > 1f || number < 0f) ?
-                DataResult.error(StringSupplier.FromFormatted("Probability value out of range [0..1]: %f" , number), number) :
+                CodecUtils.CreateJavaFormattedErrorDataResultWithPartial("Probability value out of range [0..1]: %f", number, number) :
                 DataResult.success(number);
     }
 }

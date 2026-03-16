@@ -1,8 +1,7 @@
 package com.github.mdcdi1315.basemodslib.codecs;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 
 /**
  * Provides a primitive codec with validation that validates whether a {@link Short} value is into the specified bounds.
@@ -26,14 +25,15 @@ public final class ShortRangeCodec
     }
 
     @Override
-    protected Short Mapper(Number number) {
-        return number.shortValue();
-    }
+    protected Short Mapper(Number number) { return number.shortValue(); }
+
+    @Override
+    protected <T> T Write(DynamicOps<T> ops, Short value) { return ops.createShort(value); }
 
     @Override
     protected DataResult<Short> Validate(Short number) {
         return (number < min_value || number > max_value) ?
-                DataResult.error(StringSupplier.FromFormatted("Value %d outside of range [%d..%d]" , number , min_value , max_value), number) :
+                CodecUtils.CreateJavaFormattedErrorDataResultWithPartial("Value %d outside of range [%d..%d]", number, number, min_value, max_value) :
                 DataResult.success(number);
     }
 }
