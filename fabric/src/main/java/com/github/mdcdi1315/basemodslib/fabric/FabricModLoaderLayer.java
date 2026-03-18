@@ -162,7 +162,7 @@ public final class FabricModLoaderLayer
     @Override
     public void InitializeServerModInstance(IServerModInstance mod_instance, Object o) {
         if (!(o instanceof EmptyModObject)) {
-            throw new InvalidOperationException(String.format("The mod object was not of type EmptyModObject!!!!\nActual type: %s", o.getClass().getName()));
+            throw new InvalidOperationException(String.format("The mod object was not of type EmptyModObject!!!!\nActual type: %s", o == null ? "<NULL>" : o.getClass().getName()));
         }
 
         String mod_id = mod_instance.GetModId();

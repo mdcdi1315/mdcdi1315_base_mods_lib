@@ -8,6 +8,12 @@ import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
+
 import net.minecraft.nbt.*;
 
 import java.io.*;
@@ -58,20 +64,7 @@ public final class NBTUtils
             throws IOException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(file, "file");
-        try (
-                FileInputStream fileinputstream = new FileInputStream(file);
-                PushbackInputStream pushbackinputstream = new PushbackInputStream(fileinputstream, 2)
-        ) {
-            CompoundTag compoundtag;
-            if (IsGZip(pushbackinputstream)) {
-                compoundtag = NbtIo.readCompressed(pushbackinputstream, NbtAccounter.unlimitedHeap());
-            } else {
-                try (DataInputStream datainputstream = new DataInputStream(pushbackinputstream)) {
-                    compoundtag = NbtIo.read(datainputstream);
-                }
-            }
-            return compoundtag;
-        }
+        try (FileInputStream fis = new FileInputStream(file)) { return LoadNBTFile(fis); }
     }
 
     /**
@@ -87,19 +80,51 @@ public final class NBTUtils
             throws IOException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(path, "path");
+        try (InputStream is = Files.newInputStream(path, StandardOpenOption.READ)) { return LoadNBTFile(is); }
+    }
+
+    /**
+     * Loads the specified NBT from the specified data stream.
+     * @param stream The {@link InputStream} to load as an NBT data stream.
+     * @return The loaded NBT data, as an instance of the {@link CompoundTag} class.
+     * @throws IOException An I/O exception was occurred.
+     * @throws ArgumentNullException {@code stream} is {@code null}.
+     * @apiNote The API does not close the provided stream. It is the caller's responsibility to close the stream provided to this method.
+     * @since 1.0.22
+     */
+    @NotNull
+    public static CompoundTag LoadNBTFile(InputStream stream)
+            throws IOException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(stream, "stream");
         CompoundTag compoundtag;
-        try (
-                InputStream is = Files.newInputStream(path, StandardOpenOption.READ);
-                PushbackInputStream pushbackinputstream = new PushbackInputStream(is, 2)
-        ) {
-            if (IsGZip(pushbackinputstream)) {
-                compoundtag = NbtIo.readCompressed(pushbackinputstream, NbtAccounter.unlimitedHeap());
-            } else {
-                try (DataInputStream datainputstream = new DataInputStream(pushbackinputstream)) {
-                    compoundtag = NbtIo.read(datainputstream);
-                }
-            }
-            return compoundtag;
+        PushbackInputStream pushbackinputstream = new PushbackInputStream(stream, 2);
+        if (IsGZip(pushbackinputstream)) {
+            compoundtag = NbtIo.readCompressed(pushbackinputstream, NbtAccounter.unlimitedHeap());
+        } else {
+            try (DataInputStream datainputstream = new DataInputStream(pushbackinputstream)) { compoundtag = NbtIo.read(datainputstream); }
+        }
+        return compoundtag;
+    }
+
+    /**
+     * Loads the specified NBT from the network.
+     * @param buffer The {@link ByteBuf} to load as an NBT file.
+     * @return The loaded NBT data, as an instance of the {@link CompoundTag} class.
+     * @throws DecoderException An I/O exception was occurred.
+     * @throws ArgumentNullException {@code file} is {@code null}.
+     * @apiNote The API does not release the provided buffer. It is the caller's responsibility to release the buffer provided to this method.
+     * @since 1.0.22
+     */
+    @NotNull
+    public static CompoundTag LoadNBTFromNetwork(ByteBuf buffer)
+            throws ArgumentNullException, DecoderException
+    {
+        ArgumentNullException.ThrowIfNull(buffer, "buffer");
+        try (ByteBufInputStream bbis = new ByteBufInputStream(buffer, false)) {
+            return LoadNBTFile(bbis);
+        } catch (IOException ioexception) {
+            throw new DecoderException("I/O exception occurred while loading NBT data.", ioexception);
         }
     }
 
@@ -132,6 +157,26 @@ public final class NBTUtils
         ArgumentNullException.ThrowIfNull(tag, "tag");
         ArgumentNullException.ThrowIfNull(path, "path");
         try (OutputStream os = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) { NbtIo.writeCompressed(tag, os); }
+    }
+
+    /**
+     * Saves the specified NBT data to the specified network buffer, compressed with GZip as well.
+     * @param buffer The {@link ByteBuf} to save the data to.
+     * @param tag The compound tag representing the data to save.
+     * @throws EncoderException An I/O exception was occurred.
+     * @throws ArgumentNullException {@code buffer} and/or {@code tag} are {@code null}.
+     * @since 1.0.22
+     */
+    public static void SaveNBTAsGZipToNetwork(ByteBuf buffer, CompoundTag tag)
+            throws ArgumentNullException, EncoderException
+    {
+        ArgumentNullException.ThrowIfNull(tag, "tag");
+        ArgumentNullException.ThrowIfNull(buffer, "buffer");
+        try (ByteBufOutputStream bout = new ByteBufOutputStream(buffer)) {
+            NbtIo.writeCompressed(tag, bout);
+        } catch (IOException ioexception) {
+            throw new EncoderException("Can't encode the specified NBT tag due to an I/O error.", ioexception);
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.utils;
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.KeyValuePair;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.Extension;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
@@ -668,6 +669,15 @@ public final class Extensions
      * @since 1.0.19
      */
     public static <TR> TR TypeCast(Object o) { try { return (TR) o; } catch (ClassCastException e) { return null; } }
+
+    /**
+     * Gets whether the specified object is a synchronized object.
+     * @param o The object to test.
+     * @return A value whether {@code o} implements synchronization of not.
+     * @since 1.0.22
+     * @apiNote This will return {@code false} if {@code o} is {@code null}.
+     */
+    public static boolean IsSynchronized(@AllowNull Object o) { return o instanceof ISynchronized; }
 
     /**
      * This method call is deprecated. Use the {@link #Lerp(double, double, double)} method instead.

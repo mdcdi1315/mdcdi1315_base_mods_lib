@@ -1,17 +1,13 @@
-### Now releasing 1.0.21:
+### Now releasing 1.0.22:
 
--> Further expanded the 'function' package.
+-> Fixed doc issues
 
--> Fixed the BML initialization and shutdown code to predict mod loading failure cases while Mixins from the library are loaded.
+-> Added the ArrayBasedRegister class
 
--> Introducing the Fast Binary Format, a NBT-like format that intends to be smaller than NBT and execute faster than it.
+-> Added some more missing NBT utilities
 
--> Improved performance and reliability on several codecs
+-> Fixed FBF GZip compression method to reliably release the de/encoder
 
--> NBT utilities now include convenience methods for interacting with `java.nio.file.Path` objects instead.
+-> [Fabric]: Fixed init issues + changed the client mod loader layer to store the packet events using a single-linked-list-based register.
 
--> Added some more convenience factory methods for the StringSupplier class.
-
--> Improved the `ToNormalRange` mathematical method overloads and added missing mathematical methods such as cube root computations.
-
--> Added some commands that provide more information about the BML and the environment is loaded into.
+-> [1.21.5]: Fixed the NBT dimension data loader to reliably use `Path` objects instead.

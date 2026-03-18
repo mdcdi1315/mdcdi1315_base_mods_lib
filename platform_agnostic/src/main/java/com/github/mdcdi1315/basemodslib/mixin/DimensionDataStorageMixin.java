@@ -19,6 +19,7 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,7 +63,7 @@ public abstract class DimensionDataStorageMixin
     {
         if (!sd.ShouldSave()) { return; }
 
-        File f = GetDataFile(name).toFile();
+        Path f = GetDataFile(name);
 
         SavedDataCommonHeader header;
         try { header = sd.Save(); } catch (Exception ex) {
@@ -73,8 +74,12 @@ public abstract class DimensionDataStorageMixin
         try {
             NBTUtils.SaveNBTFileAsGZip(f, header.GenerateFinalData());
         } catch (IOException e) {
-            f.delete();
-            BaseModsLib.LOGGER.error("SD_v2: Cannot save saved data for file {}: {}", f.getName(), e);
+            try {
+                Files.delete(f);
+            } catch (IOException ex) {
+                BaseModsLib.LOGGER.error("SD_v2: Cannot delete the corrupted saved data file for data name {}: {}", name, ex);
+            }
+            BaseModsLib.LOGGER.error("SD_v2: Cannot save saved data for file {}: {}", f, e);
         }
     }
 
