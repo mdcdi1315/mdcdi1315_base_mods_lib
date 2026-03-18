@@ -497,7 +497,7 @@ public final class FunctionManipulations
      * Returns a function that maps the input arguments of type {@link T1} and {@link T2} to {@link TR},
      * by first invoking a mapper that maps the input arguments of type {@link T1} and {@link T2} to type {@link TM},
      * and then invoking a mapper that maps elements of type {@link TM} to type {@link TR}.
-     * @param first The first mapping function that maps elements of type {@link TS} to type {@link TM}.
+     * @param first The first mapping function that maps elements of type {@link T1} and {@link T2} to type {@link TM}.
      * @param second The second mapping function that maps elements of type {@link TM} to type {@link TR}.
      * @return A function that maps elements input arguments of type {@link T1} and {@link T2} to {@link TR}.
      * @param <T1> The type of the first argument to map to {@link TR}.
@@ -607,7 +607,7 @@ public final class FunctionManipulations
      * @return The reinterpreted function.
      * @throws ArgumentNullException {@code function} is {@code null}.
      * @since 1.0.21
-     * @apiNote This API is provided for upcasting BiFunction instances to Func1 instances. <br />
+     * @apiNote This API is provided for upcasting BiFunction instances to Func3 instances. <br />
      * This is useful if an API requires an object of type {@link Func3} but you have an object of type {@link java.util.function.BiFunction}.
      */
     @NotNull

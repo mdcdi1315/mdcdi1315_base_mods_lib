@@ -39,13 +39,16 @@ public class DirectlyMappedSpliterator<TA, TR>
         public void accept(T t) { value = t; }
     }
 
-    @Override
-    public boolean tryAdvance(Consumer<? super TR> action)
+    private record ElementConsumer_TryAdvance<TA, TR>(Consumer<? super TR> action, Func2<TA, TR> mapper)
+        implements Consumer<TA>
     {
-        ElementConsumer<TA> c = new ElementConsumer<>();
-        boolean b = spliterator.tryAdvance(c);
-        if (b) { action.accept(mapper.function(c.value)); }
-        return b;
+        @Override
+        public void accept(TA input) { action.accept(mapper.function(input)); }
+    }
+
+    @Override
+    public boolean tryAdvance(Consumer<? super TR> action) {
+        return spliterator.tryAdvance(new ElementConsumer_TryAdvance<>(action, mapper));
     }
 
     @Override

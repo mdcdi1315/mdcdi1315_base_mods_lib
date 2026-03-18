@@ -252,7 +252,7 @@ public final class FastBinaryFormatIO
             throws IOException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(stream, "stream");
-        Save(new GZIPOutputStream(stream), entry);
+        try (var gzo = new GZIPOutputStream(stream, false)) { Save(gzo, entry); }
     }
 
     /**
