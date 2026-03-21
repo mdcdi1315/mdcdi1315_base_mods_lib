@@ -1,13 +1,15 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
 import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
-import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.StringIO;
+import com.github.mdcdi1315.basemodslib.utils.io.SevenBitEncodedInt;
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
+
+import java.io.*;
 import java.nio.charset.Charset;
 
 public abstract class BaseStringBinaryFormatEntry
@@ -28,7 +30,7 @@ public abstract class BaseStringBinaryFormatEntry
     public abstract BinaryFormatEntryType GetType();
 
     @Override
-    public final void WriteTo(OutputStream stream)
+    public final void WriteTo(WrappedOutputStream stream)
             throws IOException
     {
         GetType().WriteTo(stream);
@@ -36,7 +38,7 @@ public abstract class BaseStringBinaryFormatEntry
     }
 
     @Override
-    public final void ReadFrom(InputStream stream)
+    public final void ReadFrom(PushbackWrappedInputStream stream)
             throws IOException
     {
         BinaryFormatEntryType t = BinaryFormatEntryType.ReadFrom(stream);
@@ -45,8 +47,8 @@ public abstract class BaseStringBinaryFormatEntry
         } else if (t.GetStringEncoding() != GetType().GetStringEncoding()) {
             throw new IOException(StringUtils.Format("Not a {0} string entry", GetType().GetStringEncoding()));
         } else {
-            int bytes = FastBinaryFormatUtils.Read7BitEncodedInt(stream);
-            value = FastBinaryFormatUtils.ReadString(stream, GetCharset().newDecoder(), bytes);
+            int bytes = SevenBitEncodedInt.Read(stream);
+            value = StringIO.ReadString(stream, GetCharset().newDecoder(), bytes);
         }
     }
 

@@ -4,6 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
+import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -33,7 +34,7 @@ public final class NBTUtils
     // Do not let anyone be able to instantiate this class.
     private NBTUtils() {}
 
-    private static boolean IsGZip(PushbackInputStream inputStream)
+    private static boolean IsGZip(PushbackWrappedInputStream inputStream)
             throws IOException
     {
         byte[] header = new byte[2];
@@ -46,7 +47,7 @@ public final class NBTUtils
         }
 
         if (read != 0) {
-            inputStream.unread(header, 0, read);
+            inputStream.Unread(header, 0, read);
         }
 
         return flag;
@@ -97,14 +98,17 @@ public final class NBTUtils
             throws IOException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(stream, "stream");
-        CompoundTag compoundtag;
-        PushbackInputStream pushbackinputstream = new PushbackInputStream(stream, 2);
-        if (IsGZip(pushbackinputstream)) {
-            compoundtag = NbtIo.readCompressed(pushbackinputstream, NbtAccounter.unlimitedHeap());
-        } else {
-            try (DataInputStream datainputstream = new DataInputStream(pushbackinputstream)) { compoundtag = NbtIo.read(datainputstream); }
+        try (PushbackWrappedInputStream pushbackinputstream = new PushbackWrappedInputStream(stream, 2))
+        {
+            CompoundTag compoundtag;
+            pushbackinputstream.SetIsOwner(false);
+            if (IsGZip(pushbackinputstream)) {
+                compoundtag = NbtIo.readCompressed(pushbackinputstream, NbtAccounter.unlimitedHeap());
+            } else {
+                try (DataInputStream datainputstream = new DataInputStream(pushbackinputstream)) { compoundtag = NbtIo.read(datainputstream); }
+            }
+            return compoundtag;
         }
-        return compoundtag;
     }
 
     /**

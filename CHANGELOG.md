@@ -1,13 +1,5 @@
-### Now releasing 1.0.22:
+### Now releasing 1.0.23:
 
--> Fixed doc issues
+-> Fixed FBF de/encoding, added Fixed Arrays
 
--> Added the ArrayBasedRegister class
-
--> Added some more missing NBT utilities
-
--> Fixed FBF GZip compression method to reliably release the de/encoder
-
--> [Fabric]: Fixed init issues + changed the client mod loader layer to store the packet events using a single-linked-list-based register.
-
--> [1.21.5]: Fixed the NBT dimension data loader to reliably use `Path` objects instead.
+-> Commonized all the used I/O patterns in the library and utilities are contained in the 'io' utilities package.

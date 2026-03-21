@@ -1,8 +1,9 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
+
+import java.io.*;
 
 public final class IntBinaryFormatEntry
     implements BinaryFormatEntry
@@ -15,28 +16,21 @@ public final class IntBinaryFormatEntry
     public BinaryFormatEntryType GetType() { return BinaryFormatEntryType.INT; }
 
     @Override
-    public void WriteTo(OutputStream stream)
+    public void WriteTo(WrappedOutputStream stream)
             throws IOException
     {
         BinaryFormatEntryType.INT.WriteTo(stream);
-        stream.write(new byte[] {
-                (byte)(value & 0xFF),
-                (byte)((value >> 8) & 0xFF),
-                (byte)((value >> 16) & 0xFF),
-                (byte)((value >> 24) & 0xFF)
-        });
+        stream.WriteIntegerLE(value);
     }
 
     @Override
-    public void ReadFrom(InputStream stream)
+    public void ReadFrom(PushbackWrappedInputStream stream)
             throws IOException
     {
         if (BinaryFormatEntryType.ReadFrom(stream) != BinaryFormatEntryType.INT) {
             throw new IOException("Expected INT");
         } else {
-            value = 0;
-            byte[] data = FastBinaryFormatUtils.ReadBytes(stream, 4);
-            for (int I = 0; I < data.length; I++) { value |= data[I] << (I * 8); }
+            value = stream.ReadIntegerLE();
         }
     }
 

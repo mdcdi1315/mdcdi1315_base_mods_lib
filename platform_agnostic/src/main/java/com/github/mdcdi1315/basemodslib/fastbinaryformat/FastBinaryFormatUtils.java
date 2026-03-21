@@ -1,18 +1,16 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.FormatException;
+import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import com.github.mdcdi1315.basemodslib.utils.Extensions;
+import com.github.mdcdi1315.basemodslib.utils.io.SevenBitEncodedInt;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.ByteOrder;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.CoderResult;
-import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -22,84 +20,16 @@ final class FastBinaryFormatUtils
 {
     private FastBinaryFormatUtils() {}
 
-    public static void Write7BitEncodedInt(OutputStream stream, int value)
-            throws IOException
-    {
-        long num;
-        for (num = (value & 0xFFFFFFFFL); num >= 0x7FL; num >>= 7L) {
-            stream.write((int)((num | 0x80L) & 0xFFL));
-        }
-        stream.write((int) num);
-    }
+    public static void ThrowEOF() throws IOException { throw new EOFException("Unexpected end of stream"); }
 
-    public static int Read7BitEncodedInt(InputStream stream)
-            throws IOException, FormatException
-    {
-        int value = 0, bits = 0, g;
-        byte b;
-        do {
-            if (bits == 35) {
-                throw new FormatException("Too many bytes of what should have been a 7-bit encoded Integer.");
-            }
-            g = stream.read();
-            if (g == -1) { throw new IOException("End of stream reached"); } else { b = (byte)g; }
-            value |= (b & 0x7F) << bits;
-            bits += 7;
-        } while ((b & 0x80) != 0);
-        return value;
-    }
-
-    private static int ComputeBufferSize(int consumed, int total, int buffer_size) { return ((consumed + buffer_size) < total) ? buffer_size : (total - consumed); }
-
-    @NotNull
-    public static String ReadString(InputStream stream, CharsetDecoder decoder, int bytes)
-            throws IOException
-    {
-        int read, total_read = 0;
-        byte[] temp = new byte[1024];
-        CoderResult cr;
-        // Allocate necessary buffers
-        StringBuilder string_builder = new StringBuilder();
-        CharBuffer buffer = CharBuffer.allocate(Extensions.Ceiling(decoder.maxCharsPerByte() * temp.length));
-        // Read loop
-        while (total_read < bytes)
-        {
-            // Read bytes...
-            read = stream.read(temp, 0, ComputeBufferSize(total_read, bytes, temp.length));
-            if (read > -1) { total_read += read; } else { break; }
-            // Then wrap them into a buffer...
-            ByteBuffer bb = ByteBuffer.wrap(temp, 0, read);
-            // Decode...
-            do {
-                buffer.position(0);
-                buffer.limit(buffer.capacity());
-                cr = decoder.decode(bb, buffer, total_read >= bytes);
-                buffer.limit(buffer.position());
-                buffer.position(0);
-                string_builder.append(buffer);
-            } while (cr.isOverflow());
-            // Throw exception if we have an error.
-            if (cr.isError()) { cr.throwException(); }
-        }
-        // Final flush as instructed by Java API
-        do {
-            buffer.position(0);
-            buffer.limit(buffer.capacity());
-            cr = decoder.flush(buffer);
-            buffer.limit(buffer.position());
-            buffer.position(0);
-            string_builder.append(buffer);
-        } while (cr.isOverflow());
-        // Get value, and we are done.
-        return string_builder.toString();
-    }
+    public static void ThrowEOFIf(boolean condition) throws IOException { if (condition) { ThrowEOF(); } }
 
     public static void WriteString7BitEncodedLength(OutputStream stream, String string, Charset set)
             throws IOException
     {
         ByteBuffer bb = set.encode(string);
         bb.position(0);
-        Write7BitEncodedInt(stream, bb.remaining());
+        SevenBitEncodedInt.Write(stream, bb.remaining());
         byte[] temp = new byte[1024];
         int rem;
         while ((rem = bb.remaining()) > 1024) {
@@ -137,19 +67,75 @@ final class FastBinaryFormatUtils
     }
 
     @NotNull
-    public static byte[] ReadBytes(InputStream stream, int n_bytes_to_read)
+    public static ByteBuffer ReadBytes(InputStream stream, int n_bytes_to_read)
             throws IOException
     {
-        byte[] bytes = new byte[n_bytes_to_read];
+        ByteBuffer bb = ByteBuffer.wrap(new byte[n_bytes_to_read]);
+        bb.order(ByteOrder.LITTLE_ENDIAN);
         int read = 0, r;
         do {
-            r = stream.read(bytes, read, n_bytes_to_read - read);
-            if (r == -1) {
-                throw new IOException("Unexpected end of stream");
-            } else {
-                read += r;
-            }
+            ThrowEOFIf((r = stream.read(bb.array(), read, n_bytes_to_read - read)) == -1);
+            read += r;
         } while (read < n_bytes_to_read);
-        return bytes;
+        bb.rewind();
+        return bb;
     }
+
+    @NotNull
+    public static BinaryFormatEntry ConstructEntryFromType(BinaryFormatEntryType type)
+            throws IOException
+    {
+        return switch (type.GetEntryCode()) {
+            case BinaryFormatEntryType.NULL_ENTRY_CODE -> NullBinaryFormatEntry.INSTANCE;
+            case BinaryFormatEntryType.OBJECT_ENTRY_CODE -> new ObjectBinaryFormatEntry();
+            case BinaryFormatEntryType.ARRAY_ENTRY_CODE -> new ArrayBinaryFormatEntry();
+            case BinaryFormatEntryType.BYTE_ENTRY_CODE -> new ByteBinaryFormatEntry(0);
+            case BinaryFormatEntryType.SHORT_ENTRY_CODE -> new ShortBinaryFormatEntry(0);
+            case BinaryFormatEntryType.INT_ENTRY_CODE -> new IntBinaryFormatEntry(0);
+            case BinaryFormatEntryType.LONG_ENTRY_CODE -> new LongBinaryFormatEntry(0L);
+            case BinaryFormatEntryType.FLOAT_ENTRY_CODE -> new FloatBinaryFormatEntry(0F);
+            case BinaryFormatEntryType.DOUBLE_ENTRY_CODE -> new DoubleBinaryFormatEntry(0D);
+            case BinaryFormatEntryType.BOOLEAN_ENTRY_CODE -> new BooleanBinaryFormatEntry(false);
+            case BinaryFormatEntryType.SEVEN_BIT_ENCODED_INT_ENTRY_CODE -> new SevenBitEncodedIntBinaryFormatEntry(0);
+            case BinaryFormatEntryType.STRING_ENTRY_CODE -> CreateStringEntry(type.GetStringEncoding());
+            case BinaryFormatEntryType.FIXED_ARRAY_ENTRY_CODE -> CreateFixedArrayEntry(type.GetEntryData());
+            default -> throw new IOException("Do not know how to decode type " + type.GetEntryCode());
+        };
+    }
+
+    @NotNull
+    private static BaseStringBinaryFormatEntry CreateStringEntry(StringEncoding encoding)
+    {
+        if (encoding == StringEncoding.ASCII) {
+            return new ASCIIStringBinaryFormatEntry(StringUtils.Empty);
+        } else if (encoding == StringEncoding.UTF16_LE) {
+            return new UTF16LEStringBinaryFormatEntry(StringUtils.Empty);
+        } else if (encoding == StringEncoding.UTF16_BE) {
+            return new UTF16BEStringBinaryFormatEntry(StringUtils.Empty);
+        } else {
+            throw new FormatException("Unexpected encoding " + encoding);
+        }
+    }
+
+    @NotNull
+    private static BaseFixedArrayBinaryFormatEntry CreateFixedArrayEntry(int element_code)
+    {
+        if (element_code == BinaryFormatEntryType.BYTE_ENTRY_CODE) {
+            return new ByteFixedArrayBinaryFormatEntry();
+        } else if (element_code == BinaryFormatEntryType.SHORT_ENTRY_CODE) {
+            return new ShortFixedArrayBinaryFormatEntry();
+        } else if (element_code == BinaryFormatEntryType.INT_ENTRY_CODE) {
+            return new IntFixedArrayBinaryFormatEntry();
+        } else if (element_code == BinaryFormatEntryType.LONG_ENTRY_CODE) {
+            return new LongFixedArrayBinaryFormatEntry();
+        } else if (element_code == BinaryFormatEntryType.FLOAT_ENTRY_CODE) {
+            return new FloatFixedArrayBinaryFormatEntry();
+        } else if (element_code == BinaryFormatEntryType.DOUBLE_ENTRY_CODE) {
+            return new DoubleFixedArrayBinaryFormatEntry();
+        } else {
+            throw new InvalidOperationException("Unknown fixed array element code " + element_code);
+        }
+    }
+
+
 }

@@ -1,8 +1,9 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public final class NullBinaryFormatEntry
     implements BinaryFormatEntry
@@ -15,10 +16,10 @@ public final class NullBinaryFormatEntry
     public BinaryFormatEntryType GetType() { return BinaryFormatEntryType.NULL; }
 
     @Override
-    public void WriteTo(OutputStream stream) throws IOException { BinaryFormatEntryType.NULL.WriteTo(stream); }
+    public void WriteTo(WrappedOutputStream stream) throws IOException { BinaryFormatEntryType.NULL.WriteTo(stream); }
 
     @Override
-    public void ReadFrom(InputStream stream) throws IOException {
+    public void ReadFrom(PushbackWrappedInputStream stream) throws IOException {
         if (BinaryFormatEntryType.ReadFrom(stream) != BinaryFormatEntryType.NULL) { throw new IOException("Expected NULL"); }
     }
 }
