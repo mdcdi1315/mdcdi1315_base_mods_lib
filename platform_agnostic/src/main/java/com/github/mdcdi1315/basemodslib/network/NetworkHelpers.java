@@ -6,6 +6,8 @@ import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
+import com.github.mdcdi1315.basemodslib.utils.io.SevenBitEncodedInt;
+
 import io.netty.buffer.ByteBuf;
 
 import net.minecraft.core.Vec3i;
@@ -56,15 +58,10 @@ public final class NetworkHelpers
      * @param value The value to encode as a 7-bit integer.
      * @apiNote This is the unsafe method variant of {@link #Write7BitEncodedInt(ByteBuf, int)} method.
      * @since 1.0.18
+     * @implNote Since BML 1.0.23, this method forwards to {@link SevenBitEncodedInt#Write(ByteBuf, int)} method.
+     * However, there are no plans to deprecate this call.
      */
-    public static void Write7BitEncodedIntUnsafe(ByteBuf buffer, int value)
-    {
-        long num;
-        for (num = (value & 0xFFFFFFFFL); num >= 0x7FL; num >>= 7L) {
-            buffer.writeByte((int)((num | 0x80L) & 0xFFL));
-        }
-        buffer.writeByte((int) num);
-    }
+    public static void Write7BitEncodedIntUnsafe(ByteBuf buffer, int value) { SevenBitEncodedInt.Write(buffer, value); }
 
     /**
      * Writes a 7-bit encoded integer to the specified byte buffer.
@@ -87,22 +84,10 @@ public final class NetworkHelpers
      * @throws FormatException Attempted to read more than 5 bytes from the {@link ByteBuf}.
      * @apiNote This is the unsafe method variant of {@link #Read7BitEncodedInt(ByteBuf)} method.
      * @since 1.0.18
+     * @implNote Since BML 1.0.23, this method forwards to {@link SevenBitEncodedInt#Read(ByteBuf)} method.
+     * However, there are no plans to deprecate this call.
      */
-    public static int Read7BitEncodedIntUnsafe(ByteBuf buffer)
-            throws FormatException
-    {
-        int num = 0, bits = 0;
-        byte b;
-        do {
-            if (bits == 35) {
-                throw new FormatException("Too many bytes of what should have been a 7-bit encoded Integer.");
-            }
-            b = buffer.readByte();
-            num |= (b & 0x7F) << bits;
-            bits += 7;
-        } while ((b & 0x80) != 0);
-        return num;
-    }
+    public static int Read7BitEncodedIntUnsafe(ByteBuf buffer) throws FormatException { return SevenBitEncodedInt.Read(buffer); }
 
     /**
      * Reads a 7-bit encoded integer from the specified byte buffer.

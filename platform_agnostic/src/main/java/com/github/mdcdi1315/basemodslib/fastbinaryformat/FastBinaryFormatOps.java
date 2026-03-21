@@ -10,10 +10,15 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 
 import java.util.Map;
+import java.util.List;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.nio.ByteBuffer;
 import java.util.stream.Stream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 /**
  * Provides an ops object for de/serializing Fast Binary Format objects using the Mojang's serialization library.
@@ -27,9 +32,6 @@ public final class FastBinaryFormatOps
     public static final FastBinaryFormatOps INSTANCE = new FastBinaryFormatOps();
 
     private FastBinaryFormatOps() {}
-
-    @Override
-    public boolean compressMaps() { return true; } // Compress any map, if possible
 
     @Override
     public NullBinaryFormatEntry empty() { return NullBinaryFormatEntry.INSTANCE; }
@@ -67,6 +69,9 @@ public final class FastBinaryFormatOps
                 case BaseStringBinaryFormatEntry s -> ops.createString(s.GetValue());
                 case ArrayBinaryFormatEntry a -> ops.createList(a.AsStream().map(new ConvertAnyToTD_Mapper<>(ops)));
                 case ObjectBinaryFormatEntry o -> ops.createMap(o.AsStream().map(new ConvertToConcreteValuesMapper<>(this)));
+                case ByteFixedArrayBinaryFormatEntry b -> ops.createByteList(ByteBuffer.wrap(b.GetData()));
+                case IntFixedArrayBinaryFormatEntry b -> ops.createIntList(Arrays.stream(b.GetData()));
+                case LongFixedArrayBinaryFormatEntry b -> ops.createLongList(Arrays.stream(b.GetData()));
                 default -> throw new RuntimeException("Unknown BinaryFormatEntry " + input);
             };
         }
@@ -127,16 +132,24 @@ public final class FastBinaryFormatOps
     @Override
     public DataResult<BinaryFormatEntry> mergeToList(BinaryFormatEntry list, BinaryFormatEntry value)
     {
+        ArrayBinaryFormatEntry r = new ArrayBinaryFormatEntry();
+        r.Add(value);
         if (list instanceof ArrayBinaryFormatEntry a) {
-            a.Add(value);
-            return DataResult.success(a);
+            r.AddFrom(a);
+            return DataResult.success(r);
         } else if (list instanceof NullBinaryFormatEntry) {
-            ArrayBinaryFormatEntry a = new ArrayBinaryFormatEntry();
-            a.Add(value);
-            return DataResult.success(a);
+            return DataResult.success(r);
         } else {
             return DataResult.error(StringSupplier.FromDotNetFormatted("Merge To List was called on a non-list type: {0}", list));
         }
+    }
+
+    @Override
+    public DataResult<BinaryFormatEntry> mergeToList(BinaryFormatEntry list, List<BinaryFormatEntry> values)
+    {
+        ArrayBinaryFormatEntry r = new ArrayBinaryFormatEntry();
+        for (BinaryFormatEntry value : values) { r.Add(value); }
+        return DataResult.success(r);
     }
 
     @Override
@@ -210,11 +223,43 @@ public final class FastBinaryFormatOps
     @Override
     public DataResult<Stream<BinaryFormatEntry>> getStream(BinaryFormatEntry input)
     {
-        if (input instanceof ArrayBinaryFormatEntry a) {
-            return DataResult.success(a.AsStream());
-        } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Not a list type: {0}", input));
-        }
+        return switch (input) {
+            case ArrayBinaryFormatEntry a -> DataResult.success(a.AsStream());
+            case ByteFixedArrayBinaryFormatEntry b ->
+                    DataResult.success(IntStream.range(0, b.GetSize()).mapToObj(new MapToObj_Byte(b.GetData())));
+            case FloatFixedArrayBinaryFormatEntry b ->
+                    DataResult.success(IntStream.range(0, b.GetSize()).mapToObj(new MapToObj_Float(b.GetData())));
+            case ShortFixedArrayBinaryFormatEntry b ->
+                    DataResult.success(IntStream.range(0, b.GetSize()).mapToObj(new MapToObj_Short(b.GetData())));
+            case IntFixedArrayBinaryFormatEntry b ->
+                    DataResult.success(Arrays.stream(b.GetData()).mapToObj(IntBinaryFormatEntry::new));
+            case LongFixedArrayBinaryFormatEntry b ->
+                    DataResult.success(Arrays.stream(b.GetData()).mapToObj(LongBinaryFormatEntry::new));
+            case DoubleFixedArrayBinaryFormatEntry b ->
+                    DataResult.success(Arrays.stream(b.GetData()).mapToObj(DoubleBinaryFormatEntry::new));
+            default -> DataResult.error(StringSupplier.FromDotNetFormatted("Not a list or array type: {0}", input));
+        };
+    }
+
+    private record MapToObj_Byte(byte[] array)
+        implements IntFunction<ByteBinaryFormatEntry>
+    {
+        @Override
+        public ByteBinaryFormatEntry apply(int value) { return new ByteBinaryFormatEntry(array[value]); }
+    }
+
+    private record MapToObj_Float(float[] array)
+        implements IntFunction<FloatBinaryFormatEntry>
+    {
+        @Override
+        public FloatBinaryFormatEntry apply(int value) { return new FloatBinaryFormatEntry(array[value]); }
+    }
+
+    private record MapToObj_Short(short[] array)
+        implements IntFunction<ShortBinaryFormatEntry>
+    {
+        @Override
+        public ShortBinaryFormatEntry apply(int value) { return new ShortBinaryFormatEntry(array[value]); }
     }
 
     @Override
@@ -230,10 +275,44 @@ public final class FastBinaryFormatOps
     @Override
     public BinaryFormatEntry createByteList(ByteBuffer input)
     {
-        ArrayBinaryFormatEntry array = new ArrayBinaryFormatEntry();
-        for (int I = 0; I < input.capacity(); I++) { array.Add(new ByteBinaryFormatEntry(input.get(I))); }
-        array.Optimize();
-        return array;
+        ByteFixedArrayBinaryFormatEntry entry = new ByteFixedArrayBinaryFormatEntry();
+        entry.CreateArray(input.remaining());
+        input.get(entry.GetData());
+        return entry;
+    }
+
+    @Override
+    public DataResult<IntStream> getIntStream(BinaryFormatEntry input)
+    {
+        return switch (input) {
+            case ArrayBinaryFormatEntry a -> {
+                IntStream.Builder builder = IntStream.builder();
+                for (BinaryFormatEntry i : a)
+                {
+                    if (i instanceof IntBinaryFormatEntry gi) { builder.add(gi.GetValue()); }
+                }
+                yield DataResult.success(builder.build());
+            }
+            case IntFixedArrayBinaryFormatEntry b -> DataResult.success(Arrays.stream(b.GetData()));
+            default -> DataResult.error(StringSupplier.FromDotNetFormatted("Not an integer fixed array or array type: {0}", input));
+        };
+    }
+
+    @Override
+    public DataResult<LongStream> getLongStream(BinaryFormatEntry input)
+    {
+        return switch (input) {
+            case ArrayBinaryFormatEntry a -> {
+                LongStream.Builder builder = LongStream.builder();
+                for (BinaryFormatEntry i : a)
+                {
+                    if (i instanceof LongBinaryFormatEntry gi) { builder.add(gi.GetValue()); }
+                }
+                yield DataResult.success(builder.build());
+            }
+            case LongFixedArrayBinaryFormatEntry b -> DataResult.success(Arrays.stream(b.GetData()));
+            default -> DataResult.error(StringSupplier.FromDotNetFormatted("Not a long integer fixed array or array type: {0}", input));
+        };
     }
 
     @Override
@@ -255,6 +334,8 @@ public final class FastBinaryFormatOps
             return DataResult.success(bb);
         } else if (input instanceof NullBinaryFormatEntry) {
             return DataResult.success(ByteBuffer.allocate(0));
+        } else if (input instanceof ByteFixedArrayBinaryFormatEntry e) {
+            return DataResult.success(ByteBuffer.wrap(e.GetData()));
         } else {
             return DataResult.error(StringSupplier.FromDotNetFormatted("Not a list type: {0}", input));
         }

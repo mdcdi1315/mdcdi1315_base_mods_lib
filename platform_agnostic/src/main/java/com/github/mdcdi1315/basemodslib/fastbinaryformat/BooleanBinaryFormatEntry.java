@@ -1,8 +1,9 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public final class BooleanBinaryFormatEntry
     implements BinaryFormatEntry
@@ -15,14 +16,14 @@ public final class BooleanBinaryFormatEntry
     public BinaryFormatEntryType GetType() { return value ? BinaryFormatEntryType.BOOLEAN_TRUE : BinaryFormatEntryType.BOOLEAN_FALSE; }
 
     @Override
-    public void WriteTo(OutputStream stream)
+    public void WriteTo(WrappedOutputStream stream)
             throws IOException
     {
         GetType().WriteTo(stream);
     }
 
     @Override
-    public void ReadFrom(InputStream stream)
+    public void ReadFrom(PushbackWrappedInputStream stream)
             throws IOException
     {
         var t = BinaryFormatEntryType.ReadFrom(stream);

@@ -1,9 +1,8 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Tuple2;
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
+import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import java.io.IOException;
 
@@ -21,6 +20,7 @@ public final class BinaryFormatEntryType
     public static final int OBJECT_ENTRY_CODE = 0x09;
     public static final int ARRAY_ENTRY_CODE = 0x0A;
     public static final int NULL_ENTRY_CODE = 0x0B;
+    public static final int FIXED_ARRAY_ENTRY_CODE = 0x0C;
 
     public static final BinaryFormatEntryType BYTE = new BinaryFormatEntryType(BYTE_ENTRY_CODE | (0x01 << 4));
 
@@ -51,6 +51,18 @@ public final class BinaryFormatEntryType
     public static final BinaryFormatEntryType LARGE_ARRAY = new BinaryFormatEntryType(ARRAY_ENTRY_CODE | (15 << 4));
 
     public static final BinaryFormatEntryType NULL = new BinaryFormatEntryType(NULL_ENTRY_CODE);
+
+    public static final BinaryFormatEntryType FIXED_ARRAY_BYTE = new BinaryFormatEntryType(FIXED_ARRAY_ENTRY_CODE | (BYTE_ENTRY_CODE << 4));
+
+    public static final BinaryFormatEntryType FIXED_ARRAY_SHORT = new BinaryFormatEntryType(FIXED_ARRAY_ENTRY_CODE | (SHORT_ENTRY_CODE << 4));
+
+    public static final BinaryFormatEntryType FIXED_ARRAY_INT = new BinaryFormatEntryType(FIXED_ARRAY_ENTRY_CODE | (INT_ENTRY_CODE << 4));
+
+    public static final BinaryFormatEntryType FIXED_ARRAY_LONG = new BinaryFormatEntryType(FIXED_ARRAY_ENTRY_CODE | (LONG_ENTRY_CODE << 4));
+
+    public static final BinaryFormatEntryType FIXED_ARRAY_FLOAT = new BinaryFormatEntryType(FIXED_ARRAY_ENTRY_CODE | (FLOAT_ENTRY_CODE << 4));
+
+    public static final BinaryFormatEntryType FIXED_ARRAY_DOUBLE = new BinaryFormatEntryType(FIXED_ARRAY_ENTRY_CODE | (DOUBLE_ENTRY_CODE << 4));
 
     private final byte packed_data;
 
@@ -98,6 +110,20 @@ public final class BinaryFormatEntryType
      * @return A value whether the current entry type is an array of the specified type.
      */
     public boolean IsArrayOf(BinaryFormatEntryType type) { return type != null && this.GetEntryCode() == ARRAY_ENTRY_CODE && type.GetEntryCode() == this.GetEntryData(); }
+
+    /**
+     * Gets a value whether the current {@link BinaryFormatEntryType} is the same as another {@link BinaryFormatEntryType}.
+     * @param other The second {@link BinaryFormatEntryType} object to compare this object against.
+     * @return A value determining equality of the current and the provided object.
+     */
+    public boolean equals(BinaryFormatEntryType other)
+    {
+        if (other == null) {
+            return false;
+        } else {
+            return packed_data == other.packed_data;
+        }
+    }
 
     public static Tuple2<BinaryFormatEntryType, Boolean> ConstructArray(int n_elements)
     {

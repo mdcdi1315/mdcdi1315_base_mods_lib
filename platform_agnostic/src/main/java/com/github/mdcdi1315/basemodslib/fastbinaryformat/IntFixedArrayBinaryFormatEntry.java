@@ -1,0 +1,43 @@
+package com.github.mdcdi1315.basemodslib.fastbinaryformat;
+
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
+
+import java.io.IOException;
+
+public final class IntFixedArrayBinaryFormatEntry
+        extends BaseFixedArrayBinaryFormatEntry
+{
+    private int[] array;
+
+    public IntFixedArrayBinaryFormatEntry() { array = new int[0]; }
+
+    @Override
+    public int[] GetData() { return array; }
+
+    @Override
+    public int GetSize() { return array.length; }
+
+    @Override
+    protected void CreateArrayImpl(int n_elements) { array = new int[n_elements]; }
+
+    @Override
+    public BinaryFormatEntryType GetType() { return BinaryFormatEntryType.FIXED_ARRAY_INT; }
+
+    @Override
+    protected void WriteArrayData(WrappedOutputStream stream)
+            throws IOException
+    {
+        for (int s : array) { stream.WriteIntegerLE(s); }
+    }
+
+    @Override
+    protected void ReadArrayData(WrappedInputStream stream, int length)
+            throws IOException
+    {
+        CreateArrayImpl(length);
+        for (int I = 0; I < length; I++) {
+            array[I] = stream.ReadIntegerLE();
+        }
+    }
+}

@@ -1,21 +1,18 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
-import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
-import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
+import com.github.mdcdi1315.basemodslib.utils.io.*;
+
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapLike;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PushbackInputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 import java.util.*;
@@ -35,12 +32,12 @@ public final class ObjectBinaryFormatEntry
     public BinaryFormatEntryType GetType() { return BinaryFormatEntryType.LARGE_OBJECT; }
 
     @Override
-    public void WriteTo(OutputStream stream)
+    public void WriteTo(WrappedOutputStream stream)
             throws IOException
     {
         var header = BinaryFormatEntryType.ConstructObject(fields.size());
         header.GetItem1().WriteTo(stream);
-        if (header.GetItem2()) { FastBinaryFormatUtils.Write7BitEncodedInt(stream, fields.size()); }
+        if (header.GetItem2()) { SevenBitEncodedInt.Write(stream, fields.size()); }
         for (Map.Entry<String, BinaryFormatEntry> map_entry : fields.entrySet()) {
             FastBinaryFormatUtils.WriteFieldNameString(stream, map_entry.getKey());
             map_entry.getValue().WriteTo(stream);
@@ -48,7 +45,7 @@ public final class ObjectBinaryFormatEntry
     }
 
     @Override
-    public void ReadFrom(InputStream stream)
+    public void ReadFrom(PushbackWrappedInputStream stream)
             throws IOException
     {
         var e = BinaryFormatEntryType.ReadFrom(stream);
@@ -57,40 +54,18 @@ public final class ObjectBinaryFormatEntry
         } else {
             BinaryFormatEntry entry;
             int elements = e.GetEntryData();
-            if (elements > 14) { elements = FastBinaryFormatUtils.Read7BitEncodedInt(stream); }
-            PushbackInputStream pis = new PushbackInputStream(stream, 1);
+            if (elements > 14) { elements = SevenBitEncodedInt.Read(stream); }
             fields.clear();
             int field_name_size;
             String field_name;
             for (; elements > 0; elements--)
             {
-                field_name_size = pis.read();
-                if (field_name_size == -1) { throw new IOException("Unexpected end of stream"); }
-                field_name = FastBinaryFormatUtils.ReadString(pis, StandardCharsets.US_ASCII.newDecoder(), field_name_size);
-                e = BinaryFormatEntryType.ReadFrom(pis);
-                entry = switch (e.GetEntryCode())
-                {
-                    case BinaryFormatEntryType.NULL_ENTRY_CODE -> NullBinaryFormatEntry.INSTANCE;
-                    case BinaryFormatEntryType.OBJECT_ENTRY_CODE -> new ObjectBinaryFormatEntry();
-                    case BinaryFormatEntryType.ARRAY_ENTRY_CODE -> new ArrayBinaryFormatEntry();
-                    case BinaryFormatEntryType.BYTE_ENTRY_CODE -> new ByteBinaryFormatEntry(0);
-                    case BinaryFormatEntryType.SHORT_ENTRY_CODE -> new ShortBinaryFormatEntry(0);
-                    case BinaryFormatEntryType.INT_ENTRY_CODE -> new IntBinaryFormatEntry(0);
-                    case BinaryFormatEntryType.LONG_ENTRY_CODE -> new LongBinaryFormatEntry(0L);
-                    case BinaryFormatEntryType.FLOAT_ENTRY_CODE -> new FloatBinaryFormatEntry(0F);
-                    case BinaryFormatEntryType.DOUBLE_ENTRY_CODE -> new DoubleBinaryFormatEntry(0D);
-                    case BinaryFormatEntryType.BOOLEAN_ENTRY_CODE -> new BooleanBinaryFormatEntry(false);
-                    case BinaryFormatEntryType.SEVEN_BIT_ENCODED_INT_ENTRY_CODE -> new SevenBitEncodedIntBinaryFormatEntry(0);
-                    case BinaryFormatEntryType.STRING_ENTRY_CODE -> switch (e.GetStringEncoding()) {
-                        case UTF16_LE -> new UTF16LEStringBinaryFormatEntry(StringUtils.Empty);
-                        case UTF16_BE -> new UTF16BEStringBinaryFormatEntry(StringUtils.Empty);
-                        case ASCII -> new ASCIIStringBinaryFormatEntry(StringUtils.Empty);
-                        default -> throw new FormatException("Unexpected encoding " + e.GetStringEncoding());
-                    };
-                    default -> throw new IOException("Do not know how to decode type " + e.GetEntryCode());
-                };
-                pis.unread(e.GetEncodedValue());
-                entry.ReadFrom(pis);
+                FastBinaryFormatUtils.ThrowEOFIf((field_name_size = stream.read()) == -1);
+                field_name = StringIO.ReadString(stream, StandardCharsets.US_ASCII.newDecoder(), field_name_size);
+                e = BinaryFormatEntryType.ReadFrom(stream);
+                entry = FastBinaryFormatUtils.ConstructEntryFromType(e);
+                stream.Unread(e.GetEncodedValue());
+                entry.ReadFrom(stream);
                 fields.put(field_name, entry);
             }
         }

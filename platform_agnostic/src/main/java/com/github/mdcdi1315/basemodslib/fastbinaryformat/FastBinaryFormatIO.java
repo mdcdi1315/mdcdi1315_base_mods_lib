@@ -1,9 +1,11 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
-import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
-import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -38,42 +40,26 @@ public final class FastBinaryFormatIO
      * @return The object exactly representing the stored data in {@code stream}.
      * @throws IOException An I/O exception was occurred.
      * @throws ArgumentNullException {@code stream} is {@code null}.
+     * @apiNote Since BML 1.0.23, this method does not close the data stream after the FBF data are loaded.
+     * It is the caller's responsibility to do that.
      */
     @NotNull
     public static BinaryFormatEntry Load(InputStream stream)
         throws IOException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(stream, "stream");
-        PushbackInputStream strm = new PushbackInputStream(stream, 1);
-        byte[] header = new byte[HEADER.length()];
-        int read = strm.read(header);
-        if (read < header.length || !HEADER.equals(new String(header, 0, read, StandardCharsets.US_ASCII))) {
-            throw new IOException("Invalid FBF header");
-        } else {
-            BinaryFormatEntryType t = BinaryFormatEntryType.ReadFrom(strm);
-            BinaryFormatEntry entry = switch (t.GetEntryCode()) {
-                case BinaryFormatEntryType.NULL_ENTRY_CODE -> NullBinaryFormatEntry.INSTANCE;
-                case BinaryFormatEntryType.OBJECT_ENTRY_CODE -> new ObjectBinaryFormatEntry();
-                case BinaryFormatEntryType.ARRAY_ENTRY_CODE -> new ArrayBinaryFormatEntry();
-                case BinaryFormatEntryType.BYTE_ENTRY_CODE -> new ByteBinaryFormatEntry(0);
-                case BinaryFormatEntryType.SHORT_ENTRY_CODE -> new ShortBinaryFormatEntry(0);
-                case BinaryFormatEntryType.INT_ENTRY_CODE -> new IntBinaryFormatEntry(0);
-                case BinaryFormatEntryType.LONG_ENTRY_CODE -> new LongBinaryFormatEntry(0L);
-                case BinaryFormatEntryType.FLOAT_ENTRY_CODE -> new FloatBinaryFormatEntry(0F);
-                case BinaryFormatEntryType.DOUBLE_ENTRY_CODE -> new DoubleBinaryFormatEntry(0D);
-                case BinaryFormatEntryType.BOOLEAN_ENTRY_CODE -> new BooleanBinaryFormatEntry(false);
-                case BinaryFormatEntryType.SEVEN_BIT_ENCODED_INT_ENTRY_CODE -> new SevenBitEncodedIntBinaryFormatEntry(0);
-                case BinaryFormatEntryType.STRING_ENTRY_CODE -> switch (t.GetStringEncoding()) {
-                    case UTF16_LE -> new UTF16LEStringBinaryFormatEntry(StringUtils.Empty);
-                    case UTF16_BE -> new UTF16BEStringBinaryFormatEntry(StringUtils.Empty);
-                    case ASCII -> new ASCIIStringBinaryFormatEntry(StringUtils.Empty);
-                    default -> throw new FormatException("Unexpected encoding " + t.GetStringEncoding());
-                };
-                default -> throw new IOException("Do not know how to decode type " + t.GetEntryCode());
-            };
-            strm.unread(t.GetEncodedValue());
-            entry.ReadFrom(strm);
-            return entry;
+        try (PushbackWrappedInputStream s = new PushbackWrappedInputStream(stream, 1, false)) {
+            byte[] header = new byte[HEADER.length()];
+            int read = s.read(header);
+            if (read < header.length || !HEADER.equals(new String(header, 0, read, StandardCharsets.US_ASCII))) {
+                throw new IOException("Invalid FBF header");
+            } else {
+                BinaryFormatEntryType t = BinaryFormatEntryType.ReadFrom(s);
+                BinaryFormatEntry entry = FastBinaryFormatUtils.ConstructEntryFromType(t);
+                s.Unread(t.GetEncodedValue());
+                entry.ReadFrom(s);
+                return entry;
+            }
         }
     }
 
@@ -102,13 +88,15 @@ public final class FastBinaryFormatIO
      * @return The object exactly representing the stored data in {@code stream}.
      * @throws IOException An I/O exception was occurred.
      * @throws ArgumentNullException {@code stream} is {@code null}.
+     * @apiNote Since BML 1.0.23, this method does not close the data stream after the FBF data are loaded.
+     * It is the caller's responsibility to do that.
      */
     @NotNull
     public static BinaryFormatEntry LoadGZIPCompressed(InputStream stream)
         throws IOException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(stream, "stream");
-        return Load(new GZIPInputStream(stream));
+        try (GZIPInputStream gzo = new GZIPInputStream(new WrappedInputStream(stream, false))) { return Load(gzo); }
     }
 
     /**
@@ -195,6 +183,8 @@ public final class FastBinaryFormatIO
      * @param entry The object to save. Can be any type of object directly supported by the Fast Binary Format.
      * @throws IOException An I/O exception was occurred.
      * @throws ArgumentNullException {@code stream} and/or {@code entry} are {@code null}.
+     * @apiNote Since BML 1.0.23, this method does not close the data stream after the FBF data are saved.
+     * It is the caller's responsibility to do that.
      */
     public static void Save(OutputStream stream, BinaryFormatEntry entry)
             throws IOException, ArgumentNullException
@@ -202,7 +192,7 @@ public final class FastBinaryFormatIO
         ArgumentNullException.ThrowIfNull(entry, "entry");
         ArgumentNullException.ThrowIfNull(stream, "stream");
         stream.write(HEADER.getBytes(StandardCharsets.US_ASCII));
-        entry.WriteTo(stream);
+        entry.WriteTo(new WrappedOutputStream(stream, false));
     }
 
     /**
@@ -247,12 +237,14 @@ public final class FastBinaryFormatIO
      * @param entry The object to save. Can be any type of object directly supported by the Fast Binary Format.
      * @throws IOException An I/O exception was occurred.
      * @throws ArgumentNullException {@code stream} and/or {@code entry} are {@code null}.
+     * @apiNote Since BML 1.0.23, this method does not close the data stream after the FBF data are saved.
+     * It is the caller's responsibility to do that.
      */
     public static void SaveGZIPCompressed(OutputStream stream, BinaryFormatEntry entry)
             throws IOException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(stream, "stream");
-        try (var gzo = new GZIPOutputStream(stream, false)) { Save(gzo, entry); }
+        try (var gzo = new GZIPOutputStream(new WrappedOutputStream(stream, false), false)) { Save(gzo, entry); }
     }
 
     /**

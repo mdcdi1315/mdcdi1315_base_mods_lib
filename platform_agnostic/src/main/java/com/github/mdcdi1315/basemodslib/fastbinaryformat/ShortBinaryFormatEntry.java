@@ -2,9 +2,10 @@ package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public final class ShortBinaryFormatEntry
     implements BinaryFormatEntry
@@ -24,32 +25,21 @@ public final class ShortBinaryFormatEntry
     public BinaryFormatEntryType GetType() { return BinaryFormatEntryType.SHORT; }
 
     @Override
-    public void WriteTo(OutputStream stream)
+    public void WriteTo(WrappedOutputStream stream)
             throws IOException
     {
         BinaryFormatEntryType.SHORT.WriteTo(stream);
-        stream.write(new byte[] { (byte)(value & 0xFF), (byte)((value >> 8) & 0xFF) });
+        stream.WriteShortLE(value);
     }
 
     @Override
-    public void ReadFrom(InputStream stream)
+    public void ReadFrom(PushbackWrappedInputStream stream)
             throws IOException
     {
         if (BinaryFormatEntryType.ReadFrom(stream) != BinaryFormatEntryType.SHORT) {
             throw new IOException("Expected SHORT");
         } else {
-            int t = stream.read();
-            if (t == -1) {
-                throw new IOException("End of stream");
-            } else {
-                value = (short) t;
-                t = stream.read();
-                if (t == -1) {
-                    throw new IOException("End of stream");
-                } else {
-                    value |= (short) (t << 8);
-                }
-            }
+            value = stream.ReadShortLE();
         }
     }
 
