@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.forge;
 
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
@@ -11,6 +12,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.client.ForgeClientArtifactsRegistrar;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
+import com.github.mdcdi1315.basemodslib.client.ForgeClientRegistriesRegistrar;
 
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModContainer;
@@ -26,7 +28,7 @@ public final class ForgeClientModLoaderLayer
 {
     public ForgeClientModLoaderLayer(FMLJavaModLoadingContext context) {
         BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, ForgeClientModLoaderLayer::RegisterConfigScreensToMods);
-        context.getModEventBus().addListener(this::OnClientSetupClient);
+        ForgeUtils.AddListener(context.getModEventBus(), FMLClientSetupEvent.class, this::OnClientSetupClient);
     }
 
     private static void RegisterConfigScreensToMods(ModLoadingCompleteEvent completed)
@@ -79,6 +81,11 @@ public final class ForgeClientModLoaderLayer
 
         reg.RegisterToEventBus(mod_event_bus);
 
+        ForgeClientRegistriesRegistrar reg_2 = new ForgeClientRegistriesRegistrar();
+
+        instance.RegisterClientRegistryItems(reg_2);
+
+        reg_2.RegisterToEventBus(mod_event_bus);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.neoforge;
 
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
@@ -11,6 +12,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import com.github.mdcdi1315.basemodslib.client.NeoForgeClientArtifactsRegistrar;
+import com.github.mdcdi1315.basemodslib.client.NeoForgeClientRegistriesRegistrar;
 
 import net.minecraft.client.gui.screens.Screen;
 
@@ -27,7 +29,7 @@ public final class NeoForgeClientModLoaderLayer
 {
     public NeoForgeClientModLoaderLayer(IEventBus event_bus) {
         BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class , NeoForgeClientModLoaderLayer::RegisterConfigScreensToMods);
-        event_bus.addListener(this::OnClientSetupEvent);
+        NeoForgeUtils.AddListener(event_bus, FMLClientSetupEvent.class, this::OnClientSetupEvent);
     }
 
     private static IEventBus GetEventBusOrFail(Object mod_object) {
@@ -85,15 +87,21 @@ public final class NeoForgeClientModLoaderLayer
         IEventBus mod_bus = GetEventBusOrFail(mod_object);
 
         NeoForgeClientArtifactsRegistrar registrar = new NeoForgeClientArtifactsRegistrar();
+
         instance.RegisterColorHandlers(registrar);
         instance.RegisterModelDefinitions(registrar);
         instance.RegisterEntityRenderers(registrar);
         instance.RegisterBlockEntityRenderers(registrar);
         instance.RegisterParticleProviders(registrar);
         instance.RegisterMenuScreens(registrar);
+
         registrar.RegisterToEventBus(mod_bus);
 
+        NeoForgeClientRegistriesRegistrar registrar_2 = new NeoForgeClientRegistriesRegistrar();
 
+        instance.RegisterClientRegistryItems(registrar_2);
+
+        registrar_2.RegisterToEventBus(mod_bus);
     }
 
 

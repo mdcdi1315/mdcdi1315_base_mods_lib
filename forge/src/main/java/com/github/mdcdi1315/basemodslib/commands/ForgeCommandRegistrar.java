@@ -6,7 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import com.mojang.brigadier.CommandDispatcher;
 
@@ -18,10 +18,10 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 public final class ForgeCommandRegistrar
     implements ICommandRegistrar
 {
-    private final SingleLinkedList<Action1<CommandDispatcher<CommandSourceStack>>> commands;
+    private final SingleLinkedListBasedRegister<Action1<CommandDispatcher<CommandSourceStack>>> commands;
 
     public ForgeCommandRegistrar() {
-        commands = new SingleLinkedList<>();
+        commands = new SingleLinkedListBasedRegister<>();
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS , RegisterCommandsEvent.class , this::RunCommandsRegistration);
     }
 
@@ -48,6 +48,6 @@ public final class ForgeCommandRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(command);
-        commands.Add(command);
+        commands.Register(command);
     }
 }

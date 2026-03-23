@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.entity;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.entity.effect.MobEffectRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
@@ -80,11 +81,11 @@ public final class ForgeEntityTypeRegistrar
 
     public void RegisterToEventBus(IEventBus bus)
     {
-        ATTRIBUTES.register(bus);
-        MOB_EFFECTS.register(bus);
-        ENTITY_TYPES.register(bus);
-        SENSOR_TYPES.register(bus);
-        MEM_MODULE_TYPES.register(bus);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(bus, ATTRIBUTES);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(bus, MOB_EFFECTS);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(bus, SENSOR_TYPES);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(bus, ENTITY_TYPES);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(bus, MEM_MODULE_TYPES);
         ATTRIBUTES = null;
         MOB_EFFECTS = null;
         SENSOR_TYPES = null;

@@ -11,6 +11,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -84,7 +85,7 @@ public interface IRegistryRegistrar
      * @param registryResourceKey The resource key of the registry, representing the registry's location in the Minecraft logic.
      * @param on_registry_ready The method to invoke once the registry is ready.
      * @param <T> The type of registry elements to reference.
-     * @throws ArgumentNullException {@code registryResourceKey} is {@code null}.
+     * @throws ArgumentNullException {@code registryResourceKey} and/or {@code on_registry_ready} are {@code null}.
      */
     <T> void RegisterRegistry(ResourceKey<Registry<T>> registryResourceKey, Action1<IModLoaderRegistry<T>> on_registry_ready)
             throws ArgumentNullException;
@@ -99,4 +100,14 @@ public interface IRegistryRegistrar
      */
     <T> void RegisterDatapackRegistry(ResourceKey<Registry<T>> registry_name, Codec<T> element_codec)
             throws ArgumentNullException;
+
+    /**
+     * Registers a preparable resource reload listener of the specified name. <br />
+     * Note: This registers resource reload listeners for data packs. If you need for client resource packs, use the {@link com.github.mdcdi1315.basemodslib.client.registries.IClientRegistryRegistrar#RegisterResourceReloadListener(String, PreparableReloadListener)} method instead.
+     * @param name The name of the preparable resource reload listener.
+     * @param preparable_reload_listener The preparable resource reload listener to register.
+     * @throws ArgumentNullException {@code name} and/or {@code preparable_reload_listener} are {@code null}.
+     * @since 1.0.24
+     */
+    void RegisterResourceReloadListener(String name, PreparableReloadListener preparable_reload_listener) throws ArgumentNullException;
 }

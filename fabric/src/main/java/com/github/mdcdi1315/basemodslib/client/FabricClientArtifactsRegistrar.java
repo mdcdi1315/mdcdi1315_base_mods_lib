@@ -72,6 +72,7 @@ public final class FabricClientArtifactsRegistrar
     public void Register(ModelDefinitionRegistrationInfo info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(info, "info");
         EntityModelLayerRegistry.registerModelLayer(info.location(), new ModelLayerDefinitionFunction(info.definition()));
     }
 

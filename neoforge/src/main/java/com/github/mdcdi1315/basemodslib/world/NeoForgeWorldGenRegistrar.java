@@ -3,6 +3,8 @@ package com.github.mdcdi1315.basemodslib.world;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
+
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -51,9 +53,9 @@ public final class NeoForgeWorldGenRegistrar
 
     public void RegisterToEventBus(IEventBus event_bus)
     {
-        FEATURE_REGISTER.register(event_bus);
-        POI_TYPE_REGISTER.register(event_bus);
-        FEATURE_PLACEMENT_MOD_REGISTER.register(event_bus);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, FEATURE_REGISTER);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, POI_TYPE_REGISTER);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, FEATURE_PLACEMENT_MOD_REGISTER);
         FEATURE_REGISTER = null;
         POI_TYPE_REGISTER = null;
         FEATURE_PLACEMENT_MOD_REGISTER = null;

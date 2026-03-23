@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.entity;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.entity.effect.MobEffectRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
@@ -80,11 +81,11 @@ public final class NeoForgeEntityTypeRegistrar
 
     public void RegisterToEventBus(IEventBus event_bus)
     {
-        ATTRIBUTE_REGISTER.register(event_bus);
-        MOB_EFFECT_REGISTER.register(event_bus);
-        ENTITY_TYPE_REGISTER.register(event_bus);
-        SENSOR_TYPE_REGISTER.register(event_bus);
-        MEM_MODULE_TYPE_REGISTER.register(event_bus);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, ATTRIBUTE_REGISTER);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, MOB_EFFECT_REGISTER);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, SENSOR_TYPE_REGISTER);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, ENTITY_TYPE_REGISTER);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, MEM_MODULE_TYPE_REGISTER);
         MEM_MODULE_TYPE_REGISTER = null;
         SENSOR_TYPE_REGISTER = null;
         ENTITY_TYPE_REGISTER = null;

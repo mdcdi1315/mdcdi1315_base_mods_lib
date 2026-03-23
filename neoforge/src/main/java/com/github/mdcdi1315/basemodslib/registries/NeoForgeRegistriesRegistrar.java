@@ -6,18 +6,20 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import java.util.function.Function;
@@ -26,15 +28,17 @@ public final class NeoForgeRegistriesRegistrar
         implements IRegistryRegistrar
 {
     private String mod_id;
-    private SingleLinkedList<DeferredRegister<?>> registers;
-    private SingleLinkedList<RegistryEntry<?>> registries_to_create;
-    private SingleLinkedList<DatapackRegistryEntry<?>> datapack_registries;
+    private SingleLinkedListBasedRegister<DeferredRegister<?>> registers;
+    private SingleLinkedListBasedRegister<RegistryEntry<?>> registries_to_create;
+    private SingleLinkedListBasedRegister<DatapackRegistryEntry<?>> datapack_registries;
+    private SingleLinkedListBasedRegister<PreparableReloadListener> data_reload_listeners;
 
     public NeoForgeRegistriesRegistrar(String mod_id) {
         this.mod_id = mod_id;
-        registers = new SingleLinkedList<>();
-        datapack_registries = new SingleLinkedList<>();
-        registries_to_create = new SingleLinkedList<>();
+        registers = new SingleLinkedListBasedRegister<>();
+        datapack_registries = new SingleLinkedListBasedRegister<>();
+        registries_to_create = new SingleLinkedListBasedRegister<>();
+        data_reload_listeners = new SingleLinkedListBasedRegister<>();
     }
 
     private record RegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Action1<IModLoaderRegistry<T>> on_ready) {}
@@ -57,7 +61,7 @@ public final class NeoForgeRegistriesRegistrar
         }
         // Enumeration finished and no register was found. Create a new one instead.
         DeferredRegister<T> t = DeferredRegister.create(registry_key , mod_id);
-        registers.Add(t);
+        registers.Register(t);
         return t;
     }
 
@@ -107,7 +111,7 @@ public final class NeoForgeRegistriesRegistrar
     {
         ArgumentNullException.ThrowIfNull(on_registry_ready, "on_registry_ready");
         ArgumentNullException.ThrowIfNull(registryResourceKey, "registryResourceKey");
-        registries_to_create.Add(new RegistryEntry<>(registryResourceKey, on_registry_ready));
+        registries_to_create.Register(new RegistryEntry<>(registryResourceKey, on_registry_ready));
     }
 
     @Override
@@ -116,47 +120,27 @@ public final class NeoForgeRegistriesRegistrar
     {
         ArgumentNullException.ThrowIfNull(registry_name, "registry_name");
         ArgumentNullException.ThrowIfNull(element_codec, "element_codec");
-        datapack_registries.Add(new DatapackRegistryEntry<>(registry_name, element_codec));
+        datapack_registries.Register(new DatapackRegistryEntry<>(registry_name, element_codec));
+    }
+
+    @Override
+    public void RegisterResourceReloadListener(String name, PreparableReloadListener preparable_reload_listener)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
+        data_reload_listeners.Register(preparable_reload_listener);
     }
 
     private static <T> void CreateRegistry(NewRegistryEvent event, RegistryEntry<T> entry)
     {
         Registry<T> registry = event.create(new RegistryBuilder<>(entry.resource_key).sync(false));
-        var on_ready_act = entry.on_ready;
-        if (on_ready_act != null) {
-            on_ready_act.action(new MinecraftWrappedModLoaderRegistry<>(registry));
-        }
-    }
-
-    private void CreateRegistries(NewRegistryEvent nre)
-    {
-        var e = registries_to_create.GetEnumerator();
-        try {
-            while (e.MoveNext()) {
-                CreateRegistry(nre, e.getCurrent());
-            }
-        } finally {
-            e.Dispose();
-        }
-        registries_to_create = null; // We can now sweep up memory.
+        entry.on_ready.action(new MinecraftWrappedModLoaderRegistry<>(registry));
     }
 
     private static <T> void CreateDatapackRegistry(DataPackRegistryEvent.NewRegistry event , DatapackRegistryEntry<T> entry)
     {
         event.dataPackRegistry(entry.resource_key , entry.element_codec);
-    }
-
-    private void DatapackRegistries(DataPackRegistryEvent.NewRegistry event)
-    {
-        var datapacks_en = datapack_registries.GetEnumerator();
-        try {
-            while (datapacks_en.MoveNext()) {
-                CreateDatapackRegistry(event , datapacks_en.getCurrent());
-            }
-        } finally {
-            datapacks_en.Dispose();
-        }
-        datapack_registries = null; // We can now sweep up memory.
     }
 
     public void RegisterToEventBus(IEventBus bus)
@@ -170,8 +154,12 @@ public final class NeoForgeRegistriesRegistrar
             registers_en.Dispose();
         }
         registers = null; // We can now sweep up memory.
-        NeoForgeUtils.AddListener(bus, NewRegistryEvent.class, this::CreateRegistries);
-        NeoForgeUtils.AddListener(bus, DataPackRegistryEvent.NewRegistry.class , this::DatapackRegistries);
+        NeoForgeUtils.AddEnumerableListener(bus, AddReloadListenerEvent.class, data_reload_listeners, AddReloadListenerEvent::addListener);
+        data_reload_listeners = null;
+        NeoForgeUtils.AddEnumerableListener_DispatchOnce(bus, NewRegistryEvent.class, registries_to_create, NeoForgeRegistriesRegistrar::CreateRegistry);
+        registries_to_create = null;
+        NeoForgeUtils.AddEnumerableListener_DispatchOnce(bus, DataPackRegistryEvent.NewRegistry.class, datapack_registries, NeoForgeRegistriesRegistrar::CreateDatapackRegistry);
+        datapack_registries = null;
         mod_id = null;
     }
 }

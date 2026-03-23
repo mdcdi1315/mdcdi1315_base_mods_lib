@@ -86,4 +86,11 @@ public class SingleLinkedListBasedRegister<T>
 
     @Override
     public IEnumerator<T> GetEnumerator() { return new Enumerator<>(root); }
+
+    /**
+     * Use this value to determine whether the {@link #Register(Object)} method has been called at least once.
+     * @return A value whether at least one item is contained in this {@link SingleLinkedListBasedRegister} object.
+     * @since 1.0.24
+     */
+    public boolean HasItems() { return root != null; }
 }
