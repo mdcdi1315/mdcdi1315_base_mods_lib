@@ -6,8 +6,6 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 
-import net.fabricmc.fabric.api.client.rendering.v1.SpecialBlockRendererRegistry;
-import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
@@ -22,6 +20,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
 import net.fabricmc.fabric.api.client.particle.v1.FabricSpriteProvider;
@@ -29,6 +28,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.SpecialBlockRendererRegistry;
 
 @ClientOnlyEnvironment
 public final class FabricClientArtifactsRegistrar
@@ -76,6 +76,7 @@ public final class FabricClientArtifactsRegistrar
     public void Register(ModelDefinitionRegistrationInfo info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(info, "info");
         EntityModelLayerRegistry.registerModelLayer(info.location(), new ModelLayerDefinitionFunction(info.definition()));
     }
 
@@ -111,15 +112,6 @@ public final class FabricClientArtifactsRegistrar
         SpecialBlockRendererRegistry.register(info.block().function() , info.unbaked_renderer());
     }
 
-    private record MSCToMenuConstructor<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(MenuScreenConstructor<M, U> constructor)
-        implements MenuScreens.ScreenConstructor<M , U>
-    {
-        @Override
-        public U create(M abstractContainerMenu, Inventory inventory, Component component) {
-            return constructor.Create(abstractContainerMenu, inventory, component);
-        }
-    }
-
     @Override
     public <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void RegisterMenuScreen(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
             throws ArgumentNullException
@@ -129,21 +121,26 @@ public final class FabricClientArtifactsRegistrar
         MenuScreens.register(type.function() , new MSCToMenuConstructor<>(constructor));
     }
 
+    private record MSCToMenuConstructor<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(MenuScreenConstructor<M, U> constructor)
+        implements MenuScreens.ScreenConstructor<M , U>
+    {
+        @Override
+        public U create(M abstractContainerMenu, Inventory inventory, Component component) {
+            return constructor.Create(abstractContainerMenu, inventory, component);
+        }
+    }
+
     private record ParticleFactoryRegistryAdvancedInfoTranslation<T extends ParticleOptions>(Func2<SpriteSet, ParticleProvider<T>> function)
         implements ParticleFactoryRegistry.PendingParticleFactory<T>
     {
         @Override
-        public ParticleProvider<T> create(FabricSpriteProvider provider) {
-            return function.function(provider);
-        }
+        public ParticleProvider<T> create(FabricSpriteProvider provider) { return function.function(provider); }
     }
 
     private record ModelLayerDefinitionFunction(Func1<LayerDefinition> definition)
         implements EntityModelLayerRegistry.TexturedModelDataProvider
     {
         @Override
-        public LayerDefinition createModelData() {
-            return definition.function();
-        }
+        public LayerDefinition createModelData() { return definition.function(); }
     }
 }

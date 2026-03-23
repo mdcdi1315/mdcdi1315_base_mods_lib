@@ -2,6 +2,8 @@ package com.github.mdcdi1315.basemodslib.alchemy;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
+
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleOptions;
@@ -40,8 +42,8 @@ public final class ForgeAlchemyRegistrar
 
     public void RegisterToEventBus(IEventBus event_bus)
     {
-        POTION_REGISTER.register(event_bus);
-        PARTICLE_TYPE_REGISTER.register(event_bus);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, POTION_REGISTER);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, PARTICLE_TYPE_REGISTER);
         PARTICLE_TYPE_REGISTER = null;
         POTION_REGISTER = null;
     }

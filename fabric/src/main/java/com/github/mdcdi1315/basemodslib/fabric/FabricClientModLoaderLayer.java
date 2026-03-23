@@ -9,6 +9,7 @@ import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
+import com.github.mdcdi1315.basemodslib.client.FabricClientRegistryRegistrar;
 import com.github.mdcdi1315.basemodslib.client.FabricClientArtifactsRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
@@ -75,5 +76,7 @@ public final class FabricClientModLoaderLayer
         instance.RegisterParticleProviders(registrar);
         instance.RegisterMenuScreens(registrar);
         instance.RegisterSpecialModelRenderers(registrar);
+
+        instance.RegisterClientRegistryItems(new FabricClientRegistryRegistrar(instance.GetModId()));
     }
 }

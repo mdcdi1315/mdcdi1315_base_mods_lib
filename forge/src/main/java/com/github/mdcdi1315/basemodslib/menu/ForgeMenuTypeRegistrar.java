@@ -3,6 +3,8 @@ package com.github.mdcdi1315.basemodslib.menu;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
+
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.entity.player.Inventory;
@@ -46,7 +48,7 @@ public final class ForgeMenuTypeRegistrar
     }
 
     private record MenuTypeSupplier<T extends AbstractContainerMenu>(MenuTypeRegistrationInfo<T> info)
-            implements Func1<MenuType<T>>
+        implements Func1<MenuType<T>>
     {
         @Override
         public MenuType<T> function() {
@@ -66,7 +68,7 @@ public final class ForgeMenuTypeRegistrar
     }
 
     public void RegisterToEventBus(IEventBus evb) {
-        MENU_TYPE_REGISTER.register(evb);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(evb, MENU_TYPE_REGISTER);
         MENU_TYPE_REGISTER = null;
     }
 }

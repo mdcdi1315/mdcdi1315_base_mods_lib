@@ -35,6 +35,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
 
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -46,6 +47,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.core.RegistrationInfo;
@@ -63,7 +65,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
 import java.util.*;
@@ -81,7 +83,7 @@ public final class FabricCommonRegistryItemsRegistrar
         IAlchemyRegistrar,
         ISoundRegistrar
 {
-    private String mod_id;
+    private final String mod_id;
     private HashMap<CreativeModeTab, ArrayList<Item>> modify_entries_register;
     private HashMap<CreativeModeTab, ArrayList<ItemStack>> modify_entries_item_stack_register;
 
@@ -350,6 +352,18 @@ public final class FabricCommonRegistryItemsRegistrar
     }
 
     @Override
+    public void RegisterResourceReloadListener(String name, PreparableReloadListener preparable_reload_listener)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricBridgedIdentifiableReloadListener(
+                BuildAndValidateLocation(name),
+                preparable_reload_listener
+        ));
+    }
+
+    @Override
     public void RegisterSoundEvent(SoundEvent event, String name)
             throws ArgumentNullException
     {
@@ -426,9 +440,7 @@ public final class FabricCommonRegistryItemsRegistrar
             implements MenuType.MenuSupplier<T>
     {
         @Override
-        public T create(int i, Inventory inventory) {
-            return crt.Create(i , inventory);
-        }
+        public T create(int i, Inventory inventory) { return crt.Create(i , inventory); }
     }
 
     private record MenuCreaterExToExtendedFactory<T extends AbstractContainerMenu>(MenuTypeCreaterEx<T> crt)

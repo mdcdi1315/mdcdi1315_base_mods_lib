@@ -1,10 +1,10 @@
 package com.github.mdcdi1315.basemodslib.block_item;
 
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
@@ -18,6 +18,7 @@ import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
 
 import net.minecraft.world.item.Item;
@@ -52,15 +53,15 @@ public final class BlocksAndItemsRegistrar
     private DeferredRegister<CreativeModeTab> CREATIVE_MODE_TAB_REGISTER;
     private DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPE_REGISTER;
     private DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPE_REGISTER;
-    private Map<CreativeModeTab, SingleLinkedList<ItemStack>> compiled_item_stacks;
-    private SingleLinkedList<Pair<CreativeModeTab[] , RegistryObject<Item>>> items_on_creative_tabs;
+    private Map<CreativeModeTab, SingleLinkedListBasedRegister<ItemStack>> compiled_item_stacks;
+    private SingleLinkedListBasedRegister<Pair<CreativeModeTab[] , RegistryObject<Item>>> items_on_creative_tabs;
     private Map<CreativeModeTab , SingleLinkedList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
 
     public BlocksAndItemsRegistrar(String mod_id) {
         this.mod_id = mod_id;
         compiled_item_stacks = null;
-        items_on_creative_tabs = new SingleLinkedList<>();
         additional_creative_mode_tab_stacks = new HashMap<>();
+        items_on_creative_tabs = new SingleLinkedListBasedRegister<>();
         ITEM_REGISTER = DeferredRegister.create(ForgeRegistries.ITEMS, this.mod_id);
         FLUID_REGISTER = DeferredRegister.create(ForgeRegistries.FLUIDS , this.mod_id);
         BLOCKS_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCKS , this.mod_id);
@@ -139,7 +140,7 @@ public final class BlocksAndItemsRegistrar
 
         if (item_for_block_s != null) {
             var ro = ITEM_REGISTER.register(name, new ItemAsBlockRegistrySupplier(item_for_block_s, registry_object, registry_object_location));
-            items_on_creative_tabs.Add(new Pair<>(bri.creative_mode_tabs_for_item() , ro));
+            items_on_creative_tabs.Register(new Pair<>(bri.creative_mode_tabs_for_item() , ro));
         }
     }
 
@@ -155,7 +156,7 @@ public final class BlocksAndItemsRegistrar
         var item_object = ITEM_REGISTER.register(name, new ItemRegistrySupplier(info.item_getter(), registry_object_location));
 
         if (info.tabs().length > 0) {
-            items_on_creative_tabs.Add(new Pair<>(info.tabs(), item_object));
+            items_on_creative_tabs.Register(new Pair<>(info.tabs(), item_object));
         }
     }
 
@@ -217,14 +218,14 @@ public final class BlocksAndItemsRegistrar
             {
                 stacks = kvp.getValue();
                 IEnumerator<Func1<ItemStack>> e = stacks.GetEnumerator();
-                SingleLinkedList<ItemStack> lst = new SingleLinkedList<>();
+                SingleLinkedListBasedRegister<ItemStack> lst = new SingleLinkedListBasedRegister<>();
                 try {
                     if ((k = kvp.getKey()) == current) {
                         // Current key agrees with the creative mode tab we want for - so register the enumerated items to the event as well.
                         ItemStack is;
-                        while (e.MoveNext()) { is = e.getCurrent().function(); event.accept(is); lst.Add(is); }
+                        while (e.MoveNext()) { is = e.getCurrent().function(); event.accept(is); lst.Register(is); }
                     } else {
-                        while (e.MoveNext()) { lst.Add(e.getCurrent().function()); }
+                        while (e.MoveNext()) { lst.Register(e.getCurrent().function()); }
                     }
                 } finally {
                     stacks.Clear(); // Clean origin list to minimize mem as possible.
@@ -236,7 +237,7 @@ public final class BlocksAndItemsRegistrar
         }
         additional_creative_mode_tab_stacks = null;
 
-        if (items_on_creative_tabs == null || items_on_creative_tabs.getCount() < 1) {
+        if (items_on_creative_tabs == null || !items_on_creative_tabs.HasItems()) {
             items_on_creative_tabs = null;
             return;
         }
@@ -261,12 +262,12 @@ public final class BlocksAndItemsRegistrar
 
     public void RegisterToEventBus(IEventBus evb)
     {
-        ITEM_REGISTER.register(evb);
-        FLUID_REGISTER.register(evb);
-        BLOCKS_REGISTER.register(evb);
-        BLOCK_ENTITY_TYPE_REGISTER.register(evb);
-        CREATIVE_MODE_TAB_REGISTER.register(evb);
-        DATA_COMPONENT_TYPE_REGISTER.register(evb);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(evb, ITEM_REGISTER);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(evb, FLUID_REGISTER);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(evb, BLOCKS_REGISTER);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(evb, BLOCK_ENTITY_TYPE_REGISTER);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(evb, CREATIVE_MODE_TAB_REGISTER);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(evb, DATA_COMPONENT_TYPE_REGISTER);
         ForgeUtils.AddListener(evb, BuildCreativeModeTabContentsEvent.class, this::OnCreativeModeTabsRegistering);
         // Clean up what we can clean.
         mod_id = null;

@@ -3,6 +3,8 @@ package com.github.mdcdi1315.basemodslib.menu;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
+
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.player.Inventory;
@@ -51,7 +53,7 @@ public final class NeoForgeMenuTypeRegistrar
         @Override
         public MenuType<T> function() {
             MenuTypeCreater<T> crt = info.creater();
-            return new MenuType<>((crt instanceof MenuTypeCreaterEx<T> t_ex) ? new MenuCreaterExToIContainerFactory<>(t_ex) : new MenuCreaterToMenuSupplier<>(crt) , info.required_features());
+            return (crt instanceof MenuTypeCreaterEx<T> t_ex) ? new MenuType<>(new MenuCreaterExToIContainerFactory<>(t_ex) , info.required_features()) : new MenuType<>(new MenuCreaterToMenuSupplier<>(crt), info.required_features());
         }
     }
 
@@ -66,7 +68,7 @@ public final class NeoForgeMenuTypeRegistrar
     }
 
     public void RegisterToEventBus(IEventBus evb) {
-        MENU_TYPE_REGISTER.register(evb);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(evb, MENU_TYPE_REGISTER);
         MENU_TYPE_REGISTER = null;
     }
 }

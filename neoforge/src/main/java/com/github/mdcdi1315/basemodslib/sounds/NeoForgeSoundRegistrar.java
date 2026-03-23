@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.sounds;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 
 import net.minecraft.sounds.SoundEvent;
@@ -30,7 +31,7 @@ public final class NeoForgeSoundRegistrar
 
     public void RegisterToEventBus(IEventBus event_bus)
     {
-        SOUND_EVENT_REGISTER.register(event_bus);
+        NeoForgeUtils.DeferredRegister_RegisterIfHasItems(event_bus, SOUND_EVENT_REGISTER);
         SOUND_EVENT_REGISTER = null;
     }
 }

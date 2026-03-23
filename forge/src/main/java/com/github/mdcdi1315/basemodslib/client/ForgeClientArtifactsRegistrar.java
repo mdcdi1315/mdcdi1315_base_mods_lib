@@ -1,9 +1,10 @@
 package com.github.mdcdi1315.basemodslib.client;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import com.mojang.serialization.MapCodec;
 
@@ -41,26 +42,26 @@ public final class ForgeClientArtifactsRegistrar
         IMenuScreensRegistrar,
         ISpecialModelRendererRegistrar
 {
-    private SingleLinkedList<MenuScreenRegInfo<? , ?>> menu_screens_info;
-    private SingleLinkedList<ModelDefinitionRegistrationInfo> model_defs_infos;
-    private SingleLinkedList<EntityRendererRegistrationInfo<?>> entity_renderer_infos;
-    private SingleLinkedList<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
-    private SingleLinkedList<SimpleParticleProviderRegistrationInfo<?>> simple_particle_reg;
-    private SingleLinkedList<AdvancedParticleProviderRegistrationInfo<?>> advanced_particle_reg;
-    private SingleLinkedList<SpecialModelRendererRegistrationInfo> model_renderer_registrations;
-    private SingleLinkedList<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
+    private SingleLinkedListBasedRegister<MenuScreenRegInfo<? , ?>> menu_screens_info;
+    private SingleLinkedListBasedRegister<ModelDefinitionRegistrationInfo> model_defs_infos;
+    private SingleLinkedListBasedRegister<EntityRendererRegistrationInfo<?>> entity_renderer_infos;
+    private SingleLinkedListBasedRegister<BlockColorHandlerRegistrationInfo> block_color_handler_infos;
+    private SingleLinkedListBasedRegister<SimpleParticleProviderRegistrationInfo<?>> simple_particle_reg;
+    private SingleLinkedListBasedRegister<AdvancedParticleProviderRegistrationInfo<?>> advanced_particle_reg;
+    private SingleLinkedListBasedRegister<BlockEntityRendererRegistrationInfo<?>> block_entity_renderer_infos;
+    private SingleLinkedListBasedRegister<SpecialModelRendererRegistrationInfo> model_renderer_registrations;
     private Action2<ResourceLocation, MapCodec<? extends SpecialModelRenderer.Unbaked>> id_mapper_special_model_renderers;
 
     public ForgeClientArtifactsRegistrar(Action2<ResourceLocation, MapCodec<? extends SpecialModelRenderer.Unbaked>> id_mapper)
     {
-        model_defs_infos = new SingleLinkedList<>();
-        menu_screens_info = new SingleLinkedList<>();
-        simple_particle_reg = new SingleLinkedList<>();
-        advanced_particle_reg = new SingleLinkedList<>();
-        entity_renderer_infos = new SingleLinkedList<>();
-        block_color_handler_infos = new SingleLinkedList<>();
-        block_entity_renderer_infos = new SingleLinkedList<>();
-        model_renderer_registrations = new SingleLinkedList<>();
+        model_defs_infos = new SingleLinkedListBasedRegister<>();
+        menu_screens_info = new SingleLinkedListBasedRegister<>();
+        simple_particle_reg = new SingleLinkedListBasedRegister<>();
+        advanced_particle_reg = new SingleLinkedListBasedRegister<>();
+        entity_renderer_infos = new SingleLinkedListBasedRegister<>();
+        block_color_handler_infos = new SingleLinkedListBasedRegister<>();
+        block_entity_renderer_infos = new SingleLinkedListBasedRegister<>();
+        model_renderer_registrations = new SingleLinkedListBasedRegister<>();
         id_mapper_special_model_renderers = id_mapper;
     }
 
@@ -69,7 +70,7 @@ public final class ForgeClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        block_entity_renderer_infos.Add(info);
+        block_entity_renderer_infos.Register(info);
     }
 
     @Override
@@ -77,7 +78,7 @@ public final class ForgeClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        entity_renderer_infos.Add(info);
+        entity_renderer_infos.Register(info);
     }
 
     @Override
@@ -93,7 +94,7 @@ public final class ForgeClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        block_color_handler_infos.Add(info);
+        block_color_handler_infos.Register(info);
     }
 
     @Override
@@ -101,7 +102,7 @@ public final class ForgeClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info,"info");
-        model_defs_infos.Add(info);
+        model_defs_infos.Register(info);
     }
 
     @Override
@@ -109,7 +110,7 @@ public final class ForgeClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        simple_particle_reg.Add(info);
+        simple_particle_reg.Register(info);
     }
 
     @Override
@@ -117,79 +118,7 @@ public final class ForgeClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        advanced_particle_reg.Add(info);
-    }
-
-    // Currently, all the below data are run only once.
-    // So we can sweep up memory just after our objects are left from our side.
-
-    private void OnRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers rends)
-    {
-        block_entity_renderer_infos.ForEach(new RegisterBlockEntityRendererEventMethod(rends));
-        block_entity_renderer_infos.Clear();
-        block_entity_renderer_infos = null;
-        entity_renderer_infos.ForEach(new RegisterEntityRendererEventMethod(rends));
-        entity_renderer_infos.Clear();
-        entity_renderer_infos = null;
-    }
-
-    private void OnRegisterModelDefinitions(EntityRenderersEvent.RegisterLayerDefinitions layer_defs)
-    {
-        model_defs_infos.ForEach(new RegisterModelDefinitionsEventMethod(layer_defs));
-        model_defs_infos.Clear();
-        model_defs_infos = null;
-    }
-
-    private void OnRegisterBlockColorHandlers(RegisterColorHandlersEvent.Block event)
-    {
-        block_color_handler_infos.ForEach(new RegisterBlockColorHandlersEventMethod(event));
-        block_color_handler_infos.Clear();
-        block_color_handler_infos = null;
-    }
-
-    private void OnRegisterParticleProviders(RegisterParticleProvidersEvent particle_reg_event)
-    {
-        simple_particle_reg.ForEach(new RegisterSimpleParticleProvider(particle_reg_event));
-        simple_particle_reg.Clear();
-        simple_particle_reg = null;
-        advanced_particle_reg.ForEach(new RegisterAdvancedParticleProvider(particle_reg_event));
-        advanced_particle_reg.Clear();
-        advanced_particle_reg = null;
-    }
-
-    private void RegisterMenuScreensAll()
-    {
-        var en = menu_screens_info.GetEnumerator();
-        try {
-            while (en.MoveNext()) {
-                en.getCurrent().RegisterToMenuScreens();
-            }
-        } finally {
-            en.Dispose();
-        }
-        menu_screens_info.Clear();
-        menu_screens_info = null;
-    }
-
-    private void OnRegisterSpecialBlockRenderers(CreateSpecialBlockRendererEvent event)
-    {
-        var en = model_renderer_registrations.GetEnumerator();
-        try {
-            SpecialModelRendererRegistrationInfo inf;
-            while (en.MoveNext()) {
-                inf = en.getCurrent();
-                event.register(inf.block().function() , inf.unbaked_renderer());
-            }
-        } finally {
-            en.Dispose();
-        }
-        // We can't delete this, because Minecraft can reload these renderers at some time.
-        // We are cooked if we destroy this object.
-        // model_renderer_registrations = null;
-    }
-
-    private void OnClientSetupEvent(FMLClientSetupEvent event) {
-        event.enqueueWork(this::RegisterMenuScreensAll);
+        advanced_particle_reg.Register(info);
     }
 
     @Override
@@ -205,8 +134,20 @@ public final class ForgeClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        model_renderer_registrations.Add(info);
+        model_renderer_registrations.Register(info);
     }
+
+    @Override
+    public <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void RegisterMenuScreen(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(type, "type");
+        ArgumentNullException.ThrowIfNull(constructor, "constructor");
+        menu_screens_info.Register(new MenuScreenRegInfo<>(type, constructor));
+    }
+
+    // Currently, all the below data are run only once.
+    // So we can sweep up memory just after our objects are left from our side.
 
     private record MenuScreenRegInfo<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
     {
@@ -224,112 +165,99 @@ public final class ForgeClientArtifactsRegistrar
         }
     }
 
-    @Override
-    public <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void RegisterMenuScreen(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(type, "type");
-        ArgumentNullException.ThrowIfNull(constructor, "constructor");
-        menu_screens_info.Add(new MenuScreenRegInfo<>(type, constructor));
-    }
-
     private record SpriteParticleImplementation_Simple<T extends ParticleOptions>(ParticleProvider<T> prov)
         implements ParticleEngine.SpriteParticleRegistration<T>
     {
         @Override
-        public ParticleProvider<T> create(SpriteSet spriteSet) {
-            return prov;
-        }
+        public ParticleProvider<T> create(SpriteSet spriteSet) { return prov; }
     }
 
     private record SpriteParticleImplementation_Advanced<T extends ParticleOptions>(Func2<SpriteSet, ParticleProvider<T>> provider_function)
         implements ParticleEngine.SpriteParticleRegistration<T>
     {
         @Override
-        public ParticleProvider<T> create(SpriteSet spriteSet) {
-            return provider_function.function(spriteSet);
-        }
+        public ParticleProvider<T> create(SpriteSet spriteSet) { return provider_function.function(spriteSet); }
     }
 
-    private record RegisterSimpleParticleProvider(RegisterParticleProvidersEvent event)
-        implements Action1<SimpleParticleProviderRegistrationInfo<?>>
+    private static final class RegisterAllMenuScreensAggregator
+            implements Runnable, Action1<FMLClientSetupEvent>
     {
-        private <T extends ParticleOptions> void RegisterInternal(SimpleParticleProviderRegistrationInfo<T> info) {
-            event.registerSpriteSet(info.particle_type().function(), new SpriteParticleImplementation_Simple<>(info.particle_provider()));
+        private SingleLinkedListBasedRegister<MenuScreenRegInfo<? , ?>> registrations;
+
+        public RegisterAllMenuScreensAggregator(SingleLinkedListBasedRegister<MenuScreenRegInfo<? , ?>> registrations) { this.registrations = registrations; }
+
+        @Override
+        public void run()
+        {
+            IEnumerator<MenuScreenRegInfo<?, ?>> e = registrations.GetEnumerator();
+            try {
+                while (e.MoveNext()) {
+                    e.getCurrent().RegisterToMenuScreens();
+                }
+            } finally {
+                e.Dispose();
+                registrations = null;
+            }
         }
 
         @Override
-        public void action(SimpleParticleProviderRegistrationInfo<?> obj) {
-            RegisterInternal(obj);
-        }
+        public void action(FMLClientSetupEvent obj) { obj.enqueueWork(this); }
     }
 
-    private record RegisterAdvancedParticleProvider(RegisterParticleProvidersEvent event)
-        implements Action1<AdvancedParticleProviderRegistrationInfo<?>>
+    private static <T extends Entity> void RegisterEntityRenderer(EntityRenderersEvent.RegisterRenderers event, EntityRendererRegistrationInfo<T> info)
     {
-        private <T extends ParticleOptions> void RegisterInternal(AdvancedParticleProviderRegistrationInfo<T> info) {
-            event.registerSpriteSet(info.particle_type().function(), new SpriteParticleImplementation_Advanced<>(info.particle_provider_creater()));
-        }
-
-        @Override
-        public void action(AdvancedParticleProviderRegistrationInfo<?> obj) {
-            RegisterInternal(obj);
-        }
+        event.registerEntityRenderer(info.entity_type_provider().function(), info.renderer_provider());
     }
 
-    private record RegisterBlockEntityRendererEventMethod(EntityRenderersEvent.RegisterRenderers event)
-            implements Action1<BlockEntityRendererRegistrationInfo<?>>
+    private static <T extends BlockEntity> void RegisterBlockEntityRenderer(EntityRenderersEvent.RegisterRenderers event, BlockEntityRendererRegistrationInfo<T> info)
     {
-        private <T extends BlockEntity> void RegisterInternal(BlockEntityRendererRegistrationInfo<T> inf) {
-            event.registerBlockEntityRenderer(inf.type().function(), inf.provider());
-        }
-
-        @Override
-        public void action(BlockEntityRendererRegistrationInfo<?> obj) {
-            RegisterInternal(obj);
-        }
+        event.registerBlockEntityRenderer(info.type().function(), info.provider());
     }
 
-    private record RegisterEntityRendererEventMethod(EntityRenderersEvent.RegisterRenderers event)
-        implements Action1<EntityRendererRegistrationInfo<?>>
-    {
-        private <T extends Entity> void RegisterInternal(EntityRendererRegistrationInfo<T> inf) {
-            event.registerEntityRenderer(inf.entity_type_provider().function(), inf.renderer_provider());
-        }
+    private static void RegisterSpecialRenderer(CreateSpecialBlockRendererEvent event, SpecialModelRendererRegistrationInfo info) { event.register(info.block().function(), info.unbaked_renderer()); }
 
-        @Override
-        public void action(EntityRendererRegistrationInfo<?> obj) {
-            RegisterInternal(obj);
-        }
+    private static void RegisterModelLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event, ModelDefinitionRegistrationInfo info)
+    {
+        event.registerLayerDefinition(info.location(), info.definition());
     }
 
-    private record RegisterBlockColorHandlersEventMethod(RegisterColorHandlersEvent.Block event)
-        implements Action1<BlockColorHandlerRegistrationInfo>
+    private static <T extends ParticleOptions> void RegisterParticleProvider_Simple(RegisterParticleProvidersEvent event, SimpleParticleProviderRegistrationInfo<T> info)
     {
-        @Override
-        public void action(BlockColorHandlerRegistrationInfo obj) {
-            event.register(obj.block_color(), obj.blocks().function());
-        }
+        event.registerSpriteSet(info.particle_type().function(), new SpriteParticleImplementation_Simple<>(info.particle_provider()));
     }
 
-    private record RegisterModelDefinitionsEventMethod(EntityRenderersEvent.RegisterLayerDefinitions layer_defs)
-        implements Action1<ModelDefinitionRegistrationInfo>
+    private static <T extends ParticleOptions> void RegisterParticleProvider_Advanced(RegisterParticleProvidersEvent event, AdvancedParticleProviderRegistrationInfo<T> info)
     {
-        @Override
-        public void action(ModelDefinitionRegistrationInfo obj) {
-            layer_defs.registerLayerDefinition(obj.location(), obj.definition());
-        }
+        event.registerSpriteSet(info.particle_type().function(), new SpriteParticleImplementation_Advanced<>(info.particle_provider_creater()));
+    }
+
+    private static void RegisterBlockColorHandler(RegisterColorHandlersEvent.Block event, BlockColorHandlerRegistrationInfo info)
+    {
+        event.register(info.block_color(), info.blocks().function());
     }
 
     public void RegisterToEventBus(IEventBus bus)
     {
-        ForgeUtils.AddListener(bus, FMLClientSetupEvent.class, this::OnClientSetupEvent);
-        ForgeUtils.AddListener(bus, RegisterParticleProvidersEvent.class, this::OnRegisterParticleProviders);
-        ForgeUtils.AddListener(bus, RegisterColorHandlersEvent.Block.class, this::OnRegisterBlockColorHandlers);
-        ForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterRenderers.class, this::OnRegisterEntityRenderers);
-        ForgeUtils.AddListener(bus, EntityRenderersEvent.RegisterLayerDefinitions.class, this::OnRegisterModelDefinitions);
+        if (menu_screens_info.HasItems()) {
+            ForgeUtils.AddListener(bus, FMLClientSetupEvent.class, new RegisterAllMenuScreensAggregator(menu_screens_info));
+        }
+        menu_screens_info = null;
+        ForgeUtils.AddEnumerableListener_DispatchOnce(bus, RegisterParticleProvidersEvent.class, advanced_particle_reg, ForgeClientArtifactsRegistrar::RegisterParticleProvider_Advanced);
+        advanced_particle_reg = null;
+        ForgeUtils.AddEnumerableListener_DispatchOnce(bus, RegisterParticleProvidersEvent.class, simple_particle_reg, ForgeClientArtifactsRegistrar::RegisterParticleProvider_Simple);
+        simple_particle_reg = null;
+        ForgeUtils.AddEnumerableListener_DispatchOnce(bus, RegisterColorHandlersEvent.Block.class, block_color_handler_infos, ForgeClientArtifactsRegistrar::RegisterBlockColorHandler);
+        block_color_handler_infos = null;
+        ForgeUtils.AddEnumerableListener_DispatchOnce(bus, EntityRenderersEvent.RegisterRenderers.class, entity_renderer_infos, ForgeClientArtifactsRegistrar::RegisterEntityRenderer);
+        entity_renderer_infos = null;
+        ForgeUtils.AddEnumerableListener_DispatchOnce(bus, EntityRenderersEvent.RegisterRenderers.class, block_entity_renderer_infos, ForgeClientArtifactsRegistrar::RegisterBlockEntityRenderer);
+        block_entity_renderer_infos = null;
+        ForgeUtils.AddEnumerableListener_DispatchOnce(bus, EntityRenderersEvent.RegisterLayerDefinitions.class, model_defs_infos, ForgeClientArtifactsRegistrar::RegisterModelLayerDefinitions);
+        model_defs_infos = null;
         // Unlike all the other events, this is fired on the Forge event bus. Weird.
-        ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, CreateSpecialBlockRendererEvent.class , this::OnRegisterSpecialBlockRenderers);
+        // It is also dispatching on each client resources reload.
+        ForgeUtils.AddEnumerableListener(MinecraftForge.EVENT_BUS, CreateSpecialBlockRendererEvent.class, model_renderer_registrations, ForgeClientArtifactsRegistrar::RegisterSpecialRenderer);
+        model_renderer_registrations = null;
         // We can unreference this now, we are done
         id_mapper_special_model_renderers = null;
     }

@@ -87,7 +87,7 @@ public final class StringIO
         {
             // Read bytes...
             read = stream.read(temp, 0, ComputeBufferSize(total_read, bytes, temp.length));
-            if (read > -1) { total_read += read; }
+            if (read > -1) { total_read += read; } else { break; }
             // Then wrap them into a buffer...
             ByteBuffer bb = ByteBuffer.wrap(temp, 0, read);
             // Decode...
@@ -101,7 +101,6 @@ public final class StringIO
             } while (cr.isOverflow());
             // Throw exception if we have an error.
             if (cr.isError()) { cr.throwException(); }
-            if (read == -1) { break; }
         }
         // Final flush as instructed by Java API
         do {
@@ -112,6 +111,7 @@ public final class StringIO
             buffer.rewind();
             string_builder.append(buffer);
         } while (cr.isOverflow());
+        if (cr.isError()) { cr.throwException(); }
         // Get value, and we are done.
         return string_builder.toString();
     }

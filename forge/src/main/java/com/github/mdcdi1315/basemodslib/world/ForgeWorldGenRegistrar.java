@@ -3,6 +3,8 @@ package com.github.mdcdi1315.basemodslib.world;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
+import com.github.mdcdi1315.basemodslib.ForgeUtils;
+
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -55,9 +57,9 @@ public final class ForgeWorldGenRegistrar
 
     public void RegisterToEventBus(IEventBus mod_bus)
     {
-        POI_TYPES.register(mod_bus);
-        FEATURE_TYPES.register(mod_bus);
-        PLACEMENT_MODIFIER_TYPES.register(mod_bus);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(mod_bus, POI_TYPES);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(mod_bus, FEATURE_TYPES);
+        ForgeUtils.DeferredRegister_RegisterIfHasItems(mod_bus, PLACEMENT_MODIFIER_TYPES);
         PLACEMENT_MODIFIER_TYPES = null;
         FEATURE_TYPES = null;
         POI_TYPES = null;

@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.mods;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.client.*;
+import com.github.mdcdi1315.basemodslib.client.registries.*;
 import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 
@@ -59,6 +60,13 @@ public interface IClientModInstance
      * @since 1.0.11
      */
     default void RegisterSpecialModelRenderers(ISpecialModelRendererRegistrar registrar) {}
+
+    /**
+     * Provides a way for registering registry-related stuff for the Minecraft Client.
+     * @param registrar The object responsible for registering registry-related stuff on the client.
+     * @since 1.0.24
+     */
+    default void RegisterClientRegistryItems(IClientRegistryRegistrar registrar) {}
 
     /**
      * Called only once per mod instance to provide a custom configuration screen for their needs. <br />
