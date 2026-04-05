@@ -26,6 +26,7 @@ import com.github.mdcdi1315.basemodslib.registries.NeoForgeRegistriesRegistrar;
 
 import net.neoforged.fml.ModList;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
@@ -127,6 +128,9 @@ public final class NeoForgeModLoaderLayer
 
     private static void OnServerStopped(net.neoforged.neoforge.event.server.ServerStoppedEvent e) {
         BaseModsLib.GetEventsManager().FireEvent(new ServerStoppedEvent(e.getServer()));
+        // In server env, we need to dispose the BML itself.
+        // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
+        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { BaseModsLib.DestroySelf(); }
     }
 
     private static void OnServerStarted(net.neoforged.neoforge.event.server.ServerStartedEvent e) {

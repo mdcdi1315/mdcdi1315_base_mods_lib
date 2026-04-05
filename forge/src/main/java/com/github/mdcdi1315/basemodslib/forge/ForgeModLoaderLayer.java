@@ -28,6 +28,7 @@ import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistryWrappedInRegistry;
 
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -130,6 +131,9 @@ public final class ForgeModLoaderLayer
 
     private static void OnServerStopped(net.minecraftforge.event.server.ServerStoppedEvent e) {
         BaseModsLib.GetEventsManager().FireEvent(new ServerStoppedEvent(e.getServer()));
+        // In server env, we need to dispose the BML itself.
+        // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
+        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { BaseModsLib.DestroySelf(); }
     }
 
     private static void OnServerStarted(net.minecraftforge.event.server.ServerStartedEvent e) {
