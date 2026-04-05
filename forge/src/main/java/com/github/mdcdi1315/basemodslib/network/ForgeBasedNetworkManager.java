@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
@@ -31,9 +32,10 @@ public final class ForgeBasedNetworkManager
     private String mod_id;
     private SimpleChannel channel;
 
-    public CustomPayloadEvent.Context cxt;
+    private CustomPayloadEvent.Context cxt;
 
-    public ForgeBasedNetworkManager(String mod_id) {
+    public ForgeBasedNetworkManager(String mod_id)
+    {
         this.mod_id = mod_id;
         cxt = null;
         channel = null;
@@ -46,23 +48,26 @@ public final class ForgeBasedNetworkManager
 
     public void InitializeNetworkManager(@MaybeNull INetworkBuilder builder)
     {
-        if (builder == null) {
-            // Mod did not requested networking services, destroy
-            mod_id = null;
-            return;
+        if (builder != null) {
+            // Only build if the mod requests networking services.
+            channel = ((ForgeSimpleChannelNetworkBuilder)builder).Build(this);
         }
-        ForgeSimpleChannelNetworkBuilder b = (ForgeSimpleChannelNetworkBuilder)builder;
-        channel = b.Build(this);
+        // Always dispose this field.
         mod_id = null;
     }
 
+    public void CreateReplyEnvironment(@DisallowNull CustomPayloadEvent.Context context) { cxt = context; }
+
+    public void DestroyReplyEnvironment() { cxt = null; }
+
     @Override
-    public <T extends CustomPacketPayload> void Reply(T message) {
+    public <T extends CustomPacketPayload> void Reply(T message)
+    {
         if (cxt == null) {
             throw new InvalidOperationException("There is not a context to reply to");
+        } else {
+            channel.reply(message, cxt);
         }
-
-        channel.reply(message , cxt);
     }
 
     @Override
@@ -97,9 +102,9 @@ public final class ForgeBasedNetworkManager
     {
         if (Minecraft.getInstance().getConnection() == null) {
             BaseModsLib.LOGGER.warn("NETWORKING: Not dispatching packet {} because we are not connected to a server!" , msg);
+        } else {
+            channel.send(msg , PacketDistributor.SERVER.noArg());
         }
-
-        channel.send(msg , PacketDistributor.SERVER.noArg());
     }
 
     private record WriteScreenDataTranslater(ServerPlayer sp, MenuProviderEx mpx)

@@ -1,10 +1,12 @@
 package com.github.mdcdi1315.DotNetLayer.System.Collections.Generic;
 
+import com.github.mdcdi1315.DotNetLayer.System.Reflection.DefaultMember;
+
 /**
  * Represents a collection of objects that can be individually accessed by index.
  * @param <T> The type of elements in the list.
  */
-// [DefaultMember("Item")]
+@DefaultMember(MemberName = "Item")
 public interface IList<T>
         extends ICollection<T>, IEnumerable<T>
 {

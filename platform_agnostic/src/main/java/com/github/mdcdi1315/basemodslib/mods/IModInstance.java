@@ -1,6 +1,8 @@
 package com.github.mdcdi1315.basemodslib.mods;
 
 import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
@@ -48,5 +50,6 @@ public interface IModInstance
      * Required for the base services to register data.
      * @return The mod ID that this instance is currently attributed to.
      */
+    @NotNull
     String GetModId();
 }

@@ -62,9 +62,16 @@ public interface IModLoaderLayer
     /**
      * Gets a {@link Version} instance providing the Minecraft (base game) version.
      * @return The Minecraft version.
+     * @deprecated This method invocation is no longer required and most
+     * mod-loaders do not provide a run-time version of the game version, neither the base game itself.
+     * Instead now, the BML itself will provide the version that it was built against.
+     * (Which it will typically be that one that will be used in a large modded instance)
      */
     @NotNull
-    Version GetMinecraftVersion();
+    @Deprecated(since = "1.0.25")
+    default Version GetMinecraftVersion() {
+        return BaseModsLib.GetMinecraftVersion();
+    }
 
     /**
      * Gets a {@link Version} instance providing the mod loader's version.

@@ -8,10 +8,10 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.config.lowlevelapi.ConfigCodec;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonParser;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.internal.Streams;
+import com.google.gson.stream.JsonWriter;
 
 import com.mojang.datafixers.util.Pair;
 
@@ -229,12 +229,10 @@ public final class ConfigManager
         @Override
         public void SaveToStream(OutputStream os, JsonElement jsonElement) throws IOException
         {
-            Gson gson = new GsonBuilder()
-                    .setPrettyPrinting()
-                    .setLenient()
-                    .create();
-            try (OutputStreamWriter osw = new OutputStreamWriter(os)) {
-                gson.toJson(jsonElement, gson.newJsonWriter(osw));
+            try (OutputStreamWriter osw = new OutputStreamWriter(os); JsonWriter writer = new JsonWriter(osw)) {
+                writer.setIndent("\t");
+                writer.setLenient(true);
+                Streams.write(jsonElement, writer);
             }
         }
     }

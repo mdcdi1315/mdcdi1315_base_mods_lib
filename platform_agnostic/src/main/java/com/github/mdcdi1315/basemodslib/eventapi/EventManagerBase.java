@@ -9,9 +9,10 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
+import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.eventapi.gameplay.*;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -25,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 abstract class EventManagerBase
     extends EventManager
 {
-    private Map<Class<? extends IEvent>, SingleLinkedList<Action1<? extends IEvent>>> actions;
+    private Map<Class<? extends IEvent>, SingleLinkedListBasedRegister<Action1<? extends IEvent>>> actions;
 
     /**
      * Initializes a new instance of the {@link EventManagerBase} class.
@@ -34,36 +35,11 @@ abstract class EventManagerBase
     {
         actions = new ConcurrentHashMap<>();
 
-        // Initial events
+        LibraryProvidedEventsInitializer.InitializeEvents(this::AddEventFast);
 
-        AddEventFast(CommonSetupEvent.class);
-        AddEventFast(ServerStartedEvent.class);
-        AddEventFast(ServerStartingEvent.class);
-        AddEventFast(ServerStoppingEvent.class);
-        AddEventFast(ServerReloadedEvent.class);
-        AddEventFast(RegistryFinalizedEvent.class);
-        AddEventFast(ModLoadingCompleteEvent.class);
-        AddEventFast(ServerResourcesReloadedEvent.class);
-        AddEventFast(NewPlayerConnectedToServerEvent.class);
-        AddEventFast(PlayerDisconnectedFromServerEvent.class);
-        // Registry finalized events.
-        // Note that all the below events will be removed once the mod loading complete event is dispatched.
-        AddEventFast(ItemRegistryFinalizedEvent.class);
-        AddEventFast(BlockRegistryFinalizedEvent.class);
-        AddEventFast(FluidRegistryFinalizedEvent.class);
-        AddEventFast(PotionRegistryFinalizedEvent.class);
-        AddEventFast(MenuTypeRegistryFinalizedEvent.class);
-        AddEventFast(EntityTypeRegistryFinalizedEvent.class);
-        AddEventFast(SoundEventRegistryFinalizedEvent.class);
-        AddEventFast(ParticleTypeRegistryFinalizedEvent.class);
-        AddEventFast(EntityAttributeRegistryFinalizedEvent.class);
-        AddEventFast(BlockEntityTypeRegistryFinalizedEvent.class);
-        // Gameplay events.
-        // Note that all the below events will be removed once the mod loading complete event is dispatched and mods are using them.
-        AddEventFast(PlayerWasKilledEvent.class);
-        AddEventFast(PlayerKilledEntityEvent.class);
-        AddEventFast(PlayerRequestedRespawnEvent.class);
-        AddEventFast(PlayerWillBeRewardedWithStatEvent.class);
+        if (BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT) {
+            LibraryProvidedEventsInitializer.InitializeClientEvents(this::AddEventFast);
+        }
     }
 
     // A variant for AddEvent method that just adds the event classes directly rather than checking whether those are actually registered.
@@ -71,7 +47,7 @@ abstract class EventManagerBase
     private <TEvent extends IEvent> void AddEventFast(Class<TEvent> cls)
     {
         ArgumentNullException.ThrowIfNull(cls, "cls");
-        actions.put(cls, new SingleLinkedList<>());
+        actions.put(cls, new SingleLinkedListBasedRegister<>());
     }
 
     @Override
@@ -85,7 +61,7 @@ abstract class EventManagerBase
             throw new InvalidOperationException("Cannot add event listeners after mod loading is complete!");
         }
 
-        SingleLinkedList<Action1<? extends IEvent>> acts = actions.get(event_class);
+        SingleLinkedListBasedRegister<Action1<? extends IEvent>> acts = actions.get(event_class);
 
         if (acts == null) {
             throw new InvalidOperationException(String.format("The event with type %s is not registered to this instance!", event_class.getName()));
@@ -93,13 +69,13 @@ abstract class EventManagerBase
 
         synchronized (acts) {
             // We must be extremely careful when adding a new event handler to the list. Locking on the object is a relatively good idea.
-            acts.Add(action);
+            acts.Register(action);
         }
     }
 
     @StackTraceHidden
     @SuppressWarnings("unchecked")
-    private <TEvent extends IEvent> void FireEventInternal(TEvent evt, @MaybeNull Object actions)
+    private static <TEvent extends IEvent> void FireEventInternal(TEvent evt, @MaybeNull Object actions)
     {
         if (actions == null) {
             if (evt instanceof IDestroyableIfUnusedEvent) {
@@ -107,10 +83,10 @@ abstract class EventManagerBase
                 return;
             } else {
                 // This shouldn't happen, you have fired an unknown event.
-                throw new InvalidOperationException("Attempted to fire an event not yet registered!");
+                throw new InvalidEventDispatchException(evt, "Attempted to fire an event not yet registered!");
             }
         }
-        var e = ((SingleLinkedList<Action1<TEvent>>)actions).GetEnumerator();
+        var e = ((SingleLinkedListBasedRegister<Action1<TEvent>>)actions).GetEnumerator();
         try {
             while (e.MoveNext())
             {
@@ -143,18 +119,18 @@ abstract class EventManagerBase
         } else {
             synchronized (actions) {
                 // Typically, events are added by the library, but mods may add their own as well. So locking on the object avoids to double-register an existing event class.
-                actions.computeIfAbsent(cls, EventManagerBase::ListProvider);
+                actions.computeIfAbsent(cls, EventManagerBase::RegisterProvider);
             }
         }
     }
 
-    private static <T extends IEvent> SingleLinkedList<Action1<? extends IEvent>> ListProvider(Class<T> cls) { return new SingleLinkedList<>(); }
+    private static <T extends IEvent> SingleLinkedListBasedRegister<Action1<? extends IEvent>> RegisterProvider(Class<T> cls) { return new SingleLinkedListBasedRegister<>(); }
 
     /**
      * Gets the map that is used to register actions. Used to gain access of the registered stuff for other event manager classes.
      * @return The backing map.
      */
-    protected Map<Class<? extends IEvent>, SingleLinkedList<Action1<? extends IEvent>>> GetActions() { return actions; }
+    protected Map<Class<? extends IEvent>, SingleLinkedListBasedRegister<Action1<? extends IEvent>>> GetActions() { return actions; }
 
     /**
      * Gets a value whether the extending event manager instance has been finalized. Typically happens after the mod loading complete event has been fired.

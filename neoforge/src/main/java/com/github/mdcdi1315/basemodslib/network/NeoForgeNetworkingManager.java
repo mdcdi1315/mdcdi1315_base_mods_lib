@@ -4,6 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
 import com.github.mdcdi1315.basemodslib.menu.MenuProviderEx;
 
@@ -24,21 +25,29 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public final class NeoForgeNetworkingManager
     extends NetworkManager
 {
-    public IPayloadContext Context;
+    private IPayloadContext Context;
+
+    public NeoForgeNetworkingManager()
+    {
+        super();
+        Context = null;
+    }
 
     @Override
-    protected INetworkBuilder CreateNetworkBuilder() {
-        return new NeoForgeNetworkBuilder(this);
-    }
+    protected INetworkBuilder CreateNetworkBuilder() { return new NeoForgeNetworkBuilder(this); }
+
+    public void CreateReplyEnvironment(@DisallowNull IPayloadContext context) { Context = context; }
+
+    public void DestroyReplyEnvironment() { Context = null; }
 
     @Override
     public <T extends CustomPacketPayload> void Reply(T message)
     {
         if (Context == null) {
             throw new InvalidOperationException("There is no context to reply to!");
+        } else {
+            Context.reply(message);
         }
-
-        Context.reply(message);
     }
 
     @Override

@@ -16,27 +16,17 @@ public class ValueType
     }
 
     @Override
-    public final boolean equals(Object obj) {
-        return super.equals(obj);
-    }
+    public final int hashCode() { return GetHashCode(); }
 
-    public boolean Equals(Object any) {
-        return equals(any);
-    }
+    public int GetHashCode() { return super.hashCode(); }
 
-    public final int hashCode() {
-        return GetHashCode();
-    }
+    @Override
+    public final String toString() { return ToString(); }
 
-    public int GetHashCode() {
-        return super.hashCode();
-    }
+    public boolean Equals(Object any) { return equals(any); }
 
-    public final String toString() {
-        return ToString();
-    }
+    public String ToString() { return getClass().getName(); }
 
-    public String ToString() {
-        return getClass().getName();
-    }
+    @Override
+    public final boolean equals(Object obj) { return super.equals(obj); }
 }

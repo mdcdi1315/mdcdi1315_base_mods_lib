@@ -97,7 +97,7 @@ public final class BaseModsLib
             LOGGER.debug("Hand out completed.");
             mod_instances = new SingleLinkedList<>();
             proxy_manager = new ProxyManager();
-            LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion(), layer.GetMinecraftVersion(), layer.GetEnvironment());
+            LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion(), GetMinecraftVersion(), layer.GetEnvironment());
             sw.Stop();
         } catch (Exception e) {
             layer = null;
@@ -286,11 +286,14 @@ public final class BaseModsLib
     public static Version GetModLoaderVersion() { return layer.GetModLoaderVersion(); }
 
     /**
-     * Gets the Minecraft version under which the mod loader runs.
+     * Gets the Minecraft version under which the library runs.
      * @return The Minecraft version.
+     * @implNote Since BML 1.0.25, the mod loader layer call {@link IModLoaderLayer#GetMinecraftVersion()}
+     * is deprecated and no longer used because a run-time way to retrieve the game version is available from the base game. <br />
+     * So, this will from now on point to the value of {@link net.minecraft.WorldVersion#getName()} method.
      */
     @NotNull
-    public static Version GetMinecraftVersion() { return layer.GetMinecraftVersion(); }
+    public static Version GetMinecraftVersion() { return Version.Parse(net.minecraft.SharedConstants.getCurrentVersion().getName()); }
 
     /**
      * Gets the directory path where all the mod configuration files are stored.
@@ -315,6 +318,22 @@ public final class BaseModsLib
      */
     // Check for non-null before calling, because it may be called by the mods too early and will cause them to fail.
     public static boolean IsDevelopmentEnvironment() { return layer != null && layer.IsDevelopmentEnvironmentBuild(); }
+
+    /**
+     * Gets a {@link Version} object describing the version of the Java Runtime that this class has been instantiated into.
+     * @return The version of the Java Runtime.
+     */
+    @NotNull
+    public static Version GetJavaVersion()
+    {
+        Runtime.Version v = Runtime.version();
+        return new Version(
+                v.feature(),
+                v.interim(),
+                v.update(),
+                v.patch()
+        );
+    }
 
     /**
      * Called by the mod loader when mod loading is complete. <br />

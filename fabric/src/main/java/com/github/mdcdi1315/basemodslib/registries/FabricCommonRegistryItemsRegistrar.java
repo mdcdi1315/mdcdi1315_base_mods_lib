@@ -7,7 +7,6 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreater;
-import com.github.mdcdi1315.basemodslib.item.IBlockEntityItem;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreaterEx;
@@ -28,7 +27,6 @@ import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.alchemy.ParticleTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.effect.MobEffectRegistrationInfo;
-import com.github.mdcdi1315.basemodslib.client.DynamicItemRendererImplementation;
 import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
 import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
@@ -42,7 +40,6 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 
 import net.minecraft.core.Registry;
 import net.minecraft.world.item.Item;
@@ -212,12 +209,7 @@ public final class FabricCommonRegistryItemsRegistrar
         Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, BuildAndValidateLocation(name) , info.component_type_provider().function());
     }
 
-    private static void RegisterItemRenderer(Item item)
-    {
-        if (item instanceof IBlockEntityItem ibi) {
-            BuiltinItemRendererRegistry.INSTANCE.register(item, new DynamicItemRendererImplementation(ibi));
-        }
-    }
+    private static void RegisterItemRenderer(Item item) { IBlockEntityItemWrapper.RegisterItem(item); }
 
     @Override
     public void RegisterCreativeModeTab(String name, CreativeModeTab tab)

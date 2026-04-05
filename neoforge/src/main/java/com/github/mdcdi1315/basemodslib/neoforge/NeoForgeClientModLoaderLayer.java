@@ -2,9 +2,9 @@ package com.github.mdcdi1315.basemodslib.neoforge;
 
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
-import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;

@@ -449,9 +449,8 @@ public class ArrayBasedList<T>
         } else {
             if (items instanceof ICollection<T> collection) {
                 EnlargeArray(collection.getCount());
-            } else {
-                ITraversableCollection<T> tc = Extensions.TypeCast(items);
-                if (tc != null) { EnlargeArray(tc.GetCount()); }
+            } else if (items instanceof ITraversableCollection<T> c) {
+                EnlargeArray(c.GetCount());
             }
             IEnumerator<T> en = items.GetEnumerator();
             try {

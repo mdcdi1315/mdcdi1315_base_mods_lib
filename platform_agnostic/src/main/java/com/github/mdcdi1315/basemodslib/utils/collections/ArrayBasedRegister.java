@@ -169,6 +169,8 @@ public class ArrayBasedRegister<T>
             boolean has_fast_path = true;
             if (items instanceof ICollection<T> c) {
                 Grow(c.getCount());
+            } else if (items instanceof ITraversableCollection<T> c) {
+                Grow(c.GetCount());
             } else {
                 has_fast_path = false;
             }

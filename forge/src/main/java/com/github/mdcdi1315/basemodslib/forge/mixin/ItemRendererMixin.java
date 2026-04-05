@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ItemRenderer.class)
-public abstract class ItemRendererMixin
+public final class ItemRendererMixin
 {
     @Inject(
             method = "render",
@@ -25,7 +25,7 @@ public abstract class ItemRendererMixin
             at = @At(
                 value = "INVOKE",
                 remap = false, // While the method to inject is obfuscated, the Minecraft Forge get custom renderer one is not.
-                target = "Lnet/minecraftforge/client/extensions/common/IClientItemExtensions;getCustomRenderer()Lnet/minecraft/client/renderer/BlockEntityWithoutLevelRenderer;"
+                target = "Lnet/minecraftforge/client/extensions/common/IClientItemExtensions;of(Lnet/minecraft/world/item/ItemStack;)Lnet/minecraftforge/client/extensions/common/IClientItemExtensions;"
             )
     )
     private void OnRenderItem(ItemStack stack, ItemDisplayContext dc, boolean left_hand, PoseStack pose_stack, MultiBufferSource buffer, int combined_light, int combined_overlay, BakedModel model, CallbackInfo callback_info)

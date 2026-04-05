@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 
 /**
  * Specifies the base interface for traversable collections; that is, collections that their individual elements can be accessed by simple 32-bit integers.
@@ -8,6 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
  * @since 1.0.18
  */
 public interface ITraversableCollection<T>
+    extends IEnumerable<T>
 {
     /**
      * Gets the number of elements contained in the current traversable collection.

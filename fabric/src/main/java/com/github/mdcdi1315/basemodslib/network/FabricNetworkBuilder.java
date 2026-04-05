@@ -3,17 +3,16 @@ package com.github.mdcdi1315.basemodslib.network;
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
-import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 
 public final class FabricNetworkBuilder
     implements INetworkBuilder
@@ -21,14 +20,14 @@ public final class FabricNetworkBuilder
     private String mod_id;
     private boolean aso, aco;
     private Version network_version;
-    private SingleLinkedList<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_side_info;
-    private SingleLinkedList<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_side_info;
+    private SingleLinkedListBasedRegister<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_side_info;
+    private SingleLinkedListBasedRegister<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_side_info;
 
     public FabricNetworkBuilder(String mod_id)
     {
         this.mod_id = mod_id;
-        client_side_info = new SingleLinkedList<>();
-        server_side_info = new SingleLinkedList<>();
+        client_side_info = new SingleLinkedListBasedRegister<>();
+        server_side_info = new SingleLinkedListBasedRegister<>();
         network_version = null;
         aso = false;
         aco = false;
@@ -52,13 +51,12 @@ public final class FabricNetworkBuilder
         aso = true;
     }
 
-
     @Override
     public <T extends CustomPacketPayload> void RegisterClientBoundPacket(ClientSideNetworkPacketRegistrationInfo<T> info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        client_side_info.Add(info);
+        client_side_info.Register(info);
     }
 
     @Override
@@ -66,7 +64,7 @@ public final class FabricNetworkBuilder
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        server_side_info.Add(info);
+        server_side_info.Register(info);
     }
 
     private record ServerPlayChannelInfoHandling<T extends CustomPacketPayload>(FabricBasedNetworkManager manager, Action2<ServerPlayer, T> handler)
@@ -76,10 +74,14 @@ public final class FabricNetworkBuilder
             implements Runnable
         {
             @Override
-            public void run() {
-                manager.Player_To_Reply_To = sp;
-                action.action(sp , packet);
-                manager.Player_To_Reply_To = null;
+            public void run()
+            {
+                try {
+                    manager.Player_To_Reply_To = sp;
+                    action.action(sp, packet);
+                } finally {
+                    manager.Player_To_Reply_To = null;
+                }
             }
         }
 
@@ -95,20 +97,12 @@ public final class FabricNetworkBuilder
         ServerPlayNetworking.registerGlobalReceiver(info.type(), new ServerPlayChannelInfoHandling<>(manager, info.handler()));
     }
 
-    private record ClientPlayChannelInfoHandling<T extends CustomPacketPayload>(Action2<Player, T> handler)
-        implements ClientPlayNetworking.PlayPayloadHandler<T>
-    {
-        @Override
-        public void receive(T t, ClientPlayNetworking.Context context) {
-            var client = context.client();
-            client.execute(new Action2ToRunnable<>(this.handler, client.player, t));
-        }
-    }
-
     private <T extends CustomPacketPayload> void RegisterClientBoundPacketInternal(ClientSideNetworkPacketRegistrationInfo<T> info)
     {
         PayloadTypeRegistry.playS2C().register(info.type() , info.codec());
-        ClientPlayNetworking.registerGlobalReceiver(info.type(), new ClientPlayChannelInfoHandling<>(info.handler()));
+        if (BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT) {
+            FabricNetworkBuilder_ClientUtils.RegisterClientBoundPacketInternal_ClientImpl(info);
+        }
     }
 
     public void Build(FabricBasedNetworkManager manager)
@@ -135,7 +129,7 @@ public final class FabricNetworkBuilder
                 RegisterClientBoundPacketInternal(inf);
             }
         } finally {
-            server_e.Dispose();
+            client_e.Dispose();
         }
         client_side_info = null;
     }

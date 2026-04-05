@@ -8,14 +8,17 @@ import com.github.mdcdi1315.basemodslib.EmptyModObject;
 import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
+import com.github.mdcdi1315.basemodslib.eventapi.client.ClientEventHooks;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.client.FabricClientRegistryRegistrar;
 import com.github.mdcdi1315.basemodslib.client.FabricClientArtifactsRegistrar;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
+import net.minecraft.client.Minecraft;
+
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 
 @ClientOnlyEnvironment
 public final class FabricClientModLoaderLayer
@@ -44,11 +47,15 @@ public final class FabricClientModLoaderLayer
     }
 
     public FabricClientModLoaderLayer() {
-        BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, FabricClientModLoaderLayer::OnModLoadingComplete);
+        ClientLifecycleEvents.CLIENT_STARTED.register(FabricClientModLoaderLayer::OnClientStarted);
+        ClientLifecycleEvents.CLIENT_STOPPING.register(ClientEventHooks::ClientStopping);
     }
 
-    private static void OnModLoadingComplete(ModLoadingCompleteEvent evt)
+    private static void OnClientStarted(Minecraft mc)
     {
+        BaseModsLib.Destroy();
+        ClientEventHooks.ClientStarted(mc);
+        // When mod loading is complete, do the below:
         var em = BaseModsLib.GetEventsManager();
         var en = mod_info_packet_events.GetEnumerator();
         try {

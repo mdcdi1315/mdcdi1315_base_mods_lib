@@ -43,5 +43,9 @@
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.mod_loader": "Mod Loader: Brand: %s, Version: %s",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.loaded_instances": "Loaded BML mod instances: %d",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.is_dev_env_no": "Is development environment: No",
-	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.is_dev_env_yes": "Is development environment: Yes"
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.is_dev_env_yes": "Is development environment: Yes",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.java_runtime_header": "Java Runtime Info: ",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.java_runtime_version": "Fully qualified version: %d.%d.%d.%d",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.java_runtime_prerelease_info": "Pre-release info: %s",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.java_runtime_additional_info": "Optional additional build info: %s"
 }

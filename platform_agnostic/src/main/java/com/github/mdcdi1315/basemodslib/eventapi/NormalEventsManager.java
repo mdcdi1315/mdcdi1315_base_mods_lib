@@ -9,7 +9,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.eventapi.gameplay.*;
 import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -57,7 +57,7 @@ public class NormalEventsManager
             {
                 if (cls == destroyable_if_unused) {
                     var list = actions.get(i);
-                    if (list != null && list.getCount() == 0) {
+                    if (list != null && (!list.HasItems())) {
                         actions.remove(i);
                         removed++;
                     }
@@ -72,7 +72,7 @@ public class NormalEventsManager
         BaseModsLib.LOGGER.info("EVENTS_MANAGER: Successfully removed {} destroyable events" , removed);
     }
 
-    private static <T extends IEvent> SingleLinkedList<Action1<? extends IEvent>> ListProvider(Class<T> cls) { return new SingleLinkedList<>(); }
+    private static <T extends IEvent> SingleLinkedListBasedRegister<Action1<? extends IEvent>> RegisterProvider(Class<T> cls) { return new SingleLinkedListBasedRegister<>(); }
 
     public void HandEventsFromEarly(EarlyEventsManager early)
     {
@@ -80,13 +80,13 @@ public class NormalEventsManager
         synchronized (c_actions)
         {
             IEnumerator<Action1<? extends IEvent>> et;
-            SingleLinkedList<Action1<? extends IEvent>> actions;
+            SingleLinkedListBasedRegister<Action1<? extends IEvent>> actions;
             for (var kvp : early.GetActions().entrySet())
             {
                 et = kvp.getValue().GetEnumerator();
                 try {
-                    actions = c_actions.computeIfAbsent(kvp.getKey() , NormalEventsManager::ListProvider);
-                    while (et.MoveNext()) { actions.Add(et.getCurrent()); }
+                    actions = c_actions.computeIfAbsent(kvp.getKey() , NormalEventsManager::RegisterProvider);
+                    while (et.MoveNext()) { actions.Register(et.getCurrent()); }
                 } finally {
                     et.Dispose();
                 }

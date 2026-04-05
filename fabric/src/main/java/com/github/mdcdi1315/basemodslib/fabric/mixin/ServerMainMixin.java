@@ -13,7 +13,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Main.class)
 public final class ServerMainMixin
 {
-    @Inject(method = "main" , at = @At(value = "INVOKE", target = "Lnet/minecraft/server/packs/repository/ServerPacksSource;createPackRepository(Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;)Lnet/minecraft/server/packs/repository/PackRepository;"))
+    // Forge/Neo inject somewhere around before the Dedicated Server Settings object is created.
+    // So, inject common setup there instead.
+    // Server setup falls here as well.
+    @Inject(method = "main" , at = @At(value = "INVOKE", target = "Lnet/minecraft/server/dedicated/DedicatedServerSettings;<init>(Ljava/nio/file/Path;)V"))
     private static void OnMain(String[] strings, CallbackInfo ci) {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
         CommonSetupEvent cse = new CommonSetupEvent();

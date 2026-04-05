@@ -96,7 +96,7 @@ public class List<T>
         }
     }
 
-    private final int DefaultCapacity = 4;
+    private static final int DefaultCapacity = 4;
 
     @SuppressWarnings("unchecked")
     private @NotNull T[] CreateArrayOfSize(int len)

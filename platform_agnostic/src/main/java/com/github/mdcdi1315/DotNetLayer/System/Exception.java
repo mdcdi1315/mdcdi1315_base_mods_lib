@@ -104,15 +104,17 @@ public class Exception
     private static boolean IsEligibleForRemoving(StackTraceElement e)
     {
         Method cm = null;
+        Class<?> element_class = null;
         try {
-            cm = Class.forName(e.getClassName()).getMethod(e.getMethodName());
+            element_class = Class.forName(e.getClassName());
+            cm = element_class.getMethod(e.getMethodName());
         } catch (java.lang.Exception ex) {}
         if (cm == null) {
             return false;
         } else if (cm.getAnnotation(StackTraceHidden.class) != null) {
             return true;
         } else {
-            return cm.getDeclaringClass().getAnnotation(StackTraceHidden.class) != null;
+            return element_class.getAnnotation(StackTraceHidden.class) != null;
         }
     }
 

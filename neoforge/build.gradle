@@ -27,6 +27,7 @@ neoForge {
     runs {
         configureEach {
             systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+            systemProperty("mixin.debug.export", "true")
             ideName = "NeoForge ${it.name.capitalize()} (${project.path})"
         }
 

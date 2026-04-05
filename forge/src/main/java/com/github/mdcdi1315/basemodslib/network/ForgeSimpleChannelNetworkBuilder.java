@@ -6,7 +6,8 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -22,13 +23,13 @@ public final class ForgeSimpleChannelNetworkBuilder
     private boolean aso, aco;
     private Version network_version;
     private final ResourceLocation manager_channel_location;
-    private SingleLinkedList<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_packet_reg_info;
-    private SingleLinkedList<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_packet_reg_info;
+    private SingleLinkedListBasedRegister<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_packet_reg_info;
+    private SingleLinkedListBasedRegister<ServerSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> server_packet_reg_info;
 
     public ForgeSimpleChannelNetworkBuilder(String mod_id) {
-        manager_channel_location = ResourceLocation.tryBuild(mod_id, "mdcdi1315_bml_networking_manager");
-        client_packet_reg_info = new SingleLinkedList<>();
-        server_packet_reg_info = new SingleLinkedList<>();
+        manager_channel_location = RegistryUtils.ConstructResourceLocation(mod_id, "mdcdi1315_bml_networking_manager");
+        client_packet_reg_info = new SingleLinkedListBasedRegister<>();
+        server_packet_reg_info = new SingleLinkedListBasedRegister<>();
         network_version = null;
         aso = false;
         aco = false;
@@ -51,7 +52,7 @@ public final class ForgeSimpleChannelNetworkBuilder
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        client_packet_reg_info.Add(info);
+        client_packet_reg_info.Register(info);
     }
 
     @Override
@@ -59,7 +60,7 @@ public final class ForgeSimpleChannelNetworkBuilder
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        server_packet_reg_info.Add(info);
+        server_packet_reg_info.Register(info);
     }
 
     private void InitializePackets(SimpleChannel sc, ForgeBasedNetworkManager mgr)
@@ -90,10 +91,14 @@ public final class ForgeSimpleChannelNetworkBuilder
         implements Action2<TP , CustomPayloadEvent.Context>
     {
         @Override
-        public void action(TP packet, CustomPayloadEvent.Context context) {
-            manager.cxt = context;
-            handler.action(BaseModsLibClient.GetLoggedInPlayer() , packet);
-            manager.cxt = null;
+        public void action(TP packet, CustomPayloadEvent.Context context)
+        {
+            try {
+                manager.CreateReplyEnvironment(context);
+                handler.action(BaseModsLibClient.GetLoggedInPlayer() , packet);
+            } finally {
+                manager.DestroyReplyEnvironment();
+            }
         }
     }
 
@@ -113,10 +118,14 @@ public final class ForgeSimpleChannelNetworkBuilder
         implements Action2<T, CustomPayloadEvent.Context>
     {
         @Override
-        public void action(T t, CustomPayloadEvent.Context context) {
-            manager.cxt = context;
-            handler.action(context.getSender() , t);
-            manager.cxt = null;
+        public void action(T t, CustomPayloadEvent.Context context)
+        {
+            try {
+                manager.CreateReplyEnvironment(context);
+                handler.action(context.getSender() , t);
+            } finally {
+                manager.DestroyReplyEnvironment();
+            }
         }
     }
 
