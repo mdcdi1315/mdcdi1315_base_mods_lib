@@ -43,10 +43,10 @@ public interface ICollection<T>
      * Copies the elements of the {@link ICollection} to an array, starting at a particular array index.
      * @param array The one-dimensional System.Array that is the destination of the elements copied from {@link ICollection}. The array must have zero-based indexing.
      * @param arrayIndex The zero-based index in `array` at which copying begins.
-     * @exception com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException array is null.
-     * @exception com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException arrayIndex is less than 0.
+     * @exception com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException {@code array} is {@code null}.
+     * @exception com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException {@code arrayIndex} is less than 0.
      * @exception com.github.mdcdi1315.DotNetLayer.System.ArgumentException The number of elements in the source
-     * {@link ICollection} is greater than the available space from arrayIndex to the end of the destination array.
+     * {@link ICollection} is greater than the available space from {@code arrayIndex} to the end of the destination {@code array}.
      */
     void CopyTo(T[] array, int arrayIndex);
 

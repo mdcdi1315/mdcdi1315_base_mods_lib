@@ -13,9 +13,8 @@ import com.github.mdcdi1315.basemodslib.eventapi.client.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
@@ -30,10 +29,10 @@ public final class BaseModsLibClient
 {
     private static IClientModLoaderLayer layer;
     private static volatile boolean initialized;
-    private static SingleLinkedList<IClientModInstance> mod_instances;
+    private static SingleLinkedListBasedRegister<IClientModInstance> mod_instances;
     // The below field is created lazily on first registration.
     // Even if the method that should call this calls in but remains null, it will keep it as null.
-    private static SingleLinkedList<Pair<String, ConfigurationScreenFactory<?>>> config_factories;
+    private static SingleLinkedListBasedRegister<Pair<String, ConfigurationScreenFactory<?>>> config_factories;
 
     static {
         if (BaseModsLib.GetEnvironment() == ModdingEnvironment.SERVER) {
@@ -76,13 +75,7 @@ public final class BaseModsLibClient
             if (layer == null) {
                 throw new InvalidOperationException("Returned an empty client mod loader layer through the mod loader layer constructor. This is unexpected.");
             }
-            mod_instances = new SingleLinkedList<>();
-            var em = BaseModsLib.GetEventsManager();
-            em.AddEvent(ClientSetupEvent.class);
-            em.AddEvent(ClientStartedEvent.class);
-            em.AddEvent(ClientStoppingEvent.class);
-            em.AddEvent(ClientConnectedToServerEvent.class);
-            em.AddEvent(ClientDisconnectedFromServerEvent.class);
+            mod_instances = new SingleLinkedListBasedRegister<>();
             sw.Stop();
             BaseModsLib.LOGGER.info("The library for the client distribution took {} seconds to initialize." , sw.GetElapsed().GetTotalSeconds());
         } catch (Exception ex) {
@@ -142,7 +135,7 @@ public final class BaseModsLibClient
             BaseModsLib.LOGGER.info("BASEMODSLIB: Client mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
             synchronized (mod_instances) {
-                mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
+                mod_instances.Register(instance); // The instance is made known to other mods after the mod has completed initialization.
             }
         } catch (Exception e) {
             var id = instance.GetModId();
@@ -156,9 +149,11 @@ public final class BaseModsLibClient
     private static void AddConfigScreenFactory(String mod_id, ConfigurationScreenFactory<?> fact)
     {
         if (config_factories == null) {
-            config_factories = new SingleLinkedList<>();
+            config_factories = new SingleLinkedListBasedRegister<>();
         }
-        config_factories.Add(new Pair<>(mod_id, fact));
+        synchronized (config_factories) {
+            config_factories.Register(new Pair<>(mod_id, fact));
+        }
     }
 
     /**

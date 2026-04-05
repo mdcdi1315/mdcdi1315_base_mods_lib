@@ -117,6 +117,7 @@ public final class RegistryUtils
      * @throws ArgumentNullException {@code resource_key} is {@code null}.
      * @throws RegistryNotFoundException {@code resource_key} does not point to a valid Minecraft registry.
      */
+    @NotNull
     public static <T> Registry<T> GetRootRegistry(ResourceKey<? extends Registry<T>> resource_key)
         throws ArgumentNullException, RegistryNotFoundException
     {
@@ -130,6 +131,47 @@ public final class RegistryUtils
             }
         } else {
             throw new InvalidOperationException("The specified resource key does not represent a root registry key: " + resource_key);
+        }
+    }
+
+    /**
+     * Constructs a resource location explicitly by taking the specified namespace and path.
+     * @param namespace The name space of the resource location.
+     * @param path The fully qualified path of the resource location.
+     * @return The constructed resource location.
+     * @throws ArgumentNullException {@code namespace} and/or {@code path} are {@code null}.
+     * @throws ResourceLocationConstructionException The resource location could not be constructed.
+     * @since 1.0.25
+     */
+    @NotNull
+    public static ResourceLocation ConstructResourceLocation(String namespace, String path)
+            throws ResourceLocationConstructionException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(path, "path");
+        ArgumentNullException.ThrowIfNull(namespace, "namespace");
+        try {
+            return ResourceLocation.fromNamespaceAndPath(namespace, path);
+        } catch (net.minecraft.ResourceLocationException rle) {
+            throw new ResourceLocationConstructionException("Could not explicitly construct a resource location from a namespace and a path.", rle);
+        }
+    }
+
+    /**
+     * Parses the given string as a {@link ResourceLocation} instance.
+     * @param location The string to parse. Must have a format like {@code namespace:path/sub_dir/goes_on}.
+     * @return The parsed resource location.
+     * @throws ArgumentNullException {@code location} is {@code null}.
+     * @throws ResourceLocationConstructionException The resource location could not be constructed.
+     */
+    @NotNull
+    public static ResourceLocation ParseResourceLocation(String location)
+            throws ResourceLocationConstructionException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(location, "location");
+        try {
+            return ResourceLocation.parse(location);
+        } catch (net.minecraft.ResourceLocationException rle) {
+            throw new ResourceLocationConstructionException("Could not explicitly parse a resource location from a given string.", rle);
         }
     }
 }

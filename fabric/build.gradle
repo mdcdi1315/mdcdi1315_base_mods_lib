@@ -46,12 +46,14 @@ loom {
             setConfigName("fabric Client")
             ideConfigGenerated(true)
             runDir("run")
+            vmArg "-Dmixin.debug.export=true"
         }
         server {
             server()
             setConfigName("fabric Server")
             ideConfigGenerated(true)
             runDir("run")
+            vmArg "-Dmixin.debug.export=true"
         }
         data {
             inherit client
@@ -60,13 +62,13 @@ loom {
             runDir("build/datagen")
 
             vmArg "-Dfabric-api.datagen"
-            vmArg "-Dfabric-api.datagen.output-dir=${project(":platform_agnostic").file("src/main/generated")}"
             vmArg "-Dfabric-api.datagen.modid=${mod_id}"
+            vmArg "-Dfabric-api.datagen.output-dir=${project(":platform_agnostic").file("src/main/generated")}"
         }
     }
 }
 
-sourceSets.main.java { srcDir '../sources-clothconfig' }
+sourceSets.main.java.srcDir '../sources-clothconfig'
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 

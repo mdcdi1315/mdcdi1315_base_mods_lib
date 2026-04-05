@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.CompletableFuture;
 
-@Mixin(ReloadableServerResources.class)
+@Mixin(value = ReloadableServerResources.class, priority = 100000)
 public class ReloadableServerResourcesMixin
 {
     @Inject(method = "loadResources", at = @At("RETURN"))
@@ -36,11 +36,19 @@ public class ReloadableServerResourcesMixin
             Executor gameExecutor,
             CallbackInfoReturnable<CompletableFuture<ReloadableServerResources>> callback_info
     ) {
-        callback_info.getReturnValue().thenAccept(ReloadableServerResourcesMixin::MDCDI1315$BML$OnResourcesReloadedEvent);
+        callback_info
+                .getReturnValue()
+                .handleAsync(ReloadableServerResourcesMixin::MDCDI1315$BML$OnResourcesReloadedEvent);
     }
 
     @Unique
-    private static void MDCDI1315$BML$OnResourcesReloadedEvent(ReloadableServerResources rsr) {
-        BaseModsLib.GetEventsManager().FireEvent(new ServerResourcesReloadedEvent(rsr));
+    private static ReloadableServerResources MDCDI1315$BML$OnResourcesReloadedEvent(ReloadableServerResources rsr, Throwable th)
+    {
+        if (th == null) {
+            // If the throwable is null, all the constructed reload methods have been successfully completed.
+            BaseModsLib.GetEventsManager().FireEvent(new ServerResourcesReloadedEvent(rsr));
+        }
+        // Return the object back.
+        return rsr;
     }
 }

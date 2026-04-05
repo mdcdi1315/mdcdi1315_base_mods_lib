@@ -45,6 +45,8 @@ minecraft {
 
             property 'forge.enabledGameTestNamespaces', mod_id
 
+            jvmArg "-Dmixin.debug.export=true"
+
             mods {
                 modClientRun {
                     source sourceSets.main
@@ -58,6 +60,8 @@ minecraft {
             taskName "Server"
 
             property 'forge.enabledGameTestNamespaces', mod_id
+
+            jvmArg "-Dmixin.debug.export=true"
 
             mods {
                 modServerRun {

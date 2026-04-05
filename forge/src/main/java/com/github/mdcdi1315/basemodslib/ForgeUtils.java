@@ -38,7 +38,7 @@ public final class ForgeUtils
         boolean register = true;
         if (enumerable instanceof SingleLinkedListBasedRegister<T> reg) { register = reg.HasItems(); }
         else if (enumerable instanceof ICollection<T> c) { register = c.getCount() > 0; }
-        else if (enumerable instanceof ITraversableCollection<?> t) { register = t.GetCount() > 0; }
+        else if (enumerable instanceof ITraversableCollection<T> t) { register = t.GetCount() > 0; }
         return register;
     }
 

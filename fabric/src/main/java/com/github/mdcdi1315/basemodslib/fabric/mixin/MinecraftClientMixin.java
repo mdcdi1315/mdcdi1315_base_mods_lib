@@ -30,9 +30,4 @@ public final class MinecraftClientMixin
         BaseModsLib.GetEventsManager().FireEvent(cse);
         cse.Run();
     }
-
-    @Inject(method = "run", at = @At("HEAD"))
-    private void RunInternal(CallbackInfo ci) {
-        BaseModsLib.Destroy();
-    }
 }

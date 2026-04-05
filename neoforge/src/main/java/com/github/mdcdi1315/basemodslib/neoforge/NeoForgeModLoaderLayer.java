@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
+import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
@@ -25,8 +26,10 @@ import com.github.mdcdi1315.basemodslib.registries.NeoForgeRegistriesRegistrar;
 
 import net.neoforged.fml.ModList;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforgespi.language.IModInfo;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -42,19 +45,18 @@ public final class NeoForgeModLoaderLayer
 {
     private IEventBus event_bus;
     private List<IModInfo> mods;
+    private Version neoforge_version;
     // Boolean tracking down whether mod loading has been actually completed.
     // Helps to avoid calling the bake callbacks more than one times.
     // See NeoForgeUtils class for the usage of this.
     public static boolean mod_loading_complete;
     // private DisposableObjectsTracker tracker;
-    private Version minecraft_version, neoforge_version;
     private NeoForgeCommandRegistrar global_command_registrar;
 
     public NeoForgeModLoaderLayer(IEventBus event_bus) {
         this.event_bus = event_bus;
         mod_loading_complete = false;
         mods = ModList.get().getMods();
-        minecraft_version = new Version(1, 21, 5);
         global_command_registrar = new NeoForgeCommandRegistrar();
         global_command_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
         Version fg_ver;
@@ -65,9 +67,14 @@ public final class NeoForgeModLoaderLayer
             fg_ver = new Version(0 , 0);
         }
         neoforge_version = fg_ver;
-        // tracker = new DisposableObjectsTracker();
-        NeoForgeUtils.AddListener(this.event_bus, FMLCommonSetupEvent.class, this::OnCommonSetupEvent);
+
         NeoForgeUtils.AddListener(this.event_bus, FMLLoadCompleteEvent.class, this::OnModLoadingCompleteEvent);
+        NeoForgeUtils.AddListener(this.event_bus, FMLCommonSetupEvent.class, NeoForgeModLoaderLayer::OnCommonSetupEvent);
+        NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, net.neoforged.neoforge.event.server.ServerStartedEvent.class, NeoForgeModLoaderLayer::OnServerStarted);
+        NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, net.neoforged.neoforge.event.server.ServerStoppedEvent.class, NeoForgeModLoaderLayer::OnServerStopped);
+        NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, net.neoforged.neoforge.event.server.ServerStartingEvent.class, NeoForgeModLoaderLayer::OnServerStarting);
+        NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, net.neoforged.neoforge.event.server.ServerStoppingEvent.class, NeoForgeModLoaderLayer::OnServerStopping);
+
         // Register bake callbacks instead. This does not require a mixin, and it is OK since this will call in as appropriate.
         // Also, it is far more practical than the Forge solution.
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ITEM, ItemRegistryFinalizedEvent::new);
@@ -99,7 +106,7 @@ public final class NeoForgeModLoaderLayer
         mod_loading_complete = true;
     }
 
-    private void OnCommonSetupEvent(FMLCommonSetupEvent event) {
+    private static void OnCommonSetupEvent(FMLCommonSetupEvent event) {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
         CommonSetupEvent cse = new CommonSetupEvent();
         BaseModsLib.GetEventsManager().FireEvent(cse);
@@ -109,6 +116,25 @@ public final class NeoForgeModLoaderLayer
     private void OnModLoadingCompleteEvent(FMLLoadCompleteEvent event) {
         event.enqueueWork(BaseModsLib::Destroy);
         event.enqueueWork(this::DestroyLayerData);
+    }
+
+    private static void OnServerStarting(net.neoforged.neoforge.event.server.ServerStartingEvent e) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStartingEvent(e.getServer()));
+    }
+
+    private static void OnServerStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent e) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppingEvent(e.getServer()));
+    }
+
+    private static void OnServerStopped(net.neoforged.neoforge.event.server.ServerStoppedEvent e) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppedEvent(e.getServer()));
+        // In server env, we need to dispose the BML itself.
+        // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
+        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { BaseModsLib.DestroySelf(); }
+    }
+
+    private static void OnServerStarted(net.neoforged.neoforge.event.server.ServerStartedEvent e) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStartedEvent(e.getServer()));
     }
 
     @Override
@@ -186,9 +212,6 @@ public final class NeoForgeModLoaderLayer
     public Version GetModLoaderVersion() { return neoforge_version; }
 
     @Override
-    public Version GetMinecraftVersion() { return minecraft_version; }
-
-    @Override
     public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
 
     @Override
@@ -201,12 +224,12 @@ public final class NeoForgeModLoaderLayer
     public List<String> GetLoadedMods() { return new DirectlyMappedList<>(mods, IModInfo::getModId); }
 
     @Override
-    public void Dispose() {
+    public void Dispose()
+    {
         // this.tracker = null;
         this.mods = null;
         this.event_bus = null;
         this.neoforge_version = null;
-        this.minecraft_version = null;
         this.global_command_registrar = null;
     }
 }

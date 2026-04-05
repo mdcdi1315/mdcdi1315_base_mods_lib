@@ -11,23 +11,26 @@ import net.minecraft.client.renderer.special.SpecialModelRenderers;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(SpecialModelRenderers.class)
-public abstract class SpecialModelRenderersMixin
+public final class SpecialModelRenderersMixin
 {
     @Final
-    @Shadow
-    private static ExtraCodecs.LateBoundIdMapper<ResourceLocation, MapCodec<? extends SpecialModelRenderer.Unbaked>> ID_MAPPER;
+    @Accessor("ID_MAPPER")
+    private static ExtraCodecs.LateBoundIdMapper<ResourceLocation, MapCodec<? extends SpecialModelRenderer.Unbaked>> GetIdMapper()
+    {
+        throw new AssertionError("Implemented by Mixin");
+    }
 
     @Inject(method = "<clinit>", at = @At("TAIL"))
     private static void OnInit(CallbackInfo ci)
     {
         // We can just pass the ID mapper method reference back to our client mod loader layer, client registrar objects
         // will store a reference of this method and will subsequently use it to register all the codecs they deem that they need.
-        ForgeClientModLoaderLayer.id_mapper_method = ID_MAPPER::put;
+        ForgeClientModLoaderLayer.id_mapper_method = GetIdMapper()::put;
     }
 }

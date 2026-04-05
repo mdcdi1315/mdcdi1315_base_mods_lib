@@ -7,6 +7,7 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
+import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
@@ -27,7 +28,9 @@ import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistryWrappedInRegistry;
 
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -47,17 +50,14 @@ public final class ForgeModLoaderLayer
 {
     private List<IModInfo> forge_mod_info;
     // private DisposableObjectsTracker tracker;
+    private Version forge_modloader_version;
     private ForgeCommandRegistrar global_command_registrar;
-    private final FMLJavaModLoadingContext baselibmodcontext;
-    private Version minecraft_version, forge_modloader_version;
 
     public ForgeModLoaderLayer(FMLJavaModLoadingContext baselibmodcontext)
     {
         forge_mod_info = ModList.get().getMods();
-        this.baselibmodcontext = baselibmodcontext;
         global_command_registrar = new ForgeCommandRegistrar();
         global_command_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
-        minecraft_version = new Version(1 , 21, 5);
         Version fg_ver;
         try {
             fg_ver = Version.Parse(ForgeVersion.getVersion());
@@ -66,10 +66,13 @@ public final class ForgeModLoaderLayer
             fg_ver = new Version(0 , 0);
         }
         forge_modloader_version = fg_ver;
-        // tracker = new DisposableObjectsTracker();
-        IEventBus bus = this.baselibmodcontext.getModEventBus();
+        IEventBus bus = baselibmodcontext.getModEventBus();
         ForgeUtils.AddListener(bus, FMLCommonSetupEvent.class, this::OnCommonSetupEvent);
         ForgeUtils.AddListener(bus, FMLLoadCompleteEvent.class, this::OnModLoadingComplete);
+        ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStartedEvent.class, ForgeModLoaderLayer::OnServerStarted);
+        ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStoppedEvent.class, ForgeModLoaderLayer::OnServerStopped);
+        ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStartingEvent.class, ForgeModLoaderLayer::OnServerStarting);
+        ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStoppingEvent.class, ForgeModLoaderLayer::OnServerStopping);
     }
 
     private IEventBus GetEventBusOrFail(Object mod_object) {
@@ -80,13 +83,7 @@ public final class ForgeModLoaderLayer
         }
     }
 
-    private void DestroyInternalResources() {
-        global_command_registrar = null;
-        /*
-        tracker.Dispose();
-        tracker = null;
-         */
-    }
+    private void DestroyInternalResources() { global_command_registrar = null; }
 
     // REGISTRY FINALIZATION BEGIN
     // The below 3 public methods are called in by the DispatchFinalizeRegistriesEventLoadingState class. See that class for more information.
@@ -123,6 +120,25 @@ public final class ForgeModLoaderLayer
     }
 
     // REGISTRY FINALIZATION END
+
+    private static void OnServerStarting(net.minecraftforge.event.server.ServerStartingEvent e) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStartingEvent(e.getServer()));
+    }
+
+    private static void OnServerStopping(net.minecraftforge.event.server.ServerStoppingEvent e) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppingEvent(e.getServer()));
+    }
+
+    private static void OnServerStopped(net.minecraftforge.event.server.ServerStoppedEvent e) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppedEvent(e.getServer()));
+        // In server env, we need to dispose the BML itself.
+        // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
+        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { BaseModsLib.DestroySelf(); }
+    }
+
+    private static void OnServerStarted(net.minecraftforge.event.server.ServerStartedEvent e) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStartedEvent(e.getServer()));
+    }
 
     private void OnCommonSetupEvent(FMLCommonSetupEvent event) {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
@@ -180,13 +196,6 @@ public final class ForgeModLoaderLayer
     }
 
     @Override
-    public void Dispose() {
-        this.forge_modloader_version = null;
-        this.minecraft_version = null;
-        this.forge_mod_info = null;
-    }
-
-    @Override
     public boolean IsModLoaded(String mod_id) {
         for (var i : forge_mod_info) {
             if (i.getModId().equals(mod_id)) {
@@ -209,9 +218,6 @@ public final class ForgeModLoaderLayer
     public String GetModLoaderBranding() { return "Forge"; }
 
     @Override
-    public Version GetMinecraftVersion() { return minecraft_version; }
-
-    @Override
     public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
 
     @Override
@@ -225,4 +231,12 @@ public final class ForgeModLoaderLayer
 
     @Override
     public List<String> GetLoadedMods() { return new DirectlyMappedList<>(forge_mod_info, IModInfo::getModId); }
+
+    @Override
+    public void Dispose()
+    {
+        this.global_command_registrar = null;
+        this.forge_modloader_version = null;
+        this.forge_mod_info = null;
+    }
 }

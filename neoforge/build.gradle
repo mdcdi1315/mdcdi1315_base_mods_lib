@@ -27,6 +27,7 @@ neoForge {
     runs {
         configureEach {
             systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+            systemProperty("mixin.debug.export", "true")
             ideName = "NeoForge ${it.name.capitalize()} (${project.path})"
         }
 
@@ -46,7 +47,7 @@ neoForge {
     }
 }
 
-sourceSets.main.java { srcDir '../sources-clothconfig' }
+sourceSets.main.java.srcDir '../sources-clothconfig'
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 

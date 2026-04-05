@@ -2,9 +2,7 @@ package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
 
 public final class FabricBridgedBulkRegister<T>
     implements IBulkRegistryObjectRegister<T>
@@ -17,23 +15,11 @@ public final class FabricBridgedBulkRegister<T>
         this.registry = registry;
     }
 
-    // Keep this in sync with the FabricCommonRegistryItemsRegistrar class.
-    private ResourceLocation BuildAndValidateLocation(String path)
-    {
-        ResourceLocation ret = ResourceLocation.tryBuild(mod_id, path);
-
-        if (ret == null) {
-            throw new RuntimeException("Could not create the resource location!");
-        }
-
-        return ret;
-    }
-
     @Override
     public void Add(String name, T object)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(name, "name");
-        Registry.register(registry, BuildAndValidateLocation(name), object);
+        Registry.register(registry, RegistryUtils.ConstructResourceLocation(mod_id, name), object);
     }
 }

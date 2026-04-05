@@ -1,11 +1,19 @@
-### Now releasing 1.0.24:
+### Now releasing 1.0.25:
 
--> Made more memory-friendly several things on the Forge/NeoForge event stuff - this should give a way to further delete layer objects on those platforms. 
-Additionally, this allows to simplify code.
-This does also seem speed up mod creation by 60% or so.
+-> Further performed performance optimizations
 
--> Added a way to register PreparableReloadListeners.
+-> The library now uses less Mixins in an effort to use the mod-loader provided ways instead.
 
--> Fixed several bugs and omissions.
+-> [1.21.1 ((Neo)Forge)]: Fixed a performance issue with the Item Renderer Mixin that looked up first for the `IClientItemExtensions` object rather than whether the item implements `IBlockEntityItem`.
 
--> The `List` class is now fully documented.
+-> The `ITraversableCollection` interface now implements the IEnumerable interface.
+
+-> Added more API's to the .NET Layer.
+
+-> The library's dev instance now saves each mixed in class to concrete files for further debugging.
+
+-> Minecraft version is now retrieved through the game's `SharedConstants` class.
+
+-> Added a server stopped event.
+
+-> Fabric: Fixed BML accessing client-side stuff on dedicated servers.

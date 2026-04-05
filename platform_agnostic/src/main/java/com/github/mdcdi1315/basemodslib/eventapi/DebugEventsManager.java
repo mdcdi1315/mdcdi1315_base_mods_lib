@@ -9,7 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -22,14 +22,14 @@ import org.jetbrains.annotations.ApiStatus;
 public final class DebugEventsManager
     extends NormalEventsManager
 {
-    private SingleLinkedList<Class<? extends IDestroyableIfUnusedEvent>> removed_events;
+    private SingleLinkedListBasedRegister<Class<? extends IDestroyableIfUnusedEvent>> removed_events;
 
     /**
      * Creates a new instance of the debug events manager.
      */
     public DebugEventsManager() {
         super();
-        removed_events = new SingleLinkedList<>();
+        removed_events = new SingleLinkedListBasedRegister<>();
     }
 
     private boolean CheckEventWasRegistered(Class<? extends IEvent> evt_class)
@@ -56,10 +56,10 @@ public final class DebugEventsManager
                 return;
             } else {
                 // This shouldn't happen, you have fired an unknown event.
-                throw new InvalidOperationException("Attempted to fire an event not yet registered!");
+                throw new InvalidEventDispatchException(evt, "Attempted to fire an event not yet registered!");
             }
         }
-        var e = ((SingleLinkedList<Action1<TEvent>>)actions).GetEnumerator();
+        var e = ((SingleLinkedListBasedRegister<Action1<TEvent>>)actions).GetEnumerator();
         try {
             while (e.MoveNext())
             {
@@ -99,9 +99,9 @@ public final class DebugEventsManager
             {
                 if (cls == destroyable_if_unused) {
                     var list = actions.get(i);
-                    if (list != null && list.getCount() == 0) {
+                    if (list != null && (!list.HasItems())) {
                         actions.remove(i);
-                        removed_events.Add((Class<? extends IDestroyableIfUnusedEvent>) i);
+                        removed_events.Register((Class<? extends IDestroyableIfUnusedEvent>) i);
                         removed++;
                     }
                     break;

@@ -5,13 +5,12 @@ import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.*;
+import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.commands.FabricCommandsRegistrar;
 import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
-import com.github.mdcdi1315.basemodslib.eventapi.server.ServerStoppingEvent;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 
@@ -20,8 +19,10 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
@@ -35,14 +36,12 @@ public final class FabricModLoaderLayer
     private final boolean dev_env;
     private Path config_dir, minecraft_dir;
     private ModdingEnvironment environment;
+    private Version fabric_modloader_version;
     private Map<String, Version> networking_versions_map;
     private FabricCommandsRegistrar global_commands_registrar;
-    private Version minecraft_version, fabric_modloader_version;
 
     public FabricModLoaderLayer()
     {
-        minecraft_version = new Version(1, 21, 5);
-
         networking_versions_map = new HashMap<>(10);
         var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
@@ -76,13 +75,11 @@ public final class FabricModLoaderLayer
 
         global_commands_registrar = new FabricCommandsRegistrar();
         global_commands_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
-        var em = BaseModsLib.GetEventsManager();
-        em.AddEventListener(ModLoadingCompleteEvent.class , this::OnModLoadingComplete);
 
-        if (environment == ModdingEnvironment.SERVER) {
-            // On dedicated server environments, make sure to destroy the channel once the server has started shutting down.
-            em.AddEventListener(ServerStoppingEvent.class, this::OnServerClosing);
-        }
+        ServerLifecycleEvents.SERVER_STOPPED.register(this::OnServerStopped);
+        ServerLifecycleEvents.SERVER_STOPPING.register(this::OnServerStopping);
+        ServerLifecycleEvents.SERVER_STARTING.register(this::OnServerStarting);
+        ServerLifecycleEvents.SERVER_STARTED.register(FabricModLoaderLayer::OnServerStarted);
     }
 
     @Override
@@ -91,7 +88,6 @@ public final class FabricModLoaderLayer
         this.config_dir = null;
         this.environment = null;
         this.minecraft_dir = null;
-        this.minecraft_version = null;
         this.networking_versions_map = null;
         this.fabric_modloader_version = null;
         this.global_commands_registrar = null;
@@ -102,19 +98,41 @@ public final class FabricModLoaderLayer
     {
         @Override
         public void receive(ServerBoundModInfoPacket payload, ServerPlayNetworking.Context context) {
-            var server = context.server();
-            server.execute(new Action2ToRunnable<>(action, context.player(), payload));
+            context.server().execute(new Action2ToRunnable<>(action, context.player(), payload));
         }
     }
 
-    private void OnModLoadingComplete(ModLoadingCompleteEvent event)
+    private void OnServerStarting(MinecraftServer msr)
     {
-        this.global_commands_registrar = null;
+        // Server env starts only once, make sure to finalize the library.
+        if (environment == ModdingEnvironment.SERVER) {
+            BaseModsLib.Destroy();
+            // Since we have now reached mod loading completed stage, we can just destroy the global command registrar.
+            this.global_commands_registrar = null;
+        }
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStartingEvent(msr));
     }
 
-    private void OnServerClosing(ServerStoppingEvent sse) {
-        BaseModsLib.LOGGER.debug("Unregistering mod verifier network handler.");
-        ServerPlayNetworking.unregisterGlobalReceiver(ServerBoundModInfoPacket.LOCATION);
+    private void OnServerStopping(MinecraftServer msr)
+    {
+        if (environment == ModdingEnvironment.SERVER) {
+            // On dedicated server environments, make sure to destroy the channel once the server has started shutting down.
+            BaseModsLib.LOGGER.debug("Unregistering mod verifier network handler.");
+            ServerPlayNetworking.unregisterGlobalReceiver(ServerBoundModInfoPacket.LOCATION);
+        }
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppingEvent(msr));
+    }
+
+    private static void OnServerStarted(MinecraftServer msr) {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStartedEvent(msr));
+    }
+
+    private void OnServerStopped(MinecraftServer msr)
+    {
+        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppedEvent(msr));
+        // In server env, we need to dispose the BML itself.
+        // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
+        if (environment == ModdingEnvironment.SERVER) { BaseModsLib.DestroySelf(); }
     }
 
     private void ServerModInfoPacketHandler(ServerPlayer sp , ServerBoundModInfoPacket p)
@@ -211,9 +229,6 @@ public final class FabricModLoaderLayer
 
     @Override
     public String GetModLoaderBranding() { return "Fabric"; }
-
-    @Override
-    public Version GetMinecraftVersion() { return minecraft_version; }
 
     @Override
     public Version GetModLoaderVersion() { return fabric_modloader_version; }

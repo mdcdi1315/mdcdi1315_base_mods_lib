@@ -143,26 +143,14 @@ public final class FabricCommonRegistryItemsRegistrar
         modify_entries_item_stack_register = null;
     }
 
-    private ResourceLocation BuildAndValidateLocation(String path)
-    {
-        ResourceLocation ret = ResourceLocation.tryBuild(mod_id, path);
-
-        if (ret == null) {
-            throw new RuntimeException("Could not create the resource location!");
-        }
-
-        return ret;
-    }
-
     @Override
     public void Register(String name, BlockRegistrationInformation info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
 
-        ArgumentNullException.ThrowIfNull(name, "name");
-
-        ResourceLocation location = BuildAndValidateLocation(name);
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         Block blk = Registry.register(BuiltInRegistries.BLOCK, location, info.block_getter().function(location));
 
@@ -185,7 +173,7 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(info, "info");
 
-        ResourceLocation location = BuildAndValidateLocation(name);
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         Item itm = Registry.register(BuiltInRegistries.ITEM, location, info.item_getter().function(location));
 
@@ -199,7 +187,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, BuildAndValidateLocation(name) , info.component_type_provider().function());
+        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name) , info.component_type_provider().function());
     }
 
     @Override
@@ -207,7 +195,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(tab, "tab");
-        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB , BuildAndValidateLocation(name), tab);
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB , RegistryUtils.ConstructResourceLocation(mod_id, name) , tab);
     }
 
     @Override
@@ -228,7 +216,7 @@ public final class FabricCommonRegistryItemsRegistrar
 
         Registry.register(
                 BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                BuildAndValidateLocation(name) ,
+                RegistryUtils.ConstructResourceLocation(mod_id, name),
                 FabricBlockEntityTypeBuilder.create(factory::Create, factory.GetBlocks()).build()
         );
     }
@@ -240,7 +228,7 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(feature_type_creator, "feature_type_creator");
 
-        Registry.register(BuiltInRegistries.FEATURE, BuildAndValidateLocation(name), feature_type_creator.function());
+        Registry.register(BuiltInRegistries.FEATURE, RegistryUtils.ConstructResourceLocation(mod_id, name), feature_type_creator.function());
     }
 
     @Override
@@ -250,7 +238,7 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(placement_modifier_type_creator, "placement_modifier_type_creator");
 
-        Registry.register(BuiltInRegistries.PLACEMENT_MODIFIER_TYPE, BuildAndValidateLocation(name), placement_modifier_type_creator.function());
+        Registry.register(BuiltInRegistries.PLACEMENT_MODIFIER_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), placement_modifier_type_creator.function());
     }
 
     @Override
@@ -260,7 +248,7 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(poi_type_creator, "poi_type_creator");
 
-        Registry.register(BuiltInRegistries.POINT_OF_INTEREST_TYPE, BuildAndValidateLocation(name), poi_type_creator.function());
+        Registry.register(BuiltInRegistries.POINT_OF_INTEREST_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), poi_type_creator.function());
     }
 
     @Override
@@ -272,7 +260,7 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(registry, "registry");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
 
-        ResourceLocation location = BuildAndValidateLocation(name);
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
 
@@ -291,7 +279,7 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(registry, "registry");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
 
-        ResourceLocation location = BuildAndValidateLocation(name);
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
 
@@ -310,7 +298,7 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(registry, "registry");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
 
-        ResourceLocation location = BuildAndValidateLocation(name);
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
 
@@ -358,7 +346,7 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricBridgedIdentifiableReloadListener(
-                BuildAndValidateLocation(name),
+                RegistryUtils.ConstructResourceLocation(mod_id, name),
                 preparable_reload_listener
         ));
     }
@@ -368,7 +356,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(name, "name");
-        Registry.register(BuiltInRegistries.SOUND_EVENT, BuildAndValidateLocation(name), event);
+        Registry.register(BuiltInRegistries.SOUND_EVENT, RegistryUtils.ConstructResourceLocation(mod_id, name), event);
     }
 
     @Override
@@ -376,7 +364,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.ENTITY_TYPE , BuildAndValidateLocation(name) , info.entity_provider().function());
+        Registry.register(BuiltInRegistries.ENTITY_TYPE , RegistryUtils.ConstructResourceLocation(mod_id, name), info.entity_provider().function());
     }
 
     @Override
@@ -384,7 +372,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.MEMORY_MODULE_TYPE , BuildAndValidateLocation(name) , new MemoryModuleType<>(info.optional_codec()));
+        Registry.register(BuiltInRegistries.MEMORY_MODULE_TYPE , RegistryUtils.ConstructResourceLocation(mod_id, name), new MemoryModuleType<>(info.optional_codec()));
     }
 
     @Override
@@ -392,7 +380,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.ATTRIBUTE , BuildAndValidateLocation(name) , info.attribute_getter().function());
+        Registry.register(BuiltInRegistries.ATTRIBUTE , RegistryUtils.ConstructResourceLocation(mod_id, name), info.attribute_getter().function());
     }
 
     @Override
@@ -400,7 +388,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.SENSOR_TYPE , BuildAndValidateLocation(name) , info.sensor_type_getter().function());
+        Registry.register(BuiltInRegistries.SENSOR_TYPE , RegistryUtils.ConstructResourceLocation(mod_id, name), info.sensor_type_getter().function());
     }
 
     @Override
@@ -408,7 +396,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        ResourceLocation location = BuildAndValidateLocation(name);
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
         Registry.register(BuiltInRegistries.FLUID , location , info.fluid_getter().function(location));
     }
 
@@ -417,7 +405,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.MOB_EFFECT , BuildAndValidateLocation(name) , info.effect_getter().function());
+        Registry.register(BuiltInRegistries.MOB_EFFECT , RegistryUtils.ConstructResourceLocation(mod_id, name), info.effect_getter().function());
     }
 
     @Override
@@ -425,7 +413,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.PARTICLE_TYPE, BuildAndValidateLocation(name) , info.particle_type_getter().function());
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), info.particle_type_getter().function());
     }
 
     @Override
@@ -433,7 +421,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        Registry.register(BuiltInRegistries.POTION, BuildAndValidateLocation(name), info.potion_getter().function());
+        Registry.register(BuiltInRegistries.POTION, RegistryUtils.ConstructResourceLocation(mod_id, name), info.potion_getter().function());
     }
 
     private record MenuCreaterToMenuSupplier<T extends AbstractContainerMenu>(MenuTypeCreater<T> crt)
@@ -466,6 +454,6 @@ public final class FabricCommonRegistryItemsRegistrar
                 new ExtendedScreenHandlerType<>(new MenuCreaterExToExtendedFactory<>(t_ex), MenuCreaterExStreamCodec.INSTANCE) :
                 new MenuType<>(new MenuCreaterToMenuSupplier<>(crt) , info.required_features());
 
-        Registry.register(BuiltInRegistries.MENU, BuildAndValidateLocation(name) , mt);
+        Registry.register(BuiltInRegistries.MENU, RegistryUtils.ConstructResourceLocation(mod_id, name), mt);
     }
 }
