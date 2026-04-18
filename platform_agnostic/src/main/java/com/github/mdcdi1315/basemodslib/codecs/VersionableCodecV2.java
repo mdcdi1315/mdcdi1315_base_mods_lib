@@ -3,8 +3,6 @@ package com.github.mdcdi1315.basemodslib.codecs;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-
 import com.mojang.datafixers.util.Pair;
 
 import com.mojang.serialization.Codec;
@@ -61,19 +59,19 @@ public final class VersionableCodecV2<T>
             T1 temp = values.get(version_field_name);
 
             if (temp == null) {
-                return DataResult.error(StringSupplier.FromDotNetFormatted("There is not a field named as {0} in the map!" , version_field_name));
+                return CodecUtils.CreateDotNetFormattedErrorDataResult("There is not a field named as {0} in the map!" , version_field_name);
             } else {
                 DataResult<Number> version_dt = ops.getNumberValue(temp);
                 if (version_dt.result().isEmpty()) {
-                    return DataResult.error(new StringSupplier("Not a number: " + temp));
+                    return CodecUtils.CreateDotNetFormattedErrorDataResult("Not a number: {0}", temp);
                 } else {
                     int version = version_dt.result().get().intValue();
                     if (version >= codecs.length) {
-                        return DataResult.error(StringSupplier.FromDotNetFormatted("The specified version value ({0}) is outside of the permitted values of this codec: [0..{1}]", version, codecs.length-1));
+                        return CodecUtils.CreateDotNetFormattedErrorDataResult("The specified version value ({0}) is outside of the permitted values of this codec: [0..{1}]", version, codecs.length-1);
                     } else {
                         temp = values.get(data_field_name);
                         if (temp == null) {
-                            return DataResult.error(StringSupplier.FromDotNetFormatted("There is not a field named as {0} in the map!" , data_field_name));
+                            return CodecUtils.CreateDotNetFormattedErrorDataResult("There is not a field named as {0} in the map!" , data_field_name);
                         } else {
                             var dr = codecs[version].decode(ops, temp);
                             return dr.isSuccess() ?
@@ -96,7 +94,7 @@ public final class VersionableCodecV2<T>
         try {
             return last.encode((TI)input, ops, prefix);
         } catch (ClassCastException e) {
-            return DataResult.error(new StringSupplier("Failed to properly cast to latest version of the data structure. Possibly the data structure passed is not of the latest version."));
+            return CodecUtils.CreateErrorDataResult("Failed to properly cast to latest version of the data structure. Possibly the data structure passed is not of the latest version.");
         }
     }
 }

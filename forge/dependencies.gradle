@@ -135,5 +135,7 @@ dependencies {
         jarJar.pin(g , project(":forge_bml_lang_provider").version)
     }
 
-    api("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")
+    fg.deobf(
+            api("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")
+    )
 }

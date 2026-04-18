@@ -53,8 +53,6 @@ public final class FabricClientModLoaderLayer
 
     private static void OnClientStarted(Minecraft mc)
     {
-        BaseModsLib.Destroy();
-        ClientEventHooks.ClientStarted(mc);
         // When mod loading is complete, do the below:
         var em = BaseModsLib.GetEventsManager();
         var en = mod_info_packet_events.GetEnumerator();
@@ -66,6 +64,8 @@ public final class FabricClientModLoaderLayer
             en.Dispose();
         }
         mod_info_packet_events = null;
+        BaseModsLib.Destroy();
+        ClientEventHooks.ClientStarted(mc);
     }
 
     @Override

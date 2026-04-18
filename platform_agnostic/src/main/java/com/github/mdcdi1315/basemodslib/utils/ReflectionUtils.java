@@ -165,5 +165,68 @@ public final class ReflectionUtils
         throw new NoSuchMethodException(String.format("A public method named as '%s' was not found in class named as '%s'." , name , class_providing_method.getName()));
     }
 
+    /**
+     * Finds out whether a {@link Class} object is the numeric {@code long}, or it's box type {@link Long}.
+     * @param cls The {@link Class} object to test.
+     * @return A value whether {@code cls} is a class of type {@link Long}.
+     * @since 1.0.26
+     */
+    public static boolean IsLong(Class<?> cls) { return cls == Long.class || cls == long.class; }
+
+    /**
+     * Finds out whether a {@link Class} object is the numeric {@code byte}, or it's box type {@link Byte}.
+     * @param cls The {@link Class} object to test.
+     * @return A value whether {@code cls} is a class of type {@link Byte}.
+     * @since 1.0.26
+     */
+    public static boolean IsByte(Class<?> cls) { return cls == Byte.class || cls == byte.class; }
+
+    /**
+     * Finds out whether a {@link Class} object is the numeric {@code short}, or it's box type {@link Short}.
+     * @param cls The {@link Class} object to test.
+     * @return A value whether {@code cls} is a class of type {@link Short}.
+     * @since 1.0.26
+     */
+    public static boolean IsShort(Class<?> cls) { return cls == Short.class || cls == short.class; }
+
+    /**
+     * Finds out whether a {@link Class} object is the numeric {@code float}, or it's box type {@link Float}.
+     * @param cls The {@link Class} object to test.
+     * @return A value whether {@code cls} is a class of type {@link Float}.
+     * @since 1.0.26
+     */
+    public static boolean IsFloat(Class<?> cls) { return cls == Float.class || cls == float.class; }
+
+    /**
+     * Finds out whether a {@link Class} object is the numeric {@code int}, or it's box type {@link Float}.
+     * @param cls The {@link Class} object to test.
+     * @return A value whether {@code cls} is a class of type {@link Float}.
+     * @since 1.0.26
+     */
+    public static boolean IsInteger(Class<?> cls) { return cls == Integer.class || cls == int.class; }
+
+    /**
+     * Finds out whether a {@link Class} object is the numeric {@code double}, or it's box type {@link Double}.
+     * @param cls The {@link Class} object to test.
+     * @return A value whether {@code cls} is a class of type {@link Double}.
+     * @since 1.0.26
+     */
+    public static boolean IsDouble(Class<?> cls) { return cls == Double.class || cls == double.class; }
+
+    /**
+     * Finds out whether a {@link Class} object is the numeric {@code boolean}, or it's box type {@link Boolean}.
+     * @param cls The {@link Class} object to test.
+     * @return A value whether {@code cls} is a class of type {@link Boolean}.
+     * @since 1.0.26
+     */
+    public static boolean IsBoolean(Class<?> cls) { return cls == Boolean.class || cls == boolean.class; }
+
+    /**
+     * Finds out whether a {@link Class} object is the numeric {@code char}, or it's box type {@link Character}.
+     * @param cls The {@link Class} object to test.
+     * @return A value whether {@code cls} is a class of type {@link Character}.
+     * @since 1.0.26
+     */
+    public static boolean IsChar(Class<?> cls) { return cls == Character.class || cls == char.class; }
 
 }

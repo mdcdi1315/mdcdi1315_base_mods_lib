@@ -737,21 +737,116 @@ public final class Extensions
      */
     public static double ToNormalRange(double v, double min, double max) { return (v - min) / (max - min); }
 
+    /**
+     * Computes the buffer sizes when dispatching requests regarding methods related to data
+     * streams that are instructed to read a fixed number of bytes, and are using temporary buffers. <br />
+     * You pass in the actual number of bytes read or to write, the total number of bytes to read or write, and the actual size of the buffer. <br />
+     * Example:
+     * <pre>{@code
+     * // On top:
+     * import com.github.mdcdi1315.basemodslib.utils.Extensions;
+     *
+     * // On code:
+     * InputStream stream; // A data stream to read from. Assumed that it is properly initialized before.
+     * byte[] temp = new byte[2048];
+     *
+     * long total_bytes = 300000;
+     *
+     * int bytes_read;
+     *
+     * for (long c = 0; c &lt; total_bytes; c += bytes_read)
+     * {
+     *     bytes_read = stream.read(temp , 0 , Extensions.ComputeStreamBufferSize(c , total_bytes, 2048));
+     *
+     *     // Do something with the data now...
+     * }
+     * }</pre>
+     * @param consumed The number of bytes already processed.
+     * @param total The total number of bytes that are to be read/written.
+     * @param buffer_size The temporary buffer size.
+     * @return A computed value, so that the value is in range [0..{@code buffer_size}].
+     * @since 1.0.26
+     */
+    public static int ComputeStreamBufferSize(long consumed, long total, int buffer_size)
+    {
+        return ((consumed + buffer_size) < total) ? buffer_size : (int)(total - consumed);
+    }
+
+    /**
+     * Computes the buffer sizes when dispatching requests regarding methods related to data
+     * streams that are instructed to read a fixed number of bytes, and are using temporary buffers. <br />
+     * You pass in the actual number of bytes read or to write, the total number of bytes to read or write, and the actual size of the buffer. <br />
+     * For a detailed example, see the {@link #ComputeStreamBufferSize(long, long, int)} method.
+     * @param consumed The number of bytes already processed.
+     * @param total The total number of bytes that are to be read/written.
+     * @param buffer_size The temporary buffer size.
+     * @return A computed value, so that the value is in range [0..{@code buffer_size}].
+     * @since 1.0.26
+     */
+    public static int ComputeStreamBufferSize(int consumed, int total, int buffer_size)
+    {
+        return ((consumed + buffer_size) < total) ? buffer_size : (total - consumed);
+    }
+
+    /**
+     * Linearly maps a number from the specified input range to the specified output range.
+     * @param input The value to map.
+     * @param inputlowerbound The lower bound of acceptable values for the {@code input} parameter.
+     * @param inputupperbound The upper bound of acceptable values for the {@code input} parameter.
+     * @param outputlowerbound The lower bound of acceptable values for the return value.
+     * @param outputupperbound The upper bound of acceptable values for the return value.
+     * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}].
+     * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
+     */
     public static double MapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)
     {
         return (ToNormalRange(input, inputlowerbound, inputupperbound) * (outputupperbound - outputlowerbound)) + outputlowerbound;
     }
 
+    /**
+     * Linearly maps a number from the specified input range to the specified output range.
+     * @param input The value to map.
+     * @param inputlowerbound The lower bound of acceptable values for the {@code input} parameter.
+     * @param inputupperbound The upper bound of acceptable values for the {@code input} parameter.
+     * @param outputlowerbound The lower bound of acceptable values for the return value.
+     * @param outputupperbound The upper bound of acceptable values for the return value.
+     * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}].
+     * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
+     */
     public static float MapToRange(float input, float inputlowerbound, float inputupperbound, float outputlowerbound, float outputupperbound)
     {
         return (ToNormalRange(input, inputlowerbound, inputupperbound) * (outputupperbound - outputlowerbound)) + outputlowerbound;
     }
 
+    /**
+     * Linearly maps a number from the specified input range to the specified output range. <br />
+     * The {@code input} is clamped and restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range.
+     * @param input The value to map.
+     * @param inputlowerbound The lower bound of acceptable values for the {@code input} parameter.
+     * @param inputupperbound The upper bound of acceptable values for the {@code input} parameter.
+     * @param outputlowerbound The lower bound of acceptable values for the return value.
+     * @param outputupperbound The upper bound of acceptable values for the return value.
+     * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}]. <br />
+     *         The {@code input} of this method is restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range before mapping it.
+     * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
+     */
     public static double ClampedMapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)
     {
         return (ToNormalRange(input > inputupperbound ? inputupperbound : Math.max(input, inputlowerbound), inputlowerbound, inputupperbound) * (outputupperbound - outputlowerbound)) + outputlowerbound;
     }
 
+    /**
+     * Linearly maps a number from the specified input range to the specified output range. <br />
+     * The {@code input} is clamped and restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range.
+     * @param input The value to map.
+     * @param inputlowerbound The lower bound of acceptable values for the {@code input} parameter.
+     * @param inputupperbound The upper bound of acceptable values for the {@code input} parameter.
+     * @param outputlowerbound The lower bound of acceptable values for the return value.
+     * @param outputupperbound The upper bound of acceptable values for the return value.
+     * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}]. <br />
+     *         The {@code input} of this method is restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range before mapping it.
+     * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
+     */
     public static float ClampedMapToRange(float input, float inputlowerbound, float inputupperbound, float outputlowerbound, float outputupperbound)
     {
         return (ToNormalRange(input > inputupperbound ? inputupperbound : Math.max(input, inputlowerbound), inputlowerbound, inputupperbound) * (outputupperbound - outputlowerbound)) + outputlowerbound;

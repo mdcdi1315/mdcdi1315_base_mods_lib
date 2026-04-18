@@ -2,8 +2,6 @@ package com.github.mdcdi1315.basemodslib.codecs;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-
 import com.mojang.datafixers.util.Pair;
 
 import com.mojang.serialization.DataResult;
@@ -36,9 +34,9 @@ public class EnumCodecCompareIgnoreCase<T extends Enum<T>>
                     return DataResult.success(new Pair<>(value , input));
                 }
             }
-            return DataResult.error(StringSupplier.FromFormatted("Cannot find the enumeration constant %s in class %s." , constant , enum_class.getName()));
+            return CodecUtils.CreateJavaFormattedErrorDataResult("Cannot find the enumeration constant %s in class %s." , constant , enum_class.getName());
         } else {
-            return DataResult.error(StringSupplier.FromFormatted("Not a string value: %s" , input));
+            return CodecUtils.CreateJavaFormattedErrorDataResult("Not a string value: %s" , input);
         }
     }
 }

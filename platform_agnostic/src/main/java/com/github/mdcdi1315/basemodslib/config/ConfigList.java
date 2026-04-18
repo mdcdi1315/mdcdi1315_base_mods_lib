@@ -16,8 +16,10 @@ import java.util.Iterator;
  * During reading the configuration and writing it, special codecs are overriding the de/serialization process in order to finally
  * provide the correct type of data. <br />
  * Finally, the items of this list can be all efficiently converted to an immutable list of the very specific type that is needed.
+ * @deprecated Use directly the {@link java.util.List} interface instead.
  * @since 1.0.15
  */
+@Deprecated(since = "1.0.26") // Directly use the List<> class instead.
 public final class ConfigList
     implements Iterable<Object>
 {

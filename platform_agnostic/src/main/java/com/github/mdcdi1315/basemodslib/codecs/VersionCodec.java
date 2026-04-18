@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.codecs;
 
 import com.github.mdcdi1315.DotNetLayer.System.Version;
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 
 import com.mojang.datafixers.util.Pair;
 
@@ -40,10 +39,10 @@ public final class VersionCodec
             } else if (index == 4) {
                 return DataResult.success(new Pair<>(new Version(ret[0], ret[1], ret[2], ret[3]), input));
             } else {
-                return DataResult.error(new StringSupplier("Not enough elements to decode the Version object."));
+                return CodecUtils.CreateErrorDataResult("Not enough elements to decode the Version object.");
             }
         } else {
-            return DataResult.error(new StringSupplier("Cannot decode the specified version because the underlying data source is not an array of integers."));
+            return CodecUtils.CreateErrorDataResult("Cannot decode the specified version because the underlying data source is not an array of integers.");
         }
     }
 

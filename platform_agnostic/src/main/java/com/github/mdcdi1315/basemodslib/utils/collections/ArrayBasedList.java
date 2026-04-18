@@ -5,8 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
-import com.github.mdcdi1315.basemodslib.utils.Extensions;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
+import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
 import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
 
 /**
@@ -15,7 +15,13 @@ import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
  * @since 1.0.19
  */
 public class ArrayBasedList<T>
-    implements IList<T>, ITraversableCollection<T>, IArrayBasedCollection
+    implements
+        IList<T>,
+        ITraversableCollection<T>,
+        IArrayBasedCollection,
+        ISupportsDirectConversionTo<T>,
+        ISupportsSlicing<T>,
+        ISupportsFiltering<T>
 {
     private int count;
     private Object[] elements;
@@ -200,13 +206,22 @@ public class ArrayBasedList<T>
         public void EnsureCapacity(int n_elements) throws ArgumentOutOfRangeException { synchronized (lock) { super.EnsureCapacity(n_elements); } }
 
         @Override
-        public <TG> ArrayBasedList<TG> ConvertAll(Converter<T, TG> converter, IEqualityComparer<TG> comparer) throws ArgumentNullException { synchronized (lock) { return super.ConvertAll(converter, comparer); } }
-
-        @Override
-        public ArrayBasedList<T> Slice(int index, int count) throws ArgumentException  { synchronized (lock) { return super.Slice(index, count); } }
-
-        @Override
         public IEnumerator<T> GetEnumerator() { synchronized (lock) { return super.GetEnumerator(); } }
+
+        @Override
+        public ArrayBasedList<T> Slice(int count) throws ArgumentException { synchronized (lock) { return super.Slice(count); } }
+
+        @Override
+        public ArrayBasedList<T> Slice(int index, int count) throws ArgumentException { synchronized (lock) { return super.Slice(index, count); } }
+
+        @Override
+        public ArrayBasedList<T> FilterBy(Predicate<T> predicate) throws ArgumentNullException { synchronized (lock) { return super.FilterBy(predicate); } }
+
+        @Override
+        public <TO> ArrayBasedList<TO> ConvertAll(Converter<T, TO> converter) throws ArgumentNullException { synchronized (lock) { return super.ConvertAll(converter, null); } }
+
+        @Override
+        public <TG> ArrayBasedList<TG> ConvertAll(Converter<T, TG> converter, IEqualityComparer<TG> comparer) throws ArgumentNullException { synchronized (lock) { return super.ConvertAll(converter, comparer); } }
     }
 
     /**
@@ -539,14 +554,67 @@ public class ArrayBasedList<T>
         if (index < 0) {
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
-            throw new ArgumentOutOfRangeException("index", "Count cannot be a negative value.");
-        } else if (index + count > this.count) {
+            throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
+        } else {
+            int total = index + count;
+            if (total > this.count || total < 0) {
+                throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
+            } else {
+                ArrayBasedList<T> ret = new ArrayBasedList<>(count, comparer);
+                Array.Copy(elements, index, ret.elements, 0, count);
+                ret.count = count;
+                return ret;
+            }
+        }
+    }
+
+    /**
+     * Returns a portion of the {@link ArrayBasedList} object, specified by the {@code count} parameter.
+     * @param count The number of elements to include into the resulting {@link ArrayBasedList} object.
+     * @return A new {@link ArrayBasedList} object that is the slice of the current object.
+     * @throws ArgumentOutOfRangeException {@code index} and/or {@code count} are negative values.
+     * @throws ArgumentException {@code count} value does exceed the list's bounds.
+     * @since 1.0.26
+     */
+    public ArrayBasedList<T> Slice(int count)
+        throws ArgumentOutOfRangeException, ArgumentException
+    {
+        if (count < 0) {
+            throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
+        } else if (count > this.count) {
             throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
         } else {
             ArrayBasedList<T> ret = new ArrayBasedList<>(count, comparer);
-            Array.Copy(elements, index, ret.elements, 0, count);
+            Array.Copy(elements, 0, ret.elements, 0, count);
             ret.count = count;
             return ret;
+        }
+    }
+
+    @Override
+    public ArrayBasedList<T> FilterBy(Predicate<T> predicate)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
+        if (FunctionManipulations.IsAlwaysTrue(predicate)) {
+            return this;
+        } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
+            return new ArrayBasedList<>(comparer);
+        } else {
+            IEnumerator<T> enumerator = GetEnumerator();
+            ArrayBasedList<T> result = new ArrayBasedList<>(count, comparer);
+
+            try {
+                T item;
+                while (enumerator.MoveNext()) {
+                    if (predicate.predicate(item = enumerator.getCurrent())) { result.Add(item); }
+                }
+            } finally {
+                enumerator.Dispose();
+            }
+
+            result.TrimExcess();
+            return result;
         }
     }
 

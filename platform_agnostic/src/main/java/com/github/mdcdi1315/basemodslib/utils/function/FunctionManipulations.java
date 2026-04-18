@@ -87,7 +87,7 @@ public final class FunctionManipulations
     }
 
     /**
-     * Returns an aggregated predicate instance that does perform an AND operation on the two provided predicates. <br />
+     * Returns an aggregated predicate instance that does perform an OR operation on the two provided predicates. <br />
      * This method variant specially handles the input arguments when either of them are {@code null}. <br />
      * If at least one of the input parameters is {@code null}, the {@code null} parameter is treated as &quot;implicitly {@code false}&quot;. <br />
      * The below 4 bullets describe how this method treats input parameters:
@@ -206,8 +206,8 @@ public final class FunctionManipulations
     {
         return switch (predicate) {
             case null -> throw new ArgumentNullException("predicate");
-            case AlwaysTruePredicate<T> t1 -> new AlwaysFalsePredicate<>();
-            case AlwaysFalsePredicate<T> t2 -> new AlwaysTruePredicate<>();
+            case IAlwaysTruePredicate<T> t1 -> t1.AsAlwaysFalse();
+            case IAlwaysFalsePredicate<T> t2 -> t2.AsAlwaysTrue();
             default -> new NegatedPredicate<>(predicate);
         };
     }
@@ -233,7 +233,7 @@ public final class FunctionManipulations
      * @param <T> The type of input that the predicate accepts.
      * @since 1.0.21
      */
-    public static <T> boolean IsAlwaysTrue(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof AlwaysTruePredicate<T>; }
+    public static <T> boolean IsAlwaysTrue(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof IAlwaysTruePredicate<T>; }
 
     /**
      * Returns a predicate instance that does always return {@code false}, regardlessly of the value of the predicate's input parameter.
@@ -256,7 +256,7 @@ public final class FunctionManipulations
      * @param <T> The type of input that the predicate accepts.
      * @since 1.0.21
      */
-    public static <T> boolean IsAlwaysFalse(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof AlwaysFalsePredicate<T>; }
+    public static <T> boolean IsAlwaysFalse(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof IAlwaysFalsePredicate<T>; }
 
     /**
      * Provides a {@link Func2} that does always return the input argument.
@@ -402,7 +402,7 @@ public final class FunctionManipulations
 
     /**
      * Returns a function that upon invoking it, it first invokes the function provided through the {@code action} parameter,
-     * and then executed the function provided through the {@code next} parameter. <br />
+     * and then executes the function provided through the {@code next} parameter. <br />
      * Note that the {@code next} action will be invoked only if the function of {@code action} parameter has not thrown any exceptions.
      * @param action The base action to execute.
      * @param next The additional action to execute.
@@ -420,7 +420,7 @@ public final class FunctionManipulations
 
     /**
      * Returns a function that upon invoking it, it first invokes the function provided through the {@code action} parameter,
-     * and then executed the function provided through the {@code next} parameter. <br />
+     * and then executes the function provided through the {@code next} parameter. <br />
      * Note that the {@code next} action will be invoked only if the function of {@code action} parameter has not thrown any exceptions.
      * @param action The base action to execute.
      * @param next The additional action to execute.
@@ -438,7 +438,7 @@ public final class FunctionManipulations
 
     /**
      * Returns a function that upon invoking it, it first invokes the function provided through the {@code action} parameter,
-     * and then executed the function provided through the {@code next} parameter. <br />
+     * and then executes the function provided through the {@code next} parameter. <br />
      * Note that the {@code next} action will be invoked only if the function of {@code action} parameter has not thrown any exceptions.
      * @param action The base action to execute.
      * @param next The additional action to execute.
@@ -456,7 +456,7 @@ public final class FunctionManipulations
 
     /**
      * Returns a function that upon invoking it, it first invokes the function provided through the {@code action} parameter,
-     * and then executed the function provided through the {@code next} parameter. <br />
+     * and then executes the function provided through the {@code next} parameter. <br />
      * Note that the {@code next} action will be invoked only if the function of {@code action} parameter has not thrown any exceptions.
      * @param action The base action to execute.
      * @param next The additional action to execute.
@@ -581,7 +581,7 @@ public final class FunctionManipulations
         throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(function, "function");
-        return new TranslateFunctionToFunc2<>(function);
+        return (function instanceof Func2<T,TR> fc) ? fc : new TranslateFunctionToFunc2<>(function);
     }
 
     /**
@@ -598,7 +598,7 @@ public final class FunctionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
-        return new TranslateSupplierToFunc1<>(supplier);
+        return (supplier instanceof Func1<T> fc) ? fc : new TranslateSupplierToFunc1<>(supplier);
     }
 
     /**
@@ -615,8 +615,59 @@ public final class FunctionManipulations
         throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(function, "function");
-        return new TranslateBiFunctionToFunc3<>(function);
+        return (function instanceof Func3<T1,T2,TR> f) ? f : new TranslateBiFunctionToFunc3<>(function);
     }
 
+    /**
+     * Efficiently converts a {@link Converter} functional interface instance to a {@link Func2} functional interface instance.
+     * @param converter The {@link Converter} to convert.
+     * @return The {@link Func2} that wraps the input {@code converter} parameter and invokes it whenever invoked.
+     * @param <TInput> The type of the input parameter value of the conversion function.
+     * @param <TOutput> The type of the output parameter value of the conversion function.
+     * @throws ArgumentNullException {@code converter} is {@code null}.
+     * @since 1.0.26
+     */
+    @NotNull
+    public static <TInput, TOutput> Func2<TInput, TOutput> AsFunc2(Converter<TInput, TOutput> converter)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(converter, "converter");
+        return (converter instanceof Func2ToConverter<TInput,TOutput> c) ? c.function() : new ConverterToFunc2<>(converter);
+    }
+
+    /**
+     * Efficiently converts a {@link Func2} functional interface instance to a {@link Converter} functional interface instance.
+     * @param function The {@link Func2} to convert.
+     * @return The {@link Converter} that wraps the input {@code converter} parameter and invokes it whenever invoked.
+     * @param <TInput> The type of the input parameter value of the conversion function.
+     * @param <TOutput> The type of the output parameter value of the conversion function.
+     * @throws ArgumentNullException {@code function} is {@code null}.
+     * @since 1.0.26
+     */
+    @NotNull
+    public static <TInput, TOutput> Converter<TInput, TOutput> AsConverter(Func2<TInput, TOutput> function)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(function, "function");
+        return (function instanceof ConverterToFunc2<TInput,TOutput> c) ? c.converter() : new Func2ToConverter<>(function);
+    }
+
+    /**
+     * Translates a {@link Func1} to a {@link Func2} that does always return the result of invoking {@link Func1#function()},
+     * ignoring completely the input argument in {@link Func2#function(Object)}.
+     * @param supplier The {@link Func1} instance to construct a {@link Func2} of ignored input.
+     * @return A {@link Func2} instance that wraps the given {@code supplier}.
+     * @param <T> The input argument that is ignored while invoking the function.
+     * @param <TR> The result provided by the input {@code supplier}.
+     * @throws ArgumentNullException {@code supplier} is {@code null}.
+     * @since 1.0.26
+     */
+    @NotNull
+    public static <T, TR> Func2<T, TR> TranslateFunc1To2InputIgnored(Func1<TR> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+        return new OfSingletonResultFunction<>(supplier);
+    }
 
 }

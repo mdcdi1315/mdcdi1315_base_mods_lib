@@ -33,23 +33,36 @@ public class SingleLinkedListBasedQueue<T>
     private static final class Enumerator<T>
             implements IEnumerator<T>
     {
+        private boolean stopped;
         private Node<T> head, current;
 
         public Enumerator(Node<T> head)
         {
-            this.head = head;
             current = null;
+            stopped = false;
+            this.head = head;
         }
 
         public T getCurrent() { return current.value; }
 
         public void Dispose() { current = head = null; }
 
-        public boolean MoveNext() {
-            return (current == null) ? (current = head) != null : (current = current.before) != null;
-        }
+        public void Reset() { current = null; stopped = false; }
 
-        public void Reset() { current = null; }
+        public boolean MoveNext()
+        {
+            if (stopped) {
+                return false;
+            } else {
+                current = (current == null) ? head : current.before;
+                if (current == null) {
+                    stopped = true;
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
     }
 
     private static final class Synchronized<T>

@@ -7,8 +7,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.io.EOFException;
-import java.io.OutputStream;
 
 /**
  * Provides an {@link InputStream} that wraps an input stream. <br />
@@ -93,6 +93,16 @@ public class WrappedInputStream
             return ReadExactlyUnchecked(n_bytes);
         }
     }
+
+    /**
+     * Reads the specified number of bytes from the stream and returns them to a newly allocated {@link ByteBuffer}.
+     * @param n_bytes The number of bytes to read from the current input stream.
+     * @return The allocated {@link ByteBuffer} that holds the read input stream data.
+     * @throws IOException An I/O exception was occurred.
+     * @throws ArgumentOutOfRangeException {@code n_bytes} is a negative value.
+     * @since 1.0.26
+     */
+    public ByteBuffer ReadBytes(int n_bytes) throws IOException, ArgumentOutOfRangeException { return ByteBufferUtils.ReadFromStream(this, n_bytes); }
 
     private byte[] ReadExactlyUnchecked(int n_bytes)
             throws IOException

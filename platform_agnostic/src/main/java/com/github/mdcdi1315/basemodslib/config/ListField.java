@@ -1,16 +1,14 @@
 package com.github.mdcdi1315.basemodslib.config;
 
-import java.lang.annotation.Target;
-import java.lang.annotation.Retention;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 /**
  * Annotation interface marking a field in a {@link IModConfig} instance that is of type {@link ConfigList}. <br />
  * When fields of such type are declared, this annotation must be specified as well so that class resolving can be efficiently done. <br />
- * If you want to serialize custom elements in a list, you must also register a serialization codec in the {@link com.github.mdcdi1315.basemodslib.config.lowlevelapi.listsupport.ListElementRegistry} class.
+ * If you want to serialize custom elements in a list, you must also register a serialization codec in the {@link com.github.mdcdi1315.basemodslib.config.reflect.ConfigFieldCodecRegistry} class.
  * @since 1.0.15
  */
+@Documented
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ListField

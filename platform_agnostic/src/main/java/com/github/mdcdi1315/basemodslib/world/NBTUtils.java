@@ -98,7 +98,7 @@ public final class NBTUtils
             throws IOException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(stream, "stream");
-        try (PushbackWrappedInputStream pushbackinputstream = new PushbackWrappedInputStream(stream, 2))
+        try (PushbackWrappedInputStream pushbackinputstream = new PushbackWrappedInputStream(stream, 2, false))
         {
             CompoundTag compoundtag;
             pushbackinputstream.SetIsOwner(false);

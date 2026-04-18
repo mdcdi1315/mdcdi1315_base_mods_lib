@@ -34,6 +34,11 @@ public abstract class BaseEnumerator<T>
         not_disposed = false;
     }
 
+    /**
+     * Advances the enumerator to the next element of the collection.
+     * @return {@code true} if the enumerator was successfully advanced to the next element; {@code false} if the enumerator has passed the end of the collection.
+     * @exception InvalidOperationException The collection was modified after the enumerator was created.
+     */
     public final boolean MoveNext() throws InvalidOperationException { return not_disposed && MoveNextImpl(); }
 
     /**
@@ -50,12 +55,14 @@ public abstract class BaseEnumerator<T>
 
     /**
      * Defines the actual implementation of the {@link #Reset()} method.
+     * @throws InvalidOperationException The collection was modified after the enumerator was created.
      */
-    protected abstract void ResetImpl();
+    protected abstract void ResetImpl() throws InvalidOperationException;
 
     /**
      * Defines the actual implementation of the {@link #MoveNext()} method.
      * @return A value whether the enumerator moved successfully to the next element.
+     * @throws InvalidOperationException The collection was modified after the enumerator was created.
      */
-    protected abstract boolean MoveNextImpl();
+    protected abstract boolean MoveNextImpl() throws InvalidOperationException;
 }

@@ -51,7 +51,7 @@ neoForge {
     }
 }
 
-sourceSets.main.java.srcDir '../sources-clothconfig'
+// sourceSets.main.java.srcDir '../sources-clothconfig'
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 

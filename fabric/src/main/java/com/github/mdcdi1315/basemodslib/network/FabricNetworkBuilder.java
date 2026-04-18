@@ -97,13 +97,13 @@ public final class FabricNetworkBuilder
         ServerPlayNetworking.registerGlobalReceiver(info.type(), new ServerPlayChannelInfoHandling<>(manager, info.handler()));
     }
 
-    private <T extends CustomPacketPayload> void RegisterClientBoundPacketInternal(ClientSideNetworkPacketRegistrationInfo<T> info)
+    private <T extends CustomPacketPayload> void RegisterClientBoundPacketInternal_ClientImpl(ClientSideNetworkPacketRegistrationInfo<T> info)
     {
-        PayloadTypeRegistry.playS2C().register(info.type() , info.codec());
-        if (BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT) {
-            FabricNetworkBuilder_ClientUtils.RegisterClientBoundPacketInternal_ClientImpl(info);
-        }
+        RegisterClientBoundPacketInternal_ServerImpl(info);
+        FabricNetworkBuilder_ClientUtils.RegisterClientBoundPacketInternal_ClientImpl(info);
     }
+
+    private <T extends CustomPacketPayload> void RegisterClientBoundPacketInternal_ServerImpl(ClientSideNetworkPacketRegistrationInfo<T> info) { PayloadTypeRegistry.playS2C().register(info.type() , info.codec()); }
 
     public void Build(FabricBasedNetworkManager manager)
     {
@@ -124,9 +124,16 @@ public final class FabricNetworkBuilder
         IEnumerator<ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload>> client_e = client_side_info.GetEnumerator();
         try {
             ClientSideNetworkPacketRegistrationInfo<? extends CustomPacketPayload> inf; // It is OK this class object to be allocated on server-only, since itself does not access any client-only classes.
-            while (client_e.MoveNext()) {
-                inf = client_e.getCurrent();
-                RegisterClientBoundPacketInternal(inf);
+            if (BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT) {
+                while (client_e.MoveNext()) {
+                    inf = client_e.getCurrent();
+                    RegisterClientBoundPacketInternal_ClientImpl(inf);
+                }
+            } else {
+                while (client_e.MoveNext()) {
+                    inf = client_e.getCurrent();
+                    RegisterClientBoundPacketInternal_ServerImpl(inf);
+                }
             }
         } finally {
             client_e.Dispose();

@@ -27,8 +27,8 @@
  * when it is saved in a long-term storage. <br />
  * To ensure that the file is loaded and saved correctly, Configuration
  * Constraints are applied to each field of the configuration file. <br />
- * They are declared through the {@link com.github.mdcdi1315.basemodslib.config.lowlevelapi.constraints.IConstraintCreator}
- * interface and are constructed as {@link com.github.mdcdi1315.basemodslib.config.lowlevelapi.IConfigFieldConstraint}
+ * They are declared through the {@link com.github.mdcdi1315.basemodslib.config.reflect.constraints.ConfigFieldConstraintCreator}
+ * interface and are constructed as {@link com.github.mdcdi1315.basemodslib.config.reflect.constraints.IConfigFieldConstraint}
  * instances loaded through annotations applied to the fields themselves. <br />
  * Apart from the long-term storage part, they also aid to catch run-time invalid cases, such as if a string in a configuration class is {@code null}.
  *
@@ -38,10 +38,11 @@
  * If you want to develop your own configuration file format, look at the {@link com.github.mdcdi1315.basemodslib.config.IConfigFileFormat} interface for how to do this.
  *
  * <h3>Overall system extensibility</h3>
- * Mod developers can also extend this system by declaring new configuration fields at the {@link com.github.mdcdi1315.basemodslib.config.lowlevelapi.configfields.ConfigFieldRegistry} class. <br />
+ * Mod developers can also extend this system by declaring new configuration field mappings at the {@link com.github.mdcdi1315.basemodslib.config.reflect.ConfigFieldCodecRegistry} class. <br />
  * This allows for end-to-end customization and provides complete control over how the configuration file is stored. <br />
- * For simple cases, common, and default configuration fields implementations are provided for all the mods that depend on the BML itself.
- * For declaring a new custom configuration field, see the {@link com.github.mdcdi1315.basemodslib.config.lowlevelapi.IConfigField} interface.
+ * For simple cases, common, and default configuration field codec mappings are provided for all the mods that depend on the BML itself.
+ * For declaring a new custom configuration field, see the {@link com.github.mdcdi1315.basemodslib.config.reflect.ConfigFieldCodecRegistry#AddCodecMapping(java.lang.Class, com.mojang.serialization.Codec)} method. <br />
+ * Additionally, since BML 1.0.26, the mod developers are now able to provide their own {@link com.mojang.serialization.Codec} for de/encoding their configuration data.
  *
  * <h3>Configuration files and GUI's</h3>
  * Apart from all these features, the library does also provide interconnection routines with

@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
+import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
 import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
 
 /**
@@ -14,7 +15,13 @@ import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
  * @since 1.0.22
  */
 public class ArrayBasedRegister<T>
-    implements ITraversableRegister<T>, IArrayBasedCollection, ISynchronized
+    implements
+        ITraversableRegister<T>,
+        IArrayBasedCollection,
+        ISupportsDirectConversionTo<T>,
+        ISupportsSlicing<T>,
+        ISupportsFiltering<T>,
+        ISynchronized
 {
     private int count;
     private Object[] elements;
@@ -115,6 +122,100 @@ public class ArrayBasedRegister<T>
     }
 
     private void RegisterUnchecked(@AllowNull T item) { elements[count++] = item; }
+
+    @Override
+    public <TO> ArrayBasedRegister<TO> ConvertAll(Converter<T, TO> converter, IEqualityComparer<TO> comparer)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(converter, "converter");
+
+        int count = this.count;
+        Object[] current_objects = this.elements;
+        ArrayBasedRegister<TO> reg_out = new ArrayBasedRegister<>(count, comparer);
+        Array.Copy(current_objects, reg_out.elements, count);
+        reg_out.count = count;
+        return reg_out;
+    }
+
+    /**
+     * Stores the specified portion of elements of the current collection to a new instance.
+     *
+     * @param index The starting index to start copying elements from the current collection.
+     * @param count The number of elements to copy from the current collection to the new one.
+     * @return A new collection containing only the specified portion of elements.
+     * @throws ArgumentException           {@code index} + {@code count} was exceeding the collection's bounds (Optional if the number of elements are unknown)
+     * @throws ArgumentOutOfRangeException {@code index} and/or {@code count} are negative values.
+     */
+    @Override
+    public ArrayBasedRegister<T> Slice(int index, int count)
+            throws ArgumentException, ArgumentOutOfRangeException
+    {
+        if (index < 0) {
+            throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
+        } else if (count < 0) {
+            throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
+        } else {
+            int total = index + count;
+            if (total > this.count || total < 0) {
+                throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
+            } else {
+                ArrayBasedRegister<T> ret = new ArrayBasedRegister<>(count, comparer);
+                Array.Copy(elements, index, ret.elements, 0, count);
+                ret.count = count;
+                return ret;
+            }
+        }
+    }
+
+    /**
+     * Stores the specified portion of elements of the current collection to a new instance.
+     *
+     * @param count The number of elements to copy from the current collection to the new one.
+     * @return A new collection containing only the specified portion of elements.
+     * @throws ArgumentException           {@code count} was exceeding the collection's bounds (Optional if the number of elements are unknown)
+     * @throws ArgumentOutOfRangeException {@code count} is a negative value.
+     */
+    @Override
+    public ArrayBasedRegister<T> Slice(int count)
+            throws ArgumentException, ArgumentOutOfRangeException
+    {
+        if (count < 0) {
+            throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
+        } else if (count > this.count) {
+            throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
+        } else {
+            ArrayBasedRegister<T> ret = new ArrayBasedRegister<>(count, comparer);
+            Array.Copy(elements, 0, ret.elements, 0, count);
+            ret.count = count;
+            return ret;
+        }
+    }
+
+    @Override
+    public ArrayBasedRegister<T> FilterBy(Predicate<T> predicate)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
+        if (FunctionManipulations.IsAlwaysTrue(predicate)) {
+            return this;
+        } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
+            return new ArrayBasedRegister<>(comparer);
+        } else {
+            IEnumerator<T> enumerator = GetEnumerator();
+            ArrayBasedRegister<T> reg = new ArrayBasedRegister<>(count, comparer);
+
+            try {
+                T item;
+                while (enumerator.MoveNext()) {
+                    if (predicate.predicate(item = enumerator.getCurrent())) { reg.RegisterUnchecked(item); }
+                }
+            } finally {
+                enumerator.Dispose();
+            }
+
+            return reg;
+        }
+    }
 
     private record IndexOfPredicate<T>(IEqualityComparer<T> eqc, T item)
             implements Predicate<Object>

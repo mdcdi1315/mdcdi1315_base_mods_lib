@@ -3,7 +3,6 @@ package com.github.mdcdi1315.basemodslib.codecs;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 
 import com.google.common.collect.ImmutableList;
 
@@ -79,10 +78,10 @@ public abstract class AbstractSetCodec<TElement, TSetType extends Set<TElement>>
                 return DataResult.success(Pair.of(Transform(builder.build()), input));
             } catch (Exception e) {
                 // Exceptions should be wrapped as errors because validation errors may have been found.
-                return DataResult.error(StringSupplier.FromFormatted("Exception of type %s occurred: %s", e.getClass().getName() , e.getMessage()));
+                return CodecUtils.CreateJavaFormattedErrorDataResult("Exception of type %s occurred: %s", e.getClass().getName() , e.getMessage());
             }
         } else {
-            return DataResult.error(new StringSupplier(d.error().get().message()));
+            return DataResult.error(d.error().get().messageSupplier());
         }
     }
 

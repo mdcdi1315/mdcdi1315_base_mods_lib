@@ -2,8 +2,6 @@ package com.github.mdcdi1315.basemodslib.codecs;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-
 import com.mojang.datafixers.util.Pair;
 
 import com.mojang.serialization.Codec;
@@ -55,11 +53,11 @@ public final class EitherCodec<TF , TS>
             var e2 = dr2.error();
 
             if (e2.isPresent()) {
-                return DataResult.error(StringSupplier.FromFormatted(
+                return CodecUtils.CreateJavaFormattedErrorDataResult(
                         "Both codecs have failed to give result: \nFirst codec: %s\nSecond codec: %s",
                         msg1,
                         e2.get().message()
-                ));
+                );
             } else {
                 return DataResult.success(new Pair<>(dr2.result().get().getFirst() , input));
             }
@@ -73,7 +71,7 @@ public final class EitherCodec<TF , TS>
     public <T> DataResult<T> encode(Object input, DynamicOps<T> ops, T prefix)
     {
         if (input == null) {
-            return DataResult.error(new StringSupplier("Cannot encode the null value!"));
+            return CodecUtils.CreateErrorDataResult("Cannot encode the null value!");
         } else {
             try {
                 return first_codec.encode((TF) input , ops , prefix);
@@ -81,7 +79,7 @@ public final class EitherCodec<TF , TS>
                 try {
                     return second_codec.encode((TS) input, ops , prefix);
                 } catch (ClassCastException cce2) {
-                    return DataResult.error(new StringSupplier("This object cannot be casted to either TF or TS. Check whether you have passed the correct object instance."));
+                    return CodecUtils.CreateErrorDataResult("This object cannot be casted to either TF or TS. Check whether you have passed the correct object instance.");
                 }
             }
         }

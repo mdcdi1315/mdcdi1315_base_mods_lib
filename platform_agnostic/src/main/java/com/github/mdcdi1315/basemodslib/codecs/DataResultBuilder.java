@@ -2,11 +2,7 @@ package com.github.mdcdi1315.basemodslib.codecs;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
 
-import com.github.mdcdi1315.basemodslib.codecs.internal.DataResultBuilderOfFive;
-import com.github.mdcdi1315.basemodslib.codecs.internal.DataResultBuilderOfFour;
-import com.github.mdcdi1315.basemodslib.codecs.internal.DataResultBuilderOfThree;
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-import com.github.mdcdi1315.basemodslib.codecs.internal.DataResultBuilderOfTwo;
+import com.github.mdcdi1315.basemodslib.codecs.internal.*;
 
 import com.mojang.datafixers.util.Pair;
 
@@ -103,7 +99,7 @@ public abstract class DataResultBuilder<TResult>
                 if (check.test(value)) {
                     return DataResult.success(value);
                 } else {
-                    return DataResult.error(StringSupplier.FromDotNetFormatted("Predicate was not satisfied. Value: {0}", value));
+                    return CodecUtils.CreateDotNetFormattedErrorDataResult("Predicate was not satisfied. Value: {0}", value);
                 }
             } else {
                 return result;

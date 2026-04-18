@@ -1,12 +1,9 @@
 package com.github.mdcdi1315.basemodslib.codecs;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
-import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
-
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
 
 import com.mojang.datafixers.util.Pair;
 
@@ -145,7 +142,7 @@ public final class DispatchableCodecWithFallback<T, TYPE>
 
         if (dr_like.isError()) {
             return (fallback == null) ?
-                    DataResult.error(new StringSupplier(StringUtils.Concat("Not a map: ", input))) :
+                    CodecUtils.CreateDotNetFormattedErrorDataResult("Not a map: {0}", input) :
                     fallback.decode(ops, input);
         } else {
             MapLike<TI> like = dr_like.result().get();
@@ -154,7 +151,7 @@ public final class DispatchableCodecWithFallback<T, TYPE>
 
             if (key == null) {
                 return (default_type == null) ?
-                        DataResult.error(StringSupplier.FromDotNetFormatted("No field named as '{0}' was present in map", type_field_name)) :
+                        CodecUtils.CreateDotNetFormattedErrorDataResult("No field named as '{0}' was present in map", type_field_name) :
                         DecodeInternal(ops, input, like, default_type);
             } else {
                 DataResult<TYPE> t = key_codec.parse(ops, key);
