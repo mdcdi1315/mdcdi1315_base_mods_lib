@@ -1,8 +1,14 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
+import com.github.mdcdi1315.DotNetLayer.System.Predicate;
+import com.github.mdcdi1315.DotNetLayer.System.Converter;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
+
+import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
 
 /**
  * Provides a simple and fast implementation of the {@link IRegister} interface. <br />
@@ -11,7 +17,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
  * @param <T> The type of elements to be registered and enumerated at a later time.
  */
 public class SingleLinkedListBasedRegister<T>
-    implements IRegister<T>
+    implements IRegister<T>, ISupportsDirectConversionTo<T>, ISupportsFiltering<T>
 {
     private static final class Node<T>
     {
@@ -93,4 +99,46 @@ public class SingleLinkedListBasedRegister<T>
      * @since 1.0.24
      */
     public boolean HasItems() { return root != null; }
+
+    @Override
+    public <TO> SingleLinkedListBasedRegister<TO> ConvertAll(Converter<T, TO> converter, IEqualityComparer<TO> comparer)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(converter, "converter");
+
+        SingleLinkedListBasedRegister<TO> result = new SingleLinkedListBasedRegister<>();
+
+        IEnumerator<T> enumerator = GetEnumerator();
+        try {
+            while (enumerator.MoveNext()) { result.Register(converter.convert(enumerator.getCurrent())); }
+        } finally {
+            enumerator.Dispose();
+        }
+
+        return result;
+    }
+
+    @Override
+    public SingleLinkedListBasedRegister<T> FilterBy(Predicate<T> predicate)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
+        if (FunctionManipulations.IsAlwaysTrue(predicate)) {
+            return this;
+        } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
+            return new SingleLinkedListBasedRegister<>();
+        } else {
+            SingleLinkedListBasedRegister<T> register = new SingleLinkedListBasedRegister<>();
+            IEnumerator<T> enumerator = GetEnumerator();
+            try {
+                T item;
+                while (enumerator.MoveNext()) {
+                    if (predicate.predicate(item = enumerator.getCurrent())) { register.Register(item); }
+                }
+            } finally {
+                enumerator.Dispose();
+            }
+            return register;
+        }
+    }
 }

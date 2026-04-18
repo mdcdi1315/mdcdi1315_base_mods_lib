@@ -2,8 +2,6 @@ package com.github.mdcdi1315.basemodslib.codecs;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-
 import com.google.common.collect.ImmutableList;
 
 import com.mojang.datafixers.util.Pair;
@@ -61,18 +59,18 @@ public abstract class AbstractStrictSetCodec<TElement, TSetType extends Set<TEle
             if (err.isPresent()) {
                 // OK, an element failed decode.
                 // Return the failure back.
-                return DataResult.error(new StringSupplier(err.get().message()));
+                return DataResult.error(err.get().messageSupplier());
             } else {
                 try {
                     // We can just return the set directly.
                     return DataResult.success(Pair.of(Transform(builder.build()), input));
                 } catch (Exception e) {
                     // Exceptions should be wrapped as errors because validation errors may have been found.
-                    return DataResult.error(StringSupplier.FromFormatted("Exception of type %s occurred: %s", e.getClass().getName() , e.getMessage()));
+                    return CodecUtils.CreateJavaFormattedErrorDataResult("Exception of type %s occurred: %s", e.getClass().getName() , e.getMessage());
                 }
             }
         } else {
-            return DataResult.error(new StringSupplier(d.error().get().message()));
+            return DataResult.error(d.error().get().messageSupplier());
         }
     }
 }

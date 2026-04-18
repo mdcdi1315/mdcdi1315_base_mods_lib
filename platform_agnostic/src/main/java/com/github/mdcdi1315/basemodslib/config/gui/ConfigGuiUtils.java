@@ -3,6 +3,8 @@ package com.github.mdcdi1315.basemodslib.config.gui;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.config.reflect.ConfigurationClassesOperations;
+
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -15,21 +17,12 @@ import java.util.ArrayList;
  */
 public final class ConfigGuiUtils
 {
-    public static final String TRANSLATABLE_STRING_VAL = "[Translate]";
+    public static final String TRANSLATABLE_STRING_VAL = ConfigurationClassesOperations.TRANSLATABLE_STRING_VAL;
 
     private ConfigGuiUtils() {}
 
-    public static Component ConstructConfigTranslatableString(@MaybeNull String str)
-    {
-        Component component;
-        if (str == null) {
-            component = Component.empty();
-        } else if (str.startsWith(TRANSLATABLE_STRING_VAL)) {
-            component = Component.translatable(str.substring(TRANSLATABLE_STRING_VAL.length()));
-        } else {
-            component = Component.literal(str);
-        }
-        return component;
+    public static Component ConstructConfigTranslatableString(@MaybeNull String str) {
+        return ConfigurationClassesOperations.ConstructComponentFromConfigString(str);
     }
 
     public static Optional<Component[]> ConstructCommentComponentLines(@MaybeNull String s) {

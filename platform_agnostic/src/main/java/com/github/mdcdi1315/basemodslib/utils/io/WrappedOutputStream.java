@@ -4,6 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
+import java.nio.ByteBuffer;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -66,6 +67,11 @@ public class WrappedOutputStream
     @Override
     public void write(@NotNull byte[] b, int off, int len) throws IOException { stream.write(b, off, len); }
 
+    /**
+     * Writes a primitive of type {@link Short} to the current data stream, in the Big Endian endianness format.
+     * @param value The {@link Short} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteShortBE(short value)
             throws IOException
     {
@@ -73,6 +79,11 @@ public class WrappedOutputStream
         write(primitives_buffer, 0, Short.BYTES);
     }
 
+    /**
+     * Writes a primitive of type {@link Integer} to the current data stream, in the Big Endian endianness format.
+     * @param value The {@link Integer} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteIntegerBE(int value)
             throws IOException
     {
@@ -80,6 +91,11 @@ public class WrappedOutputStream
         write(primitives_buffer, 0, Integer.BYTES);
     }
 
+    /**
+     * Writes a primitive of type {@link Long} to the current data stream, in the Big Endian endianness format.
+     * @param value The {@link Long} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteLongBE(long value)
             throws IOException
     {
@@ -87,6 +103,11 @@ public class WrappedOutputStream
         write(primitives_buffer, 0, Long.BYTES);
     }
 
+    /**
+     * Writes a primitive of type {@link Float} to the current data stream, in the Big Endian endianness format.
+     * @param value The {@link Float} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteFloatBE(float value)
             throws IOException
     {
@@ -94,6 +115,11 @@ public class WrappedOutputStream
         write(primitives_buffer, 0, Float.BYTES);
     }
 
+    /**
+     * Writes a primitive of type {@link Double} to the current data stream, in the Big Endian endianness format.
+     * @param value The {@link Double} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteDoubleBE(double value)
             throws IOException
     {
@@ -101,6 +127,11 @@ public class WrappedOutputStream
         write(primitives_buffer, 0, Double.BYTES);
     }
 
+    /**
+     * Writes a primitive of type {@link Short} to the current data stream, in the Little Endian endianness format.
+     * @param value The {@link Short} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteShortLE(short value)
             throws IOException
     {
@@ -108,6 +139,11 @@ public class WrappedOutputStream
         write(primitives_buffer, 0, Short.BYTES);
     }
 
+    /**
+     * Writes a primitive of type {@link Integer} to the current data stream, in the Little Endian endianness format.
+     * @param value The {@link Integer} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteIntegerLE(int value)
             throws IOException
     {
@@ -115,6 +151,11 @@ public class WrappedOutputStream
         write(primitives_buffer, 0, Integer.BYTES);
     }
 
+    /**
+     * Writes a primitive of type {@link Long} to the current data stream, in the Little Endian endianness format.
+     * @param value The {@link Long} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteLongLE(long value)
             throws IOException
     {
@@ -122,6 +163,11 @@ public class WrappedOutputStream
         write(primitives_buffer, 0, Long.BYTES);
     }
 
+    /**
+     * Writes a primitive of type {@link Float} to the current data stream, in the Little Endian endianness format.
+     * @param value The {@link Float} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteFloatLE(float value)
             throws IOException
     {
@@ -129,12 +175,26 @@ public class WrappedOutputStream
         write(primitives_buffer, 0, Float.BYTES);
     }
 
+    /**
+     * Writes a primitive of type {@link Double} to the current data stream, in the Little Endian endianness format.
+     * @param value The {@link Double} value to write.
+     * @throws IOException An I/O exception was occurred while writing the value to the data stream.
+     */
     public final void WriteDoubleLE(double value)
             throws IOException
     {
         ByteArrayLE.SetDouble(primitives_buffer, 0, value);
         write(primitives_buffer, 0, Double.BYTES);
     }
+
+    /**
+     * Copies the contents of the input {@link ByteBuffer} directly to the stream.
+     * The buffer's position after copying is updated accordingly.
+     * @param buffer The {@link ByteBuffer} to copy to the current stream.
+     * @throws IOException An I/O exception was occurred while writing {@code buffer} to the stream.
+     * @since 1.0.26
+     */
+    public final void WriteByteBuffer(ByteBuffer buffer) throws IOException { ByteBufferUtils.WriteToStream(this, buffer); }
 
     /**
      * Closes this input stream and releases any system resources associated with the stream.

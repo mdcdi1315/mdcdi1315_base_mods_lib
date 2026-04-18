@@ -14,6 +14,7 @@ import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
+import com.github.mdcdi1315.basemodslib.config.gui.ClothConfigIntegrationHandler;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import net.minecraft.client.Minecraft;
@@ -76,6 +77,7 @@ public final class BaseModsLibClient
                 throw new InvalidOperationException("Returned an empty client mod loader layer through the mod loader layer constructor. This is unexpected.");
             }
             mod_instances = new SingleLinkedListBasedRegister<>();
+            ClothConfigIntegrationHandler.Instantiate();
             sw.Stop();
             BaseModsLib.LOGGER.info("The library for the client distribution took {} seconds to initialize." , sw.GetElapsed().GetTotalSeconds());
         } catch (Exception ex) {
@@ -235,5 +237,6 @@ public final class BaseModsLibClient
         layer = null;
         mod_instances = null;
         config_factories = null;
+        ClothConfigIntegrationHandler.Destroy();
     }
 }

@@ -24,8 +24,6 @@ public final class StringIO
 {
     private StringIO() {}
 
-    private static int ComputeBufferSize(long consumed, long total, int buffer_size) { return ((consumed + buffer_size) < total) ? buffer_size : (int)(total - consumed); }
-
     /**
      * Writes the specified character sequence to the specified stream and returns the number of bytes that the sequence occupies in the data stream space.
      * @param stream The data stream to write the string to.
@@ -86,7 +84,7 @@ public final class StringIO
         while (total_read < bytes)
         {
             // Read bytes...
-            read = stream.read(temp, 0, ComputeBufferSize(total_read, bytes, temp.length));
+            read = stream.read(temp, 0, Extensions.ComputeStreamBufferSize(total_read, bytes, temp.length));
             if (read > -1) { total_read += read; } else { break; }
             // Then wrap them into a buffer...
             ByteBuffer bb = ByteBuffer.wrap(temp, 0, read);

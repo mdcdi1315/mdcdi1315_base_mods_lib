@@ -5,7 +5,7 @@ plugins {
     id 'java-library'
 }
 
-def lib_actual_version = "1.0.0"
+def lib_actual_version = "1.0.1"
 
 base {
     version = lib_actual_version

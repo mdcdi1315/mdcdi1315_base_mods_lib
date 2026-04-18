@@ -135,6 +135,8 @@ dependencies {
         jarJar.pin(g , project(":forge_bml_lang_provider").version)
     }
 
-    // Cloth config is not supported for forge 1.21.5+
-    // api("me.shedaniel.cloth:cloth-config-forge:${cloth_config_api_version}")
+    // To avoid having compilation issues due to inclusions, it is best here to provide the NeoForge variant, but without actually using it however.
+    fg.deobf(
+            compileOnly("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_api_version}") { exclude(group: "net.neoforged") }
+    )
 }

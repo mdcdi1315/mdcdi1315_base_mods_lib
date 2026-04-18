@@ -108,9 +108,6 @@ sourceSets.each {
     it.java.destinationDirectory = dir
 }
 
-// Cloth config is not supported for forge 1.21.5+
-// sourceSets.main.java { srcDir '../sources-clothconfig' }
-
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {

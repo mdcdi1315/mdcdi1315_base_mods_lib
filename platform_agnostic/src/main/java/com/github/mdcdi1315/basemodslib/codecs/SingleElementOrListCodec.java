@@ -2,8 +2,6 @@ package com.github.mdcdi1315.basemodslib.codecs;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
-
 import com.mojang.datafixers.util.Pair;
 
 import com.mojang.serialization.Codec;
@@ -56,7 +54,7 @@ public final class SingleElementOrListCodec<TElement>
             var e2 = list.error();
 
             return e2.isPresent() ?
-                    DataResult.error(StringSupplier.FromFormatted("Deserialization failed. \nSingle element codec failed with: %s \nList codec failed with: %s \n" , e.get().message() , e2.get().message())):
+                    CodecUtils.CreateJavaFormattedErrorDataResult("Deserialization failed. \nSingle element codec failed with: %s \nList codec failed with: %s \n" , e.get().message() , e2.get().message()):
                     list;
         } else {
             // Single element decode successful, return the element wrapped in an immutable list.
