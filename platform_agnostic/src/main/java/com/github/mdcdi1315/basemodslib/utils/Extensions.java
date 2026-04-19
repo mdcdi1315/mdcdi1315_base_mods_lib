@@ -32,8 +32,25 @@ public final class Extensions
     public static final float PI = (float) Math.PI;
     /**
      * Provides the value closer to the ratio of the circumference of a circle to its diameter multiplied by 2, as a single floating-point number.
+     * @apiNote This value corresponds to the {@link Math#TAU} value, but as a single floating-point number.
      */
-    public static final float TWO_PI = PI * 2;
+    public static final float TWO_PI = PI * 2f;
+    /**
+     * Provides the value closer to the ratio of the circumference of a circle to its diameter divided by 2, as a single floating-point number.
+     * @since 1.0.27
+     */
+    public static final float HALF_PI = PI / 2f;
+    /**
+     * Provides the value closer to the ratio of the circumference of a circle to its diameter divided by 2, as a double floating-point number.
+     * @since 1.0.27
+     */
+    public static final double HALF_PI_DOUBLE = Math.PI / 2d;
+    /**
+     * Provides the value closer to the ratio of the circumference of a circle to its diameter multiplied by 2, as a double floating-point number.
+     * @apiNote This value corresponds to the {@link Math#TAU} value.
+     * @since 1.0.27
+     */
+    public static final double TWO_PI_DOUBLE = Math.PI * 2d;
 
     /**
      * Produces a random {@link Direction} value, excluding the {@link Direction#UP} and {@link Direction#DOWN} constant values.

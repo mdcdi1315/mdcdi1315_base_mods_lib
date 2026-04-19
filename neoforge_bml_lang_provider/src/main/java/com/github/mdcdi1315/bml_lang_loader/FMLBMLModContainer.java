@@ -15,7 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 public final class FMLBMLModContainer
     extends ModContainer
 {
-    private Module layer;
+    private Module bml_mod_layer;
     private final IEventBus event_bus;
     private final FMLBMLJavaModLoadingContext context;
     private Class<?> server_class_instance, client_class_instance;
@@ -28,26 +28,38 @@ public final class FMLBMLModContainer
             Module bml_mod_layer)
     {
         super(info);
-        FMLBMLLanguageProvider.LOGGER.debug("Initializing FMLBMLModContainer for mod ID {}" , info.getModId());
+        String hc = Integer.toHexString(hashCode());
+        FMLBMLLanguageProvider.LOGGER.debug(
+                "Initializing FMLBMLModContainer of hash code 0x{} that will manage mod with ID {} - on game layer 0x{}",
+                hc,
+                info.getModId(),
+                Integer.toHexString(gameLayer.hashCode())
+        );
         context = new FMLBMLJavaModLoadingContext(this);
         event_bus = BusBuilder.builder().setExceptionHandler(this::onEventFailed).markerType(IModBusEvent.class).allowPerPhasePost().build();
         Module mod_layer;
         try {
-            layer = bml_mod_layer;
+            this.bml_mod_layer = bml_mod_layer;
             mod_layer = gameLayer.findModule(info.getOwningFile().moduleName()).orElseThrow();
         } catch (Throwable e) {
-            throw new ModCreationException(String.format(
-                    "Failed to create a new instance of the mod with ID %s because the module for it could not be found.",
-                    info.getModId()
-            ), e);
+            throw new ModConstructionException(
+                    info,
+                    String.format(
+                            "Failed to create a new instance of the mod with ID %s because the module for it could not be found.",
+                            info.getModId()
+                    ),
+                    "Failed to locate BML or mod module",
+                    e
+            );
         }
         if (class_name_server != null)
         {
             try {
+                FMLBMLLanguageProvider.LOGGER.debug(Logging.LOADING, "FMLBMLModContainer[0x{}]: Detected server class name: {}", hc, class_name_server);
                 server_class_instance = Class.forName(mod_layer, class_name_server);
-                FMLBMLLanguageProvider.LOGGER.trace(Logging.LOADING, "Loaded server mod class {} with class loader of name '{}'.", server_class_instance.getName(), server_class_instance.getClassLoader());
+                FMLBMLLanguageProvider.LOGGER.debug(Logging.LOADING, "FMLBMLModContainer[0x{}]: Loaded server mod class {} with class loader of name '{}'.", hc, server_class_instance.getName(), server_class_instance.getClassLoader());
             } catch (Throwable e) {
-                FMLBMLLanguageProvider.LOGGER.error(Logging.LOADING, "Failed to load class {}", class_name_server, e);
+                FMLBMLLanguageProvider.LOGGER.error(Logging.LOADING, "FMLBMLModContainer[0x{}]: Failed to load class {}", hc, class_name_server, e);
                 throw new ModLoadingException(ModLoadingIssue.error("fml.modloadingissue.failedtoloadmodclass").withCause(e).withAffectedMod(info));
             }
         }
@@ -56,22 +68,28 @@ public final class FMLBMLModContainer
 
     private void CreateClient(IModInfo info, Module layer, String class_name_client)
     {
+        String hc = Integer.toHexString(hashCode());
         try {
+            FMLBMLLanguageProvider.LOGGER.debug(Logging.LOADING, "FMLBMLModContainer[0x{}]: Detected client class name: {}", hc, class_name_client);
             client_class_instance = Class.forName(layer, class_name_client);
-            FMLBMLLanguageProvider.LOGGER.trace(Logging.LOADING, "Loaded client mod class {} with class loader of name '{}'.", client_class_instance.getName(), client_class_instance.getClassLoader());
+            FMLBMLLanguageProvider.LOGGER.debug(Logging.LOADING, "FMLBMLModContainer[0x{}]: Loaded client mod class {} with class loader of name '{}'.", hc, client_class_instance.getName(), client_class_instance.getClassLoader());
         } catch (Throwable e) {
-            FMLBMLLanguageProvider.LOGGER.error(Logging.LOADING, "Failed to load class {}", class_name_client, e);
+            FMLBMLLanguageProvider.LOGGER.error(Logging.LOADING, "FMLBMLModContainer[0x{}]: Failed to load class {}", hc, class_name_client, e);
             throw new ModLoadingException(ModLoadingIssue.error("fml.modloadingissue.failedtoloadmodclass").withCause(e).withAffectedMod(info));
         }
     }
 
     protected void constructMod()
     {
-        if (server_class_instance != null) {
-            ConstructMod_Server();
-        }
-        if (client_class_instance != null) {
-            ConstructMod_Client();
+        try {
+            if (server_class_instance != null) {
+                ConstructMod_Server();
+            }
+            if (client_class_instance != null) {
+                ConstructMod_Client();
+            }
+        } finally {
+            bml_mod_layer = null;
         }
     }
 
@@ -88,15 +106,16 @@ public final class FMLBMLModContainer
     private void ConstructMod_Server()
     {
         try {
-            FMLBMLLanguageProvider.LOGGER.trace(Logging.LOADING, "Loading server mod instance {} of type {}", getModId(), server_class_instance.getName());
+            FMLBMLLanguageProvider.LOGGER.debug(Logging.LOADING, "Loading server mod instance {} of type {}", getModId(), server_class_instance.getName());
             Constructor<?> constructor;
             try {
                 constructor = server_class_instance.getDeclaredConstructor(context.getClass());
             } catch (NoSuchMethodException | SecurityException exception) {
                 constructor = server_class_instance.getDeclaredConstructor();
             }
-            InitializeToBaseModsLibrary_Server(constructor.getParameterCount() == 0 ? constructor.newInstance() : constructor.newInstance(context));
-            FMLBMLLanguageProvider.LOGGER.trace(Logging.LOADING, "Loaded server mod instance {} of type {}", getModId(), server_class_instance.getName());
+            Object inst = constructor.getParameterCount() == 0 ? constructor.newInstance() : constructor.newInstance(context);
+            FMLBMLLanguageProvider.LOGGER.debug(Logging.LOADING, "Loaded server mod instance {} of type {}", getModId(), server_class_instance.getName());
+            InitializeToBaseModsLibrary_Server(inst);
         } catch (Throwable e) {
             // When a mod constructor throws an exception, it's wrapped in an InvocationTargetException which hides the
             // actual exception from the mod loading error screen.
@@ -113,15 +132,16 @@ public final class FMLBMLModContainer
     private void ConstructMod_Client()
     {
         try {
-            FMLBMLLanguageProvider.LOGGER.trace(Logging.LOADING, "Loading client mod instance {} of type {}", getModId(), client_class_instance.getName());
+            FMLBMLLanguageProvider.LOGGER.debug(Logging.LOADING, "Loading client mod instance {} of type {}", getModId(), client_class_instance.getName());
             Constructor<?> constructor;
             try {
                 constructor = client_class_instance.getDeclaredConstructor(context.getClass());
             } catch (NoSuchMethodException | SecurityException exception) {
                 constructor = client_class_instance.getDeclaredConstructor();
             }
-            InitializeToBaseModsLibrary_Client(constructor.getParameterCount() == 0 ? constructor.newInstance() : constructor.newInstance(context));
-            FMLBMLLanguageProvider.LOGGER.trace(Logging.LOADING, "Loaded client mod instance {} of type {}", getModId(), client_class_instance.getName());
+            Object inst = constructor.getParameterCount() == 0 ? constructor.newInstance() : constructor.newInstance(context);
+            FMLBMLLanguageProvider.LOGGER.debug(Logging.LOADING, "Loaded client mod instance {} of type {}", getModId(), client_class_instance.getName());
+            InitializeToBaseModsLibrary_Client(inst);
         } catch (Throwable e) {
             // When a mod constructor throws an exception, it's wrapped in an InvocationTargetException which hides the
             // actual exception from the mod loading error screen.
@@ -138,7 +158,7 @@ public final class FMLBMLModContainer
     private Method GetMethodFrom(String class_name , String name)
             throws NoSuchMethodException
     {
-        for (Method m : Class.forName(layer , class_name).getMethods())
+        for (Method m : Class.forName(bml_mod_layer , class_name).getMethods())
         {
             if (m.getName().equals(name)) {
                 return m;
