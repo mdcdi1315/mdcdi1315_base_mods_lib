@@ -27,10 +27,10 @@ public final class FMLBMLLanguageProvider
     }
 
     @Override
-    public String name() { return LANG_PROVIDER_NAME; }
+    public String version() { return "1.0.2"; }
 
     @Override
-    public String version() { return "1.0.1"; }
+    public String name() { return LANG_PROVIDER_NAME; }
 
     @Override
     public ModContainer loadMod(IModInfo info, ModFileScanData modFileScanResults, ModuleLayer layer)

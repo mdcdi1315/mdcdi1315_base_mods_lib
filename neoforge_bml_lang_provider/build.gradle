@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
 }
 
-def lib_version = "1.0.0"
+def lib_version = "1.0.2"
 
 base {
     version = lib_version
@@ -21,7 +21,7 @@ jar {
             'Specification-Version' : lib_version,
             'Implementation-Title'  : "BML_LANGUAGE_PROVIDER_NEOFORGE_FML",
             'Implementation-Vendor' : "mdcdi1315",
-            'Implementation-Version': "1.0.1"
+            'Implementation-Version': lib_version
     ])
 }
 

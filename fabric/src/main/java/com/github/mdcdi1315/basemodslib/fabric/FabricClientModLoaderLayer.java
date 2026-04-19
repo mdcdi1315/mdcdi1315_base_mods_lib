@@ -1,7 +1,7 @@
 package com.github.mdcdi1315.basemodslib.fabric;
 
-import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.EmptyModObject;
@@ -24,52 +24,41 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 public final class FabricClientModLoaderLayer
     implements IClientModLoaderLayer
 {
-    private static SingleLinkedListBasedRegister<ClientConnectedToServer_DispatchModInfoPacketImpl> mod_info_packet_events;
+    private static SingleLinkedListBasedRegister<ServerBoundModInfoPacket> mod_info_packets;
 
     static {
-        mod_info_packet_events = new SingleLinkedListBasedRegister<>();
+        mod_info_packets = new SingleLinkedListBasedRegister<>();
     }
 
-    public static void RegisterModInfoPacketDispatcher(ServerBoundModInfoPacket packet) {
-        mod_info_packet_events.Register(new ClientConnectedToServer_DispatchModInfoPacketImpl(packet));
-    }
-
-    @Override
-    public void Dispose() {
-
-    }
-
-    private record ClientConnectedToServer_DispatchModInfoPacketImpl(ServerBoundModInfoPacket packet)
-            implements Action1<ClientConnectedToServerEvent>
-    {
-        @Override
-        public void action(ClientConnectedToServerEvent obj) { ClientPlayNetworking.send(packet); }
-    }
+    public static void RegisterModInfoPacketDispatcher(ServerBoundModInfoPacket packet) { mod_info_packets.Register(packet); }
 
     public FabricClientModLoaderLayer() {
+        BaseModsLib.GetEventsManager().AddEventListener(ClientConnectedToServerEvent.class, FabricClientModLoaderLayer::DispatchModInfoPacketsAction);
         ClientLifecycleEvents.CLIENT_STARTED.register(FabricClientModLoaderLayer::OnClientStarted);
         ClientLifecycleEvents.CLIENT_STOPPING.register(ClientEventHooks::ClientStopping);
     }
 
-    private static void OnClientStarted(Minecraft mc)
+    private static void DispatchModInfoPacketsAction(ClientConnectedToServerEvent event)
     {
-        // When mod loading is complete, do the below:
-        var em = BaseModsLib.GetEventsManager();
-        var en = mod_info_packet_events.GetEnumerator();
+        IEnumerator<ServerBoundModInfoPacket> packets = mod_info_packets.GetEnumerator();
         try {
-            while (en.MoveNext()) {
-                em.AddEventListener(ClientConnectedToServerEvent.class , en.getCurrent());
+            while (packets.MoveNext()) {
+                ClientPlayNetworking.send(packets.getCurrent());
             }
         } finally {
-            en.Dispose();
+            packets.Dispose();
         }
-        mod_info_packet_events = null;
+    }
+
+    private static void OnClientStarted(Minecraft mc)
+    {
         BaseModsLib.Destroy();
         ClientEventHooks.ClientStarted(mc);
     }
 
     @Override
-    public void InitializeClientModInstance(IClientModInstance instance, Object o) {
+    public void InitializeClientModInstance(IClientModInstance instance, Object o)
+    {
         if (!(o instanceof EmptyModObject)) {
             throw new InvalidOperationException(String.format("The mod object was not of type EmptyModObject!!!!\nActual type: %s", o == null ? "<NULL>" : o.getClass().getName()));
         }
@@ -86,4 +75,7 @@ public final class FabricClientModLoaderLayer
 
         instance.RegisterClientRegistryItems(new FabricClientRegistryRegistrar(instance.GetModId()));
     }
+
+    @Override
+    public void Dispose() { mod_info_packets = null; }
 }
