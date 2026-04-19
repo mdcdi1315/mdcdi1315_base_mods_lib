@@ -16,7 +16,6 @@ import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegi
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -47,8 +46,15 @@ public final class FabricModLoaderLayer
         config_dir = loader.getConfigDir();
         minecraft_dir = loader.getGameDir();
         dev_env = loader.isDevelopmentEnvironment();
+        String id, version = null;
         var l = new ArrayList<String>(10);
-        for (ModContainer m : loader.getAllMods()) { l.add(m.getMetadata().getId()); }
+        for (ModContainer m : loader.getAllMods())
+        {
+            if ("fabricloader".equals(id = m.getMetadata().getId())) {
+                version = m.getMetadata().getVersion().getFriendlyString();
+            }
+            l.add(id);
+        }
         l.trimToSize();
         mod_ids = l;
         environment = switch (loader.getEnvironmentType()) {
@@ -58,7 +64,7 @@ public final class FabricModLoaderLayer
 
         Version fb_ver;
         try {
-            fb_ver = Version.Parse(FabricLoaderImpl.VERSION);
+            fb_ver = Version.Parse(version);
         } catch (Exception e) {
             BaseModsLib.LOGGER.warn("Cannot retrieve Fabric version due to an exception. Setting version values to 0,0.", e);
             fb_ver = new Version(0 , 0);
