@@ -27,30 +27,49 @@ public final class Extensions
     private Extensions() {}
 
     /**
-     * Provides the value closer to the ratio of the circumference of a circle to its diameter, as a single floating-point number.
+     * Provides the value closer to the ratio of the circumference of a circle to its diameter, as a double floating-point number.
+     * @apiNote This value corresponds to the {@link Math#PI} value.
+     * @see Math#PI
+     * @since 1.0.28
      */
-    public static final float PI = (float) Math.PI;
+    public static final double PI_DOUBLE = Math.PI;
+    /**
+     * Provides the value closer to the ratio of the circumference of a circle to its diameter divided by 2, as a double floating-point number.
+     * @since 1.0.27
+     * @see #HALF_PI
+     */
+    public static final double HALF_PI_DOUBLE = PI_DOUBLE / 2d;
+    /**
+     * Provides the value closer to the ratio of the circumference of a circle to its diameter multiplied by 2, as a double floating-point number.
+     * @apiNote This value corresponds to the {@link Math#TAU} value.
+     * @since 1.0.27
+     * @see #TWO_PI
+     */
+    public static final double TWO_PI_DOUBLE = PI_DOUBLE * 2d;
+
+    /**
+     * Provides the value closer to the ratio of the circumference of a circle to its diameter, as a single floating-point number.
+     * @apiNote This value corresponds to the {@link Math#PI} value, downcast to {@code float}. <br />
+     *          Since 1.0.28, this value is derived from the {@link #PI_DOUBLE} constant.
+     * @see Math#PI
+     * @see #PI_DOUBLE
+     */
+    public static final float PI = (float)PI_DOUBLE;
     /**
      * Provides the value closer to the ratio of the circumference of a circle to its diameter multiplied by 2, as a single floating-point number.
      * @apiNote This value corresponds to the {@link Math#TAU} value, but as a single floating-point number.
+     * @see #PI
+     * @see Math#TAU
+     * @see #TWO_PI_DOUBLE
      */
     public static final float TWO_PI = PI * 2f;
     /**
      * Provides the value closer to the ratio of the circumference of a circle to its diameter divided by 2, as a single floating-point number.
      * @since 1.0.27
+     * @see #PI
+     * @see #HALF_PI_DOUBLE
      */
     public static final float HALF_PI = PI / 2f;
-    /**
-     * Provides the value closer to the ratio of the circumference of a circle to its diameter divided by 2, as a double floating-point number.
-     * @since 1.0.27
-     */
-    public static final double HALF_PI_DOUBLE = Math.PI / 2d;
-    /**
-     * Provides the value closer to the ratio of the circumference of a circle to its diameter multiplied by 2, as a double floating-point number.
-     * @apiNote This value corresponds to the {@link Math#TAU} value.
-     * @since 1.0.27
-     */
-    public static final double TWO_PI_DOUBLE = Math.PI * 2d;
 
     /**
      * Produces a random {@link Direction} value, excluding the {@link Direction#UP} and {@link Direction#DOWN} constant values.
@@ -92,6 +111,7 @@ public final class Extensions
      * For more information, see the {@link Math#sin(double)} function.
      * @param v The angle to compute its trigonometric sine.
      * @return The trigonometric sine of {@code v}.
+     * @see Math#sin(double)
      */
     public static float Sin(float v)
     {
@@ -103,6 +123,7 @@ public final class Extensions
      * For more information, see the {@link Math#sin(double)} function.
      * @param v The angle to compute its trigonometric sine.
      * @return The trigonometric sine of {@code v}.
+     * @see Math#sin(double)
      */
     public static double Sin(double v) { return Math.sin(v); }
 
@@ -111,6 +132,7 @@ public final class Extensions
      * For more information, see the {@link Math#cos(double)} function.
      * @param v The angle to compute its trigonometric cosine.
      * @return The trigonometric cosine of {@code v}.
+     * @see Math#cos(double)
      */
     public static float Cos(float v)
     {
@@ -122,35 +144,9 @@ public final class Extensions
      * For more information, see the {@link Math#cos(double)} function.
      * @param v The angle to compute its trigonometric cosine.
      * @return The trigonometric cosine of {@code v}.
+     * @see Math#cos(double)
      */
-    public static double Cos(double v)
-    {
-        return Math.cos(v); // Currently forwards to Minecraft's math class, we need to find a better alternative for this
-    }
-
-    /**
-     * Computes the integer closest to {@code value}. <br />
-     * If the value has a fractional part, a value of 1 is added before the method returns.
-     * @param value The value to be computed as {@link Integer}.
-     * @return The {@link Integer} corresponding to {@code value}.
-     */
-    public static int Ceiling(float value) {
-        // Borrowed from Minecraft's code, but this is roughly in all cases.
-        int i = (int)value;
-        return value > (float)i ? i + 1 : i;
-    }
-
-    /**
-     * Computes the integer closest to {@code value}. <br />
-     * If the value has a fractional part, a value of 1 is added before the method returns.
-     * @param value The value to be computed as {@link Integer}.
-     * @return The {@link Integer} corresponding to {@code value}.
-     */
-    public static int Ceiling(double value) {
-        // Borrowed from Minecraft's code, but this is roughly in all cases.
-        int i = (int)value;
-        return value > (double)i ? i + 1 : i;
-    }
+    public static double Cos(double v) { return Math.cos(v); }
 
     /**
      * Linearly interpolates a value ranging from 0 to 1 to the specified range, and returns the result.
@@ -183,6 +179,7 @@ public final class Extensions
      * If the value has a fractional part, a value of 1 is removed before the method returns.
      * @param value The value to be computed as {@link Integer}.
      * @return The {@link Integer} corresponding to {@code value}.
+     * @see #LongFloor(float)
      */
     public static int Floor(float value) {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
@@ -195,12 +192,349 @@ public final class Extensions
      * If the value has a fractional part, a value of 1 is removed before the method returns.
      * @param value The value to be computed as {@link Integer}.
      * @return The {@link Integer} corresponding to {@code value}.
+     * @see #LongFloor(double)
      */
     public static int Floor(double value) {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         int i = (int)value;
         return value < (double)i ? i - 1 : i;
     }
+
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is removed before the method returns.
+     * @param value The value to be computed as {@link Long}.
+     * @return The {@link Long} corresponding to {@code value}.
+     * @since 1.0.28
+     * @see #Floor(float)
+     */
+    public static long LongFloor(float value)
+    {
+        long i = (long)value;
+        return value < (float)i ? i - 1 : i;
+    }
+
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is removed before the method returns.
+     * @param value The value to be computed as {@link Long}.
+     * @return The {@link Long} corresponding to {@code value}.
+     * @since 1.0.28
+     * @see #Floor(double) 
+     */
+    public static long LongFloor(double value)
+    {
+        long i = (long)value;
+        return value < (double)i ? i - 1L : i;
+    }
+
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is added before the method returns.
+     * @param value The value to be computed as {@link Integer}.
+     * @return The {@link Integer} corresponding to {@code value}.
+     * @see #LongCeiling(float)
+     */
+    public static int Ceiling(float value)
+    {
+        // Borrowed from Minecraft's code, but this is roughly in all cases.
+        int i = (int)value;
+        return value > (float)i ? i + 1 : i;
+    }
+
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is added before the method returns.
+     * @param value The value to be computed as {@link Integer}.
+     * @return The {@link Integer} corresponding to {@code value}.
+     * @see #LongCeiling(double) 
+     */
+    public static int Ceiling(double value)
+    {
+        // Borrowed from Minecraft's code, but this is roughly in all cases.
+        int i = (int)value;
+        return value > (double)i ? i + 1 : i;
+    }
+
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is added before the method returns.
+     * @param value The value to be computed as {@link Long}.
+     * @return The {@link Long} corresponding to {@code value}.
+     * @since 1.0.28
+     * @see #Ceiling(float) 
+     */
+    public static long LongCeiling(float value)
+    {
+        long i = (long)value;
+        return value > (float) i ? i + 1L : i;
+    }
+
+    /**
+     * Computes the integer closest to {@code value}. <br />
+     * If the value has a fractional part, a value of 1 is added before the method returns.
+     * @param value The value to be computed as {@link Long}.
+     * @return The {@link Long} corresponding to {@code value}.
+     * @since 1.0.28
+     * @see #Ceiling(double) 
+     */
+    public static long LongCeiling(double value)
+    {
+        long i = (long)value;
+        return value > (double)i ? i + 1L : i;
+    }
+
+    /**
+     * Wraps the specified angle around the 360 degrees.
+     * @param angle The angle, in degrees, to wrap around the 360 degrees value.
+     * @return The {@code angle} value, but wrapped around if needed so.
+     * @since 1.0.28
+     * @see #ToDegrees(float)
+     * @see #WrapRadians(float) 
+     */
+    public static float WrapDegrees(float angle)
+    {
+        float i = angle % 360f;
+        if (i >= 180f) { i -= 360f; }
+        if (i < -180f) { i += 360f; }
+        return i;
+    }
+
+    /**
+     * Wraps the specified angle around the 360 degrees.
+     * @param angle The angle, in degrees, to wrap around the 360 degrees value.
+     * @return The {@code angle} value, but wrapped around if needed so.
+     * @since 1.0.28
+     * @see #ToDegrees(double)
+     * @see #WrapRadians(double) 
+     */
+    public static double WrapDegrees(double angle)
+    {
+        double i = angle % 360d;
+        if (i >= 180d) { i -= 360d; }
+        if (i < -180d) { i += 360d; }
+        return i;
+    }
+
+    /**
+     * Wraps the specified angle around the 360 degrees.
+     * @param angle The angle, in degrees, to wrap around the 360 degrees value.
+     * @return The {@code angle} value, but wrapped around if needed so.
+     * @since 1.0.28
+     */
+    public static int WrapDegrees(int angle)
+    {
+        int i = angle % 360;
+        if (i > 179) { i -= 360; }
+        if (i < -180) { i += 360; }
+        return i;
+    }
+
+    /**
+     * Wraps the specified angle around {@link #TWO_PI_DOUBLE}.
+     * @param angle The angle, in radians, to wrap around the {@link #TWO_PI_DOUBLE} value.
+     * @return The {@code angle} value, but wrapped around if needed so.
+     * @since 1.0.28
+     * @see #WrapDegrees(float)
+     * @see #ToRadians(float)
+     */
+    public static float WrapRadians(float angle)
+    {
+        float i = angle % TWO_PI;
+        if (i >= PI) { i -= TWO_PI; }
+        if (i < -PI) { i += TWO_PI; }
+        return i;
+    }
+
+    /**
+     * Wraps the specified angle around {@link #TWO_PI_DOUBLE}.
+     * @param angle The angle, in radians, to wrap around the {@link #TWO_PI_DOUBLE} value.
+     * @return The {@code angle} value, but wrapped around if needed so.
+     * @since 1.0.28
+     * @see #WrapDegrees(double)
+     * @see #ToRadians(double)
+     */
+    public static double WrapRadians(double angle)
+    {
+        double i = angle % TWO_PI_DOUBLE;
+        if (i >= PI) { i -= TWO_PI_DOUBLE; }
+        if (i < -PI) { i += TWO_PI_DOUBLE; }
+        return i;
+    }
+
+    /**
+     * From a radians value, it computes the equivalent value to degrees.
+     * @param radians The radians to compute as degrees.
+     * @return The degrees corresponding to {@code radians}.
+     * @since 1.0.28
+     */
+    public static float ToDegrees(float radians) { return radians * (180f / Extensions.PI); }
+
+    /**
+     * From a radians value, it computes the equivalent value to degrees.
+     * @param radians The radians to compute as degrees.
+     * @return The degrees corresponding to {@code radians}.
+     * @since 1.0.28
+     */
+    public static double ToDegrees(double radians) { return radians * (180d / Extensions.PI); }
+
+    /**
+     * From a degrees value, it computes the equivalent value to radians.
+     * @param degrees The degrees to compute as radians.
+     * @return The radians corresponding to {@code degrees}.
+     * @since 1.0.28
+     */
+    public static float ToRadians(float degrees) { return degrees * (Extensions.PI / 180f); }
+
+    /**
+     * From a degrees value, it computes the equivalent value to radians.
+     * @param degrees The degrees to compute as radians.
+     * @return The radians corresponding to {@code degrees}.
+     * @since 1.0.28
+     */
+    public static double ToRadians(double degrees) { return degrees * (Extensions.PI / 180d); }
+
+    /**
+     * Computes the absolute value of {@code i}.
+     * @param i The value to get its absolute value.
+     * @return The absolute value of {@code i}.
+     * @since 1.0.28
+     * @see Math#abs(int) 
+     */
+    public static int Absolute(int i) { return Math.abs(i); }
+
+    /**
+     * Computes the absolute value of {@code i}.
+     * @param i The value to get its absolute value.
+     * @return The absolute value of {@code i}.
+     * @since 1.0.28
+     * @see Math#abs(int)
+     */
+    public static long Absolute(long i) { return Math.abs(i); }
+    
+    /**
+     * Computes the absolute value of {@code i}.
+     * @param i The value to get its absolute value.
+     * @return The absolute value of {@code i}.
+     * @since 1.0.28
+     * @see Math#abs(float)
+     */
+    public static float Absolute(float i) { return Math.abs(i); }
+
+    /**
+     * Computes the absolute value of {@code i}.
+     * @param i The value to get its absolute value.
+     * @return The absolute value of {@code i}.
+     * @since 1.0.28
+     * @see Math#abs(double)
+     */
+    public static double Absolute(double i) { return Math.abs(i); }
+
+    /**
+     * Computes the smaller of the two provided values.
+     * @param first The first value.
+     * @param second The second value.
+     * @return The smaller of the two input values, {@code first} and {@code second}.
+     * @since 1.0.28
+     * @see #Max(int, int)
+     * @see Math#min(int, int)
+     */
+    public static int Min(int first, int second) { return Math.min(first, second); }
+
+    /**
+     * Computes the smaller of the two provided values.
+     * @param first The first value.
+     * @param second The second value.
+     * @return The smaller of the two input values, {@code first} and {@code second}.
+     * @since 1.0.28
+     * @see #Max(long, long)
+     * @see Math#min(long, long)
+     */
+    public static long Min(long first, long second) { return Math.min(first, second); }
+
+    /**
+     * Computes the smaller of the two provided values.
+     * @param first The first value.
+     * @param second The second value.
+     * @return The smaller of the two input values, {@code first} and {@code second}.
+     * @since 1.0.28
+     * @see #Max(float, float)
+     * @see Math#min(float, float)
+     */
+    public static float Min(float first, float second) { return Math.min(first, second); }
+
+    /**
+     * Computes the smaller of the two provided values.
+     * @param first The first value.
+     * @param second The second value.
+     * @return The smaller of the two input values, {@code first} and {@code second}.
+     * @since 1.0.28
+     * @see #Max(double, double)
+     * @see Math#min(double, double)
+     */
+    public static double Min(double first, double second) { return Math.min(first, second); }
+
+    /**
+     * Computes the greater of the two provided values.
+     * @param first The first value.
+     * @param second The second value.
+     * @return The greater of the two input values, {@code first} and {@code second}.
+     * @since 1.0.28
+     * @see #Min(int, int)
+     * @see Math#max(int, int)
+     */
+    public static int Max(int first, int second) { return Math.max(first, second); }
+
+    /**
+     * Computes the greater of the two provided values.
+     * @param first The first value.
+     * @param second The second value.
+     * @return The greater of the two input values, {@code first} and {@code second}.
+     * @since 1.0.28
+     * @see #Min(long, long)
+     * @see Math#max(long, long)
+     */
+    public static long Max(long first, long second) { return Math.max(first, second); }
+
+    /**
+     * Computes the greater of the two provided values.
+     * @param first The first value.
+     * @param second The second value.
+     * @return The greater of the two input values, {@code first} and {@code second}.
+     * @since 1.0.28
+     * @see #Min(float, float)
+     * @see Math#max(float, float)
+     */
+    public static float Max(float first, float second) { return Math.max(first, second); }
+
+    /**
+     * Computes the greater of the two provided values.
+     * @param first The first value.
+     * @param second The second value.
+     * @return The greater of the two input values, {@code first} and {@code second}.
+     * @since 1.0.28
+     * @see #Min(double, double)
+     * @see Math#max(double, double)
+     */
+    public static double Max(double first, double second) { return Math.max(first, second); }
+
+    /**
+     * Gets {@code value} closest to the best integer value.
+     * @param value The value to round.
+     * @return The rounded value.
+     * @since 1.0.28
+     * @see Math#round(float)
+     */
+    public static int Round(float value) { return Math.round(value); }
+
+    /**
+     * Gets {@code value} closest to the best long integer value.
+     * @param value The value to round.
+     * @return The rounded value.
+     * @since 1.0.28
+     * @see Math#round(double)
+     */
+    public static long Round(double value) { return Math.round(value); }
 
     /**
      * Computes the power of {@code input} raised to 2.
@@ -251,6 +585,7 @@ public final class Extensions
      * Computes the square root of {@code value}.
      * @param value The value to compute it's square root.
      * @return The square root of {@code value}.
+     * @see Math#sqrt(double)
      */
     public static float SquareRoot(float value) { return (float)Math.sqrt(value); }
 
@@ -259,6 +594,7 @@ public final class Extensions
      * @param value The value to compute it's square root.
      * @return The square root of {@code value}.
      * @since 1.0.21
+     * @see Math#sqrt(double)
      */
     public static double SquareRoot(double value) { return Math.sqrt(value); }
 
@@ -266,6 +602,7 @@ public final class Extensions
      * Computes the inverted square root of {@code d}.
      * @param d The value to compute it's inverted square root.
      * @return The inverted square root of {@code d}.
+     * @see Math#sqrt(double)
      */
     public static float InvertedSquareRoot(float d) { return (float) (1.0d / Math.sqrt(d)); }
 
@@ -273,6 +610,7 @@ public final class Extensions
      * Computes the inverted square root of {@code d}.
      * @param d The value to compute it's inverted square root.
      * @return The inverted square root of {@code d}.
+     * @see Math#sqrt(double)
      */
     public static double InvertedSquareRoot(double d) { return 1.0d / Math.sqrt(d); }
 
@@ -281,6 +619,7 @@ public final class Extensions
      * @param value The value to compute it's cube root.
      * @return The cube root of {@code value}.
      * @since 1.0.21
+     * @see Math#cbrt(double)
      */
     public static float CubeRoot(float value) { return (float)Math.cbrt(value); }
 
@@ -289,6 +628,7 @@ public final class Extensions
      * @param value The value to compute it's cube root.
      * @return The cube root of {@code value}.
      * @since 1.0.21
+     * @see Math#cbrt(double)
      */
     public static double CubeRoot(double value) { return Math.cbrt(value); }
 
@@ -297,6 +637,7 @@ public final class Extensions
      * @param d The value to compute it's inverted cube root.
      * @return The inverted cube root of {@code d}.
      * @since 1.0.21
+     * @see Math#cbrt(double)
      */
     public static float InvertedCubeRoot(float d) { return (float)(1.0d / Math.cbrt(d)); }
 
@@ -305,6 +646,7 @@ public final class Extensions
      * @param d The value to compute it's inverted cube root.
      * @return The inverted cube root of {@code d}.
      * @since 1.0.21
+     * @see Math#cbrt(double)
      */
     public static double InvertedCubeRoot(double d) { return 1.0d / Math.cbrt(d); }
 
@@ -729,6 +1071,17 @@ public final class Extensions
      * @param maximum The maximum inclusive bound of the range to clamp {@code value}.
      * @return The value of the {@code value} parameter, or if less than the {@code minimum} value, the value of {@code minimum}.
      * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
+     * @since 1.0.28
+     */
+    public static long Clamp(long value, long minimum, long maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
+
+    /**
+     * Clamps a value to the range specified by the {@code minimum} and {@code maximum} parameters.
+     * @param value The value to clamp into [{@code minimum}..{@code maximum}].
+     * @param minimum The minimum inclusive bound of the range to clamp {@code value}.
+     * @param maximum The maximum inclusive bound of the range to clamp {@code value}.
+     * @return The value of the {@code value} parameter, or if less than the {@code minimum} value, the value of {@code minimum}.
+     * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
      */
     public static int Clamp(int value , int minimum , int maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
@@ -817,7 +1170,7 @@ public final class Extensions
      */
     public static double MapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)
     {
-        return (ToNormalRange(input, inputlowerbound, inputupperbound) * (outputupperbound - outputlowerbound)) + outputlowerbound;
+        return Lerp(ToNormalRange(input, inputlowerbound, inputupperbound), outputlowerbound, outputupperbound);
     }
 
     /**
@@ -832,7 +1185,7 @@ public final class Extensions
      */
     public static float MapToRange(float input, float inputlowerbound, float inputupperbound, float outputlowerbound, float outputupperbound)
     {
-        return (ToNormalRange(input, inputlowerbound, inputupperbound) * (outputupperbound - outputlowerbound)) + outputlowerbound;
+        return Lerp(ToNormalRange(input, inputlowerbound, inputupperbound), outputlowerbound, outputupperbound);
     }
 
     /**
@@ -849,7 +1202,19 @@ public final class Extensions
      */
     public static double ClampedMapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)
     {
-        return (ToNormalRange(input > inputupperbound ? inputupperbound : Math.max(input, inputlowerbound), inputlowerbound, inputupperbound) * (outputupperbound - outputlowerbound)) + outputlowerbound;
+        return Lerp(
+                ToNormalRange(
+                        Clamp(
+                                input,
+                                inputlowerbound,
+                                inputupperbound
+                        ),
+                        inputlowerbound,
+                        inputupperbound
+                ),
+                outputlowerbound,
+                outputupperbound
+        );
     }
 
     /**
@@ -866,7 +1231,19 @@ public final class Extensions
      */
     public static float ClampedMapToRange(float input, float inputlowerbound, float inputupperbound, float outputlowerbound, float outputupperbound)
     {
-        return (ToNormalRange(input > inputupperbound ? inputupperbound : Math.max(input, inputlowerbound), inputlowerbound, inputupperbound) * (outputupperbound - outputlowerbound)) + outputlowerbound;
+        return Lerp(
+                ToNormalRange(
+                        Clamp(
+                                input,
+                                inputlowerbound,
+                                inputupperbound
+                        ),
+                        inputlowerbound,
+                        inputupperbound
+                ),
+                outputlowerbound,
+                outputupperbound
+        );
     }
 
 }

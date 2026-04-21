@@ -1,9 +1,7 @@
-### Now releasing 1.0.27:
+### Now releasing 1.0.28:
 
--> Smaller release focusing on some specific stuff that should be in 1.0.26, but were never implemented there.
+-> [Fabric]: Several reliability and bug fixes for the adavanced menu types were now implemented.
 
--> Add some more PI constants at the Extensions class.
+-> Added a bunch of methods to the Extensions class!
 
--> Port the changes done to the Forge BML Language Provider to the NeoForge one
-
--> Clean up the code on the Fabric Client Mod Loader Layer
+-> Added some new networking helpers for working with byte buffer copies.

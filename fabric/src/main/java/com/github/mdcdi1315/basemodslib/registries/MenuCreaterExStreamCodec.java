@@ -1,5 +1,8 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
+import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.network.NetworkHelpers;
+
 import io.netty.buffer.Unpooled;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,15 +17,28 @@ public final class MenuCreaterExStreamCodec
     public static final MenuCreaterExStreamCodec INSTANCE = new MenuCreaterExStreamCodec();
 
     @Override
-    public FriendlyByteBuf decode(RegistryFriendlyByteBuf buffer) {
+    public FriendlyByteBuf decode(RegistryFriendlyByteBuf buffer)
+    {
         FriendlyByteBuf ffb = new FriendlyByteBuf(Unpooled.buffer());
-        buffer.readBytes(ffb);
+        try {
+            NetworkHelpers.CopyBufferUnsafe(buffer, ffb);
+        } catch (Exception ex) {
+            // Reliably free the buffer on error
+            ffb.release();
+            throw ex;
+        }
         return ffb;
     }
 
     @Override
-    public void encode(RegistryFriendlyByteBuf buffer, FriendlyByteBuf source_data) {
-        buffer.writeBytes(source_data);
-        source_data.release();
+    public void encode(RegistryFriendlyByteBuf buffer, FriendlyByteBuf source_data)
+    {
+        BaseModsLib.LOGGER.info("MenuCreaterExStreamCodec encoding: WB: {} RB: {} REM_BYTES: {}", source_data.writerIndex(), source_data.readerIndex(), source_data.readableBytes());
+        try {
+            NetworkHelpers.CopyBufferUnsafe(source_data, buffer);
+            BaseModsLib.LOGGER.info("MenuCreaterExStreamCodec encoding: WB: {} RB: {} REM_BYTES: {}", buffer.writerIndex(), buffer.readerIndex(), buffer.readableBytes());
+        } finally {
+            source_data.release();
+        }
     }
 }
