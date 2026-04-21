@@ -17,9 +17,15 @@ public record ExtendedScreenHandlerFactoryTranslation(MenuProviderEx mpx)
         implements ExtendedScreenHandlerFactory<FriendlyByteBuf>
 {
     @Override
-    public FriendlyByteBuf getScreenOpeningData(ServerPlayer player) {
+    public FriendlyByteBuf getScreenOpeningData(ServerPlayer player)
+    {
         FriendlyByteBuf ffb = new FriendlyByteBuf(Unpooled.buffer());
-        mpx.WriteScreenOpeningData(player , ffb);
+        try {
+            mpx.WriteScreenOpeningData(player , ffb);
+        } catch (Exception e) {
+            ffb.release();
+            throw e;
+        }
         return ffb;
     }
 

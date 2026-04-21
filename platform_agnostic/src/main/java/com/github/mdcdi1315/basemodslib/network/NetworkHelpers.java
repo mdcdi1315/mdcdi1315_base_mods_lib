@@ -1,9 +1,6 @@
 package com.github.mdcdi1315.basemodslib.network;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func4;
-import com.github.mdcdi1315.DotNetLayer.System.Version;
-import com.github.mdcdi1315.DotNetLayer.System.FormatException;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.io.SevenBitEncodedInt;
@@ -50,6 +47,83 @@ public final class NetworkHelpers
     @NotNull
     public static Version UnpackVersion(int value) {
         return new Version((value >> 24) & 0xFF , (value >> 16) & 0xFF, (value >> 8) & 0xFF, value & 0xFF);
+    }
+
+    /**
+     * Copies from data the specified {@code source} to the specified {@code target} netty byte buffer. <br />
+     * Both {@linkplain ByteBuf#readerIndex() reader index} on the source buffer and the {@linkplain ByteBuf#writerIndex() writer index}
+     * on the target buffer will have been appropriately updated after this method has been executed.
+     * @param source The source buffer to copy data from.
+     * @param target The target buffer to place data from the {@code source} buffer.
+     * @param n_bytes The number of bytes to copy from the {@code source} buffer to the {@code target} buffer.
+     * @throws ArgumentNullException {@code source} and/or {@code target} are {@code null}.
+     * @throws ArgumentOutOfRangeException {@code n_bytes} is a negative value.
+     * @since 1.0.28
+     */
+    public static void CopyBuffer(ByteBuf source, ByteBuf target, int n_bytes)
+            throws ArgumentNullException, ArgumentOutOfRangeException
+    {
+        ArgumentNullException.ThrowIfNull(source, "source");
+        ArgumentNullException.ThrowIfNull(target, "target");
+        if (n_bytes < 0) {
+            throw new ArgumentOutOfRangeException("n_bytes", "Number of bytes to copy cannot be a negative value!");
+        } else {
+            CopyBufferUnsafe(source, target, n_bytes);
+        }
+    }
+
+    /**
+     * Copies data from the specified {@code source} to the specified {@code target} netty byte buffer. <br />
+     * Both {@linkplain ByteBuf#readerIndex() reader index} on the source buffer and the {@linkplain ByteBuf#writerIndex() writer index}
+     * on the target buffer will have been appropriately updated after this method has been executed.
+     * @param source The source buffer to copy data from.
+     * @param target The target buffer to place data from the {@code source} buffer.
+     * @throws ArgumentNullException {@code source} and/or {@code target} are {@code null}.
+     * @since 1.0.28
+     */
+    public static void CopyBuffer(ByteBuf source, ByteBuf target)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(source, "source");
+        ArgumentNullException.ThrowIfNull(target, "target");
+        CopyBufferUnsafe(source, target);
+    }
+
+    /**
+     * Copies data from the specified {@code source} to the specified {@code target} netty byte buffer. <br />
+     * Both {@linkplain ByteBuf#readerIndex() reader index} on the source buffer and the {@linkplain ByteBuf#writerIndex() writer index}
+     * on the target buffer will have been appropriately updated after this method has been executed.
+     * @param source The source buffer to copy data from.
+     * @param target The target buffer to place data from the {@code source} buffer.
+     * @since 1.0.28
+     * @apiNote This is the unsafe method variant of {@link #CopyBuffer(ByteBuf, ByteBuf)}.
+     * @see #CopyBuffer(ByteBuf, ByteBuf)
+     */
+    public static void CopyBufferUnsafe(ByteBuf source, ByteBuf target) { CopyBufferUnsafe(source, target, source.readableBytes()); }
+
+    /**
+     * Copies data from the specified {@code source} to the specified {@code target} netty byte buffer. <br />
+     * Both {@linkplain ByteBuf#readerIndex() reader index} on the source buffer and the {@linkplain ByteBuf#writerIndex() writer index}
+     * on the target buffer will have been appropriately updated after this method has been executed.
+     * @param source The source buffer to copy data from.
+     * @param target The target buffer to place data from the {@code source} buffer.
+     * @param n_bytes The number of bytes to copy from the {@code source} buffer to the {@code target} buffer.
+     * @since 1.0.28
+     * @apiNote This is the unsafe method variant of {@link #CopyBuffer(ByteBuf, ByteBuf, int)}.
+     * @see #CopyBuffer(ByteBuf, ByteBuf, int)
+     */
+    public static void CopyBufferUnsafe(ByteBuf source, ByteBuf target, int n_bytes)
+    {
+        int target_index = target.writerIndex();
+        try {
+            target.ensureWritable(n_bytes);
+            source.readBytes(target, target_index, n_bytes);
+            target.writerIndex(target_index + n_bytes);
+        } catch (Throwable throwable) {
+            // Restore target writer index upon failure
+            target.writerIndex(target_index);
+            throw throwable;
+        }
     }
 
     /**

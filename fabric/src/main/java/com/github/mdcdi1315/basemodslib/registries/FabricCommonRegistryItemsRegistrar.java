@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
@@ -10,9 +9,8 @@ import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreater;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreaterEx;
-import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.sounds.ISoundRegistrar;
-import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
+import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
 import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
 import com.github.mdcdi1315.basemodslib.alchemy.IAlchemyRegistrar;
@@ -38,7 +36,6 @@ import com.mojang.serialization.Lifecycle;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 
 import net.minecraft.core.Registry;
@@ -51,7 +48,6 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.core.RegistrationInfo;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.resources.ResourceLocation;
@@ -96,39 +92,9 @@ public final class FabricCommonRegistryItemsRegistrar
         modify_entries_item_stack_register = new HashMap<>(2);
     }
 
-    private record ModifyEntriesEventImpl(ArrayList<Item> item_enum, @MaybeNull ArrayList<ItemStack> item_stack_enum)
-            implements ItemGroupEvents.ModifyEntries
-    {
-        public ModifyEntriesEventImpl {
-            // Trash unused array elements in the list. This will be possibly accessed many times.
-            item_enum.trimToSize();
-            if (item_stack_enum != null) {
-                item_stack_enum.trimToSize();
-            }
-        }
+    private static ArrayList<Item> ComputeIfAbsentWrapper1(CreativeModeTab rk) { return new ArrayList<>(10); }
 
-        @Override
-        public void modifyEntries(FabricItemGroupEntries entries)
-        {
-            var ds = entries.getDisplayStacks();
-            var sts = entries.getSearchTabStacks();
-            var mapped = new DirectlyMappedList<>(item_enum , ItemStack::new);
-            ds.addAll(mapped);
-            sts.addAll(mapped);
-            if (item_stack_enum != null) {
-                ds.addAll(item_stack_enum);
-                sts.addAll(item_stack_enum);
-            }
-        }
-    }
-
-    private static ArrayList<Item> ComputeIfAbsentWrapper1(CreativeModeTab rk) {
-        return new ArrayList<>(10);
-    }
-
-    private static ArrayList<ItemStack> ComputeIfAbsentWrapper2(CreativeModeTab rk) {
-        return new ArrayList<>(10);
-    }
+    private static ArrayList<ItemStack> ComputeIfAbsentWrapper2(CreativeModeTab rk) { return new ArrayList<>(10); }
 
     // This is executed right after all the blocks, items, block entities and fluids have been registered.
     public void ApplyFabricModifyEntries()
@@ -440,17 +406,6 @@ public final class FabricCommonRegistryItemsRegistrar
         @Override
         public T create(int i, Inventory inventory) {
             return crt.Create(i , inventory);
-        }
-    }
-
-    private record MenuCreaterExToExtendedFactory<T extends AbstractContainerMenu>(MenuTypeCreaterEx<T> crt)
-            implements ExtendedScreenHandlerType.ExtendedFactory<T, FriendlyByteBuf>
-    {
-        @Override
-        public T create(int syncId, Inventory inventory, FriendlyByteBuf buf) {
-            T instance = crt.Create(syncId, inventory, buf);
-            buf.release();
-            return instance;
         }
     }
 
