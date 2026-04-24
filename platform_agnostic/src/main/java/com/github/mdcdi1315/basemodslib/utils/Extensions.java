@@ -368,7 +368,7 @@ public final class Extensions
      * @return The degrees corresponding to {@code radians}.
      * @since 1.0.28
      */
-    public static float ToDegrees(float radians) { return radians * (180f / Extensions.PI); }
+    public static float ToDegrees(float radians) { return radians * (180f / PI); }
 
     /**
      * From a radians value, it computes the equivalent value to degrees.
@@ -376,7 +376,7 @@ public final class Extensions
      * @return The degrees corresponding to {@code radians}.
      * @since 1.0.28
      */
-    public static double ToDegrees(double radians) { return radians * (180d / Extensions.PI); }
+    public static double ToDegrees(double radians) { return radians * (180d / PI); }
 
     /**
      * From a degrees value, it computes the equivalent value to radians.
@@ -384,7 +384,7 @@ public final class Extensions
      * @return The radians corresponding to {@code degrees}.
      * @since 1.0.28
      */
-    public static float ToRadians(float degrees) { return degrees * (Extensions.PI / 180f); }
+    public static float ToRadians(float degrees) { return degrees * (PI / 180f); }
 
     /**
      * From a degrees value, it computes the equivalent value to radians.
@@ -392,7 +392,7 @@ public final class Extensions
      * @return The radians corresponding to {@code degrees}.
      * @since 1.0.28
      */
-    public static double ToRadians(double degrees) { return degrees * (Extensions.PI / 180d); }
+    public static double ToRadians(double degrees) { return degrees * (PI / 180d); }
 
     /**
      * Computes the absolute value of {@code i}.
@@ -1037,12 +1037,6 @@ public final class Extensions
      * @apiNote This will return {@code false} if {@code o} is {@code null}.
      */
     public static boolean IsSynchronized(@AllowNull Object o) { return o instanceof ISynchronized; }
-
-    /**
-     * This method call is deprecated. Use the {@link #Lerp(double, double, double)} method instead.
-     */
-    @Deprecated(forRemoval = true, since = "1.0.18")
-    public static double NumberMap(double input , double inputbase , double outputbase) { return ((input / inputbase) * outputbase); }
 
     /**
      * Clamps a value to the range specified by the {@code minimum} and {@code maximum} parameters.

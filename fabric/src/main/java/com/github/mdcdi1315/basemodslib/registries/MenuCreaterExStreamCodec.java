@@ -1,6 +1,5 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
-import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.network.NetworkHelpers;
 
 import io.netty.buffer.Unpooled;
@@ -33,10 +32,8 @@ public final class MenuCreaterExStreamCodec
     @Override
     public void encode(RegistryFriendlyByteBuf buffer, FriendlyByteBuf source_data)
     {
-        BaseModsLib.LOGGER.info("MenuCreaterExStreamCodec encoding: WB: {} RB: {} REM_BYTES: {}", source_data.writerIndex(), source_data.readerIndex(), source_data.readableBytes());
         try {
             NetworkHelpers.CopyBufferUnsafe(source_data, buffer);
-            BaseModsLib.LOGGER.info("MenuCreaterExStreamCodec encoding: WB: {} RB: {} REM_BYTES: {}", buffer.writerIndex(), buffer.readerIndex(), buffer.readableBytes());
         } finally {
             source_data.release();
         }

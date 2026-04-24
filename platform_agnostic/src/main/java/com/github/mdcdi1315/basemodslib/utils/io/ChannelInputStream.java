@@ -44,7 +44,7 @@ public final class ChannelInputStream
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(this.channel = channel, "channel");
-        temp_buffer = ByteBuffer.allocateDirect(Math.max(ByteBufferUtils.DEFAULT_RECOMMENDED_COPY_BUFFER_SIZE, buffer_size));
+        temp_buffer = ByteBuffer.allocateDirect(Extensions.Max(ByteBufferUtils.DEFAULT_RECOMMENDED_COPY_BUFFER_SIZE, buffer_size));
         temp_buffer.limit(0);
     }
 
@@ -83,7 +83,7 @@ public final class ChannelInputStream
                 int t;
                 while (n > 0)
                 {
-                    temp_buffer.rewind().limit((int) Math.min(n, temp_buffer.capacity())); // Safe cast since we will be at least at (int) value range boundary.
+                    temp_buffer.rewind().limit((int) Extensions.Min(n, temp_buffer.capacity())); // Safe cast since we will be at least at (int) value range boundary.
                     t = channel.read(temp_buffer);
                     if (t == -1) {
                         throw new EOFException();
@@ -170,7 +170,7 @@ public final class ChannelInputStream
                 int t;
                 while (n > 0)
                 {
-                    temp_buffer.rewind().limit((int) Math.min(n, temp_buffer.capacity())); // Safe cast since we will be at least at (int) value range boundary.
+                    temp_buffer.rewind().limit((int) Extensions.Min(n, temp_buffer.capacity())); // Safe cast since we will be at least at (int) value range boundary.
                     t = channel.read(temp_buffer);
                     if (t == -1) {
                         return skipped;
@@ -196,7 +196,7 @@ public final class ChannelInputStream
             // Drain temporary processing buffer
             while (temp_buffer.hasRemaining())
             {
-                temp_buffer.get(b, off, t = Math.min(len, temp_buffer.remaining()));
+                temp_buffer.get(b, off, t = Extensions.Min(len, temp_buffer.remaining()));
                 read += t;
                 off += t;
                 len -= t;
@@ -228,7 +228,7 @@ public final class ChannelInputStream
             // Drain temporary processing buffer
             while (temp_buffer.hasRemaining())
             {
-                temp_buffer.get(b, off, t = Math.min(len, temp_buffer.remaining()));
+                temp_buffer.get(b, off, t = Extensions.Min(len, temp_buffer.remaining()));
                 read += t;
                 off += t;
                 len -= t;
@@ -241,7 +241,7 @@ public final class ChannelInputStream
                     // Make temp_buffer limit to be zero to avoid further invocations to return empty data
                     temp_buffer.limit(0);
                     // If we had any bytes into the temporary buffer, use them; otherwise, return 0 and give up.
-                    return Math.max(read, 0);
+                    return Extensions.Max(read, 0);
                 } else {
                     temp_buffer.rewind().limit(t);
                 }
