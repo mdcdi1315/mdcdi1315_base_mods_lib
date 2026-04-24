@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.world.saveddata;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
-import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
@@ -46,39 +45,6 @@ public final class PerDimensionWorldDataManager
     {
         ArgumentNullException.ThrowIfNull(level, "level");
         this.storage = (IBMLCustomDataStorage) level.getDataStorage();
-    }
-
-    /**
-     * This method is deprecated since the 1.0.15 version.
-     * Do not use it or call it.
-     */
-    @Deprecated(since = "1.0.15", forRemoval = true)
-    public <T extends ISavedData> SavedDataWrapper<T> ComputeIfAbsentAsWrapper(String name , Func1<T> creater)
-            throws NotSupportedException
-    {
-        throw new NotSupportedException("ComputeIfAbsentAsWrapper is deprecated since 1.0.15 and will be removed in a future release.");
-    }
-
-    /**
-     * This method is deprecated since the 1.0.15 version.
-     * Do not use it or call it.
-     */
-    @Deprecated(since = "1.0.15", forRemoval = true)
-    public <T extends ISavedData> SavedDataWrapper<T> GetAsWrapper(String name, Func1<T> creater)
-            throws NotSupportedException
-    {
-        throw new NotSupportedException("GetAsWrapper is deprecated since 1.0.15 and will be removed in a future release.");
-    }
-
-    /**
-     * This method is deprecated since the 1.0.15 version.
-     * Do not use it or call it.
-     */
-    @Deprecated(since = "1.0.15", forRemoval = true)
-    public <T extends ISavedData> void SetAsWrapper(SavedDataWrapper<T> data, String name)
-            throws NotSupportedException
-    {
-        throw new NotSupportedException("SetAsWrapper is deprecated since 1.0.15 and will be removed in a future release.");
     }
 
     /**

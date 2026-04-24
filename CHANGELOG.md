@@ -1,7 +1,13 @@
-### Now releasing 1.0.28:
+### Now releasing 1.0.29:
 
--> [Fabric]: Several reliability and bug fixes for the adavanced menu types were now implemented.
+-> Added missing function signatures in the `function` package.
 
--> Added a bunch of methods to the Extensions class!
+-> Removed very old and deprecated code that was unusable.
 
--> Added some new networking helpers for working with byte buffer copies.
+-> [Fabric]: Removed some logging code due to last version fixes.
+
+-> Refactored config screen registration steps.
+This is an internal feature pertaining to the library itself.
+Public-facing API has not been changed.
+
+-> This is the last version of the library with support for only 1.21.1 and 1.21.5. The next version will also support 26.1.2.

@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Provides a {@link java.io.PushbackInputStream} but it is an extendant of the {@link WrappedInputStream} class.
+ */
 public class PushbackWrappedInputStream
     extends WrappedInputStream
 {

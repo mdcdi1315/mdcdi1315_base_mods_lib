@@ -17,7 +17,7 @@ public class ElementSupplier<T>
     @AllowNull
     private final T value;
 
-    public ElementSupplier(@MaybeNull T item) { value = item; }
+    public ElementSupplier(@AllowNull T item) { value = item; }
 
     @Override
     @MaybeNull

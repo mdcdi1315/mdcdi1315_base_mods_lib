@@ -13,6 +13,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.client.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
+import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.config.gui.ClothConfigIntegrationHandler;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
@@ -31,8 +32,8 @@ public final class BaseModsLibClient
     private static IClientModLoaderLayer layer;
     private static volatile boolean initialized;
     private static SingleLinkedListBasedRegister<IClientModInstance> mod_instances;
-    // The below field is created lazily on first registration.
-    // Even if the method that should call this calls in but remains null, it will keep it as null.
+    // The below field is created after the layer has been initialized.
+    // Once mod loading completes and no factories are actually registered, this is then assigned to null.
     private static SingleLinkedListBasedRegister<Pair<String, ConfigurationScreenFactory<?>>> config_factories;
 
     static {
@@ -68,25 +69,35 @@ public final class BaseModsLibClient
         ArgumentNullException.ThrowIfNull(client_layer_constructor, "client_layer_constructor");
         if (layer != null) {
             throw new InvalidOperationException("The base mods library has already been initialized successfully.");
-        }
-        BaseModsLib.LOGGER.info("Initializing mdcdi1315's Base Mods Library for the client distribution...");
-        Stopwatch sw = Stopwatch.StartNew();
-        try {
-            layer = client_layer_constructor.function();
-            if (layer == null) {
-                throw new InvalidOperationException("Returned an empty client mod loader layer through the mod loader layer constructor. This is unexpected.");
+        } else {
+            BaseModsLib.LOGGER.info("Initializing mdcdi1315's Base Mods Library for the client distribution...");
+            Stopwatch sw = Stopwatch.StartNew();
+            try {
+                layer = client_layer_constructor.function();
+                if (layer == null) {
+                    throw new InvalidOperationException("Returned an empty client mod loader layer through the mod loader layer constructor. This is unexpected.");
+                } else {
+                    mod_instances = new SingleLinkedListBasedRegister<>();
+                    config_factories = new SingleLinkedListBasedRegister<>();
+                    BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, BaseModsLibClient::OnModLoadingCompleted);
+                    ClothConfigIntegrationHandler.Instantiate();
+                    sw.Stop();
+                    BaseModsLib.LOGGER.info("The library for the client distribution took {} seconds to initialize." , sw.GetElapsed().GetTotalSeconds());
+                }
+            } catch (Exception ex) {
+                sw.Stop();
+                initialized = true;
+                BaseModsLib.LOGGER.error("Library failed to be initialized after {} seconds! Inspecting exception and throwing back." , sw.GetElapsed().GetTotalSeconds());
+                throw new CriticalLibraryInitializationException(ex);
             }
-            mod_instances = new SingleLinkedListBasedRegister<>();
-            ClothConfigIntegrationHandler.Instantiate();
-            sw.Stop();
-            BaseModsLib.LOGGER.info("The library for the client distribution took {} seconds to initialize." , sw.GetElapsed().GetTotalSeconds());
-        } catch (Exception ex) {
-            sw.Stop();
             initialized = true;
-            BaseModsLib.LOGGER.error("Library failed to be initialized after {} seconds! Inspecting exception and throwing back." , sw.GetElapsed().GetTotalSeconds());
-            throw new CriticalLibraryInitializationException(ex);
         }
-        initialized = true;
+    }
+
+    // This is registered after the mod loader layer constructor has been invoked, so we can safely execute the below.
+    private static void OnModLoadingCompleted(ModLoadingCompleteEvent event)
+    {
+        if (!config_factories.HasItems()) { config_factories = null; }
     }
 
     /**
@@ -150,9 +161,6 @@ public final class BaseModsLibClient
 
     private static void AddConfigScreenFactory(String mod_id, ConfigurationScreenFactory<?> fact)
     {
-        if (config_factories == null) {
-            config_factories = new SingleLinkedListBasedRegister<>();
-        }
         synchronized (config_factories) {
             config_factories.Register(new Pair<>(mod_id, fact));
         }
