@@ -16,6 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
@@ -154,7 +155,7 @@ public final class NeoForgeRegistriesRegistrar
             registers_en.Dispose();
         }
         registers = null; // We can now sweep up memory.
-        NeoForgeUtils.AddEnumerableListener(bus, AddReloadListenerEvent.class, data_reload_listeners, AddReloadListenerEvent::addListener);
+        NeoForgeUtils.AddEnumerableListener(NeoForge.EVENT_BUS, AddReloadListenerEvent.class, data_reload_listeners, AddReloadListenerEvent::addListener);
         data_reload_listeners = null;
         NeoForgeUtils.AddEnumerableListener_DispatchOnce(bus, NewRegistryEvent.class, registries_to_create, NeoForgeRegistriesRegistrar::CreateRegistry);
         registries_to_create = null;
