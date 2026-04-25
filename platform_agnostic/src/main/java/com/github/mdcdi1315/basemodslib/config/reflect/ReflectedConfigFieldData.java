@@ -41,12 +41,12 @@ public final class ReflectedConfigFieldData
             throws ArgumentNullException, ArgumentException
     {
         ArgumentNullException.ThrowIfNull(reflected_field = field, "field");
-        if ((field_data = reflected_field.getAnnotation(ConfigField.class)) == null) {
-            throw new ArgumentException("field", "The specified field instance does not provide the ConfigField annotation.");
-        } else if (Modifier.isFinal(reflected_field.getModifiers())) {
+        if (Modifier.isFinal(reflected_field.getModifiers()) || Modifier.isStatic(reflected_field.getModifiers())) {
             throw new ArgumentException("field", "The specified field instance cannot be assigned to.");
         } else if (!Modifier.isPublic(reflected_field.getModifiers())) {
             throw new ArgumentException("field", "The specified field instance is not publicly accessible.");
+        } else if ((field_data = reflected_field.getAnnotation(ConfigField.class)) == null) {
+            throw new ArgumentException("field", "The specified field instance does not provide the ConfigField annotation.");
         } else {
             Class<?> inspected_class = GetFieldClass();
             IEnumerator<IConfigFieldConstraint> constraints = GetConstraints().GetEnumerator();

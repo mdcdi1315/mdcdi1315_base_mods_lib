@@ -2,9 +2,10 @@ package com.github.mdcdi1315.basemodslib.client;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
-import com.github.mdcdi1315.basemodslib.client.registries.IClientRegistryRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
+import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
+import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
+import com.github.mdcdi1315.basemodslib.client.registries.IClientRegistryRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import net.minecraft.resources.ResourceLocation;
@@ -24,24 +25,13 @@ public final class NeoForgeClientRegistriesRegistrar
         client_resource_reload_listeners = new SingleLinkedListBasedRegister<>();
     }
 
-    private ResourceLocation BuildAndValidateLocation(String path)
-    {
-        ResourceLocation ret = ResourceLocation.tryBuild(mod_id, path);
-
-        if (ret == null) {
-            throw new RuntimeException("Could not create the resource location!");
-        }
-
-        return ret;
-    }
-
     @Override
     public void RegisterResourceReloadListener(String name, PreparableReloadListener preparable_reload_listener)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
-        client_resource_reload_listeners.Register(new Pair<>(BuildAndValidateLocation(name), preparable_reload_listener));
+        client_resource_reload_listeners.Register(new Pair<>(RegistryUtils.ConstructResourceLocation(mod_id, name), preparable_reload_listener));
     }
 
     private static void RegisterClientReloadListener(AddClientReloadListenersEvent event, Pair<ResourceLocation, PreparableReloadListener> entry) { event.addListener(entry.first(), entry.second()); }

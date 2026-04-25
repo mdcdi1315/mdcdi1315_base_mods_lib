@@ -43,17 +43,6 @@ public final class NeoForgeRegistriesRegistrar
         data_reload_listeners = new SingleLinkedListBasedRegister<>();
     }
 
-    private ResourceLocation BuildAndValidateLocation(String path)
-    {
-        ResourceLocation ret = ResourceLocation.tryBuild(mod_id, path);
-
-        if (ret == null) {
-            throw new RuntimeException("Could not create the resource location!");
-        }
-
-        return ret;
-    }
-
     private record RegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Action1<IModLoaderRegistry<T>> on_ready) {}
 
     private record DatapackRegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Codec<T> element_codec) {}
@@ -142,7 +131,7 @@ public final class NeoForgeRegistriesRegistrar
     {
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
-        data_reload_listeners.Register(new Pair<>(BuildAndValidateLocation(name), preparable_reload_listener));
+        data_reload_listeners.Register(new Pair<>(RegistryUtils.ConstructResourceLocation(mod_id, name), preparable_reload_listener));
     }
 
     private static <T> void CreateRegistry(NewRegistryEvent event, RegistryEntry<T> entry)

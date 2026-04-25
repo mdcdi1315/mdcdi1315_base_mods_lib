@@ -12,6 +12,7 @@ import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
+import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
@@ -82,10 +83,7 @@ public final class BlocksAndItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-
-        ResourceLocation registry_object_location = ResourceLocation.tryBuild(mod_id, name);
-
-        FLUID_REGISTER.register(name, new FluidRegistrySupplier(info.fluid_getter() , registry_object_location));
+        FLUID_REGISTER.register(name, new FluidRegistrySupplier(info.fluid_getter() , RegistryUtils.ConstructResourceLocation(mod_id, name)));
     }
 
     private record BlockEntityRegistrySupplier<T extends BlockEntity>(IBlockEntityFactory<T> factory)
@@ -130,9 +128,9 @@ public final class BlocksAndItemsRegistrar
     public void Register(String name, BlockRegistrationInformation bri)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
+        // Note: Argument Null validation for parameter name is validated from the ConstructResourceLocation invocation below:
 
-        ResourceLocation registry_object_location = ResourceLocation.tryBuild(mod_id, name);
+        ResourceLocation registry_object_location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         var registry_object = BLOCKS_REGISTER.register(name, new BlockRegistrySupplier(bri.block_getter() , registry_object_location));
 
@@ -148,10 +146,10 @@ public final class BlocksAndItemsRegistrar
     public void Register(String name, ItemRegistrationInformation info)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+        // Note: Argument Null validation for parameter name is validated from the ConstructResourceLocation invocation below:
 
-        ResourceLocation registry_object_location = ResourceLocation.tryBuild(mod_id, name);
+        ResourceLocation registry_object_location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         var item_object = ITEM_REGISTER.register(name, new ItemRegistrySupplier(info.item_getter(), registry_object_location));
 

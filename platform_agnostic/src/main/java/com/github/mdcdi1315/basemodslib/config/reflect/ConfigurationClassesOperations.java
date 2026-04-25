@@ -14,6 +14,7 @@ import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection
 import net.minecraft.network.chat.Component;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 /**
  * Provides common operations for configuration classes.
@@ -39,6 +40,7 @@ public final class ConfigurationClassesOperations
         for (Field f : config_class.getFields())
         {
             try {
+                if (Modifier.isStatic(f.getModifiers())) { continue; } // Avoid static fields to be looked up to reflected config field data.
                 d.Add(new ReflectedConfigFieldData(f));
             } catch (Exception ex) {
                 BaseModsLib.LOGGER.warn(

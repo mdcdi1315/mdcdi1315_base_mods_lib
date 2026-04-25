@@ -85,7 +85,7 @@ public final class ForgeRegistriesRegistrar
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
         ArgumentNullException.ThrowIfNull(registry, "registry");
-        CreateIfAbsentOrReturn(registry).register(name, new ROSRegister<>(supplier , ResourceLocation.tryBuild(mod_id, name)));
+        CreateIfAbsentOrReturn(registry).register(name, new ROSRegister<>(supplier , RegistryUtils.ConstructResourceLocation(mod_id, name)));
     }
 
     @Override
