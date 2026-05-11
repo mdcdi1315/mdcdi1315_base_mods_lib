@@ -39,6 +39,8 @@
 	"mdcdi1315_base_mods_lib.devcmds.get_loaded_mods.mod_info_msg": "Mod ID: %s, instance hash code: %d",
 
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.header": "Displaying BML information: ",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.bml_version": "BML version: %s",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.bml_build_time": "BML build time: %s",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.mc_version": "Minecraft Version: %s",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.mod_loader": "Mod Loader: Brand: %s, Version: %s",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.loaded_instances": "Loaded BML mod instances: %d",

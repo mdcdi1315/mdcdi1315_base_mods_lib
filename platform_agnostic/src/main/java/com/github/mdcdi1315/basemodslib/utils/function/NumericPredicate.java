@@ -8,4 +8,12 @@ import com.github.mdcdi1315.DotNetLayer.System.Predicate;
  * @since 1.0.26
  */
 @FunctionalInterface
-public interface NumericPredicate<T extends Number> extends Predicate<T> { }
+public interface NumericPredicate<T extends Number>
+        extends Predicate<T>
+{
+    @Override
+    default java.util.function.Predicate<T> or(java.util.function.Predicate<? super T> other) { return new CompatibleOrPredicateImpl<>(this, other); }
+
+    @Override
+    default java.util.function.Predicate<T> and(java.util.function.Predicate<? super T> other) { return new CompatibleAndPredicateImpl<>(this, other); }
+}

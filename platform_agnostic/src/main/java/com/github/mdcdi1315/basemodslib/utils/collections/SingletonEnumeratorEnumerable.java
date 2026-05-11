@@ -18,7 +18,7 @@ import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
  * @since 1.0.26
  */
 public final class SingletonEnumeratorEnumerable<T>
-    implements IEnumerable<T>, ISupportsDirectConversionTo<T>, ISupportsSlicing<T>, ISupportsFiltering<T>
+    extends BaseEnumerable<T>
 {
     private final IEnumerator<T> single;
 

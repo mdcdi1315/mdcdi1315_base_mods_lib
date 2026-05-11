@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.commands.libcmd;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.VersionInfo;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.commands.AbstractCommand;
 
@@ -23,6 +24,8 @@ public final class BMLInfoCommand
     private static int Implementation(CommandContext<CommandSourceStack> context)
     {
         context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.header"));
+        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.bml_version", VersionInfo.GetPropertyOrEmpty(VersionInfo.PROPERTY_VERSION)));
+        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.bml_build_time", VersionInfo.GetPropertyOrEmpty(VersionInfo.PROPERTY_BUILD_TIME)));
         context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.mc_version", BaseModsLib.GetMinecraftVersion().toString()));
         context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.mod_loader", BaseModsLib.GetModLoaderBranding(), BaseModsLib.GetModLoaderVersion().toString()));
         context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.loaded_instances", BaseModsLib.GetModInstancesCount()));

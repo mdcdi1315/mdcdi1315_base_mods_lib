@@ -15,13 +15,12 @@ import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
  * @since 1.0.19
  */
 public class ArrayBasedList<T>
+    extends BaseEnumerable<T>
     implements
         IList<T>,
         ITraversableCollection<T>,
-        IArrayBasedCollection,
-        ISupportsDirectConversionTo<T>,
-        ISupportsSlicing<T>,
-        ISupportsFiltering<T>
+        ISupportsCloning<T>,
+        IArrayBasedCollection
 {
     private int count;
     private Object[] elements;
@@ -207,6 +206,9 @@ public class ArrayBasedList<T>
 
         @Override
         public IEnumerator<T> GetEnumerator() { synchronized (lock) { return super.GetEnumerator(); } }
+
+        @Override
+        public ArrayBasedList<T> Clone() { synchronized (lock) { return super.Clone(); } }
 
         @Override
         public ArrayBasedList<T> Slice(int count) throws ArgumentException { synchronized (lock) { return super.Slice(count); } }
@@ -561,7 +563,7 @@ public class ArrayBasedList<T>
                 throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
             } else {
                 ArrayBasedList<T> ret = new ArrayBasedList<>(count, comparer);
-                Array.Copy(elements, index, ret.elements, 0, count);
+                System.arraycopy(elements, index, ret.elements, 0, count);
                 ret.count = count;
                 return ret;
             }
@@ -585,7 +587,7 @@ public class ArrayBasedList<T>
             throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
         } else {
             ArrayBasedList<T> ret = new ArrayBasedList<>(count, comparer);
-            Array.Copy(elements, 0, ret.elements, 0, count);
+            System.arraycopy(elements, 0, ret.elements, 0, count);
             ret.count = count;
             return ret;
         }
@@ -619,7 +621,17 @@ public class ArrayBasedList<T>
     }
 
     @Override
-    public IEnumerator<T> GetEnumerator() { return ArrayEnumerator.ByBounds((T[]) elements, 0, count); }
+    public ArrayBasedList<T> Clone()
+    {
+        int ct = count;
+        ArrayBasedList<T> ret = new ArrayBasedList<>(ct, comparer);
+        System.arraycopy(elements, 0, ret.elements, 0, ct);
+        ret.count = ct;
+        return ret;
+    }
+
+    @Override
+    public IEnumerator<T> GetEnumerator() { return ArrayEnumerator.ByBoundsCasted(elements, 0, count); }
 
     /**
      * Provides a string representation of this object. <br />

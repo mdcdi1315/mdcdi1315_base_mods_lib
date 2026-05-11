@@ -4,9 +4,11 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
+import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointerEnumerator;
 
 /**
  * A default implementation of the {@link IStack} interface, by using a reverse single linked list. <br />
@@ -14,64 +16,9 @@ import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
  * @param <T> The type of the elements that this stack will hold.
  */
 public class SingleLinkedListBasedStack<T>
+    extends BaseEnumerable<T>
     implements ITraversableStack<T>
 {
-    private static final class Node<T>
-    {
-        @AllowNull
-        public Node<T> Parent;
-
-        public final T Value;
-
-        public Node(T value)
-        {
-            Parent = null;
-            Value = value;
-        }
-    }
-
-    private static final class Enumerator<T>
-            implements IEnumerator<T>
-    {
-        private boolean finished;
-        private Node<T> point, current;
-
-        public Enumerator(Node<T> point)
-        {
-            this.point = point;
-            current = null;
-            finished = false;
-        }
-
-        public void Dispose()
-        {
-            point = null;
-            current = null;
-            finished = true;
-        }
-
-        public boolean MoveNext()
-        {
-            if (finished) {
-                return false;
-            } else if ((current = (current == null) ? point : current.Parent) == null) {
-                finished = true;
-                return false;
-            } else {
-                return true;
-            }
-        }
-
-        public void Reset()
-        {
-            current = null;
-            finished = false;
-        }
-
-        @Override
-        public T getCurrent() { return (current == null) ? null : current.Value; }
-    }
-
     private static final class Synchronized<T>
             extends SingleLinkedListBasedStack<T>
             implements ISynchronizedByObject
@@ -119,7 +66,7 @@ public class SingleLinkedListBasedStack<T>
     }
 
     private int count;
-    private Node<T> current;
+    private NodeWithPreviousPointer<T> current;
 
     /**
      * Initializes a new instance of the {@link SingleLinkedListBasedStack} class.
@@ -143,7 +90,7 @@ public class SingleLinkedListBasedStack<T>
         if (current == null) {
             return null;
         } else {
-            Node<T> p = current.Parent;
+            NodeWithPreviousPointer<T> p = current.Previous;
             T v = current.Value;
             current = p;
             count--;
@@ -157,8 +104,8 @@ public class SingleLinkedListBasedStack<T>
     @Override
     public void Push(T item)
     {
-        Node<T> n = new Node<>(item);
-        n.Parent = current;
+        NodeWithPreviousPointer<T> n = new NodeWithPreviousPointer<>(item);
+        n.Previous = current;
         current = n;
         count++;
     }
@@ -178,11 +125,11 @@ public class SingleLinkedListBasedStack<T>
         } else if (index >= count) {
             throw new ArgumentOutOfRangeException("index", "The specified index was out of the stack bounds.");
         } else {
-            Node<T> p = current;
+            NodeWithPreviousPointer<T> p = current;
             int t = 0;
             while (t < index)
             {
-                p = p.Parent;
+                p = p.Previous;
                 t++;
             }
             return p.Value;
@@ -190,5 +137,32 @@ public class SingleLinkedListBasedStack<T>
     }
 
     @Override
-    public IEnumerator<T> GetEnumerator() { return new Enumerator<>(current); }
+    public IEnumerator<T> GetEnumerator() { return new NodeWithPreviousPointerEnumerator<>(current); }
+
+    /**
+     * Provides a string representation of this object. <br />
+     * For debugging purposes only.
+     * @return A string representation of this object.
+     * @since 1.0.31
+     */
+    @NotNull
+    @Override
+    public final String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("SingleLinkedListBasedStack<?> (%d) { ", count));
+        if (count == 0) {
+            sb.append("<EMPTY>");
+        } else {
+            NodeWithPreviousPointer<T> p = current, next;
+            while (p != null)
+            {
+                sb.append(p.Value);
+                if ((next = p.Previous) != null) { sb.append(", "); }
+                p = next;
+            }
+        }
+        sb.append(" }");
+        return sb.toString();
+    }
 }

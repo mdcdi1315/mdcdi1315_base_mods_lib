@@ -225,6 +225,18 @@ public final class FabricModLoaderLayer
     public boolean IsModLoaded(String s) { return mod_ids.contains(s); }
 
     @Override
+    public IModResourceLookup GetResourceLookupByID(String mod_id)
+    {
+        for (ModContainer m : FabricLoader.getInstance().getAllMods())
+        {
+            if (m.getMetadata().getId().equals(mod_id)) {
+                return new FabricModResourceLookup(m);
+            }
+        }
+        return null;
+    }
+
+    @Override
     public List<String> GetLoadedMods() { return mod_ids; }
 
     @Override

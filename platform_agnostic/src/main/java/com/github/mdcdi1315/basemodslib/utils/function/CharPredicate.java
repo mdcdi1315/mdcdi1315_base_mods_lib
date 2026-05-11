@@ -26,6 +26,12 @@ public interface CharPredicate
     @Override
     default boolean predicate(Character obj) { return predicate(obj.charValue()); }
 
+    @Override
+    default java.util.function.Predicate<Character> or(java.util.function.Predicate<? super Character> other) { return new CompatibleOrPredicateImpl<>(this, other); }
+
+    @Override
+    default java.util.function.Predicate<Character> and(java.util.function.Predicate<? super Character> other) { return new CompatibleAndPredicateImpl<>(this, other); }
+
     /**
      * From a given {@link CharPredicate}, it builds a {@link Predicate} of type {@link CharSequence}
      * that can check whether all characters in the {@link CharSequence} do pass the given {@code predicate}.

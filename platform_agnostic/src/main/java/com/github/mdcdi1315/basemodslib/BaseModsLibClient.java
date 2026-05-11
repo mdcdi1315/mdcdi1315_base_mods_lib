@@ -84,11 +84,16 @@ public final class BaseModsLibClient
                     sw.Stop();
                     BaseModsLib.LOGGER.info("The library for the client distribution took {} seconds to initialize." , sw.GetElapsed().GetTotalSeconds());
                 }
-            } catch (Exception ex) {
+            } catch (Throwable th) {
                 sw.Stop();
                 initialized = true;
                 BaseModsLib.LOGGER.error("Library failed to be initialized after {} seconds! Inspecting exception and throwing back." , sw.GetElapsed().GetTotalSeconds());
-                throw new CriticalLibraryInitializationException(ex);
+                Exception e = BaseModsLib.TranslateException(th);
+                if (e == null) {
+                    throw th;
+                } else {
+                    throw new CriticalLibraryInitializationException(e);
+                }
             }
             initialized = true;
         }
@@ -150,12 +155,17 @@ public final class BaseModsLibClient
             synchronized (mod_instances) {
                 mod_instances.Register(instance); // The instance is made known to other mods after the mod has completed initialization.
             }
-        } catch (Exception e) {
+        } catch (Throwable th) {
             var id = instance.GetModId();
             sw.Stop();
             BaseModsLib.LOGGER.info("BASEMODSLIB: Mod instance with ID {} failed after {} seconds." , id, sw.GetElapsed().GetTotalSeconds());
             BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot initialize client-side mod id {}!\nRethrowing the exception to the underlying mod." , id);
-            throw new ModInitializationException(id, e);
+            Exception e = BaseModsLib.TranslateException(th);
+            if (e == null) {
+                throw th;
+            } else {
+                throw new ModInitializationException(id, e);
+            }
         }
     }
 

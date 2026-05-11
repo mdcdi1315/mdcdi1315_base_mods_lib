@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
@@ -15,12 +16,11 @@ import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
  * @since 1.0.22
  */
 public class ArrayBasedRegister<T>
+    extends BaseEnumerable<T>
     implements
         ITraversableRegister<T>,
         IArrayBasedCollection,
-        ISupportsDirectConversionTo<T>,
-        ISupportsSlicing<T>,
-        ISupportsFiltering<T>,
+        ISupportsCloning<T>,
         ISynchronized
 {
     private int count;
@@ -132,9 +132,22 @@ public class ArrayBasedRegister<T>
         int count = this.count;
         Object[] current_objects = this.elements;
         ArrayBasedRegister<TO> reg_out = new ArrayBasedRegister<>(count, comparer);
-        Array.Copy(current_objects, reg_out.elements, count);
+        for (int I = 0; I < count; I++)
+        {
+            reg_out.elements[I] = converter.convert((T) current_objects[I]);
+        }
         reg_out.count = count;
         return reg_out;
+    }
+
+    @Override
+    public ArrayBasedRegister<T> Clone()
+    {
+        int ct = count;
+        ArrayBasedRegister<T> ret = new ArrayBasedRegister<>(ct, comparer);
+        System.arraycopy(elements, 0, ret.elements, 0, ct);
+        ret.count = ct;
+        return ret;
     }
 
     /**
@@ -244,7 +257,7 @@ public class ArrayBasedRegister<T>
     public int GetCount() { return count; }
 
     @Override
-    public IEnumerator<T> GetEnumerator() { return ArrayEnumerator.ByBounds((T[])elements, 0, count); }
+    public IEnumerator<T> GetEnumerator() { return ArrayEnumerator.ByBoundsCasted(elements, 0, count); }
 
     @Override
     public int IndexOf(T item) { return Array.FindIndex(elements,0 , count, new IndexOfPredicate<>(comparer, item)); }
@@ -322,5 +335,38 @@ public class ArrayBasedRegister<T>
         } else {
             Grow(n_elements);
         }
+    }
+
+    /**
+     * Provides a string representation of this object. <br />
+     * For debugging purposes only.
+     * @return A string representation of this object.
+     * @since 1.0.31
+     */
+    @NotNull
+    @Override
+    public final String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("ArrayBasedRegister<?> (%d) { ", count));
+        switch (count)
+        {
+            case 0:
+                sb.append("<EMPTY>");
+                break;
+            case 1:
+                sb.append(elements[0]);
+                break;
+            default:
+                int bound = count - 1;
+                for (int I = 0; I < bound; I++) {
+                    sb.append(elements[I]);
+                    sb.append(", ");
+                }
+                sb.append(elements[bound]);
+                break;
+        }
+        sb.append(" }");
+        return sb.toString();
     }
 }

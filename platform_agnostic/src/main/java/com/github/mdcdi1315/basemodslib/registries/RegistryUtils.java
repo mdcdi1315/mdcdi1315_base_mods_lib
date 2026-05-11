@@ -157,6 +157,29 @@ public final class RegistryUtils
     }
 
     /**
+     * Constructs a resource key explicitly by taking the specified namespace and path,
+     * as well as the resource key of the registry under which the resource key is defined.
+     * @param namespace The name space of the resource location.
+     * @param path The fully qualified path of the resource location.
+     * @param registry The resource key of the registry to use. This is usually obtained from the {@link Registries} class.
+     * @return The constructed resource key.
+     * @throws ArgumentNullException {@code namespace} and/or {@code path} are {@code null}.
+     * @throws ResourceLocationConstructionException The resource key could not be constructed.
+     * @param <T> The type of the registry item managed by the parsed resource key.
+     * @since 1.0.31
+     */
+    @NotNull
+    public static <T> ResourceKey<T> ConstructResourceKey(String namespace, String path, ResourceKey<? extends Registry<T>> registry)
+            throws ResourceLocationConstructionException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        return ResourceKey.create(
+                registry,
+                ConstructResourceLocation(namespace, path)
+        );
+    }
+
+    /**
      * Parses the given string as a {@link ResourceLocation} instance.
      * @param location The string to parse. Must have a format like {@code namespace:path/sub_dir/goes_on}.
      * @return The parsed resource location.
@@ -173,5 +196,26 @@ public final class RegistryUtils
         } catch (net.minecraft.ResourceLocationException rle) {
             throw new ResourceLocationConstructionException("Could not explicitly parse a resource location from a given string.", rle);
         }
+    }
+
+    /**
+     * Parses the given string as a {@link ResourceKey} instance.
+     * @param location The string to parse. Must have a format like {@code namespace:path/sub_dir/goes_on}.
+     * @param registry The resource key of the registry to use. This is usually obtained from the {@link Registries} class.
+     * @return The parsed resource key.
+     * @throws ArgumentNullException {@code location} is {@code null}.
+     * @throws ResourceLocationConstructionException The resource key could not be constructed.
+     * @param <T> The type of the registry item managed by the parsed resource key.
+     * @since 1.0.31
+     */
+    @NotNull
+    public static <T> ResourceKey<T> ParseResourceKey(String location, ResourceKey<? extends Registry<T>> registry)
+            throws ResourceLocationConstructionException, ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        return ResourceKey.create(
+                registry,
+                ParseResourceLocation(location)
+        );
     }
 }

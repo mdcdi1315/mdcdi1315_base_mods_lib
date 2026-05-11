@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
@@ -101,4 +102,13 @@ public interface IModLoaderLayer
      * @since 1.0.11
      */
     boolean IsDevelopmentEnvironmentBuild();
+
+    /**
+     * Returns a {@link IModResourceLookup} instance for the given mod id.
+     * @param mod_id The mod id to get an {@link IModResourceLookup} instance for.
+     * @return The mod resource lookup object for {@code mod_id}.
+     * @since 1.0.31
+     */
+    @MaybeNull
+    IModResourceLookup GetResourceLookupByID(String mod_id);
 }

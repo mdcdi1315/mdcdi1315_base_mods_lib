@@ -2,7 +2,7 @@ package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
+import com.github.mdcdi1315.basemodslib.codecs.CodecUtils;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.MapLike;
@@ -88,7 +88,7 @@ public final class FastBinaryFormatOps
             case FloatBinaryFormatEntry f -> DataResult.success(f.GetValue());
             case DoubleBinaryFormatEntry d -> DataResult.success(d.GetValue());
             case SevenBitEncodedIntBinaryFormatEntry si -> DataResult.success(si.GetValue());
-            default -> DataResult.error(StringSupplier.FromDotNetFormatted("Not a numeric type: {0}", input));
+            default -> CodecUtils.CreateDotNetFormattedErrorDataResult("Not a numeric type: {0}", input);
         };
     }
 
@@ -98,7 +98,7 @@ public final class FastBinaryFormatOps
         if (input instanceof BooleanBinaryFormatEntry b) {
             return DataResult.success(b.GetValue());
         } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Not a boolean: {0}", input));
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Not a boolean: {0}", input);
         }
     }
 
@@ -122,7 +122,7 @@ public final class FastBinaryFormatOps
         if (input instanceof BaseStringBinaryFormatEntry e) {
             return DataResult.success(e.GetValue());
         } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Not a string type: {0}", input));
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Not a string type: {0}", input);
         }
     }
 
@@ -140,7 +140,7 @@ public final class FastBinaryFormatOps
         } else if (list instanceof NullBinaryFormatEntry) {
             return DataResult.success(r);
         } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Merge To List was called on a non-list type: {0}", list));
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Merge To List was called on a non-list type: {0}", list);
         }
     }
 
@@ -160,7 +160,7 @@ public final class FastBinaryFormatOps
         } else if (map instanceof NullBinaryFormatEntry) {
             return MergeToMap_Internal(new ObjectBinaryFormatEntry(), key, value);
         } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Input not either empty or an object: {0}", map));
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Input not either empty or an object: {0}", map);
         }
     }
 
@@ -171,7 +171,7 @@ public final class FastBinaryFormatOps
             r.UpdateField(e.GetValue(), value);
             return DataResult.success(r);
         } else {
-            return DataResult.error(new StringSupplier("Key is not a string value."));
+            return CodecUtils.CreateErrorDataResult("Key is not a string value.");
         }
     }
 
@@ -196,7 +196,7 @@ public final class FastBinaryFormatOps
         } else if (input instanceof NullBinaryFormatEntry) {
             return DataResult.success(Stream.empty());
         } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Input not either empty or an object: {0}", input));
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Input not either empty or an object: {0}", input);
         }
     }
 
@@ -237,7 +237,7 @@ public final class FastBinaryFormatOps
                     DataResult.success(Arrays.stream(b.GetData()).mapToObj(LongBinaryFormatEntry::new));
             case DoubleFixedArrayBinaryFormatEntry b ->
                     DataResult.success(Arrays.stream(b.GetData()).mapToObj(DoubleBinaryFormatEntry::new));
-            default -> DataResult.error(StringSupplier.FromDotNetFormatted("Not a list or array type: {0}", input));
+            default -> CodecUtils.CreateDotNetFormattedErrorDataResult("Not a list or array type: {0}", input);
         };
     }
 
@@ -294,7 +294,7 @@ public final class FastBinaryFormatOps
                 yield DataResult.success(builder.build());
             }
             case IntFixedArrayBinaryFormatEntry b -> DataResult.success(Arrays.stream(b.GetData()));
-            default -> DataResult.error(StringSupplier.FromDotNetFormatted("Not an integer fixed array or array type: {0}", input));
+            default -> CodecUtils.CreateDotNetFormattedErrorDataResult("Not an integer fixed array or array type: {0}", input);
         };
     }
 
@@ -311,7 +311,7 @@ public final class FastBinaryFormatOps
                 yield DataResult.success(builder.build());
             }
             case LongFixedArrayBinaryFormatEntry b -> DataResult.success(Arrays.stream(b.GetData()));
-            default -> DataResult.error(StringSupplier.FromDotNetFormatted("Not a long integer fixed array or array type: {0}", input));
+            default -> CodecUtils.CreateDotNetFormattedErrorDataResult("Not a long integer fixed array or array type: {0}", input);
         };
     }
 
@@ -328,7 +328,7 @@ public final class FastBinaryFormatOps
                 if (v instanceof ByteBinaryFormatEntry b) {
                     bb.put(b.GetValue());
                 } else {
-                    return DataResult.error(StringSupplier.FromDotNetFormatted("Not a byte: {0}", v));
+                    return CodecUtils.CreateDotNetFormattedErrorDataResult("Not a byte: {0}", v);
                 }
             }
             return DataResult.success(bb);
@@ -337,7 +337,7 @@ public final class FastBinaryFormatOps
         } else if (input instanceof ByteFixedArrayBinaryFormatEntry e) {
             return DataResult.success(ByteBuffer.wrap(e.GetData()));
         } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Not a list type: {0}", input));
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Not a list type: {0}", input);
         }
     }
 
@@ -347,7 +347,7 @@ public final class FastBinaryFormatOps
         if (input instanceof ObjectBinaryFormatEntry a) {
             return DataResult.success(a);
         } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Not an object: {0}", input));
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Not an object: {0}", input);
         }
     }
 
@@ -378,12 +378,12 @@ public final class FastBinaryFormatOps
         if (input instanceof ObjectBinaryFormatEntry o) {
             BinaryFormatEntry ret = o.GetField(key);
             if (ret == null) {
-                return DataResult.error(StringSupplier.FromDotNetFormatted("Field with name '{0}' was not found in the input object.", key));
+                return CodecUtils.CreateDotNetFormattedErrorDataResult("Field with name '{0}' was not found in the input object.", key);
             } else {
                 return DataResult.success(ret);
             }
         } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Not a object: {0}", input));
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Not a object: {0}", input);
         }
     }
 
@@ -450,7 +450,7 @@ public final class FastBinaryFormatOps
         if (key instanceof BaseStringBinaryFormatEntry e) {
             return this.get(input, e.GetValue());
         } else {
-            return DataResult.error(StringSupplier.FromDotNetFormatted("Not a string key: {0}", key));
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Not a string key: {0}", key);
         }
     }
 

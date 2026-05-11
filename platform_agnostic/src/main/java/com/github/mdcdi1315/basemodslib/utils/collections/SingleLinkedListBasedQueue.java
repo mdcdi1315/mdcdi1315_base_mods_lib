@@ -4,9 +4,11 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
+import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointerEnumerator;
 
 /**
  * An implementation of the {@link ITraversableQueue} interface by using a technique similar to the {@link java.util.LinkedList} class implementation.
@@ -14,57 +16,9 @@ import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
  * @since 1.0.18
  */
 public class SingleLinkedListBasedQueue<T>
+    extends BaseEnumerable<T>
     implements ITraversableQueue<T>
 {
-    private static final class Node<T>
-    {
-        @AllowNull
-        public Node<T> before;
-
-        public final T value;
-
-        public Node(T value, @AllowNull Node<T> before)
-        {
-            this.value = value;
-            this.before = before;
-        }
-    }
-
-    private static final class Enumerator<T>
-            implements IEnumerator<T>
-    {
-        private boolean stopped;
-        private Node<T> head, current;
-
-        public Enumerator(Node<T> head)
-        {
-            current = null;
-            stopped = false;
-            this.head = head;
-        }
-
-        public T getCurrent() { return current.value; }
-
-        public void Dispose() { current = head = null; }
-
-        public void Reset() { current = null; stopped = false; }
-
-        public boolean MoveNext()
-        {
-            if (stopped) {
-                return false;
-            } else {
-                current = (current == null) ? head : current.before;
-                if (current == null) {
-                    stopped = true;
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        }
-    }
-
     private static final class Synchronized<T>
             extends SingleLinkedListBasedQueue<T>
             implements ISynchronizedByObject
@@ -112,7 +66,7 @@ public class SingleLinkedListBasedQueue<T>
     }
 
     private int count;
-    private Node<T> tail, head;
+    private NodeWithPreviousPointer<T> tail, head;
 
     /**
      * Initializes a new instance of the {@link SingleLinkedListBasedQueue} class.
@@ -136,30 +90,30 @@ public class SingleLinkedListBasedQueue<T>
         if (count < 1) {
             return null;
         } else {
-            T v = head.value;
-            head = head.before;
+            T v = head.Value;
+            head = head.Previous;
             count--;
             return v;
         }
     }
 
     @Override
-    public T TryPeek() { return (count < 1) ? null : head.value; }
+    public T TryPeek() { return (count < 1) ? null : head.Value; }
 
     @Override
     public void Enqueue(T item)
     {
-        Node<T> t = new Node<>(item, null);
+        NodeWithPreviousPointer<T> t = new NodeWithPreviousPointer<>(item);
         switch (count++)
         {
             case 0:
                 head = t;
                 break;
             case 1:
-                head.before = tail = t;
+                head.Previous = tail = t;
                 break;
             default:
-                tail.before = t;
+                tail.Previous = t;
                 tail = t;
                 break;
         }
@@ -183,17 +137,44 @@ public class SingleLinkedListBasedQueue<T>
         } else if (index >= count) {
             throw new ArgumentOutOfRangeException("index", "The specified index was out of the queue bounds.");
         } else {
-            Node<T> p = head;
+            NodeWithPreviousPointer<T> p = head;
             int t = 0;
             while (t < index)
             {
-                p = p.before;
+                p = p.Previous;
                 t++;
             }
-            return p.value;
+            return p.Value;
         }
     }
 
     @Override
-    public IEnumerator<T> GetEnumerator() { return new Enumerator<>(head); }
+    public IEnumerator<T> GetEnumerator() { return new NodeWithPreviousPointerEnumerator<>(head); }
+
+    /**
+     * Provides a string representation of this object. <br />
+     * For debugging purposes only.
+     * @return A string representation of this object.
+     * @since 1.0.31
+     */
+    @NotNull
+    @Override
+    public final String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("SingleLinkedListBasedQueue<?> (%d) { ", count));
+        if (count == 0) {
+            sb.append("<EMPTY>");
+        } else {
+            NodeWithPreviousPointer<T> p = head, next;
+            while (p != null)
+            {
+                sb.append(p.Value);
+                if ((next = p.Previous) != null) { sb.append(", "); }
+                p = next;
+            }
+        }
+        sb.append(" }");
+        return sb.toString();
+    }
 }

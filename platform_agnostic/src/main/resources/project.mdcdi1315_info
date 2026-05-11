@@ -1,0 +1,9 @@
+# Project info file - created at ${timestamp}
+
+version=${version}
+build_time=${timestamp}
+release_series=${release_cycle}
+compiled_against_mixin=${mixin_version}
+compiled_against_forge=${forge_version}
+compiled_against_neoforge=${neoforge_version}
+compiled_against_fabric=${fabric_loader_version}

@@ -1,76 +1,28 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IList;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
-
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.Extensions;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
-import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
+import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
+import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextPointerEnumerator;
 
 /**
  * Provides an implementation of the {@link IList} interface implemented using a pointer to the next node.
  * @param <T> The type of the elements to be stored to this single linked list object.
  */
 public class SingleLinkedList<T>
-    implements IList<T>, ITraversableCollection<T>, ISupportsDirectConversionTo<T>, ISupportsFiltering<T>
+    extends BaseEnumerable<T>
+    implements IList<T>, ITraversableCollection<T>
 {
-    private static final class Node<T>
-    {
-        public T Value;
-        public Node<T> Next;
-
-        public Node(T value)
-        {
-            Next = null;
-            Value = value;
-        }
-    }
-
-    private static final class Enumerator<T>
-            implements IEnumerator<T>
-    {
-        private boolean reset;
-        private Node<T> root, current;
-
-        public Enumerator(Node<T> rt)
-        {
-            root = rt;
-            reset = true;
-            current = null;
-        }
-
-        @Override
-        public T getCurrent() { return current.Value; }
-
-        @Override
-        public boolean MoveNext()
-        {
-            Node<T> t_next;
-            if (reset) {
-                reset = false;
-                return (current = root) != null;
-            } else if ((t_next = current.Next) != null) {
-                current = t_next;
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        @Override
-        public void Reset() { reset = true; }
-
-        @Override
-        public void Dispose() { root = current = null; }
-    }
-
     private static final class Synchronized<T>
         extends SingleLinkedList<T>
         implements ISynchronizedByObject
@@ -138,10 +90,10 @@ public class SingleLinkedList<T>
     }
 
     private int count;
-    @AllowNull
-    private Node<T> root, current;
     @NotNull
     private final IEqualityComparer<T> comparer;
+    @AllowNull
+    private NodeWithNextPointer<T> root, current;
 
     /**
      * Initializes a new and empty instance of the {@link SingleLinkedList} class.
@@ -235,7 +187,7 @@ public class SingleLinkedList<T>
             throw new ArgumentOutOfRangeException("index", "The specified index was out of the list's bounds.");
         } else {
             int c = 0;
-            Node<T> p = root;
+            NodeWithNextPointer<T> p = root;
             while (c < index) { c++; p = p.Next; }
             return p.Value;
         }
@@ -249,18 +201,38 @@ public class SingleLinkedList<T>
         } else if (index >= count) {
             throw new ArgumentOutOfRangeException("index", "The specified index was out of the list's bounds.");
         } else {
-            int c = 0;
-            Node<T> p = root;
-            while (c < index) { c++; p = p.Next; }
-            p.Value = value;
+            NodeWithNextPointer<T> next_element;
+            // Since NodeWithNextPointer has final the Value field, we are going to special case:
+            if (index == 0) {
+                // The root element is to be modified.
+                next_element = root.Next;
+                root = new NodeWithNextPointer<>(value, next_element);
+            } else {
+                // A next element from the root is to be modified.
+                // index - 1 to get to the previous element and manipulate it's Next pointer.
+                int I = 0, index_new = index - 1;
+                NodeWithNextPointer<T> iterating = root;
+                while (I < index_new) { I++; iterating = iterating.Next; }
+                next_element = iterating.Next.Next;
+                // Modify.
+                iterating.Next = new NodeWithNextPointer<>(value, next_element);
+                if (index == (count - 1))
+                {
+                    // Modify the current element to reflect the change there as well.
+                    // We need to keep this in sync.
+                    current = iterating.Next;
+                }
+            }
         }
     }
 
     @Override
-    public int IndexOf(T item) {
+    public int IndexOf(T item)
+    {
         int index = 0;
-        Node<T> p = root;
-        while (p != null) {
+        NodeWithNextPointer<T> p = root;
+        while (p != null)
+        {
             if (comparer.Equals(p.Value, item)) { return index; }
             index++;
             p = p.Next;
@@ -269,7 +241,8 @@ public class SingleLinkedList<T>
     }
 
     @Override
-    public void Insert(int index, T item) {
+    public void Insert(int index, T item)
+    {
         if (index < 0) {
             throw new ArgumentOutOfRangeException("index", "The specified index was negative.");
         } else if (index > count) {
@@ -278,15 +251,21 @@ public class SingleLinkedList<T>
             // When index == count, it is like adding an item, so most appropriate here is to call the Add method.
             Add(item);
         } else {
-            Node<T> p = root;
-            while (p.Next != null) { p = p.Next; }
-            p.Next = new Node<>(item);
+            NodeWithNextPointer<T> p = root;
+            int I = 0, new_index = index - 1;
+            while (I < new_index && p.Next != null) { p = p.Next; I++; }
+            // Get the current next item, if any.
+            NodeWithNextPointer<T> prev_next = p.Next;
+            // Insert the item.
+            p.Next = new NodeWithNextPointer<>(item, prev_next);
+            // Increase count.
             count++;
         }
     }
 
     @Override
-    public void RemoveAt(int index) {
+    public void RemoveAt(int index)
+    {
         if (index < 0) {
             throw new ArgumentOutOfRangeException("index", "The specified index was negative.");
         } else if (index >= count) {
@@ -294,12 +273,19 @@ public class SingleLinkedList<T>
         } else {
             if (count > 1) {
                 int c = 0, i = index - 1;
-                Node<T> p = root;
+                NodeWithNextPointer<T> p = root;
                 while (c < i) { c++; p = p.Next; }
                 // p.Next will be the element that is to be deleted
                 p.Next = p.Next.Next;
+                if (index == (count - 1))
+                {
+                    // Modify the current element to reflect the change there as well.
+                    // We need to keep this in sync.
+                    current = p;
+                }
             } else {
-                root = null;
+                // current will be reassigned in the next Add operation, but let's just free memory.
+                root = current = null;
             }
             count--;
         }
@@ -320,7 +306,7 @@ public class SingleLinkedList<T>
     @Override
     public void Add(T item)
     {
-        Node<T> n = new Node<>(item);
+        NodeWithNextPointer<T> n = new NodeWithNextPointer<>(item);
         if (count == 0) {
             root = current = n;
         } else {
@@ -339,7 +325,7 @@ public class SingleLinkedList<T>
     @Override
     public boolean Contains(T item)
     {
-        Node<T> p = root;
+        NodeWithNextPointer<T> p = root;
         while (p != null) {
             if (comparer.Equals(p.Value, item)) { return true; }
             p = p.Next;
@@ -351,13 +337,13 @@ public class SingleLinkedList<T>
     public void CopyTo(T[] array, int arrayIndex)
         throws ArgumentNullException, ArgumentException
     {
-        ArgumentNullException.ThrowIfNull(array);
+        ArgumentNullException.ThrowIfNull(array, "array");
         if (arrayIndex < 0) {
             throw new ArgumentOutOfRangeException("arrayIndex", "Array index cannot be a negative value.");
         } else if (arrayIndex + count > array.length) {
             throw new ArgumentException("The array does not have enough space to place all the elements of the current SingleLinkedList object.", "array");
         } else {
-            Node<T> p = root;
+            NodeWithNextPointer<T> p = root;
             for (int I = arrayIndex; p != null; p = p.Next) { array[I++] = p.Value; }
         }
     }
@@ -365,7 +351,7 @@ public class SingleLinkedList<T>
     @Override
     public boolean Remove(T item)
     {
-        Node<T> c = root, prev = null;
+        NodeWithNextPointer<T> c = root, prev = null;
         while (c != null)
         {
             if (comparer.Equals(c.Value , item))
@@ -373,8 +359,11 @@ public class SingleLinkedList<T>
                 if (prev == null) {
                     root = c.Next;
                 } else {
-                    prev.Next = c.Next;
+                    // We have a problem here: if c.Next is null, it means that c == this.current.
+                    // So, we have to assign current = prev so that we don't break the collection.
+                    if ((prev.Next = c.Next) == null) { current = prev; }
                 }
+                count--; // Forgot to subtract count by one!
                 return true;
             }
             prev = c;
@@ -431,5 +420,32 @@ public class SingleLinkedList<T>
     public void ForEach(Action1<T> action) { Extensions.ForEachInEnumerable(this, action); }
 
     @Override
-    public IEnumerator<T> GetEnumerator() { return new Enumerator<>(root); }
+    public IEnumerator<T> GetEnumerator() { return new NodeWithNextPointerEnumerator<>(root); }
+
+    /**
+     * Provides a string representation of this object. <br />
+     * For debugging purposes only.
+     * @return A string representation of this object.
+     * @since 1.0.31
+     */
+    @NotNull
+    @Override
+    public final String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("SingleLinkedList<?> (%d) { ", count));
+        if (count == 0) {
+            sb.append("<EMPTY>");
+        } else {
+            NodeWithNextPointer<T> p = root, next;
+            while (p != null)
+            {
+                sb.append(p.Value);
+                if ((next = p.Next) != null) { sb.append(", "); }
+                p = next;
+            }
+        }
+        sb.append(" }");
+        return sb.toString();
+    }
 }

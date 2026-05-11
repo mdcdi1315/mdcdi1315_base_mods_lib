@@ -11,6 +11,7 @@ import java.util.function.Function;
  * Provides static helper methods for manipulating functional interface objects in many different ways - and as such are useful.
  * @since 1.0.20
  */
+@SuppressWarnings("unused")
 public final class FunctionManipulations
 {
     // Do not let anyone be able to instantiate this class.
@@ -184,7 +185,7 @@ public final class FunctionManipulations
                 (p1 instanceof AlwaysTruePredicate<T> && p2 instanceof AlwaysTruePredicate<T>)) {
             return new AlwaysFalsePredicate<>();
         } else {
-            return new OrPredicateFromTwo<>(p1, p2);
+            return new XorPredicateFromTwo<>(p1, p2);
         }
     }
 
@@ -213,6 +214,32 @@ public final class FunctionManipulations
     }
 
     /**
+     * Returns an aggregated bi-predicate instance that does negate the specified {@code predicate}.
+     * @param predicate The bi-predicate to negate.
+     * @return A new {@link BiPredicate} representing the negated result of {@code predicate}.
+     * @param <T1> The type of the first argument passed to {@code predicate}.
+     * @param <T2> The type of the second argument passed to {@code predicate}.
+     * @throws ArgumentNullException {@code predicate} is {@code null}.
+     * @implNote For the sake of uniformity, negating an always-true or always-false predicate
+     * returned through the {@link #AlwaysTrueBiPredicate()} and {@link #AlwaysFalseBiPredicate()} methods will yield
+     * returning the negations of the results of these methods. <br />
+     * (That is, an instance returned through the {@link #AlwaysFalseBiPredicate()} method will be returned
+     * when the input bi-predicate is always-true, and the opposite when the bi-predicate is always-false.)
+     * @since 1.0.31
+     */
+    @NotNull
+    public static <T1, T2> BiPredicate<T1, T2> Negate(BiPredicate<T1, T2> predicate)
+            throws ArgumentNullException
+    {
+        return switch (predicate) {
+            case null -> throw new ArgumentNullException("predicate");
+            case AlwaysFalseBiPredicate<T1, T2> false_always -> new AlwaysTrueBiPredicate<>();
+            case AlwaysTrueBiPredicate<T1, T2> true_always -> new AlwaysTrueBiPredicate<>();
+            default -> new NegatedBiPredicate<>(predicate);
+        };
+    }
+
+    /**
      * Returns a predicate instance that does always return {@code true}, regardlessly of the value of the predicate's input parameter.
      * @return A new {@link Predicate} that does always return {@code true}.
      * @param <T> Type of the input that will be given to the predicate.
@@ -221,9 +248,31 @@ public final class FunctionManipulations
      * <li>The {@link java.util.function.Predicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysFalse()} method.</li>
      * <li>Calling {@link java.util.function.Predicate#or(java.util.function.Predicate)} will always return {@code true}, completely ignoring the input parameter.</li>
      * <li>Calling {@link java.util.function.Predicate#and(java.util.function.Predicate)} will always return the value of the input parameter.</li>
+     * @see #IsAlwaysTrue(java.util.function.Predicate)
+     * @see #IsAlwaysTrue(java.util.function.BiPredicate)
+     * @see #AlwaysTrueBiPredicate()
      */
     @NotNull
     public static <T> Predicate<T> AlwaysTrue() { return new AlwaysTruePredicate<>(); }
+
+    /**
+     * Returns a bi-predicate instance that does always return {@code true}, regardlessly of the value of the bi-predicate's input parameter.
+     * @return A new {@link Predicate} that does always return {@code true}.
+     * @param <T1> Type of the first input parameter that will be given to the predicate.
+     * @param <T2> Type of the second input parameter that will be given to the predicate.
+     * @apiNote Note that instances returned through this method have several properties and guarantees:
+     * <li>The {@link BiPredicate#predicate(Object, Object)} method does always return {@code true}.</li>
+     * <li>The {@link BiPredicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysFalseBiPredicate()} method.</li>
+     * <li>Calling {@link BiPredicate#or(java.util.function.BiPredicate)} will always return {@code true}, completely ignoring the input parameter.</li>
+     * <li>Calling {@link BiPredicate#and(java.util.function.BiPredicate)} will always return the value of the input parameter.</li>
+     * <li>Calling {@link BiPredicate#Xor(java.util.function.BiPredicate)} will always return the value of input parameter, negated.</li>
+     * @since 1.0.31
+     * @see #IsAlwaysTrue(java.util.function.Predicate)
+     * @see #IsAlwaysTrue(java.util.function.BiPredicate)
+     * @see #AlwaysTrue()
+     */
+    @NotNull
+    public static <T1, T2> BiPredicate<T1, T2> AlwaysTrueBiPredicate() { return new AlwaysTrueBiPredicate<>(); }
 
     /**
      * Provides a way for external API's to optimize their code, if the passed in predicate is a predicate object returned through the {@link #AlwaysTrue()} method. <br />
@@ -232,8 +281,21 @@ public final class FunctionManipulations
      * @return A value whether this predicate is a predicate object returned through the {@link #AlwaysTrue()} method.
      * @param <T> The type of input that the predicate accepts.
      * @since 1.0.21
+     * @see #AlwaysTrue()
      */
     public static <T> boolean IsAlwaysTrue(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof IAlwaysTruePredicate<T>; }
+
+    /**
+     * Provides a way for external API's to optimize their code, if the passed in bi-predicate is a bi-predicate object returned through the {@link #AlwaysTrueBiPredicate()} method. <br />
+     * Note: The method will additionally return {@code false} if {@code predicate} is {@code null}.
+     * @param predicate The bi-predicate to test.
+     * @return A value whether this predicate is a predicate object returned through the {@link #AlwaysTrue()} method.
+     * @param <T1> The type of the first input parameter that the bi-predicate accepts.
+     * @param <T2> The type of the second input parameter that the bi-predicate accepts.
+     * @since 1.0.31
+     * @see #AlwaysTrueBiPredicate()
+     */
+    public static <T1, T2> boolean IsAlwaysTrue(@AllowNull java.util.function.BiPredicate<T1, T2> predicate) { return predicate instanceof AlwaysTrueBiPredicate<T1,T2>; }
 
     /**
      * Returns a predicate instance that does always return {@code false}, regardlessly of the value of the predicate's input parameter.
@@ -244,9 +306,31 @@ public final class FunctionManipulations
      * <li>The {@link java.util.function.Predicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysTrue()} method.</li>
      * <li>Calling {@link java.util.function.Predicate#or(java.util.function.Predicate)} will always return the value of the input parameter.</li>
      * <li>Calling {@link java.util.function.Predicate#and(java.util.function.Predicate)} will always return {@code false}, completely ignoring the input parameter.</li>
+     * @see #IsAlwaysFalse(java.util.function.Predicate)
+     * @see #IsAlwaysFalse(java.util.function.BiPredicate)
+     * @see #AlwaysFalseBiPredicate()
      */
     @NotNull
     public static <T> Predicate<T> AlwaysFalse() { return new AlwaysFalsePredicate<>(); }
+
+    /**
+     * Returns a bi-predicate instance that does always return {@code true}, regardlessly of the value of the bi-predicate's input parameter.
+     * @return A new {@link BiPredicate} that does always return {@code true}.
+     * @param <T1> Type of the first input parameter that will be given to the predicate.
+     * @param <T2> Type of the second input parameter that will be given to the predicate.
+     * @apiNote Note that instances returned through this method have several properties and guarantees:
+     * <li>The {@link BiPredicate#predicate(Object, Object)} method does always return {@code false}.</li>
+     * <li>The {@link BiPredicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysTrueBiPredicate()} method.</li>
+     * <li>Calling {@link BiPredicate#or(java.util.function.BiPredicate)} will always return the value of the input parameter.</li>
+     * <li>Calling {@link BiPredicate#and(java.util.function.BiPredicate)} will always return {@code false}, completely ignoring the input parameter.</li>
+     * <li>Calling {@link BiPredicate#Xor(java.util.function.BiPredicate)} will always return the value of the input parameter.</li>
+     * @since 1.0.31
+     * @see #IsAlwaysFalse(java.util.function.Predicate)
+     * @see #IsAlwaysFalse(java.util.function.BiPredicate)
+     * @see #AlwaysFalse()
+     */
+    @NotNull
+    public static <T1, T2> BiPredicate<T1, T2> AlwaysFalseBiPredicate() { return new AlwaysFalseBiPredicate<>(); }
 
     /**
      * Provides a way for external API's to optimize their code, if the passed in predicate is a predicate object returned through the {@link #AlwaysFalse()} method. <br />
@@ -255,8 +339,21 @@ public final class FunctionManipulations
      * @return A value whether this predicate is a predicate object returned through the {@link #AlwaysFalse()} method.
      * @param <T> The type of input that the predicate accepts.
      * @since 1.0.21
+     * @see #AlwaysFalse()
      */
     public static <T> boolean IsAlwaysFalse(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof IAlwaysFalsePredicate<T>; }
+
+    /**
+     * Provides a way for external API's to optimize their code, if the passed in bi-predicate is a bi-predicate object returned through the {@link #AlwaysFalseBiPredicate()} method. <br />
+     * Note: The method will additionally return {@code false} if {@code predicate} is {@code null}.
+     * @param predicate The bi-predicate to test.
+     * @return A value whether this predicate is a predicate object returned through the {@link #AlwaysFalse()} method.
+     * @param <T1> The type of the first input parameter that the bi-predicate accepts.
+     * @param <T2> The type of the second input parameter that the bi-predicate accepts.
+     * @since 1.0.31
+     * @see #AlwaysFalseBiPredicate()
+     */
+    public static <T1, T2> boolean IsAlwaysFalse(@AllowNull java.util.function.BiPredicate<T1, T2> predicate) { return predicate instanceof AlwaysFalseBiPredicate<T1,T2>; }
 
     /**
      * Provides a {@link Func2} that does always return the input argument.
@@ -628,6 +725,7 @@ public final class FunctionManipulations
      * @since 1.0.26
      */
     @NotNull
+    @SuppressWarnings("DeconstructionCanBeUsed")
     public static <TInput, TOutput> Func2<TInput, TOutput> AsFunc2(Converter<TInput, TOutput> converter)
             throws ArgumentNullException
     {
@@ -645,6 +743,7 @@ public final class FunctionManipulations
      * @since 1.0.26
      */
     @NotNull
+    @SuppressWarnings("DeconstructionCanBeUsed")
     public static <TInput, TOutput> Converter<TInput, TOutput> AsConverter(Func2<TInput, TOutput> function)
             throws ArgumentNullException
     {
@@ -670,4 +769,95 @@ public final class FunctionManipulations
         return new OfSingletonResultFunction<>(supplier);
     }
 
+    /**
+     * Efficiently converts a {@link java.util.function.Predicate} functional interface instance to a {@link Predicate} functional interface instance.
+     * @param predicate The {@link java.util.function.Predicate} to convert.
+     * @return The {@link Predicate} that wraps the input {@code predicate} parameter and invokes it whenever invoked.
+     * @param <T> The type of the input parameter value of the predicate.
+     * @throws ArgumentNullException {@code predicate} is {@code null}.
+     * @since 1.0.31
+     */
+    @NotNull
+    public static <T> Predicate<T> AsPredicate(java.util.function.Predicate<T> predicate)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
+        return (predicate instanceof Predicate<T> p) ? p : new TranslateJavaPredicateToPredicate<>(predicate);
+    }
+
+    /**
+     * Efficiently converts a {@link java.util.function.BiPredicate} functional interface instance to a {@link BiPredicate} functional interface instance.
+     * @param predicate The {@link java.util.function.BiPredicate} to convert.
+     * @return The {@link BiPredicate} that wraps the input {@code predicate} parameter and invokes it whenever invoked.
+     * @param <T1> The type of the first input parameter value of the predicate.
+     * @param <T2> The type of the second input parameter value of the predicate.
+     * @throws ArgumentNullException {@code predicate} is {@code null}.
+     * @since 1.0.31
+     */
+    @NotNull
+    public static <T1, T2> BiPredicate<T1, T2> AsBiPredicate(java.util.function.BiPredicate<T1, T2> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
+        return (predicate instanceof BiPredicate<T1,T2> p) ? p : new TranslateJavaBiPredicateToBiPredicate<>(predicate);
+    }
+
+    /**
+     * Translates a {@link Func2} to a {@link Func1} that, upon invoking it, it does invoke the provided {@code function} with the {@code input} as it's input argument.
+     * @param function The {@link Func2} to translate.
+     * @param input The input value that will be always given to the provided {@code function}.
+     * @return A new {@link Func1} function, that does invoke the {@code function} with the {@code input} parameter as the value to it.
+     * @param <T> The input argument type.
+     * @param <TR> The result type provided by the return value.
+     * @throws ArgumentNullException {@code function} is {@code null}.
+     * @since 1.0.31
+     */
+    @NotNull
+    public static <T, TR> Func1<TR> AsFunc1(Func2<T, TR> function, @AllowNull T input)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(function, "function");
+        return new Func2ToFunc1<>(function, input);
+    }
+
+    /**
+     * Translates a {@link Func3} to a {@link Func1} that, upon invoking it, it does invoke the provided {@code function} with the {@code input} as it's input argument.
+     * @param function The {@link Func3} to translate.
+     * @param input_1 The first input value that will be always given to the provided {@code function}.
+     * @param input_2 The second input value that will be always given to the provided {@code function}.
+     * @return A new {@link Func1} function, that does invoke the {@code function} with the {@code input_1} and {@code input_2} parameters as the value to it.
+     * @param <T1> The first input argument type.
+     * @param <T2> The second input argument type.
+     * @param <TR> The result type provided by the return value.
+     * @throws ArgumentNullException {@code function} is {@code null}.
+     * @since 1.0.31
+     */
+    @NotNull
+    public static <T1, T2, TR> Func1<TR> AsFunc1(Func3<T1, T2, TR> function, @AllowNull T1 input_1, @AllowNull T2 input_2)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(function, "function");
+        return new Func3ToFunc1<>(function, input_1, input_2);
+    }
+
+    /**
+     * Translates a {@link Func4} to a {@link Func1} that, upon invoking it, it does invoke the provided {@code function} with the {@code input} as it's input argument.
+     * @param function The {@link Func4} to translate.
+     * @param input_1 The first input value that will be always given to the provided {@code function}.
+     * @param input_2 The second input value that will be always given to the provided {@code function}.
+     * @param input_3 The third input value that will be always given to the provided {@code function}.
+     * @return A new {@link Func1} function, that does invoke the {@code function} with the {@code input_1} and {@code input_2} and {@code input_3} parameters as the value to it.
+     * @param <T1> The first input argument type.
+     * @param <T2> The second input argument type.
+     * @param <T3> The third input argument type.
+     * @param <TR> The result type provided by the return value.
+     * @throws ArgumentNullException {@code function} is {@code null}.
+     * @since 1.0.31
+     */
+    @NotNull
+    public static <T1, T2, T3, TR> Func1<TR> AsFunc1(Func4<T1, T2, T3, TR> function, @AllowNull T1 input_1, @AllowNull T2 input_2, @AllowNull T3 input_3)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(function, "function");
+        return new Func4ToFunc1<>(function, input_1, input_2, input_3);
+    }
 }

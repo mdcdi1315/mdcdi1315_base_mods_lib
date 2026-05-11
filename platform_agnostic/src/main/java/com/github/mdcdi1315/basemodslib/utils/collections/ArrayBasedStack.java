@@ -18,6 +18,7 @@ import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
  * @since 1.0.19
  */
 public class ArrayBasedStack<T>
+    extends BaseEnumerable<T>
     implements ITraversableStack<T>, IArrayBasedCollection
 {
     private int count;
@@ -97,7 +98,7 @@ public class ArrayBasedStack<T>
     public void Clear() { count = 0; }
 
     @Override
-    public IEnumerator<T> GetEnumerator() { return ReversedArrayEnumerator.ByBounds((T[])elements, 0, count); }
+    public IEnumerator<T> GetEnumerator() { return ReversedArrayEnumerator.ByBoundsCasted(elements, 0, count); }
 
     @Override
     public int GetCount() { return count; }

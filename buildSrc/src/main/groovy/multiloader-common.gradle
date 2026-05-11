@@ -101,14 +101,16 @@ processResources {
             "forge_loader_version_range"   : forge_loader_version_range,
             "credits"                      : credits,
             "java_version"                 : java_version,
-
+            "mixin_version"                : mixin_version,
+            "release_cycle"                : release_cycle,
+            "timestamp"                    : java.time.Instant.now().toString()
     ]
 
     var jsonExpandProps = expandProps.collectEntries {
         key, value -> [(key): value instanceof String ? value.replace("\n", "\\\\n") : value]
     }
 
-    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'project.mdcdi1315_info']) {
         expand expandProps
     }
 

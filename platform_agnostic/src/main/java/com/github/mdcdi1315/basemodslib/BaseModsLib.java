@@ -85,30 +85,79 @@ public final class BaseModsLib
             }
             // OK. Now hand out everything defined from the early events manager to the normal events manager (Or to the debug one if running on dev env)
             LOGGER.debug("Handing out registered events from early initialization to the normal events manager.");
-            if (dev_env) {
-                DebugEventsManager dem = new DebugEventsManager();
-                dem.HandEventsFromEarly((EarlyEventsManager) events_manager);
-                events_manager = dem;
-            } else {
-                NormalEventsManager nem = new NormalEventsManager();
-                nem.HandEventsFromEarly((EarlyEventsManager) events_manager);
-                events_manager = nem;
+            // -> Synchronize on the class object to access the events manager
+            // This allows to avoid subtle registration issues on startup, if so the user requires it.
+            synchronized (BaseModsLib.class)
+            {
+                if (dev_env) {
+                    DebugEventsManager dem = new DebugEventsManager();
+                    dem.HandEventsFromEarly((EarlyEventsManager) events_manager);
+                    events_manager = dem;
+                } else {
+                    NormalEventsManager nem = new NormalEventsManager();
+                    nem.HandEventsFromEarly((EarlyEventsManager) events_manager);
+                    events_manager = nem;
+                }
             }
             LOGGER.debug("Hand out completed.");
             mod_instances = new SingleLinkedList<>();
             proxy_manager = new ProxyManager();
             LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion(), GetMinecraftVersion(), layer.GetEnvironment());
             sw.Stop();
-        } catch (Exception e) {
+        } catch (Throwable th) {
             layer = null;
             initialized = true;
             sw.Stop();
             LOGGER.error("Library failed to be initialized after {} seconds! Inspecting exception and throwing back." , sw.GetElapsed().GetTotalSeconds());
-            throw new CriticalLibraryInitializationException(e);
+            Exception e = TranslateException(th);
+            if (e == null) {
+                throw th;
+            } else {
+                throw new CriticalLibraryInitializationException(e);
+            }
         }
         LOGGER.info("Now marking the library as initialized.");
         initialized = true;
         LOGGER.info("The library took {} seconds to initialize.", sw.GetElapsed().GetTotalSeconds());
+        IModResourceLookup bml_lookup = GetModResourceLookup(MOD_ID);
+        if (bml_lookup == null) {
+            LOGGER.info("Cannot get the BML resource lookup! Versioning data won't be loaded.");
+        } else {
+            try {
+                VersionInfo.LoadProjectInfo(bml_lookup.GetResource("project.mdcdi1315_info"));
+            } finally {
+                bml_lookup.Dispose();
+            }
+        }
+        String ver = VersionInfo.GetProperty(VersionInfo.PROPERTY_VERSION);
+        if (ver != null) { BaseModsLib.LOGGER.info("Successfully identified BML version: {}", ver); }
+    }
+
+    /**
+     * Appropriately handles and transforms the input {@link Throwable} to an .NET Layer exception where appropriate.
+     * @param th The {@link Throwable} to translate.
+     * @return The {@link Exception} corresponding to {@link Throwable}. Can be {@code null} if the method cannot map the exception.
+     */
+    static Exception TranslateException(Throwable th)
+    {
+        Exception e;
+        if (th instanceof OutOfMemoryError) {
+            e = new OutOfMemoryException("Out of memory!");
+        } else if (th instanceof VirtualMachineError err) {
+            e = new ExecutionEngineException("A fatal error occurred.\n" + err.getMessage());
+        } else if (th instanceof Exception ef) {
+            if (ef instanceof ArrayStoreException ase) {
+                e = new ArrayTypeMismatchException("Array type mismatch error occurred!\n" + ase.getMessage());
+            } else if (ef instanceof IndexOutOfBoundsException ex) {
+                e = new IndexOutOfRangeException(ex.getMessage());
+            } else {
+                e = ef;
+            }
+        } else {
+            // For all the other cases, fall through.
+            return null;
+        }
+        return e;
     }
 
     /**
@@ -157,21 +206,27 @@ public final class BaseModsLib
             synchronized (mod_instances) {
                 mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
             }
-        } catch (Exception e) {
+        } catch (Throwable th) {
             var id = instance.GetModId();
             sw.Stop();
             LOGGER.info("BASEMODSLIB: Mod instance with ID {} failed after {} seconds." , id, sw.GetElapsed().GetTotalSeconds());
             LOGGER.error("BASEMODSLIB: Cannot initialize server-side mod id {}!\nRethrowing the exception to the underlying mod." , id);
-            throw new ModInitializationException(id, e);
+            Exception e = TranslateException(th);
+            if (e == null) {
+                throw th;
+            } else {
+                throw new ModInitializationException(id, e);
+            }
         }
     }
 
     /**
      * Gets the event manager for mods. <br />
-     * Note: Do not attempt to access this on early time. <br />
-     * If you do that, you risk losing your event's registration. <br />
-     * Instead, wait until the {@link com.github.mdcdi1315.basemodslib.mods.IModInstance#RegisterEvents(EventManager)} method is called to your mod instance.
      * @return The event manager.
+     * @apiNote Do not attempt to access this on early time. <br />
+     * If you do that, you risk losing your event's registration. <br />
+     * Instead, wait until the {@link com.github.mdcdi1315.basemodslib.mods.IModInstance#RegisterEvents(EventManager)} method is called to your mod instance. <br />
+     * However, if you still need to communicate with the manager during startup because of mod-loader startup handling, synchronize on the {@link BaseModsLib} class object.
      */
     @NotNull
     public static EventManager GetEventsManager() { return events_manager; }
@@ -229,6 +284,22 @@ public final class BaseModsLib
         } finally {
             en.Dispose();
         }
+    }
+
+    /**
+     * Gets an {@link IModResourceLookup} instance for the specified mod with that ID. <br />
+     * This is provided for retrieving resources from inside a mod (which will typically be a .jar file).
+     * @param mod_id The ID of the mod to get a resource lookup for.
+     * @return A new instance of the {@link IModResourceLookup} interface, providing the resource lookup interface for that mod.
+     * @throws ArgumentNullException {@code mod_id} is {@code null}.
+     * @since 1.0.31
+     */
+    @MaybeNull
+    public static IModResourceLookup GetModResourceLookup(String mod_id)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(mod_id);
+        return mod_id.isBlank() ? null : layer.GetResourceLookupByID(mod_id);
     }
 
     /**
@@ -322,7 +393,6 @@ public final class BaseModsLib
     /**
      * Gets a {@link Version} object describing the version of the Java Runtime that this class has been instantiated into.
      * @return The version of the Java Runtime.
-     * @since 1.0.25
      */
     @NotNull
     public static Version GetJavaVersion()
