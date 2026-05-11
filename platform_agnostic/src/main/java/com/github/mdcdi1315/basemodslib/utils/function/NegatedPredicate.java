@@ -15,4 +15,10 @@ record NegatedPredicate<T>(Predicate<T> p)
 
     @Override
     public boolean predicate(T obj) { return !p.predicate(obj); }
+
+    @Override
+    public Predicate<T> or(java.util.function.Predicate<? super T> other) { return new CompatibleOrPredicateImpl<>(this, other); }
+
+    @Override
+    public Predicate<T> and(java.util.function.Predicate<? super T> other) { return new CompatibleAndPredicateImpl<>(this, other); }
 }

@@ -46,6 +46,21 @@ public final class ReflectionUtils
         return set; // Phew! we have possibly scanned EVERYTHING we could scan. Return our results.
     }
 
+    // Newer ImplementsInterface implementation by making recursive calls.
+    // Might execute faster since we do not use a set.
+    private static boolean ImplementsInterfaceInternal(Class<?> class_to_search, Class<?> interface_impl)
+    {
+        do {
+            for (Class<?> i : class_to_search.getInterfaces())
+            {
+                if (interface_impl.equals(i)) { return true; } // Found a match, return true
+                if (ImplementsInterfaceInternal(i, interface_impl)) { return true; } // Found a match from recursion, return true
+            }
+        } while ((class_to_search = class_to_search.getSuperclass()) != null);
+        // No interfaces found, or none of the interfaces specified is not of type interface_impl.
+        return false;
+    }
+
     /**
      * Gets a value whether the specified class implements the specified interface.
      * @param class_to_search The class to search for it's implemented interfaces.
@@ -57,14 +72,9 @@ public final class ReflectionUtils
     public static boolean ImplementsInterface(Class<?> class_to_search, Class<?> interface_class_to_check)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(class_to_search, "class_to_search");
         ArgumentNullException.ThrowIfNull(interface_class_to_check, "interface_class_to_check");
-        for (Class<?> implemented : GetAllImplementedInterfaces(class_to_search)) {
-            if (interface_class_to_check.equals(implemented)) {
-                return true; // Found a match
-            }
-        }
-        // No interfaces found, or none of the interfaces specified is not of type interface_class_to_check.
-        return false;
+        return ImplementsInterfaceInternal(class_to_search, interface_class_to_check);
     }
 
     private record SuperClassIterable(Class<?> root)

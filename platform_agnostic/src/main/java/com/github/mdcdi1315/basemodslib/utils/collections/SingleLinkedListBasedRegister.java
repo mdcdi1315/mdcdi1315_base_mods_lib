@@ -5,10 +5,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Converter;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
+import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextPointerEnumerator;
 
 /**
  * Provides a simple and fast implementation of the {@link IRegister} interface. <br />
@@ -17,60 +20,11 @@ import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
  * @param <T> The type of elements to be registered and enumerated at a later time.
  */
 public class SingleLinkedListBasedRegister<T>
-    implements IRegister<T>, ISupportsDirectConversionTo<T>, ISupportsFiltering<T>
+    extends BaseEnumerable<T>
+    implements IRegister<T>
 {
-    private static final class Node<T>
-    {
-        public T Value;
-        public Node<T> Next;
-
-        public Node(T value)
-        {
-            Next = null;
-            Value = value;
-        }
-    }
-
-    private static final class Enumerator<T>
-        implements IEnumerator<T>
-    {
-        private boolean reset;
-        private Node<T> root, current;
-
-        public Enumerator(Node<T> rt)
-        {
-            root = rt;
-            reset = true;
-            current = null;
-        }
-
-        @Override
-        public T getCurrent() { return current.Value; }
-
-        @Override
-        public boolean MoveNext()
-        {
-            Node<T> t_next;
-            if (reset) {
-                reset = false;
-                return (current = root) != null;
-            } else if ((t_next = current.Next) != null) {
-                current = t_next;
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        @Override
-        public void Reset() { reset = true; }
-
-        @Override
-        public void Dispose() { root = current = null; }
-    }
-
     @AllowNull
-    private Node<T> root, current;
+    private NodeWithNextPointer<T> root, current;
 
     /**
      * Initializes a new and empty instance of the {@link SingleLinkedListBasedRegister} class.
@@ -78,10 +32,10 @@ public class SingleLinkedListBasedRegister<T>
     public SingleLinkedListBasedRegister() { root = current = null; }
 
     @Override
-    public void Register(T item)
+    public void Register(@AllowNull T item)
             throws ArgumentException
     {
-        Node<T> n = new Node<>(item);
+        NodeWithNextPointer<T> n = new NodeWithNextPointer<>(item);
         if (root == null) {
             root = current = n;
         } else {
@@ -90,8 +44,9 @@ public class SingleLinkedListBasedRegister<T>
         }
     }
 
+    @NotNull
     @Override
-    public IEnumerator<T> GetEnumerator() { return new Enumerator<>(root); }
+    public IEnumerator<T> GetEnumerator() { return new NodeWithNextPointerEnumerator<>(root); }
 
     /**
      * Use this value to determine whether the {@link #Register(Object)} method has been called at least once.
@@ -100,6 +55,7 @@ public class SingleLinkedListBasedRegister<T>
      */
     public boolean HasItems() { return root != null; }
 
+    @NotNull
     @Override
     public <TO> SingleLinkedListBasedRegister<TO> ConvertAll(Converter<T, TO> converter, IEqualityComparer<TO> comparer)
             throws ArgumentNullException
@@ -118,6 +74,7 @@ public class SingleLinkedListBasedRegister<T>
         return result;
     }
 
+    @NotNull
     @Override
     public SingleLinkedListBasedRegister<T> FilterBy(Predicate<T> predicate)
             throws ArgumentNullException
@@ -140,5 +97,32 @@ public class SingleLinkedListBasedRegister<T>
             }
             return register;
         }
+    }
+
+    /**
+     * Provides a string representation of this object. <br />
+     * For debugging purposes only.
+     * @return A string representation of this object.
+     * @since 1.0.31
+     */
+    @NotNull
+    @Override
+    public final String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SingleLinkedListBasedRegister<?> { ");
+        if (root == null) {
+            sb.append("<EMPTY>");
+        } else {
+            NodeWithNextPointer<T> p = root, next;
+            while (p != null)
+            {
+                sb.append(p.Value);
+                if ((next = p.Next) != null) { sb.append(", "); }
+                p = next;
+            }
+        }
+        sb.append(" }");
+        return sb.toString();
     }
 }

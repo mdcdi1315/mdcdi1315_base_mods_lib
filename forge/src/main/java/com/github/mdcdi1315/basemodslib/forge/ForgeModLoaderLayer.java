@@ -4,11 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
-import com.github.mdcdi1315.basemodslib.ForgeUtils;
-import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
+import com.github.mdcdi1315.basemodslib.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
-import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.sounds.ForgeSoundRegistrar;
@@ -196,13 +193,25 @@ public final class ForgeModLoaderLayer
     }
 
     @Override
-    public boolean IsModLoaded(String mod_id) {
+    public boolean IsModLoaded(String mod_id)
+    {
         for (var i : forge_mod_info) {
             if (i.getModId().equals(mod_id)) {
                 return true;
             }
         }
         return false;
+    }
+
+    @Override
+    public IModResourceLookup GetResourceLookupByID(String mod_id)
+    {
+        for (var i : forge_mod_info) {
+            if (i.getModId().equals(mod_id)) {
+                return new ForgeModResourceLookup(i);
+            }
+        }
+        return null;
     }
 
     @Override

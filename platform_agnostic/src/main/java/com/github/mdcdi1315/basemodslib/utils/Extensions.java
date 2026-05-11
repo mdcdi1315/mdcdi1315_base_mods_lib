@@ -211,7 +211,7 @@ public final class Extensions
     public static long LongFloor(float value)
     {
         long i = (long)value;
-        return value < (float)i ? i - 1 : i;
+        return value < (float)i ? i - 1L : i;
     }
 
     /**
@@ -357,8 +357,8 @@ public final class Extensions
     public static double WrapRadians(double angle)
     {
         double i = angle % TWO_PI_DOUBLE;
-        if (i >= PI) { i -= TWO_PI_DOUBLE; }
-        if (i < -PI) { i += TWO_PI_DOUBLE; }
+        if (i >= PI_DOUBLE) { i -= TWO_PI_DOUBLE; }
+        if (i < -PI_DOUBLE) { i += TWO_PI_DOUBLE; }
         return i;
     }
 
@@ -376,7 +376,7 @@ public final class Extensions
      * @return The degrees corresponding to {@code radians}.
      * @since 1.0.28
      */
-    public static double ToDegrees(double radians) { return radians * (180d / PI); }
+    public static double ToDegrees(double radians) { return radians * (180d / PI_DOUBLE); }
 
     /**
      * From a degrees value, it computes the equivalent value to radians.
@@ -392,7 +392,7 @@ public final class Extensions
      * @return The radians corresponding to {@code degrees}.
      * @since 1.0.28
      */
-    public static double ToRadians(double degrees) { return degrees * (PI / 180d); }
+    public static double ToRadians(double degrees) { return degrees * (PI_DOUBLE / 180d); }
 
     /**
      * Computes the absolute value of {@code i}.

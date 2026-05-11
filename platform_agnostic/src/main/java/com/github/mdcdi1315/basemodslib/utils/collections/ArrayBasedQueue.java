@@ -17,6 +17,7 @@ import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
  * @since 1.0.19
  */
 public class ArrayBasedQueue<T>
+    extends BaseEnumerable<T>
     implements ITraversableQueue<T>, IArrayBasedCollection
 {
     // This class manages the 'elements' array in a reverse manner.
@@ -160,7 +161,7 @@ public class ArrayBasedQueue<T>
     }
 
     @Override
-    public IEnumerator<T> GetEnumerator() { return ArrayEnumerator.ByBounds((T[]) elements, head, count); }
+    public IEnumerator<T> GetEnumerator() { return ArrayEnumerator.ByBoundsCasted(elements, head, count); }
 
     @Override
     public int GetCount() { return count; }

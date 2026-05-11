@@ -16,7 +16,8 @@ public interface IClientRegistryRegistrar
 {
     /**
      * Registers a preparable resource reload listener of the specified name. <br />
-     * Note: This registers resource reload listeners for client resource packs. If you need for data packs, use the "" method instead.
+     * Note: This registers resource reload listeners for client resource packs.
+     * If you need for data packs, use the {@link com.github.mdcdi1315.basemodslib.registries.IRegistryRegistrar#RegisterResourceReloadListener(String, PreparableReloadListener)} method instead.
      * @param name The name of the preparable resource reload listener.
      * @param preparable_reload_listener The preparable resource reload listener to register.
      * @throws ArgumentNullException {@code location} and/or {@code name} are {@code null}.

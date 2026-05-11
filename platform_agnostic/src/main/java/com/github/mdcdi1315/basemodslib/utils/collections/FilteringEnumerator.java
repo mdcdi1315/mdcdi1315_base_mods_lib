@@ -41,6 +41,10 @@ public final class FilteringEnumerator<T>
     @Override
     protected void ResetImpl() { GetWrapped().Reset(); }
 
+    /**
+     * Gets the {@link Predicate} that provides the criteria for matching against elements of the wrapped enumerator.
+     * @return The {@link Predicate} for matching candidate elements. Guaranteed to be non-{@code null}.
+     */
     @NotNull
     public Predicate<T> GetMatchPredicate() { return predicate; }
 

@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
@@ -13,7 +12,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComp
  * @since 1.0.29
  */
 public class FromEnumeratorFactoryEnumerable<T>
-    implements IEnumerable<T>, ISupportsFiltering<T>, ISupportsSlicing<T>, ISupportsDirectConversionTo<T>
+    extends BaseEnumerable<T>
 {
     @NotNull
     private final Func1<IEnumerator<T>> factory;

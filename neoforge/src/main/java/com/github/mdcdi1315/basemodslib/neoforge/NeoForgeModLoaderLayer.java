@@ -3,11 +3,8 @@ package com.github.mdcdi1315.basemodslib.neoforge;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
-import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
-import com.github.mdcdi1315.basemodslib.IModLoaderLayer;
+import com.github.mdcdi1315.basemodslib.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
-import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
@@ -188,13 +185,21 @@ public final class NeoForgeModLoaderLayer
     }
 
     @Override
-    public boolean IsModLoaded(String mod_id) {
+    public boolean IsModLoaded(String mod_id)
+    {
         for (var i : mods) {
-            if (i.getModId().equals(mod_id)) {
-                return true;
-            }
+            if (i.getModId().equals(mod_id)) { return true; }
         }
         return false;
+    }
+
+    @Override
+    public IModResourceLookup GetResourceLookupByID(String mod_id)
+    {
+        for (var i : mods) {
+            if (i.getModId().equals(mod_id)) { return new NeoForgeModResourceLookup(i); }
+        }
+        return null;
     }
 
     @Override
