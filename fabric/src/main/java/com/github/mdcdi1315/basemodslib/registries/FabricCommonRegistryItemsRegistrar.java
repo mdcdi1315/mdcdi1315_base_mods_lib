@@ -82,34 +82,31 @@ public final class FabricCommonRegistryItemsRegistrar
 {
     private final String mod_id;
     private final boolean on_client;
-    private HashMap<CreativeModeTab, ArrayList<Item>> modify_entries_register;
-    private HashMap<CreativeModeTab, ArrayList<ItemStack>> modify_entries_item_stack_register;
+    private HashMap<CreativeModeTab, ModifyEntriesInstance> modify_entries_register;
 
-    public FabricCommonRegistryItemsRegistrar(String mod_id) {
+    public FabricCommonRegistryItemsRegistrar(String mod_id)
+    {
         this.mod_id = mod_id;
         on_client = BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT;
         modify_entries_register = new HashMap<>(2);
-        modify_entries_item_stack_register = new HashMap<>(2);
     }
 
-    private static ArrayList<Item> ComputeIfAbsentWrapper1(CreativeModeTab rk) { return new ArrayList<>(10); }
-
-    private static ArrayList<ItemStack> ComputeIfAbsentWrapper2(CreativeModeTab rk) { return new ArrayList<>(10); }
+    private static ModifyEntriesInstance ComputeIfAbsentWrapper(CreativeModeTab rk) { return new ModifyEntriesInstance(); }
 
     // This is executed right after all the blocks, items, block entities and fluids have been registered.
     public void ApplyFabricModifyEntries()
     {
         Optional<ResourceKey<CreativeModeTab>> rk;
-        for (var kvp : modify_entries_register.entrySet()) {
+        for (var kvp : modify_entries_register.entrySet())
+        {
             rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(kvp.getKey());
             if (rk.isPresent()) {
-                ItemGroupEvents.modifyEntriesEvent(rk.get()).register(new ModifyEntriesEventImpl(kvp.getValue(), modify_entries_item_stack_register.get(kvp.getKey())));
+                ItemGroupEvents.modifyEntriesEvent(rk.get()).register(kvp.getValue());
             } else {
                 BaseModsLib.LOGGER.warn("Cannot get the resource key for the specified creative mode tab! Lookup failed.\nAll the items specified for this creative mode tab will not be applied.");
             }
         }
         modify_entries_register = null;
-        modify_entries_item_stack_register = null;
     }
 
     @Override
@@ -134,7 +131,7 @@ public final class FabricCommonRegistryItemsRegistrar
 
             for (var i : info.creative_mode_tabs_for_item()) {
                 // Add the item to be registered to the creative mode tabs.
-                modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper1).add(itm);
+                modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).AddItem(itm);
             }
         }
     }
@@ -152,7 +149,7 @@ public final class FabricCommonRegistryItemsRegistrar
         if (on_client) { RegisterItemRenderer(itm); }
 
         for (var i : info.tabs()) {
-            modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper1).add(itm);
+            modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).AddItem(itm);
         }
     }
 
@@ -180,7 +177,7 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(tab, "tab");
         ArgumentNullException.ThrowIfNull(stack, "stack");
-        modify_entries_item_stack_register.computeIfAbsent(tab, FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper2).add(stack.function());
+        modify_entries_register.computeIfAbsent(tab, FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).AddItemStack(stack.function());
     }
 
     @Override
