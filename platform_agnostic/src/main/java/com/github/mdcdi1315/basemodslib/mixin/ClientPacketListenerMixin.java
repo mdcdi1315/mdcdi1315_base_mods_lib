@@ -26,13 +26,20 @@ public final class ClientPacketListenerMixin
     @Inject(method = "close", at = @At("HEAD"))
     private void OnPlayerDisconnected(CallbackInfo ci)
     {
-        var details = ((ClientPacketListener) (Object)this).getConnection().getDisconnectionDetails();
-        if (details == null || details.report().isEmpty()) {
-            BaseModsLib.LOGGER.debug("EVENTS_MANAGER: Received disconnection event. Dispatching server disconnection event.");
-            BaseModsLib.GetEventsManager().FireEvent(new ClientDisconnectedFromServerEvent(null));
-        } else {
-            BaseModsLib.LOGGER.debug("EVENTS_MANAGER: Received abrupt disconnection event. Dispatching server disconnection event.");
-            BaseModsLib.GetEventsManager().FireEvent(new ClientDisconnectedFromServerEvent(details.reason()));
+        // There is a rough edge case that the Minecraft instance will not have been destroyed after the lib was shut down.
+        // In such case, we simply ignore altogether the dispatch of the event since we are already in a tear-down state.
+        // Special thanks to @Gbergz for finding this. GitHub issue: #1.
+        var manager = BaseModsLib.GetEventsManager();
+        if (manager != null)
+        {
+            var details = ((ClientPacketListener) (Object)this).getConnection().getDisconnectionDetails();
+            if (details == null || details.report().isEmpty()) {
+                BaseModsLib.LOGGER.debug("EVENTS_MANAGER: Received disconnection event. Dispatching server disconnection event.");
+                manager.FireEvent(new ClientDisconnectedFromServerEvent(null));
+            } else {
+                BaseModsLib.LOGGER.debug("EVENTS_MANAGER: Received abrupt disconnection event. Dispatching server disconnection event.");
+                manager.FireEvent(new ClientDisconnectedFromServerEvent(details.reason()));
+            }
         }
     }
 }

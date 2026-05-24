@@ -10,6 +10,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MaybeNullInMixin;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 
@@ -229,6 +230,7 @@ public final class BaseModsLib
      * However, if you still need to communicate with the manager during startup because of mod-loader startup handling, synchronize on the {@link BaseModsLib} class object.
      */
     @NotNull
+    @MaybeNullInMixin
     public static EventManager GetEventsManager() { return events_manager; }
 
     /**
