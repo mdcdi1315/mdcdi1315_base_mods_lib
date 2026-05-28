@@ -1,4 +1,4 @@
-package com.github.mdcdi1315.basemodslib.eventapi;
+package com.github.mdcdi1315.basemodslib.eventapi.internal;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
@@ -7,11 +7,11 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.*;
-import com.github.mdcdi1315.basemodslib.eventapi.server.*;
+import com.github.mdcdi1315.basemodslib.eventapi.IEvent;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.eventapi.gameplay.*;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
+import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.InvalidEventDispatchException;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -35,10 +35,13 @@ abstract class EventManagerBase
     {
         actions = new ConcurrentHashMap<>();
 
-        LibraryProvidedEventsInitializer.InitializeEvents(this::AddEventFast);
+        if (this instanceof IBMLEventManager)
+        {
+            EventAPIHelpers.InitializeEvents(this::AddEventFast);
 
-        if (BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT) {
-            LibraryProvidedEventsInitializer.InitializeClientEvents(this::AddEventFast);
+            if (BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT) {
+                EventAPIHelpers.InitializeClientEvents(this::AddEventFast);
+            }
         }
     }
 
@@ -139,5 +142,5 @@ abstract class EventManagerBase
     protected abstract boolean HasBeenFinalized();
 
     @Override
-    public void DestroyManager() { actions = null; }
+    public void Dispose() { actions = null; }
 }

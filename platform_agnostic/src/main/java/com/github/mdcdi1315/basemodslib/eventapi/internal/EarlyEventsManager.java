@@ -1,4 +1,4 @@
-package com.github.mdcdi1315.basemodslib.eventapi;
+package com.github.mdcdi1315.basemodslib.eventapi.internal;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -8,8 +8,9 @@ import org.jetbrains.annotations.ApiStatus;
  * Note: This is used by the mod loader layers if they need to listen to events. It is for the library's internal use.
  */
 @ApiStatus.Internal
-public final class EarlyEventsManager
+final class EarlyEventsManager
     extends EventManagerBase
+    implements IBMLEventManager
 {
     /**
      * Default constructor to ensure that super constructor is called in

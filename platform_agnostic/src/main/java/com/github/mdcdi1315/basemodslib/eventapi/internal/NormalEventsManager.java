@@ -1,14 +1,13 @@
-package com.github.mdcdi1315.basemodslib.eventapi;
+package com.github.mdcdi1315.basemodslib.eventapi.internal;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.*;
-import com.github.mdcdi1315.basemodslib.eventapi.server.*;
-import com.github.mdcdi1315.basemodslib.eventapi.gameplay.*;
+import com.github.mdcdi1315.basemodslib.eventapi.IEvent;
 import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
-import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
+import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import com.google.common.collect.ImmutableSet;
@@ -20,20 +19,15 @@ import org.jetbrains.annotations.ApiStatus;
  * This manager is used by the mods, in fact.
  */
 @ApiStatus.Internal
-public class NormalEventsManager
+class NormalEventsManager
     extends EventManagerBase
 {
     private volatile boolean finalized;
 
-    public NormalEventsManager() {
-        super();
-        finalized = false;
-    }
+    public NormalEventsManager() { super(); finalized = false; }
 
-    @Override
-    protected boolean HasBeenFinalized() { return finalized; }
-
-    protected void SetFinalized() {
+    protected void SetFinalized()
+    {
         // Events can still be added before the mod loading completed event has finished dispatching.
         finalized = true;
     }
@@ -72,8 +66,6 @@ public class NormalEventsManager
         BaseModsLib.LOGGER.info("EVENTS_MANAGER: Successfully removed {} destroyable events" , removed);
     }
 
-    private static <T extends IEvent> SingleLinkedListBasedRegister<Action1<? extends IEvent>> RegisterProvider(Class<T> cls) { return new SingleLinkedListBasedRegister<>(); }
-
     public void HandEventsFromEarly(EarlyEventsManager early)
     {
         var c_actions = GetActions();
@@ -93,4 +85,9 @@ public class NormalEventsManager
             }
         }
     }
+
+    @Override
+    protected boolean HasBeenFinalized() { return finalized; }
+
+    private static <T extends IEvent> SingleLinkedListBasedRegister<Action1<? extends IEvent>> RegisterProvider(Class<T> cls) { return new SingleLinkedListBasedRegister<>(); }
 }

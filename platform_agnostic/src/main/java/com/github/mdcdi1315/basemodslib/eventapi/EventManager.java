@@ -1,10 +1,18 @@
 package com.github.mdcdi1315.basemodslib.eventapi;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
+import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
+import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
+import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MixinSafe;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MixinUnsafe;
+import com.github.mdcdi1315.basemodslib.eventapi.internal.EventAPIHelpers;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -12,9 +20,54 @@ import org.jetbrains.annotations.ApiStatus;
  * Provides the base API for managing events, that are reusable classes that hold actions to be executed when the instance is fired. <br />
  * The class has now became abstract in order to avoid loading issues with the layer itself.
  */
+@ApiStatus.NonExtendable
 public abstract class EventManager
-    implements ISynchronized
+    implements ISynchronized, IDisposable
 {
+    /**
+     * Safely fires a previously created event instance, even if the library is torn down.
+     * @param manager The event manager instance to use.
+     * @param event_data The event to fire.
+     * @param <T> The type of the event to be fired.
+     * @since 1.0.34
+     * @throws ArgumentNullException {@code event_data} was {@code null}.
+     * @throws InvalidOperationException The event type specified through {@code event_data} has not been registered yet with the {@link #AddEvent(Class)} method.
+     */
+    @MixinSafe
+    public static <T extends IEvent> void FireEventSafe(@AllowNull EventManager manager, T event_data)
+        throws ArgumentNullException, InvalidOperationException
+    {
+        if (manager == null) { return; }
+        manager.FireEvent(event_data);
+    }
+
+    /**
+     * Safely fires a previously created event instance to the BML library events manager, even if the library is torn down.
+     * @param event_data The event to fire.
+     * @param <T> The type of the event to be fired.
+     * @since 1.0.34
+     * @throws ArgumentNullException {@code event_data} was {@code null}.
+     * @throws InvalidOperationException The event type specified through {@code event_data} has not been registered yet with the {@link #AddEvent(Class)} method.
+     */
+    @MixinSafe
+    public static <T extends IEvent> void FireEventSafe(T event_data) throws ArgumentNullException, InvalidOperationException { FireEventSafe(BaseModsLib.GetEventsManager(), event_data); }
+
+    /**
+     * Creates a new and empty events manager to be used by mods.
+     * @return A new and empty {@link EventManager} instance.
+     * @since 1.0.34
+     */
+    @NotNull
+    public static EventManager CreateEventManager() { return EventAPIHelpers.CreateEmpty(); }
+
+    /**
+     * Gets a value whether the specified {@link EventManager} was created for use of the BML library.
+     * @param manager The events manager to test.
+     * @return A value whether the specified event manager is allocated and managed by the BML library.
+     */
+    @Pure
+    public static boolean IsLibraryEventManager(@AllowNull EventManager manager) { return EventAPIHelpers.IsBMLManager(manager); }
+
     /**
      * Adds an event listener to listen for the associated event provided through type {@link TEvent}.
      * @param event_class The class object of the event to add the event listener to.
@@ -53,10 +106,8 @@ public abstract class EventManager
     public abstract void DestroyDestroyableEvents();
 
     /**
-     * Destroys this event manager. <br />
-     * Called when the Minecraft App is closing. <br />
-     * Do not call this by your user code.
+     * Destroys this event manager.
      */
-    @ApiStatus.Internal
-    public abstract void DestroyManager();
+    @MixinUnsafe
+    public abstract void Dispose();
 }

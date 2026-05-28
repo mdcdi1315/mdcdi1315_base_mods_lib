@@ -77,6 +77,59 @@ public final class CollectionManipulations
     }
 
     /**
+     * Efficiently converts a <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/doc-files/coll-index.html">Java Collections Framework</a>
+     * {@link java.util.Collection} instance to an {@link ICollection} instance.
+     * @param collection The Java collection instance to be converted.
+     * @return The converted instance represented as an {@link ICollection} instance.
+     * @param <T> The type of the elements of {@code collection}.
+     * @throws ArgumentNullException {@code collection} is {@code null}.
+     * @since 1.0.34
+     */
+    @NotNull
+    public static <T> ICollection<T> AsCollection(java.util.Collection<T> collection)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(collection, "collection");
+        return new WrappedICollectionFromJavaCollection<>(collection);
+    }
+
+    /**
+     * Efficiently converts a <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/doc-files/coll-index.html">Java Collections Framework</a>
+     * {@link java.util.List} instance to an {@link ICollection} instance.
+     * @param list The Java list collection instance to be converted.
+     * @return The converted instance represented as an {@link IList} instance.
+     * @param <T> The type of the elements of {@code list}.
+     * @throws ArgumentNullException {@code list} is {@code null}.
+     * @since 1.0.34
+     */
+    @NotNull
+    public static <T> IList<T> AsList(java.util.List<T> list)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(list, "list");
+        return new WrappedIListFromJavaList<>(list);
+    }
+
+    /**
+     * Efficiently converts a <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/doc-files/coll-index.html">Java Collections Framework</a>
+     * {@link java.util.Queue} instance to an {@link IQueue} instance.
+     * @param queue The Java queue collection instance to be converted.
+     * @return The converted instance represented as an {@link IQueue} instance.
+     * @param <T> The type of the elements of {@code queue}.
+     * @throws ArgumentNullException {@code queue} is {@code null}.
+     * @since 1.0.34
+     * @apiNote Due to the fact that the {@link java.util.Queue} interface extends from the
+     * {@link java.util.Collection} interface, the returned object does also implement the {@link ICollection} interface.
+     */
+    @NotNull
+    public static <T> IQueue<T> AsQueue(java.util.Queue<T> queue)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(queue, "queue");
+        return new WrappedIQueueFromJavaQueue<>(queue);
+    }
+
+    /**
      * Maps all the elements of the specified {@code enumerable} instance and by using a conversion function, it converts all the elements of the enumerable to type {@link TR}.
      * @param enumerable The source {@link IEnumerable} instance.
      * @param converter The function that is able to convert elements of type {@link TS} into elements of type {@link TR}.
@@ -199,6 +252,23 @@ public final class CollectionManipulations
     {
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
         return new EnumerableToIterable<>(enumerable);
+    }
+
+    /**
+     * Converts a given {@link Iterable} instance to an equivalent
+     * {@link IEnumerable} instance for use within this collection framework.
+     * @param iterable The {@link Iterable} instance to convert.
+     * @return A new instance of the {@link BaseEnumerable} class.
+     * @param <T> The type of the elements of {@code iterable}.
+     * @throws ArgumentNullException {@code iterable} is {@code null}.
+     * @since 1.0.34
+     */
+    @NotNull
+    public static <T> BaseEnumerable<T> ToEnumerable(Iterable<T> iterable)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(iterable, "iterable");
+        return new IterableToEnumerable<>(iterable);
     }
 
     /**

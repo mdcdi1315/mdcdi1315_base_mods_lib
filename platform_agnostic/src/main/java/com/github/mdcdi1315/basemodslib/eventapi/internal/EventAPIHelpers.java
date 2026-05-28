@@ -1,17 +1,53 @@
-package com.github.mdcdi1315.basemodslib.eventapi;
+package com.github.mdcdi1315.basemodslib.eventapi.internal;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 
+import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.IEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.*;
 import com.github.mdcdi1315.basemodslib.eventapi.client.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.eventapi.gameplay.*;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 
-// Provides a way to register all the events provided by the library.
-final class LibraryProvidedEventsInitializer
+import org.jetbrains.annotations.ApiStatus;
+
+/**
+ * Provides internal helpers around the Event API.
+ * These are mostly internal helpers; do not use them by your code.
+ */
+@ApiStatus.Internal
+public final class EventAPIHelpers
 {
-    private LibraryProvidedEventsInitializer() {}
+    private EventAPIHelpers() {}
+
+    public static EventManager CreateEmpty()
+    {
+        if (BaseModsLib.IsDevelopmentEnvironment()) {
+            return new DebugEventsManager();
+        } else {
+            return new NormalEventsManager();
+        }
+    }
+
+    public static EventManager CreateEarly() { return new EarlyEventsManager(); }
+
+    // Hands the events from the early event manager to the appropriate one, depending on the loaded env.
+    public static EventManager PerformEventHanding(EventManager input)
+    {
+        if (BaseModsLib.IsDevelopmentEnvironment()) {
+            BMLDebugEventsManager dem = new BMLDebugEventsManager();
+            dem.HandEventsFromEarly((EarlyEventsManager)input);
+            return dem;
+        } else {
+            BMLNormalEventsManager nem = new BMLNormalEventsManager();
+            nem.HandEventsFromEarly((EarlyEventsManager)input);
+            return nem;
+        }
+    }
+
+    public static boolean IsBMLManager(EventManager input) { return input instanceof IBMLEventManager; }
 
     public static void InitializeEvents(Action1<Class<? extends IEvent>> event_appender)
     {

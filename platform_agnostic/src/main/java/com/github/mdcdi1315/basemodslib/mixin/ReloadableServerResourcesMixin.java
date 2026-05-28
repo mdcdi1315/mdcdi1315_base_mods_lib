@@ -1,6 +1,6 @@
 package com.github.mdcdi1315.basemodslib.mixin;
 
-import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerResourcesReloadedEvent;
 
 import net.minecraft.commands.Commands;
@@ -43,7 +43,7 @@ public class ReloadableServerResourcesMixin
     {
         if (th == null) {
             // If the throwable is null, all the constructed reload methods have been successfully completed.
-            BaseModsLib.GetEventsManager().FireEvent(new ServerResourcesReloadedEvent(rsr));
+            EventManager.FireEventSafe(new ServerResourcesReloadedEvent(rsr));
         }
         // Return the object back.
         return rsr;

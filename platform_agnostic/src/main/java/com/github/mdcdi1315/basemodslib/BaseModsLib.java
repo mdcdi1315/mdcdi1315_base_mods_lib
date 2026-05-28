@@ -10,6 +10,7 @@ import com.github.mdcdi1315.basemodslib.eventapi.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.eventapi.internal.EventAPIHelpers;
 import com.github.mdcdi1315.basemodslib.utils.annotations.MaybeNullInMixin;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
@@ -47,7 +48,7 @@ public final class BaseModsLib
         layer = null;
         initialized = false;
         proxy_manager = null; // Initialized once the layer is ready.
-        events_manager = new EarlyEventsManager();
+        events_manager = EventAPIHelpers.CreateEarly();
         LOGGER = LoggerFactory.getLogger("mdcdi1315's Base Mods Lib logger");
         LOGGER.info("BML Library is statically initialized - initialization will start in a bit.");
     }
@@ -88,21 +89,11 @@ public final class BaseModsLib
             LOGGER.debug("Handing out registered events from early initialization to the normal events manager.");
             // -> Synchronize on the class object to access the events manager
             // This allows to avoid subtle registration issues on startup, if so the user requires it.
-            synchronized (BaseModsLib.class)
-            {
-                if (dev_env) {
-                    DebugEventsManager dem = new DebugEventsManager();
-                    dem.HandEventsFromEarly((EarlyEventsManager) events_manager);
-                    events_manager = dem;
-                } else {
-                    NormalEventsManager nem = new NormalEventsManager();
-                    nem.HandEventsFromEarly((EarlyEventsManager) events_manager);
-                    events_manager = nem;
-                }
-            }
+            synchronized (BaseModsLib.class) { events_manager = EventAPIHelpers.PerformEventHanding(events_manager); }
             LOGGER.debug("Hand out completed.");
             mod_instances = new SingleLinkedList<>();
             proxy_manager = new ProxyManager();
+            ConstructShutdownHook();
             LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion(), GetMinecraftVersion(), layer.GetEnvironment());
             sw.Stop();
         } catch (Throwable th) {
@@ -424,6 +415,22 @@ public final class BaseModsLib
         }
     }
 
+    private static void ShutdownHookInternal()
+    {
+        if (events_manager != null)
+        {
+            events_manager.Dispose();
+            events_manager = null;
+        }
+    }
+
+    private static void ConstructShutdownHook()
+    {
+        Thread unstarted = new Thread(BaseModsLib::ShutdownHookInternal);
+        unstarted.setName("BaseModsLib Shutdown Hook");
+        Runtime.getRuntime().addShutdownHook(unstarted);
+    }
+
     /**
      * Called by Minecraft when it shuts down, do not call this by your code!!
      */
@@ -455,10 +462,6 @@ public final class BaseModsLib
         }
         // Additional disposal code to be run.
         mod_instances = null;
-        if (events_manager != null) {
-            events_manager.DestroyManager();
-            events_manager = null;
-        }
         if (proxy_manager != null) {
             proxy_manager.Dispose();
             proxy_manager = null;

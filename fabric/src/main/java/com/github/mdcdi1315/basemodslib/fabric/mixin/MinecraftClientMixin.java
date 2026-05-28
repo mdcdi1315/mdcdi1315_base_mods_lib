@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.fabric.mixin;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
 
@@ -19,7 +20,7 @@ public final class MinecraftClientMixin
     private void OnConstructingHead(GameConfig gameConfig, CallbackInfo info) {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
         CommonSetupEvent cse = new CommonSetupEvent();
-        BaseModsLib.GetEventsManager().FireEvent(cse);
+        EventManager.FireEventSafe(cse);
         cse.Run();
     }
 
@@ -27,7 +28,7 @@ public final class MinecraftClientMixin
     private void OnConstructing(GameConfig gameConfig, CallbackInfo ci) {
         BaseModsLib.LOGGER.info("Client setup event realized. Dispatching client setup to implementing mods.");
         ClientSetupEvent cse = new ClientSetupEvent();
-        BaseModsLib.GetEventsManager().FireEvent(cse);
+        EventManager.FireEventSafe(cse);
         cse.Run();
     }
 }

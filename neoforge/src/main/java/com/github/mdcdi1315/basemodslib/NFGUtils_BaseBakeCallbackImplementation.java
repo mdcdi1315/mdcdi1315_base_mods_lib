@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.RegistryFinalizedEvent;
 
 import net.minecraft.core.Registry;
@@ -20,7 +21,7 @@ record NFGUtils_BaseBakeCallbackImplementation<T>(Func2<Registry<T>, RegistryFin
         // We might also reach to an erroring state when these events are dispatched.
         if (!(mod_loading_complete || ModLoader.hasErrors())) {
             BaseModsLib.LOGGER.info("Dispatching registry finalized event for {}" , registry.key().location());
-            BaseModsLib.GetEventsManager().FireEvent(registry_event_to_invoke.function(registry));
+            EventManager.FireEventSafe(registry_event_to_invoke.function(registry));
         }
     }
 }

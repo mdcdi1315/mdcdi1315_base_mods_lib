@@ -1,11 +1,11 @@
 package com.github.mdcdi1315.basemodslib.mixin;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientDisconnectedFromServerEvent;
 
 import net.minecraft.client.multiplayer.ClientPacketListener;
-
 import net.minecraft.network.protocol.game.ClientboundLoginPacket;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +20,7 @@ public final class ClientPacketListenerMixin
     private void OnConnectedSuccessfully(ClientboundLoginPacket packet, CallbackInfo ci)
     {
         BaseModsLib.LOGGER.debug("EVENTS_MANAGER: Successfully connected to the server {}. Dispatching server connection event." , ((ClientPacketListener) (Object)this).getConnection().getRemoteAddress());
-        BaseModsLib.GetEventsManager().FireEvent(new ClientConnectedToServerEvent());
+        EventManager.FireEventSafe(new ClientConnectedToServerEvent());
     }
 
     @Inject(method = "close", at = @At("HEAD"))
@@ -29,7 +29,7 @@ public final class ClientPacketListenerMixin
         // There is a rough edge case that the Minecraft instance will not have been destroyed after the lib was shut down.
         // In such case, we simply ignore altogether the dispatch of the event since we are already in a tear-down state.
         // Special thanks to @Gbergz for finding this. GitHub issue: #1.
-        var manager = BaseModsLib.GetEventsManager();
+        EventManager manager = BaseModsLib.GetEventsManager();
         if (manager != null)
         {
             var details = ((ClientPacketListener) (Object)this).getConnection().getDisconnectionDetails();

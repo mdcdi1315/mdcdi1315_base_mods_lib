@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
@@ -106,7 +107,7 @@ public final class NeoForgeModLoaderLayer
     private static void OnCommonSetupEvent(FMLCommonSetupEvent event) {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
         CommonSetupEvent cse = new CommonSetupEvent();
-        BaseModsLib.GetEventsManager().FireEvent(cse);
+        EventManager.FireEventSafe(cse);
         event.enqueueWork(cse::Run);
     }
 
@@ -116,22 +117,22 @@ public final class NeoForgeModLoaderLayer
     }
 
     private static void OnServerStarting(net.neoforged.neoforge.event.server.ServerStartingEvent e) {
-        BaseModsLib.GetEventsManager().FireEvent(new ServerStartingEvent(e.getServer()));
+        EventManager.FireEventSafe(new ServerStartingEvent(e.getServer()));
     }
 
     private static void OnServerStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent e) {
-        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppingEvent(e.getServer()));
+        EventManager.FireEventSafe(new ServerStoppingEvent(e.getServer()));
     }
 
     private static void OnServerStopped(net.neoforged.neoforge.event.server.ServerStoppedEvent e) {
-        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppedEvent(e.getServer()));
+        EventManager.FireEventSafe(new ServerStoppedEvent(e.getServer()));
         // In server env, we need to dispose the BML itself.
         // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { BaseModsLib.DestroySelf(); }
     }
 
     private static void OnServerStarted(net.neoforged.neoforge.event.server.ServerStartedEvent e) {
-        BaseModsLib.GetEventsManager().FireEvent(new ServerStartedEvent(e.getServer()));
+        EventManager.FireEventSafe(new ServerStartedEvent(e.getServer()));
     }
 
     @Override
