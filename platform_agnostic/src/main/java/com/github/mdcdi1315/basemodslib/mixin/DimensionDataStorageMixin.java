@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.world.NBTUtils;
+import com.github.mdcdi1315.basemodslib.world.internal.*;
 import com.github.mdcdi1315.basemodslib.world.saveddata.*;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,8 +20,8 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 

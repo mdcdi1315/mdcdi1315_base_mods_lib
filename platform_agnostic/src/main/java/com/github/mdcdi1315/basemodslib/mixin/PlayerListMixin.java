@@ -1,13 +1,14 @@
 package com.github.mdcdi1315.basemodslib.mixin;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.server.NewPlayerConnectedToServerEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.server.PlayerDisconnectedFromServerEvent;
 
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.server.network.CommonListenerCookie;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,13 +23,13 @@ public class PlayerListMixin
     private void OnNewPlayerConnected(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci)
     {
         BaseModsLib.LOGGER.debug("EVENTS_MANAGER: A new player was successfully connected. Dispatching player connection event.");
-        BaseModsLib.GetEventsManager().FireEvent(new NewPlayerConnectedToServerEvent(player));
+        EventManager.FireEventSafe(new NewPlayerConnectedToServerEvent(player));
     }
 
     @Inject(method = "remove", at = @At("HEAD"))
     private void OnPlayerDisconnected(ServerPlayer player, CallbackInfo ci)
     {
         BaseModsLib.LOGGER.debug("EVENTS_MANAGER: A player was disconnected. Dispatching player disconnection event.");
-        BaseModsLib.GetEventsManager().FireEvent(new PlayerDisconnectedFromServerEvent(player));
+        EventManager.FireEventSafe(new PlayerDisconnectedFromServerEvent(player));
     }
 }

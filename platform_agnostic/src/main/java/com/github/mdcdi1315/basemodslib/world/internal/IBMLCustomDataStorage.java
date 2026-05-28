@@ -1,10 +1,13 @@
-package com.github.mdcdi1315.basemodslib.world.saveddata;
+package com.github.mdcdi1315.basemodslib.world.internal;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+
+import com.github.mdcdi1315.basemodslib.world.saveddata.ISavedData;
+import com.github.mdcdi1315.basemodslib.world.saveddata.PerDimensionWorldDataManager;
 
 import org.jetbrains.annotations.ApiStatus;
 

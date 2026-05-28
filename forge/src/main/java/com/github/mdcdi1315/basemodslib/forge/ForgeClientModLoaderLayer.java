@@ -7,6 +7,7 @@ import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
@@ -73,7 +74,7 @@ public final class ForgeClientModLoaderLayer
     private void OnClientSetupClient(FMLClientSetupEvent event) {
         BaseModsLib.LOGGER.info("Client setup event realized. Dispatching client setup to implementing mods.");
         ClientSetupEvent cse = new ClientSetupEvent();
-        BaseModsLib.GetEventsManager().FireEvent(cse);
+        EventManager.FireEventSafe(cse);
         event.enqueueWork(cse::Run);
     }
 

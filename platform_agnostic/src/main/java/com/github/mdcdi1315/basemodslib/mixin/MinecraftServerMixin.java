@@ -1,6 +1,6 @@
 package com.github.mdcdi1315.basemodslib.mixin;
 
-import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.server.ServerReloadedEvent;
 
 import net.minecraft.server.MinecraftServer;
@@ -24,6 +24,6 @@ public class MinecraftServerMixin
 
     @Unique
     private void MDCDI1315$BML$EventAccepter(Void v) {
-        BaseModsLib.GetEventsManager().FireEvent(new ServerReloadedEvent((MinecraftServer) ((Object) this) ));
+        EventManager.FireEventSafe(new ServerReloadedEvent((MinecraftServer) (Object) this));
     }
 }

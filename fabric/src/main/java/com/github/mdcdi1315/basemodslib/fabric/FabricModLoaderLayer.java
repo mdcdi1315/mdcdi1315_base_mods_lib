@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
@@ -113,7 +114,7 @@ public final class FabricModLoaderLayer
             // Since we have now reached mod loading completed stage, we can just destroy the global command registrar.
             this.global_commands_registrar = null;
         }
-        BaseModsLib.GetEventsManager().FireEvent(new ServerStartingEvent(msr));
+        EventManager.FireEventSafe(new ServerStartingEvent(msr));
     }
 
     private void OnServerStopping(MinecraftServer msr)
@@ -123,16 +124,16 @@ public final class FabricModLoaderLayer
             BaseModsLib.LOGGER.debug("Unregistering mod verifier network handler.");
             ServerPlayNetworking.unregisterGlobalReceiver(ServerBoundModInfoPacket.LOCATION);
         }
-        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppingEvent(msr));
+        EventManager.FireEventSafe(new ServerStoppingEvent(msr));
     }
 
     private static void OnServerStarted(MinecraftServer msr) {
-        BaseModsLib.GetEventsManager().FireEvent(new ServerStartedEvent(msr));
+        EventManager.FireEventSafe(new ServerStartedEvent(msr));
     }
 
     private void OnServerStopped(MinecraftServer msr)
     {
-        BaseModsLib.GetEventsManager().FireEvent(new ServerStoppedEvent(msr));
+        EventManager.FireEventSafe(new ServerStoppedEvent(msr));
         // In server env, we need to dispose the BML itself.
         // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
         if (environment == ModdingEnvironment.SERVER) { BaseModsLib.DestroySelf(); }

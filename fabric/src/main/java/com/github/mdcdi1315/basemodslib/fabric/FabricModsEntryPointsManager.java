@@ -1,5 +1,7 @@
 package com.github.mdcdi1315.basemodslib.fabric;
 
+import com.github.mdcdi1315.DotNetLayer.System.ExecutionEngineException;
+
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.EmptyModObject;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
@@ -30,18 +32,22 @@ public final class FabricModsEntryPointsManager
         // This will ensure that the events are fired at the right place and time, and will also avoid non-loaded issues with client-side mod instances.
         // Otherwise, client side mod instances will run just right after this method finishes execution.
         EventManager manager = BaseModsLib.GetEventsManager();
-        BaseModsLib.LOGGER.info("Dispatching registry finalization events.");
-        manager.FireEvent(new SoundEventRegistryFinalizedEvent(BuiltInRegistries.SOUND_EVENT));
-        manager.FireEvent(new FluidRegistryFinalizedEvent(BuiltInRegistries.FLUID));
-        manager.FireEvent(new BlockRegistryFinalizedEvent(BuiltInRegistries.BLOCK));
-        manager.FireEvent(new EntityTypeRegistryFinalizedEvent(BuiltInRegistries.ENTITY_TYPE));
-        manager.FireEvent(new ItemRegistryFinalizedEvent(BuiltInRegistries.ITEM));
-        manager.FireEvent(new PotionRegistryFinalizedEvent(BuiltInRegistries.POTION));
-        manager.FireEvent(new ParticleTypeRegistryFinalizedEvent(BuiltInRegistries.PARTICLE_TYPE));
-        manager.FireEvent(new BlockEntityTypeRegistryFinalizedEvent(BuiltInRegistries.BLOCK_ENTITY_TYPE));
-        manager.FireEvent(new MenuTypeRegistryFinalizedEvent(BuiltInRegistries.MENU));
-        manager.FireEvent(new EntityAttributeRegistryFinalizedEvent(BuiltInRegistries.ATTRIBUTE));
-        BaseModsLib.LOGGER.info("Registry finalization events dispatched successfully.");
+        if (manager == null) {
+            throw new ExecutionEngineException("Corrupted BML mod instance detected, because the event manager was not loaded.");
+        } else {
+            BaseModsLib.LOGGER.info("Dispatching registry finalization events.");
+            manager.FireEvent(new SoundEventRegistryFinalizedEvent(BuiltInRegistries.SOUND_EVENT));
+            manager.FireEvent(new FluidRegistryFinalizedEvent(BuiltInRegistries.FLUID));
+            manager.FireEvent(new BlockRegistryFinalizedEvent(BuiltInRegistries.BLOCK));
+            manager.FireEvent(new EntityTypeRegistryFinalizedEvent(BuiltInRegistries.ENTITY_TYPE));
+            manager.FireEvent(new ItemRegistryFinalizedEvent(BuiltInRegistries.ITEM));
+            manager.FireEvent(new PotionRegistryFinalizedEvent(BuiltInRegistries.POTION));
+            manager.FireEvent(new ParticleTypeRegistryFinalizedEvent(BuiltInRegistries.PARTICLE_TYPE));
+            manager.FireEvent(new BlockEntityTypeRegistryFinalizedEvent(BuiltInRegistries.BLOCK_ENTITY_TYPE));
+            manager.FireEvent(new MenuTypeRegistryFinalizedEvent(BuiltInRegistries.MENU));
+            manager.FireEvent(new EntityAttributeRegistryFinalizedEvent(BuiltInRegistries.ATTRIBUTE));
+            BaseModsLib.LOGGER.info("Registry finalization events dispatched successfully.");
+        }
     }
 
     public static void InitializeClientSideMods()

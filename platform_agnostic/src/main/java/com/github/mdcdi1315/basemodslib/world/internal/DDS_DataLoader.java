@@ -1,9 +1,12 @@
-package com.github.mdcdi1315.basemodslib.world.saveddata;
+package com.github.mdcdi1315.basemodslib.world.internal;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.world.NBTUtils;
+import com.github.mdcdi1315.basemodslib.world.saveddata.ISavedData;
+import com.github.mdcdi1315.basemodslib.world.saveddata.SavedDataCommonHeader;
+import com.github.mdcdi1315.basemodslib.world.saveddata.IncorrectSavedDataFormatException;
 
 import net.minecraft.nbt.CompoundTag;
 

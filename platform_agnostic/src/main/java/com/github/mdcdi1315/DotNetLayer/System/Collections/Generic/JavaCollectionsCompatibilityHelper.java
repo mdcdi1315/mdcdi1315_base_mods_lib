@@ -13,7 +13,9 @@ import java.util.Map;
 
 /**
  * Defines compatibility methods for interoperating safely with the Java collections framework.
+ * @deprecated Use the {@link com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations} class methods instead.
  */
+@Deprecated(since = "1.0.34", forRemoval = true)
 public final class JavaCollectionsCompatibilityHelper
 {
     // Do not let anyone instantiate this class.

@@ -8,6 +8,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.Extension;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
+import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
 
@@ -113,10 +114,9 @@ public final class Extensions
      * @return The trigonometric sine of {@code v}.
      * @see Math#sin(double)
      */
-    public static float Sin(float v)
-    {
-        return Mth.sin(v); // Currently forwards to Minecraft's math class, we need to find a better alternative for this
-    }
+    // Currently forwards to Minecraft's math class, we need to find a better alternative for this
+    @Pure
+    public static float Sin(float v) { return Mth.sin(v); }
 
     /**
      * Computes the trigonometric sine of the specified angle. <br />
@@ -125,6 +125,7 @@ public final class Extensions
      * @return The trigonometric sine of {@code v}.
      * @see Math#sin(double)
      */
+    @Pure
     public static double Sin(double v) { return Math.sin(v); }
 
     /**
@@ -134,10 +135,9 @@ public final class Extensions
      * @return The trigonometric cosine of {@code v}.
      * @see Math#cos(double)
      */
-    public static float Cos(float v)
-    {
-        return Mth.cos(v); // Currently forwards to Minecraft's math class, we need to find a better alternative for this
-    }
+    // Currently forwards to Minecraft's math class, we need to find a better alternative for this
+    @Pure
+    public static float Cos(float v) { return Mth.cos(v); }
 
     /**
      * Computes the trigonometric cosine of the specified angle. <br />
@@ -146,6 +146,7 @@ public final class Extensions
      * @return The trigonometric cosine of {@code v}.
      * @see Math#cos(double)
      */
+    @Pure
     public static double Cos(double v) { return Math.cos(v); }
 
     /**
@@ -155,6 +156,7 @@ public final class Extensions
      * @param end The maximum inclusive bound of the mapped range.
      * @return The interpolated value.
      */
+    @Pure
     public static float Lerp(float delta, float start, float end)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
@@ -168,6 +170,7 @@ public final class Extensions
      * @param end The maximum inclusive bound of the mapped range.
      * @return The interpolated value.
      */
+    @Pure
     public static double Lerp(double delta, double start, double end)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
@@ -181,7 +184,9 @@ public final class Extensions
      * @return The {@link Integer} corresponding to {@code value}.
      * @see #LongFloor(float)
      */
-    public static int Floor(float value) {
+    @Pure
+    public static int Floor(float value)
+    {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         int i = (int)value;
         return value < (float)i ? i - 1 : i;
@@ -194,7 +199,9 @@ public final class Extensions
      * @return The {@link Integer} corresponding to {@code value}.
      * @see #LongFloor(double)
      */
-    public static int Floor(double value) {
+    @Pure
+    public static int Floor(double value)
+    {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         int i = (int)value;
         return value < (double)i ? i - 1 : i;
@@ -208,6 +215,7 @@ public final class Extensions
      * @since 1.0.28
      * @see #Floor(float)
      */
+    @Pure
     public static long LongFloor(float value)
     {
         long i = (long)value;
@@ -222,6 +230,7 @@ public final class Extensions
      * @since 1.0.28
      * @see #Floor(double) 
      */
+    @Pure
     public static long LongFloor(double value)
     {
         long i = (long)value;
@@ -235,6 +244,7 @@ public final class Extensions
      * @return The {@link Integer} corresponding to {@code value}.
      * @see #LongCeiling(float)
      */
+    @Pure
     public static int Ceiling(float value)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
@@ -249,6 +259,7 @@ public final class Extensions
      * @return The {@link Integer} corresponding to {@code value}.
      * @see #LongCeiling(double) 
      */
+    @Pure
     public static int Ceiling(double value)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
@@ -264,6 +275,7 @@ public final class Extensions
      * @since 1.0.28
      * @see #Ceiling(float) 
      */
+    @Pure
     public static long LongCeiling(float value)
     {
         long i = (long)value;
@@ -278,6 +290,7 @@ public final class Extensions
      * @since 1.0.28
      * @see #Ceiling(double) 
      */
+    @Pure
     public static long LongCeiling(double value)
     {
         long i = (long)value;
@@ -292,6 +305,7 @@ public final class Extensions
      * @see #ToDegrees(float)
      * @see #WrapRadians(float) 
      */
+    @Pure
     public static float WrapDegrees(float angle)
     {
         float i = angle % 360f;
@@ -308,6 +322,7 @@ public final class Extensions
      * @see #ToDegrees(double)
      * @see #WrapRadians(double) 
      */
+    @Pure
     public static double WrapDegrees(double angle)
     {
         double i = angle % 360d;
@@ -322,6 +337,7 @@ public final class Extensions
      * @return The {@code angle} value, but wrapped around if needed so.
      * @since 1.0.28
      */
+    @Pure
     public static int WrapDegrees(int angle)
     {
         int i = angle % 360;
@@ -338,6 +354,7 @@ public final class Extensions
      * @see #WrapDegrees(float)
      * @see #ToRadians(float)
      */
+    @Pure
     public static float WrapRadians(float angle)
     {
         float i = angle % TWO_PI;
@@ -354,6 +371,7 @@ public final class Extensions
      * @see #WrapDegrees(double)
      * @see #ToRadians(double)
      */
+    @Pure
     public static double WrapRadians(double angle)
     {
         double i = angle % TWO_PI_DOUBLE;
@@ -368,6 +386,7 @@ public final class Extensions
      * @return The degrees corresponding to {@code radians}.
      * @since 1.0.28
      */
+    @Pure
     public static float ToDegrees(float radians) { return radians * (180f / PI); }
 
     /**
@@ -376,6 +395,7 @@ public final class Extensions
      * @return The degrees corresponding to {@code radians}.
      * @since 1.0.28
      */
+    @Pure
     public static double ToDegrees(double radians) { return radians * (180d / PI_DOUBLE); }
 
     /**
@@ -384,6 +404,7 @@ public final class Extensions
      * @return The radians corresponding to {@code degrees}.
      * @since 1.0.28
      */
+    @Pure
     public static float ToRadians(float degrees) { return degrees * (PI / 180f); }
 
     /**
@@ -392,6 +413,7 @@ public final class Extensions
      * @return The radians corresponding to {@code degrees}.
      * @since 1.0.28
      */
+    @Pure
     public static double ToRadians(double degrees) { return degrees * (PI_DOUBLE / 180d); }
 
     /**
@@ -401,6 +423,7 @@ public final class Extensions
      * @since 1.0.28
      * @see Math#abs(int) 
      */
+    @Pure
     public static int Absolute(int i) { return Math.abs(i); }
 
     /**
@@ -410,6 +433,7 @@ public final class Extensions
      * @since 1.0.28
      * @see Math#abs(int)
      */
+    @Pure
     public static long Absolute(long i) { return Math.abs(i); }
     
     /**
@@ -419,6 +443,7 @@ public final class Extensions
      * @since 1.0.28
      * @see Math#abs(float)
      */
+    @Pure
     public static float Absolute(float i) { return Math.abs(i); }
 
     /**
@@ -428,6 +453,7 @@ public final class Extensions
      * @since 1.0.28
      * @see Math#abs(double)
      */
+    @Pure
     public static double Absolute(double i) { return Math.abs(i); }
 
     /**
@@ -439,6 +465,7 @@ public final class Extensions
      * @see #Max(int, int)
      * @see Math#min(int, int)
      */
+    @Pure
     public static int Min(int first, int second) { return Math.min(first, second); }
 
     /**
@@ -450,6 +477,7 @@ public final class Extensions
      * @see #Max(long, long)
      * @see Math#min(long, long)
      */
+    @Pure
     public static long Min(long first, long second) { return Math.min(first, second); }
 
     /**
@@ -461,6 +489,7 @@ public final class Extensions
      * @see #Max(float, float)
      * @see Math#min(float, float)
      */
+    @Pure
     public static float Min(float first, float second) { return Math.min(first, second); }
 
     /**
@@ -472,6 +501,7 @@ public final class Extensions
      * @see #Max(double, double)
      * @see Math#min(double, double)
      */
+    @Pure
     public static double Min(double first, double second) { return Math.min(first, second); }
 
     /**
@@ -483,6 +513,7 @@ public final class Extensions
      * @see #Min(int, int)
      * @see Math#max(int, int)
      */
+    @Pure
     public static int Max(int first, int second) { return Math.max(first, second); }
 
     /**
@@ -494,6 +525,7 @@ public final class Extensions
      * @see #Min(long, long)
      * @see Math#max(long, long)
      */
+    @Pure
     public static long Max(long first, long second) { return Math.max(first, second); }
 
     /**
@@ -505,6 +537,7 @@ public final class Extensions
      * @see #Min(float, float)
      * @see Math#max(float, float)
      */
+    @Pure
     public static float Max(float first, float second) { return Math.max(first, second); }
 
     /**
@@ -516,6 +549,7 @@ public final class Extensions
      * @see #Min(double, double)
      * @see Math#max(double, double)
      */
+    @Pure
     public static double Max(double first, double second) { return Math.max(first, second); }
 
     /**
@@ -525,6 +559,7 @@ public final class Extensions
      * @since 1.0.28
      * @see Math#round(float)
      */
+    @Pure
     public static int Round(float value) { return Math.round(value); }
 
     /**
@@ -534,6 +569,7 @@ public final class Extensions
      * @since 1.0.28
      * @see Math#round(double)
      */
+    @Pure
     public static long Round(double value) { return Math.round(value); }
 
     /**
@@ -541,6 +577,7 @@ public final class Extensions
      * @param input The input argument.
      * @return The square of {@code input}.
      */
+    @Pure
     public static float Square(float input) { return input * input; }
 
     /**
@@ -548,6 +585,7 @@ public final class Extensions
      * @param input The input argument.
      * @return The square of {@code input}.
      */
+    @Pure
     public static double Square(double input) { return input * input; }
 
     /**
@@ -555,7 +593,17 @@ public final class Extensions
      * @param input The input argument.
      * @return The square of {@code input}.
      */
+    @Pure
     public static int Square(int input) { return input * input; }
+
+    /**
+     * Computes the power of {@code input} raised to 2.
+     * @param input The input argument.
+     * @return The square of {@code input}.
+     * @since 1.0.34
+     */
+    @Pure
+    public static long Square(long input) { return input * input; }
 
     /**
      * Computes the power of {@code input} raised to 3.
@@ -563,6 +611,7 @@ public final class Extensions
      * @return The cube of {@code input}.
      * @since 1.0.21
      */
+    @Pure
     public static float Cube(float input) { return Square(input) * input; }
 
     /**
@@ -571,6 +620,7 @@ public final class Extensions
      * @return The cube of {@code input}.
      * @since 1.0.21
      */
+    @Pure
     public static double Cube(double input) { return Square(input) * input; }
 
     /**
@@ -579,7 +629,17 @@ public final class Extensions
      * @return The cube of {@code input}.
      * @since 1.0.21
      */
+    @Pure
     public static int Cube(int input) { return Square(input) * input; }
+
+    /**
+     * Computes the power of {@code input} raised to 3.
+     * @param input The input argument.
+     * @return The cube of {@code input}.
+     * @since 1.0.34
+     */
+    @Pure
+    public static long Cube(long input) { return Square(input) * input; }
 
     /**
      * Computes the square root of {@code value}.
@@ -587,6 +647,7 @@ public final class Extensions
      * @return The square root of {@code value}.
      * @see Math#sqrt(double)
      */
+    @Pure
     public static float SquareRoot(float value) { return (float)Math.sqrt(value); }
 
     /**
@@ -596,6 +657,7 @@ public final class Extensions
      * @since 1.0.21
      * @see Math#sqrt(double)
      */
+    @Pure
     public static double SquareRoot(double value) { return Math.sqrt(value); }
 
     /**
@@ -604,6 +666,7 @@ public final class Extensions
      * @return The inverted square root of {@code d}.
      * @see Math#sqrt(double)
      */
+    @Pure
     public static float InvertedSquareRoot(float d) { return (float) (1.0d / Math.sqrt(d)); }
 
     /**
@@ -612,6 +675,7 @@ public final class Extensions
      * @return The inverted square root of {@code d}.
      * @see Math#sqrt(double)
      */
+    @Pure
     public static double InvertedSquareRoot(double d) { return 1.0d / Math.sqrt(d); }
 
     /**
@@ -621,6 +685,7 @@ public final class Extensions
      * @since 1.0.21
      * @see Math#cbrt(double)
      */
+    @Pure
     public static float CubeRoot(float value) { return (float)Math.cbrt(value); }
 
     /**
@@ -630,6 +695,7 @@ public final class Extensions
      * @since 1.0.21
      * @see Math#cbrt(double)
      */
+    @Pure
     public static double CubeRoot(double value) { return Math.cbrt(value); }
 
     /**
@@ -639,6 +705,7 @@ public final class Extensions
      * @since 1.0.21
      * @see Math#cbrt(double)
      */
+    @Pure
     public static float InvertedCubeRoot(float d) { return (float)(1.0d / Math.cbrt(d)); }
 
     /**
@@ -648,7 +715,32 @@ public final class Extensions
      * @since 1.0.21
      * @see Math#cbrt(double)
      */
+    @Pure
     public static double InvertedCubeRoot(double d) { return 1.0d / Math.cbrt(d); }
+
+    /**
+     * Converts the specified {@code long} value to an {@code int} value. <br />
+     * If the input value is greater than {@link Integer#MAX_VALUE}, {@link Integer#MAX_VALUE} is returned. <br />
+     * If the input value is less than {@link Integer#MIN_VALUE}, {@link Integer#MIN_VALUE} is returned. <br />
+     * Otherwise, the value {@code value} is returned.
+     * @param value The value to convert to {@code int}.
+     * @return The converted value derived from {@code value}.
+     * @since 1.0.34
+     */
+    @Pure
+    public static int ConvertToIntSafe(long value) { return (int) Clamp(value, Integer.MIN_VALUE, Integer.MAX_VALUE); }
+
+    /**
+     * Converts the specified {@code int} value to a {@code short} value. <br />
+     * If the input value is greater than {@link Short#MAX_VALUE}, {@link Short#MAX_VALUE} is returned. <br />
+     * If the input value is less than {@link Short#MIN_VALUE}, {@link Short#MIN_VALUE} is returned. <br />
+     * Otherwise, the value {@code value} is returned.
+     * @param value The value to convert to {@code short}.
+     * @return The converted value derived from {@code value}.
+     * @since 1.0.34
+     */
+    @Pure
+    public static short ConvertToShortSafe(int value) { return (short) Clamp(value, Short.MIN_VALUE, Short.MAX_VALUE); }
 
     /**
      * Gets a random item from the specified list, and returns that item.
@@ -1027,6 +1119,7 @@ public final class Extensions
      * @param <TR> The type to cast to.
      * @since 1.0.19
      */
+    @Pure
     public static <TR> TR TypeCast(Object o) { try { return (TR) o; } catch (ClassCastException e) { return null; } }
 
     /**
@@ -1036,6 +1129,7 @@ public final class Extensions
      * @since 1.0.22
      * @apiNote This will return {@code false} if {@code o} is {@code null}.
      */
+    @Pure
     public static boolean IsSynchronized(@AllowNull Object o) { return o instanceof ISynchronized; }
 
     /**
@@ -1046,6 +1140,7 @@ public final class Extensions
      * @return The value of the {@code value} parameter, or if less than the {@code minimum} value, the value of {@code minimum}.
      * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
      */
+    @Pure
     public static double Clamp(double value , double minimum , double maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
     /**
@@ -1056,6 +1151,7 @@ public final class Extensions
      * @return The value of the {@code value} parameter, or if less than the {@code minimum} value, the value of {@code minimum}.
      * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
      */
+    @Pure
     public static float Clamp(float value , float minimum , float maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
     /**
@@ -1067,6 +1163,7 @@ public final class Extensions
      * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
      * @since 1.0.28
      */
+    @Pure
     public static long Clamp(long value, long minimum, long maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
     /**
@@ -1077,6 +1174,7 @@ public final class Extensions
      * @return The value of the {@code value} parameter, or if less than the {@code minimum} value, the value of {@code minimum}.
      * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
      */
+    @Pure
     public static int Clamp(int value , int minimum , int maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
     /**
@@ -1088,6 +1186,7 @@ public final class Extensions
      * @return A value in the range [0..1].
      * @implNote From 1.0.21, this method has been further optimized and reliably predicts negative to positive ranges.
      */
+    @Pure
     public static float ToNormalRange(float v, float min, float max) { return (v - min) / (max - min); }
 
     /**
@@ -1099,6 +1198,7 @@ public final class Extensions
      * @return A value in the range [0..1].
      * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
+    @Pure
     public static double ToNormalRange(double v, double min, double max) { return (v - min) / (max - min); }
 
     /**
@@ -1131,6 +1231,7 @@ public final class Extensions
      * @return A computed value, so that the value is in range [0..{@code buffer_size}].
      * @since 1.0.26
      */
+    @Pure
     public static int ComputeStreamBufferSize(long consumed, long total, int buffer_size)
     {
         return ((consumed + buffer_size) < total) ? buffer_size : (int)(total - consumed);
@@ -1147,6 +1248,7 @@ public final class Extensions
      * @return A computed value, so that the value is in range [0..{@code buffer_size}].
      * @since 1.0.26
      */
+    @Pure
     public static int ComputeStreamBufferSize(int consumed, int total, int buffer_size)
     {
         return ((consumed + buffer_size) < total) ? buffer_size : (total - consumed);
@@ -1162,6 +1264,7 @@ public final class Extensions
      * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}].
      * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
+    @Pure
     public static double MapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)
     {
         return Lerp(ToNormalRange(input, inputlowerbound, inputupperbound), outputlowerbound, outputupperbound);
@@ -1177,6 +1280,7 @@ public final class Extensions
      * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}].
      * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
+    @Pure
     public static float MapToRange(float input, float inputlowerbound, float inputupperbound, float outputlowerbound, float outputupperbound)
     {
         return Lerp(ToNormalRange(input, inputlowerbound, inputupperbound), outputlowerbound, outputupperbound);
@@ -1194,6 +1298,7 @@ public final class Extensions
      *         The {@code input} of this method is restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range before mapping it.
      * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
+    @Pure
     public static double ClampedMapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)
     {
         return Lerp(
@@ -1223,6 +1328,7 @@ public final class Extensions
      *         The {@code input} of this method is restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range before mapping it.
      * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
+    @Pure
     public static float ClampedMapToRange(float input, float inputlowerbound, float inputupperbound, float outputlowerbound, float outputupperbound)
     {
         return Lerp(

@@ -7,6 +7,7 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
@@ -43,7 +44,7 @@ public final class NeoForgeClientModLoaderLayer
     private void OnClientSetupEvent(FMLClientSetupEvent event) {
         BaseModsLib.LOGGER.info("Client setup event realized. Dispatching client setup to implementing mods.");
         ClientSetupEvent cse = new ClientSetupEvent();
-        BaseModsLib.GetEventsManager().FireEvent(cse);
+        EventManager.FireEventSafe(cse);
         event.enqueueWork(cse::Run);
     }
 

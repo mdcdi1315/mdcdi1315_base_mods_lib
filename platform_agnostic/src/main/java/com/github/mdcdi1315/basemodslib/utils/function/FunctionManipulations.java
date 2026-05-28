@@ -5,6 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
+import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
+
 import java.util.function.Function;
 
 /**
@@ -283,6 +285,7 @@ public final class FunctionManipulations
      * @since 1.0.21
      * @see #AlwaysTrue()
      */
+    @Pure
     public static <T> boolean IsAlwaysTrue(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof IAlwaysTruePredicate<T>; }
 
     /**
@@ -295,6 +298,7 @@ public final class FunctionManipulations
      * @since 1.0.31
      * @see #AlwaysTrueBiPredicate()
      */
+    @Pure
     public static <T1, T2> boolean IsAlwaysTrue(@AllowNull java.util.function.BiPredicate<T1, T2> predicate) { return predicate instanceof AlwaysTrueBiPredicate<T1,T2>; }
 
     /**
@@ -310,6 +314,7 @@ public final class FunctionManipulations
      * @see #IsAlwaysFalse(java.util.function.BiPredicate)
      * @see #AlwaysFalseBiPredicate()
      */
+    @Pure
     @NotNull
     public static <T> Predicate<T> AlwaysFalse() { return new AlwaysFalsePredicate<>(); }
 
@@ -329,6 +334,7 @@ public final class FunctionManipulations
      * @see #IsAlwaysFalse(java.util.function.BiPredicate)
      * @see #AlwaysFalse()
      */
+    @Pure
     @NotNull
     public static <T1, T2> BiPredicate<T1, T2> AlwaysFalseBiPredicate() { return new AlwaysFalseBiPredicate<>(); }
 
@@ -341,6 +347,7 @@ public final class FunctionManipulations
      * @since 1.0.21
      * @see #AlwaysFalse()
      */
+    @Pure
     public static <T> boolean IsAlwaysFalse(@AllowNull java.util.function.Predicate<T> predicate) { return predicate instanceof IAlwaysFalsePredicate<T>; }
 
     /**
@@ -353,6 +360,7 @@ public final class FunctionManipulations
      * @since 1.0.31
      * @see #AlwaysFalseBiPredicate()
      */
+    @Pure
     public static <T1, T2> boolean IsAlwaysFalse(@AllowNull java.util.function.BiPredicate<T1, T2> predicate) { return predicate instanceof AlwaysFalseBiPredicate<T1,T2>; }
 
     /**
@@ -365,6 +373,7 @@ public final class FunctionManipulations
      * <li>Calling {@link Function#andThen(Function)} will always return the value of the input parameter.</li>
      * <li>Starting from 1.0.21, the returned function does also implement the {@link java.util.function.UnaryOperator} functional interface.</li>
      */
+    @Pure
     @NotNull
     public static <T> Func2<T, T> Identity() { return new IdentityFunction<>(); }
 

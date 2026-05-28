@@ -1,4 +1,4 @@
-package com.github.mdcdi1315.basemodslib.eventapi;
+package com.github.mdcdi1315.basemodslib.eventapi.internal;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
@@ -8,7 +8,11 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.IEvent;
 import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
+import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.InvalidEventDispatchException;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import com.google.common.collect.ImmutableSet;
@@ -19,7 +23,7 @@ import org.jetbrains.annotations.ApiStatus;
  * This is a variant of the normal events manager that is used only in development environments.
  */
 @ApiStatus.Internal
-public final class DebugEventsManager
+class DebugEventsManager
     extends NormalEventsManager
 {
     private SingleLinkedListBasedRegister<Class<? extends IDestroyableIfUnusedEvent>> removed_events;
@@ -27,7 +31,8 @@ public final class DebugEventsManager
     /**
      * Creates a new instance of the debug events manager.
      */
-    public DebugEventsManager() {
+    public DebugEventsManager()
+    {
         super();
         removed_events = new SingleLinkedListBasedRegister<>();
     }
@@ -79,7 +84,7 @@ public final class DebugEventsManager
             throws ArgumentNullException, InvalidOperationException
     {
         ArgumentNullException.ThrowIfNull(event_data, "event_data");
-        BaseModsLib.LOGGER.debug("EVENTS_MANAGER: Dispatching event of type {}." , event_data.getClass().getName());
+        BaseModsLib.LOGGER.info("EVENTS_MANAGER: Dispatching event of type {}." , event_data.getClass().getName());
         FireEventInternal(event_data , GetActions().get(event_data.getClass()));
     }
 
@@ -116,8 +121,9 @@ public final class DebugEventsManager
     }
 
     @Override
-    public void DestroyManager() {
-        super.DestroyManager();
+    public void Dispose()
+    {
+        super.Dispose();
         removed_events = null;
     }
 }

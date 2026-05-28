@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.fabric.mixin;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
 
 import net.minecraft.server.Main;
@@ -17,10 +18,11 @@ public final class ServerMainMixin
     // So, inject common setup there instead.
     // Server setup falls here as well.
     @Inject(method = "main" , at = @At(value = "INVOKE", target = "Lnet/minecraft/server/dedicated/DedicatedServerSettings;<init>(Ljava/nio/file/Path;)V"))
-    private static void OnMain(String[] strings, CallbackInfo ci) {
+    private static void OnMain(String[] strings, CallbackInfo ci)
+    {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
         CommonSetupEvent cse = new CommonSetupEvent();
-        BaseModsLib.GetEventsManager().FireEvent(cse);
+        EventManager.FireEventSafe(cse);
         cse.Run();
     }
 }
