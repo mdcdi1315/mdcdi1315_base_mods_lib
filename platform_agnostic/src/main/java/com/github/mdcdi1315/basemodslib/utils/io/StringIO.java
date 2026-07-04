@@ -39,7 +39,7 @@ public final class StringIO
         long written = 0L;
         CoderResult cr;
         CharBuffer cb = CharBuffer.wrap(string);
-        ByteBuffer bb = ByteBuffer.wrap(new byte[1024]);
+        ByteBuffer bb = ByteBuffer.allocate(1024);
         do {
             bb.rewind();
             cr = encoder.encode(cb, bb, true);

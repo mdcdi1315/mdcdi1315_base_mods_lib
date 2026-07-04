@@ -4,9 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Func3;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
-import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
@@ -14,16 +12,13 @@ import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
 import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
 import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
@@ -36,10 +31,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-
-import java.util.Map;
-import java.util.HashMap;
 
 public final class BlocksAndItemsRegistrar
         implements IBlockRegistrar,
@@ -53,9 +44,7 @@ public final class BlocksAndItemsRegistrar
     private DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_REGISTER;
     private DeferredRegister.DataComponents DATA_COMPONENT_TYPE_REGISTER;
     private DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS_REGISTER;
-    private SingleLinkedListBasedRegister<Pair<ItemLike, CreativeModeTab[]>> tabs_registration;
-    private Map<CreativeModeTab, SingleLinkedListBasedRegister<ItemStack>> compiled_item_stacks;
-    private Map<CreativeModeTab, SingleLinkedList<Func1<ItemStack>>> additional_creative_mode_tab_stacks;
+    private RegisterCreativeModeTabItemsHandler creative_mode_tab_items_handler;
 
     public BlocksAndItemsRegistrar(String mod_id)
     {
@@ -66,44 +55,14 @@ public final class BlocksAndItemsRegistrar
         CREATIVE_MODE_TABS_REGISTER = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB , mod_id);
         DATA_COMPONENT_TYPE_REGISTER = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE , mod_id);
 
-        compiled_item_stacks = null;
-        tabs_registration = new SingleLinkedListBasedRegister<>();
-        additional_creative_mode_tab_stacks = new HashMap<>(10);
-    }
-
-    @Override
-    public void Register(String name, FluidRegistrationInformation info)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(info, "info");
-        FLUID_REGISTER.register(name, info.fluid_getter());
+        creative_mode_tab_items_handler = new RegisterCreativeModeTabItemsHandler();
     }
 
     private record BlockItemRegisterSupplier(Func3<Block , ResourceLocation, Item> item_func, DeferredBlock<?> block)
             implements Func2<ResourceLocation , Item>
     {
         @Override
-        public Item function(ResourceLocation location) {
-            return item_func.apply(block.get() , location);
-        }
-    }
-
-    @Override
-    public void Register(String name, BlockRegistrationInformation info)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(info, "info");
-        var db = BLOCKS_REGISTER.register(name , info.block_getter());
-
-        var item_info = info.item_for_block_getter();
-
-        if (item_info != null) {
-            var item = ITEMS_REGISTER.register(name , new BlockItemRegisterSupplier(item_info , db));
-            var tabs = info.creative_mode_tabs_for_item();
-            if (tabs.length > 0) {
-                tabs_registration.Register(new Pair<>(item, tabs));
-            }
-        }
+        public Item function(ResourceLocation location) { return item_func.apply(block.get() , location); }
     }
 
     private record BlockEntityRegistrySupplier<T extends BlockEntity>(IBlockEntityFactory<T> factory)
@@ -114,6 +73,35 @@ public final class BlocksAndItemsRegistrar
         public BlockEntityType<T> function() {
             return BlockEntityType.Builder.of(factory::Create , factory.GetBlocks()).build(null); // dataType is unused.
         }
+    }
+
+    @Override
+    public void Register(String name, BlockRegistrationInformation info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(info, "info");
+
+        var db = BLOCKS_REGISTER.register(name, info.block_getter());
+
+        var item_info = info.item_for_block_getter();
+
+        if (item_info != null)
+        {
+            creative_mode_tab_items_handler.RegisterDeferredItem(
+                    info.creative_mode_tabs_for_item(),
+                    ITEMS_REGISTER.register(name , new BlockItemRegisterSupplier(item_info , db))
+            );
+        }
+    }
+
+    @Override
+    public void Register(String name, FluidRegistrationInformation info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(info, "info");
+        FLUID_REGISTER.register(name, info.fluid_getter());
     }
 
     @Override
@@ -133,17 +121,17 @@ public final class BlocksAndItemsRegistrar
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "factory");
 
-        var ir = ITEMS_REGISTER.register(name, info.item_getter());
-        var tabs = info.tabs();
-        if (tabs.length > 0) {
-            tabs_registration.Register(new Pair<>(ir , tabs));
-        }
+        creative_mode_tab_items_handler.RegisterDeferredItem(
+                info.tabs(),
+                ITEMS_REGISTER.register(name, info.item_getter())
+        );
     }
 
     @Override
     public <T> void RegisterDataComponentType(String name, DataComponentTypeRegistrationInformation<T> info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
         DATA_COMPONENT_TYPE_REGISTER.register(name , info.component_type_provider());
     }
@@ -152,6 +140,7 @@ public final class BlocksAndItemsRegistrar
     public void RegisterCreativeModeTab(String name, CreativeModeTab tab)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(tab, "tab");
         CREATIVE_MODE_TABS_REGISTER.register(name, new ElementSupplier<>(tab));
     }
@@ -163,79 +152,7 @@ public final class BlocksAndItemsRegistrar
         ArgumentNullException.ThrowIfNull(tab, "tab");
         ArgumentNullException.ThrowIfNull(stack, "stack");
 
-        additional_creative_mode_tab_stacks.computeIfAbsent(tab, BlocksAndItemsRegistrar::ComputeIfAbsentWrapper1).Add(stack);
-    }
-
-    private static SingleLinkedList<Func1<ItemStack>> ComputeIfAbsentWrapper1(CreativeModeTab tab) { return new SingleLinkedList<>(); }
-
-    private void RegisterCreativeModeTabsEvent(BuildCreativeModeTabContentsEvent event)
-    {
-        CreativeModeTab current = event.getTab();
-
-        if (compiled_item_stacks != null) {
-            for (var kvp : compiled_item_stacks.entrySet())
-            {
-                if (kvp.getKey() == current) {
-                    IEnumerator<ItemStack> iso = kvp.getValue().GetEnumerator();
-                    try {
-                        while (iso.MoveNext()) { event.accept(iso.getCurrent()); }
-                    } finally {
-                        iso.Dispose();
-                    }
-                    // Do not continue searching if this is the tab we wanted for.
-                    break;
-                }
-            }
-        } else if (additional_creative_mode_tab_stacks != null && additional_creative_mode_tab_stacks.size() > 0) {
-            compiled_item_stacks = new HashMap<>();
-            // The below will run only once.
-            CreativeModeTab k;
-            SingleLinkedList<Func1<ItemStack>> stacks;
-            for (var kvp : additional_creative_mode_tab_stacks.entrySet())
-            {
-                stacks = kvp.getValue();
-                IEnumerator<Func1<ItemStack>> e = stacks.GetEnumerator();
-                SingleLinkedListBasedRegister<ItemStack> lst = new SingleLinkedListBasedRegister<>();
-                try {
-                    if ((k = kvp.getKey()) == current) {
-                        // Current key agrees with the creative mode tab we want for - so register the enumerated items to the event as well.
-                        ItemStack is;
-                        while (e.MoveNext()) { is = e.getCurrent().function(); event.accept(is); lst.Register(is); }
-                    } else {
-                        while (e.MoveNext()) { lst.Register(e.getCurrent().function()); }
-                    }
-                } finally {
-                    stacks.Clear(); // Clean origin list to minimize mem as possible.
-                    e.Dispose();
-                }
-                // Put only when no exceptions do occur.
-                compiled_item_stacks.put(k, lst);
-            }
-        }
-        additional_creative_mode_tab_stacks = null;
-
-        if (tabs_registration == null || !tabs_registration.HasItems()) {
-            tabs_registration = null;
-            return;
-        }
-
-        var en = tabs_registration.GetEnumerator();
-        try {
-            Pair<ItemLike , CreativeModeTab[]> p;
-            while (en.MoveNext()) {
-                p = en.getCurrent();
-                ItemLike item = p.first();
-                for (CreativeModeTab tab : p.second())
-                {
-                    if (current == tab) {
-                        event.accept(item);
-                        break;
-                    }
-                }
-            }
-        } finally {
-            en.Dispose();
-        }
+        creative_mode_tab_items_handler.RegisterItemStack(tab, stack);
     }
 
     public void RegisterToEventBus(IEventBus bus)
@@ -246,7 +163,8 @@ public final class BlocksAndItemsRegistrar
         NeoForgeUtils.DeferredRegister_RegisterIfHasItems(bus, BLOCK_ENTITY_REGISTER);
         NeoForgeUtils.DeferredRegister_RegisterIfHasItems(bus, CREATIVE_MODE_TABS_REGISTER);
         NeoForgeUtils.DeferredRegister_RegisterIfHasItems(bus, DATA_COMPONENT_TYPE_REGISTER);
-        NeoForgeUtils.AddListener(bus, BuildCreativeModeTabContentsEvent.class, this::RegisterCreativeModeTabsEvent);
+        creative_mode_tab_items_handler.RegisterToEventBus(bus);
+        creative_mode_tab_items_handler = null;
         DATA_COMPONENT_TYPE_REGISTER = null;
         CREATIVE_MODE_TABS_REGISTER = null;
         BLOCK_ENTITY_REGISTER = null;

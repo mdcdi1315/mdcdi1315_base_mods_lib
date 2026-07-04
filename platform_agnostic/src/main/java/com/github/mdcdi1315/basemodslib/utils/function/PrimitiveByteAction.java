@@ -1,14 +1,12 @@
 package com.github.mdcdi1315.basemodslib.utils.function;
 
-import com.github.mdcdi1315.DotNetLayer.System.Action1;
-
 /**
  * Provides an action that accepts a non-null {@link Byte} value as input.
  * @since 1.0.21
  */
 @FunctionalInterface
 public interface PrimitiveByteAction
-    extends Action1<Byte>
+    extends PrimitiveNumericAction<Byte>
 {
     void action(byte value);
 

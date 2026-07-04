@@ -91,31 +91,21 @@ public final class FabricCommonRegistryItemsRegistrar
         modify_entries_register = new HashMap<>(2);
     }
 
-    private static ModifyEntriesInstance ComputeIfAbsentWrapper(CreativeModeTab rk) { return new ModifyEntriesInstance(); }
-
-    // This is executed right after all the blocks, items, block entities and fluids have been registered.
-    public void ApplyFabricModifyEntries()
+    private record MenuCreaterToMenuSupplier<T extends AbstractContainerMenu>(MenuTypeCreater<T> crt)
+            implements MenuType.MenuSupplier<T>
     {
-        Optional<ResourceKey<CreativeModeTab>> rk;
-        for (var kvp : modify_entries_register.entrySet())
-        {
-            rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(kvp.getKey());
-            if (rk.isPresent()) {
-                ItemGroupEvents.modifyEntriesEvent(rk.get()).register(kvp.getValue());
-            } else {
-                BaseModsLib.LOGGER.warn("Cannot get the resource key for the specified creative mode tab! Lookup failed.\nAll the items specified for this creative mode tab will not be applied.");
-            }
-        }
-        modify_entries_register = null;
+        @Override
+        @SuppressWarnings("NullableProblems")
+        public T create(int i, Inventory inventory) { return crt.Create(i , inventory); }
     }
+
+    private static ModifyEntriesInstance ComputeIfAbsentWrapper(CreativeModeTab rk) { return new ModifyEntriesInstance(); }
 
     @Override
     public void Register(String name, BlockRegistrationInformation info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-
-        ArgumentNullException.ThrowIfNull(name, "name");
 
         ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
@@ -184,7 +174,6 @@ public final class FabricCommonRegistryItemsRegistrar
     public <T extends BlockEntity> void Register(String name, IBlockEntityFactory<T> factory)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(factory, "factory");
 
         Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), new BlockEntityType<>(
@@ -198,7 +187,6 @@ public final class FabricCommonRegistryItemsRegistrar
     public <TF extends Feature<?>> void RegisterFeatureType(String name, Func1<TF> feature_type_creator)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(feature_type_creator, "feature_type_creator");
 
         Registry.register(BuiltInRegistries.FEATURE, RegistryUtils.ConstructResourceLocation(mod_id, name), feature_type_creator.function());
@@ -208,7 +196,6 @@ public final class FabricCommonRegistryItemsRegistrar
     public <TPM extends PlacementModifierType<?>> void RegisterPlacementModifierType(String name, Func1<TPM> placement_modifier_type_creator)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(placement_modifier_type_creator, "placement_modifier_type_creator");
 
         Registry.register(BuiltInRegistries.PLACEMENT_MODIFIER_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), placement_modifier_type_creator.function());
@@ -218,7 +205,6 @@ public final class FabricCommonRegistryItemsRegistrar
     public <T extends PoiType> void RegisterPoiType(String name, Func1<T> poi_type_creator)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(poi_type_creator, "poi_type_creator");
 
         Registry.register(BuiltInRegistries.POINT_OF_INTEREST_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), poi_type_creator.function());
@@ -229,7 +215,6 @@ public final class FabricCommonRegistryItemsRegistrar
     public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, RegistryObjectSupplier<T> supplier)
             throws ArgumentNullException, NotSupportedException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(registry, "registry");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
 
@@ -245,10 +230,10 @@ public final class FabricCommonRegistryItemsRegistrar
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<ResourceLocation, T> supplier)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(registry, "registry");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
 
@@ -264,10 +249,10 @@ public final class FabricCommonRegistryItemsRegistrar
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Supplier<T> supplier)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(registry, "registry");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
 
@@ -316,7 +301,6 @@ public final class FabricCommonRegistryItemsRegistrar
     public void RegisterResourceReloadListener(String name, PreparableReloadListener preparable_reload_listener)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricBridgedIdentifiableReloadListener(
                 RegistryUtils.ConstructResourceLocation(mod_id, name),
@@ -328,7 +312,7 @@ public final class FabricCommonRegistryItemsRegistrar
     public void RegisterSoundEvent(SoundEvent event, String name)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(event, "event");
         Registry.register(BuiltInRegistries.SOUND_EVENT, RegistryUtils.ConstructResourceLocation(mod_id, name), event);
     }
 
@@ -370,7 +354,7 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(info, "info");
         ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
-        Registry.register(BuiltInRegistries.FLUID , location , info.fluid_getter().function(location));
+        Registry.register(BuiltInRegistries.FLUID, location, info.fluid_getter().function(location));
     }
 
     @Override
@@ -397,20 +381,15 @@ public final class FabricCommonRegistryItemsRegistrar
         Registry.register(BuiltInRegistries.POTION, RegistryUtils.ConstructResourceLocation(mod_id, name), info.potion_getter().function());
     }
 
-    private record MenuCreaterToMenuSupplier<T extends AbstractContainerMenu>(MenuTypeCreater<T> crt)
-            implements MenuType.MenuSupplier<T>
-    {
-        @Override
-        public T create(int i, Inventory inventory) {
-            return crt.Create(i , inventory);
-        }
-    }
-
     @Override
     public <T extends AbstractContainerMenu> void Register(String name, MenuTypeRegistrationInfo<T> info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
+
+        // Precompute resource location ahead-of-time to not spend time creating
+        // the menu type instance if not needed.
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         MenuTypeCreater<T> crt = info.creater();
 
@@ -418,6 +397,22 @@ public final class FabricCommonRegistryItemsRegistrar
                 new ExtendedScreenHandlerType<>(new MenuCreaterExToExtendedFactory<>(t_ex), MenuCreaterExStreamCodec.INSTANCE) :
                 new MenuType<>(new MenuCreaterToMenuSupplier<>(crt) , info.required_features());
 
-        Registry.register(BuiltInRegistries.MENU, RegistryUtils.ConstructResourceLocation(mod_id, name), mt);
+        Registry.register(BuiltInRegistries.MENU, location, mt);
+    }
+
+    // This is executed right after all the blocks, items, block entities and fluids have been registered.
+    public void ApplyFabricModifyEntries()
+    {
+        Optional<ResourceKey<CreativeModeTab>> rk;
+        for (var kvp : modify_entries_register.entrySet())
+        {
+            rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(kvp.getKey());
+            if (rk.isPresent()) {
+                ItemGroupEvents.modifyEntriesEvent(rk.get()).register(kvp.getValue());
+            } else {
+                BaseModsLib.LOGGER.warn("[FabricCommonRegistryItemsRegistrar] Cannot get the resource key for the specified creative mode tab! Lookup failed.\nAll the items specified for this creative mode tab will not be applied.");
+            }
+        }
+        modify_entries_register = null;
     }
 }

@@ -43,7 +43,9 @@ public final class NeoForgeEntityTypeRegistrar
     public <T extends Entity> void RegisterEntity(String name, EntityTypeRegistrationInfo<T> info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         ENTITY_TYPE_REGISTER.register(name, info.entity_provider());
     }
 
@@ -51,7 +53,9 @@ public final class NeoForgeEntityTypeRegistrar
     public <T> void RegisterMemoryModuleType(String name, MemoryModuleTypeRegistrationInfo<T> info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         MEM_MODULE_TYPE_REGISTER.register(name, new ElementSupplier<>(new MemoryModuleType<>(info.optional_codec())));
     }
 
@@ -59,7 +63,9 @@ public final class NeoForgeEntityTypeRegistrar
     public void RegisterEntityAttribute(String name, AttributeRegistrationInfo info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         ATTRIBUTE_REGISTER.register(name, info.attribute_getter());
     }
 
@@ -67,7 +73,9 @@ public final class NeoForgeEntityTypeRegistrar
     public <T extends Sensor<?>> void RegisterSensorType(String name, SensorTypeRegistrationInfo<T> info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         SENSOR_TYPE_REGISTER.register(name, info.sensor_type_getter());
     }
 
@@ -75,7 +83,9 @@ public final class NeoForgeEntityTypeRegistrar
     public void RegisterMobEffect(String name, MobEffectRegistrationInfo info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         MOB_EFFECT_REGISTER.register(name, info.effect_getter());
     }
 

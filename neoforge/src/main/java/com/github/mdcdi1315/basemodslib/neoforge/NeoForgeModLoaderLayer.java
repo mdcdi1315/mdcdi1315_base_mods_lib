@@ -49,14 +49,12 @@ public final class NeoForgeModLoaderLayer
     // See NeoForgeUtils class for the usage of this.
     public static boolean mod_loading_complete;
     // private DisposableObjectsTracker tracker;
-    private NeoForgeCommandRegistrar global_command_registrar;
 
-    public NeoForgeModLoaderLayer(IEventBus event_bus) {
+    public NeoForgeModLoaderLayer(IEventBus event_bus)
+    {
         this.event_bus = event_bus;
         mod_loading_complete = false;
         mods = ModList.get().getMods();
-        global_command_registrar = new NeoForgeCommandRegistrar();
-        global_command_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
         Version fg_ver;
         try {
             fg_ver = Version.Parse(FMLLoader.versionInfo().neoForgeVersion());
@@ -85,6 +83,11 @@ public final class NeoForgeModLoaderLayer
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.ATTRIBUTE, EntityAttributeRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.PARTICLE_TYPE, ParticleTypeRegistryFinalizedEvent::new);
         NeoForgeUtils.AddRegistryBakeCallback(BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityTypeRegistryFinalizedEvent::new);
+
+        // Now, register our commands as well...
+        var lib_register = new NeoForgeCommandRegistrar(BaseModsLib.MOD_ID);
+        BaseModsLibraryCommand.InitializeLibraryCommandSupport(lib_register);
+        lib_register.RegisterToEventBus(this.event_bus);
     }
 
     private static IEventBus GetEventBusOrFail(Object mod_object) {
@@ -95,12 +98,12 @@ public final class NeoForgeModLoaderLayer
         }
     }
 
-    private void DestroyLayerData() {
+    private static void DestroyLayerData()
+    {
         /*
         tracker.Dispose();
         tracker = null;
          */
-        global_command_registrar = null;
         mod_loading_complete = true;
     }
 
@@ -111,9 +114,10 @@ public final class NeoForgeModLoaderLayer
         event.enqueueWork(cse::Run);
     }
 
-    private void OnModLoadingCompleteEvent(FMLLoadCompleteEvent event) {
+    private void OnModLoadingCompleteEvent(FMLLoadCompleteEvent event)
+    {
         event.enqueueWork(BaseModsLib::Destroy);
-        event.enqueueWork(this::DestroyLayerData);
+        event.enqueueWork(NeoForgeModLoaderLayer::DestroyLayerData);
     }
 
     private static void OnServerStarting(net.neoforged.neoforge.event.server.ServerStartingEvent e) {
@@ -136,7 +140,8 @@ public final class NeoForgeModLoaderLayer
     }
 
     @Override
-    public void InitializeServerModInstance(IServerModInstance instance, Object mod_object) {
+    public void InitializeServerModInstance(IServerModInstance instance, Object mod_object)
+    {
         IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
         String mod_id = instance.GetModId();
 
@@ -181,8 +186,9 @@ public final class NeoForgeModLoaderLayer
         instance.RegisterMenuTypes(reg_6);
         reg_6.RegisterToEventBus(mod_event_bus);
 
-        instance.RegisterCommands(global_command_registrar);
-
+        var reg_9 = new NeoForgeCommandRegistrar(mod_id);
+        instance.RegisterCommands(reg_9);
+        reg_9.RegisterToEventBus(mod_event_bus);
     }
 
     @Override
@@ -204,7 +210,8 @@ public final class NeoForgeModLoaderLayer
     }
 
     @Override
-    public ModdingEnvironment GetEnvironment() {
+    public ModdingEnvironment GetEnvironment()
+    {
         return switch (FMLEnvironment.dist) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case DEDICATED_SERVER -> ModdingEnvironment.SERVER;
@@ -236,6 +243,5 @@ public final class NeoForgeModLoaderLayer
         this.mods = null;
         this.event_bus = null;
         this.neoforge_version = null;
-        this.global_command_registrar = null;
     }
 }

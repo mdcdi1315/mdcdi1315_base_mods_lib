@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Documented;
 
 /**
@@ -7,6 +8,7 @@ import java.lang.annotation.Documented;
  * This class cannot be inherited.
  */
 @Attribute
+@Inherited
 @Documented
 @AttributeUsage(value = AttributeTargets.All, AllowMultiple = false , Inherited = true)
 public @interface CLSCompliant

@@ -7,8 +7,14 @@ import java.lang.annotation.*;
  * The value specifies the name of the method that should have anyway been overloaded.
  */
 @Inherited
+@Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.CLASS)
-public @interface OverloadedMethod {
+public @interface OverloadedMethod
+{
+    /**
+     * Gets the actual name of the method as declared in .NET.
+     * @return The actual method's name.
+     */
     String value();
 }

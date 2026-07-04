@@ -1,13 +1,15 @@
 package com.github.mdcdi1315.basemodslib.utils.collections.helpers;
 
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.projections.IIntEnumerable;
+import com.github.mdcdi1315.basemodslib.utils.collections.projections.IIntEnumerator;
 
 public final class RangeEnumerable
         extends BaseEnumerable<Integer>
+        implements IIntEnumerable
 {
     private final int start, count;
 
@@ -18,10 +20,11 @@ public final class RangeEnumerable
     }
 
     @Override
-    public IEnumerator<Integer> GetEnumerator() { return new Enumerator(start, count); }
+    public IIntEnumerator GetEnumerator() { return new Enumerator(start, count); }
 
     private static final class Enumerator
             extends BaseEnumerator<Integer>
+            implements IIntEnumerator
     {
         private int index;
         private final int start, bound;
@@ -34,6 +37,9 @@ public final class RangeEnumerable
 
         @Override
         public Integer getCurrent() { return index; }
+
+        @Override
+        public int getUncastedCurrent() { return index; }
 
         @Override
         protected void ResetImpl() throws InvalidOperationException { index = start; }

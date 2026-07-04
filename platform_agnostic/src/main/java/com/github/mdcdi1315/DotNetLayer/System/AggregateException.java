@@ -1,9 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.ICollection;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IList;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
 
 /**
  * Represents one or more errors that occur during application execution.
@@ -187,18 +184,23 @@ public class AggregateException
      * @throws AggregateException An exception contained by this {@link AggregateException} was not handled.
      */
     public void Handle(Func2<Exception, Boolean> predicate)
+        throws ArgumentNullException, AggregateException
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
 
         List<Exception> unhandledExceptions = null;
-        for (int i = 0; i < exceptionList.getCount(); i++)
+        try (IEnumerator<Exception> exceptionEnumerator = exceptionList.GetEnumerator())
         {
-            // If the exception was not handled, lazily allocate a list of unhandled
-            // exceptions (to be rethrown later) and add it.
-            if (!predicate.function(exceptionList.getItem(i)))
+            Exception current;
+            while (exceptionEnumerator.MoveNext())
             {
-                unhandledExceptions = new List<Exception>();
-                unhandledExceptions.Add(exceptionList.getItem(i));
+                // If the exception was not handled, lazily allocate a list of unhandled
+                // exceptions (to be rethrown later) and add it.
+                if (!predicate.function(current = exceptionEnumerator.getCurrent()))
+                {
+                    if (unhandledExceptions == null) { unhandledExceptions = new List<>(); }
+                    unhandledExceptions.Add(current);
+                }
             }
         }
 

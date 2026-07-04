@@ -20,22 +20,22 @@ public abstract class AbstractCommand
 
     /**
      * Constructs a new command instance. <br />
-     * It's name will be the one passed to the {@code commandname} parameter.
-     * @param commandname The name of the newly created command.
-     * @throws ArgumentException {@code commandname} was null or empty.
+     * It's name will be the one passed to the {@code command_name} parameter.
+     * @param command_name The name of the newly created command.
+     * @throws ArgumentException {@code command_name} is {@code null} or the empty string (&quot;&quot;).
      */
-    protected AbstractCommand(String commandname)
+    protected AbstractCommand(String command_name)
         throws ArgumentException
     {
-        ArgumentException.ThrowIfNullOrEmpty(commandname , "commandname");
-        name = commandname;
+        ArgumentException.ThrowIfNullOrEmpty(command_name, "command_name");
+        name = command_name;
     }
 
     /**
      * Internal implementation detail. Do not use.
      * @param dispatcher The command dispatcher to use.
      */
-    public void RegisterToDispatcher(@DisallowNull CommandDispatcher<CommandSourceStack> dispatcher)
+    public final void RegisterToDispatcher(@DisallowNull CommandDispatcher<CommandSourceStack> dispatcher)
     {
         dispatcher.register(CommandImplementation(Commands.literal(name)));
     }
@@ -44,7 +44,7 @@ public abstract class AbstractCommand
      * Internal implementation detail. Do not use.
      * @param builder The command builder to use.
      */
-    public LiteralArgumentBuilder<CommandSourceStack> RegisterByBuilder(@DisallowNull LiteralArgumentBuilder<CommandSourceStack> builder)
+    public final LiteralArgumentBuilder<CommandSourceStack> RegisterByBuilder(@DisallowNull LiteralArgumentBuilder<CommandSourceStack> builder)
     {
         return builder.then(CommandImplementation(Commands.literal(name)));
     }
@@ -62,7 +62,5 @@ public abstract class AbstractCommand
      * @return The command's name.
      */
     @NotNull
-    public String getName() {
-        return name;
-    }
+    public final String getName() { return name; }
 }

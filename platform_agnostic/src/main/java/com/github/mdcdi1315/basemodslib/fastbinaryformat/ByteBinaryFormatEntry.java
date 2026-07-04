@@ -2,8 +2,8 @@ package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
-import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import java.io.IOException;
 
@@ -29,10 +29,10 @@ public final class ByteBinaryFormatEntry
     public void WriteTo(WrappedOutputStream stream) throws IOException { BinaryFormatEntryType.BYTE.WriteTo(stream); stream.write(value); }
 
     @Override
-    public void ReadFrom(PushbackWrappedInputStream stream)
+    public void ReadFrom(WrappedInputStream stream, BinaryFormatEntryType type)
             throws IOException
     {
-        if (BinaryFormatEntryType.ReadFrom(stream) != BinaryFormatEntryType.BYTE) {
+        if (type != BinaryFormatEntryType.BYTE) {
             throw new IOException("Expected BYTE");
         } else {
             value = stream.ReadLiteralByte();

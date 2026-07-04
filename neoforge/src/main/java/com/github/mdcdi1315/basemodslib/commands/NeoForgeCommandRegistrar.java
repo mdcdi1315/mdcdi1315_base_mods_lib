@@ -8,38 +8,35 @@ import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.ArgumentType;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class NeoForgeCommandRegistrar
     implements ICommandRegistrar
 {
-    private final SingleLinkedListBasedRegister<Action1<CommandDispatcher<CommandSourceStack>>> commands;
+    private DeferredRegister<ArgumentTypeInfo<?, ?>> ARG_TYPE_INFO_REGISTER;
+    private SingleLinkedListBasedRegister<Action1<CommandDispatcher<CommandSourceStack>>> commands;
 
-    public NeoForgeCommandRegistrar()
+    public NeoForgeCommandRegistrar(String mod_id)
     {
         commands = new SingleLinkedListBasedRegister<>();
-        NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, RegisterCommandsEvent.class , this::RegisterCommands);
+        ARG_TYPE_INFO_REGISTER = DeferredRegister.create(Registries.COMMAND_ARGUMENT_TYPE, mod_id);
     }
 
-    private void RegisterCommands(RegisterCommandsEvent event)
+    private static void RunCommandDispatch(RegisterCommandsEvent rce, Action1<CommandDispatcher<CommandSourceStack>> action)
     {
-        var dispatcher = event.getDispatcher();
-        var commands_en = commands.GetEnumerator();
         try {
-            while (commands_en.MoveNext())
-            {
-                try {
-                    commands_en.getCurrent().action(dispatcher);
-                } catch (Exception e) {
-                    BaseModsLib.LOGGER.error("COMMAND_REGISTRATION: Cannot register a command dispatch listener!\nRegistration for it will be ignored.", e);
-                }
-            }
-        } finally {
-            commands_en.Dispose();
+            action.action(rce.getDispatcher());
+        } catch (Exception e) {
+            BaseModsLib.LOGGER.error("COMMAND_REGISTRATION: Cannot register a command dispatch listener!\nRegistration for it will be ignored.", e);
         }
     }
 
@@ -49,5 +46,24 @@ public final class NeoForgeCommandRegistrar
     {
         ArgumentNullException.ThrowIfNull(command, "command");
         commands.Register(command);
+    }
+
+    @Override
+    public <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>> void RegisterArgumentTypeInfo(String name, Class<A> argument_type_class, ArgumentTypeInfo<A, T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(info, "info");
+        ArgumentNullException.ThrowIfNull(argument_type_class, "argument_type_class");
+
+        ARG_TYPE_INFO_REGISTER.register(name, new ArgumentTypeRegistrationFunction<>(argument_type_class, info));
+    }
+
+    public void RegisterToEventBus(IEventBus bus)
+    {
+        ARG_TYPE_INFO_REGISTER.register(bus);
+        NeoForgeUtils.AddEnumerableListener(NeoForge.EVENT_BUS, RegisterCommandsEvent.class, commands, NeoForgeCommandRegistrar::RunCommandDispatch);
+        commands = null;
+        ARG_TYPE_INFO_REGISTER = null;
     }
 }

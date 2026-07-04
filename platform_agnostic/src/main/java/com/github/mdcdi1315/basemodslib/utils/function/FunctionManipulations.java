@@ -94,10 +94,12 @@ public final class FunctionManipulations
      * This method variant specially handles the input arguments when either of them are {@code null}. <br />
      * If at least one of the input parameters is {@code null}, the {@code null} parameter is treated as &quot;implicitly {@code false}&quot;. <br />
      * The below 4 bullets describe how this method treats input parameters:
-     * <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is {@code null} as well, an always-false predicate is returned.</li>
-     * <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is not {@code null}, the value of the {@code predicate_2} parameter is returned.</li>
-     * <li>If {@code predicate_1} is not {@code null}, and {@code predicate_2} is {@code null}, the value of the {@code predicate_1} parameter is returned.</li>
-     * <li>Otherwise, the aggregated predicate is created.</li>
+     * <ul>
+     *      <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is {@code null} as well, an always-false predicate is returned.</li>
+     *      <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is not {@code null}, the value of the {@code predicate_2} parameter is returned.</li>
+     *      <li>If {@code predicate_1} is not {@code null}, and {@code predicate_2} is {@code null}, the value of the {@code predicate_1} parameter is returned.</li>
+     *      <li>Otherwise, the aggregated predicate is created.</li>
+     * </ul>
      * @param predicate_1 The first predicate.
      * @param predicate_2 The second predicate.
      * @return A new {@link Predicate} instance providing the combined result of {@code predicate_1} and {@code predicate_2} arguments.
@@ -154,10 +156,12 @@ public final class FunctionManipulations
      * This method variant specially handles the input arguments when either of them are {@code null}. <br />
      * If at least one of the input parameters is {@code null}, the {@code null} parameter is treated as &quot;implicitly {@code false}&quot;. <br />
      * The below 4 bullets describe how this method treats input parameters:
-     * <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is {@code null} as well, an always-false predicate is returned.</li>
-     * <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is not {@code null}, the value of the {@code predicate_2} parameter is returned.</li>
-     * <li>If {@code predicate_1} is not {@code null}, and {@code predicate_2} is {@code null}, the value of the {@code predicate_1} parameter is returned.</li>
-     * <li>Otherwise, the aggregated predicate is created.</li>
+     * <ul>
+     *      <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is {@code null} as well, an always-false predicate is returned.</li>
+     *      <li>If {@code predicate_1} is {@code null}, and {@code predicate_2} is not {@code null}, the value of the {@code predicate_2} parameter is returned.</li>
+     *      <li>If {@code predicate_1} is not {@code null}, and {@code predicate_2} is {@code null}, the value of the {@code predicate_1} parameter is returned.</li>
+     *      <li>Otherwise, the aggregated predicate is created.</li>
+     * </ul>
      * @param predicate_1 The first predicate.
      * @param predicate_2 The second predicate.
      * @return A new {@link Predicate} instance providing the either result of {@code predicate_1} and {@code predicate_2} arguments.
@@ -226,7 +230,7 @@ public final class FunctionManipulations
      * returned through the {@link #AlwaysTrueBiPredicate()} and {@link #AlwaysFalseBiPredicate()} methods will yield
      * returning the negations of the results of these methods. <br />
      * (That is, an instance returned through the {@link #AlwaysFalseBiPredicate()} method will be returned
-     * when the input bi-predicate is always-true, and the opposite when the bi-predicate is always-false.)
+     * when the input bi-predicate is always-true, and the opposite when the input bi-predicate is always-false.)
      * @since 1.0.31
      */
     @NotNull
@@ -236,7 +240,7 @@ public final class FunctionManipulations
         return switch (predicate) {
             case null -> throw new ArgumentNullException("predicate");
             case AlwaysFalseBiPredicate<T1, T2> false_always -> new AlwaysTrueBiPredicate<>();
-            case AlwaysTrueBiPredicate<T1, T2> true_always -> new AlwaysTrueBiPredicate<>();
+            case AlwaysTrueBiPredicate<T1, T2> true_always -> new AlwaysFalseBiPredicate<>();
             default -> new NegatedBiPredicate<>(predicate);
         };
     }
@@ -246,10 +250,12 @@ public final class FunctionManipulations
      * @return A new {@link Predicate} that does always return {@code true}.
      * @param <T> Type of the input that will be given to the predicate.
      * @apiNote Note that instances returned through this method have several properties and guarantees:
-     * <li>The {@link Predicate#predicate(Object)} method does always return {@code true}.</li>
-     * <li>The {@link java.util.function.Predicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysFalse()} method.</li>
-     * <li>Calling {@link java.util.function.Predicate#or(java.util.function.Predicate)} will always return {@code true}, completely ignoring the input parameter.</li>
-     * <li>Calling {@link java.util.function.Predicate#and(java.util.function.Predicate)} will always return the value of the input parameter.</li>
+     * <ul>
+     *      <li>The {@link Predicate#predicate(Object)} method does always return {@code true}.</li>
+     *      <li>The {@link java.util.function.Predicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysFalse()} method.</li>
+     *      <li>Calling {@link java.util.function.Predicate#or(java.util.function.Predicate)} will always return {@code true}, completely ignoring the input parameter.</li>
+     *      <li>Calling {@link java.util.function.Predicate#and(java.util.function.Predicate)} will always return the value of the input parameter.</li>
+     * </ul>
      * @see #IsAlwaysTrue(java.util.function.Predicate)
      * @see #IsAlwaysTrue(java.util.function.BiPredicate)
      * @see #AlwaysTrueBiPredicate()
@@ -263,11 +269,13 @@ public final class FunctionManipulations
      * @param <T1> Type of the first input parameter that will be given to the predicate.
      * @param <T2> Type of the second input parameter that will be given to the predicate.
      * @apiNote Note that instances returned through this method have several properties and guarantees:
-     * <li>The {@link BiPredicate#predicate(Object, Object)} method does always return {@code true}.</li>
-     * <li>The {@link BiPredicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysFalseBiPredicate()} method.</li>
-     * <li>Calling {@link BiPredicate#or(java.util.function.BiPredicate)} will always return {@code true}, completely ignoring the input parameter.</li>
-     * <li>Calling {@link BiPredicate#and(java.util.function.BiPredicate)} will always return the value of the input parameter.</li>
-     * <li>Calling {@link BiPredicate#Xor(java.util.function.BiPredicate)} will always return the value of input parameter, negated.</li>
+     * <ul>
+     *      <li>The {@link BiPredicate#predicate(Object, Object)} method does always return {@code true}.</li>
+     *      <li>The {@link BiPredicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysFalseBiPredicate()} method.</li>
+     *      <li>Calling {@link BiPredicate#or(java.util.function.BiPredicate)} will always return {@code true}, completely ignoring the input parameter.</li>
+     *      <li>Calling {@link BiPredicate#and(java.util.function.BiPredicate)} will always return the value of the input parameter.</li>
+     *      <li>Calling {@link BiPredicate#Xor(java.util.function.BiPredicate)} will always return the value of input parameter, negated.</li>
+     * </ul>
      * @since 1.0.31
      * @see #IsAlwaysTrue(java.util.function.Predicate)
      * @see #IsAlwaysTrue(java.util.function.BiPredicate)
@@ -306,10 +314,12 @@ public final class FunctionManipulations
      * @return A new {@link Predicate} that does always return {@code false}.
      * @param <T> Type of the input that will be given to the predicate.
      * @apiNote Note that instances returned through this method have several properties and guarantees:
-     * <li>The {@link Predicate#predicate(Object)} method does always return {@code false}.</li>
-     * <li>The {@link java.util.function.Predicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysTrue()} method.</li>
-     * <li>Calling {@link java.util.function.Predicate#or(java.util.function.Predicate)} will always return the value of the input parameter.</li>
-     * <li>Calling {@link java.util.function.Predicate#and(java.util.function.Predicate)} will always return {@code false}, completely ignoring the input parameter.</li>
+     * <ul>
+     *      <li>The {@link Predicate#predicate(Object)} method does always return {@code false}.</li>
+     *      <li>The {@link java.util.function.Predicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysTrue()} method.</li>
+     *      <li>Calling {@link java.util.function.Predicate#or(java.util.function.Predicate)} will always return the value of the input parameter.</li>
+     *      <li>Calling {@link java.util.function.Predicate#and(java.util.function.Predicate)} will always return {@code false}, completely ignoring the input parameter.</li>
+     * </ul>
      * @see #IsAlwaysFalse(java.util.function.Predicate)
      * @see #IsAlwaysFalse(java.util.function.BiPredicate)
      * @see #AlwaysFalseBiPredicate()
@@ -324,11 +334,13 @@ public final class FunctionManipulations
      * @param <T1> Type of the first input parameter that will be given to the predicate.
      * @param <T2> Type of the second input parameter that will be given to the predicate.
      * @apiNote Note that instances returned through this method have several properties and guarantees:
-     * <li>The {@link BiPredicate#predicate(Object, Object)} method does always return {@code false}.</li>
-     * <li>The {@link BiPredicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysTrueBiPredicate()} method.</li>
-     * <li>Calling {@link BiPredicate#or(java.util.function.BiPredicate)} will always return the value of the input parameter.</li>
-     * <li>Calling {@link BiPredicate#and(java.util.function.BiPredicate)} will always return {@code false}, completely ignoring the input parameter.</li>
-     * <li>Calling {@link BiPredicate#Xor(java.util.function.BiPredicate)} will always return the value of the input parameter.</li>
+     * <ul>
+     *      <li>The {@link BiPredicate#predicate(Object, Object)} method does always return {@code false}.</li>
+     *      <li>The {@link BiPredicate#negate()} method does always return an instance obtained through invoking the {@link #AlwaysTrueBiPredicate()} method.</li>
+     *      <li>Calling {@link BiPredicate#or(java.util.function.BiPredicate)} will always return the value of the input parameter.</li>
+     *      <li>Calling {@link BiPredicate#and(java.util.function.BiPredicate)} will always return {@code false}, completely ignoring the input parameter.</li>
+     *      <li>Calling {@link BiPredicate#Xor(java.util.function.BiPredicate)} will always return the value of the input parameter.</li>
+     * </ul>
      * @since 1.0.31
      * @see #IsAlwaysFalse(java.util.function.Predicate)
      * @see #IsAlwaysFalse(java.util.function.BiPredicate)
@@ -367,11 +379,13 @@ public final class FunctionManipulations
      * Provides a {@link Func2} that does always return the input argument.
      * @return A {@link Func2} instance that does always return whatever value was given in it's input.
      * @param <T> The type of the element to be fed as input and to be returned by the function.
-     * @apiNote Note that instances returned through this method have several properties and guarantees: 
-     * <li>The returned function does always return the value of the input parameter when the function returned is invoked. This, however, means that {@code null} is also returned if the input is {@code null}.</li>
-     * <li>Calling {@link java.util.function.Function#compose(Function)} will always return the value of the input parameter.</li>
-     * <li>Calling {@link java.util.function.Function#andThen(Function)} will always return the value of the input parameter.</li>
-     * <li>Starting from 1.0.21, the returned function does also implement the {@link java.util.function.UnaryOperator} functional interface.</li>
+     * @apiNote Note that instances returned through this method have several properties and guarantees:
+     * <ul>
+     *      <li>The returned function does always return the value of the input parameter when the function returned is invoked. This, however, means that {@code null} is also returned if the input is {@code null}.</li>
+     *      <li>Calling {@link java.util.function.Function#compose(Function)} will always return the value of the input parameter.</li>
+     *      <li>Calling {@link java.util.function.Function#andThen(Function)} will always return the value of the input parameter.</li>
+     *      <li>Starting from 1.0.21, the returned function does also implement the {@link java.util.function.UnaryOperator} functional interface.</li>
+     * </ul>
      */
     @Pure
     @NotNull

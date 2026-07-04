@@ -8,6 +8,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.github.mdcdi1315.basemodslib.eventapi.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
+import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.internal.EventAPIHelpers;
@@ -42,7 +43,7 @@ public final class BaseModsLib
     private static volatile boolean initialized;
     private static SingleLinkedList<IServerModInstance> mod_instances;
 
-    public static Logger LOGGER;
+    public static final Logger LOGGER;
 
     static {
         layer = null;
@@ -130,6 +131,7 @@ public final class BaseModsLib
      * @param th The {@link Throwable} to translate.
      * @return The {@link Exception} corresponding to {@link Throwable}. Can be {@code null} if the method cannot map the exception.
      */
+    @SuppressWarnings("IfCanBeSwitch")
     static Exception TranslateException(Throwable th)
     {
         Exception e;
@@ -162,6 +164,7 @@ public final class BaseModsLib
      * @throws ArgumentNullException {@code instance} was {@code null}.
      * @throws ModInitializationException The mod instance passed failed to be initialized. Check error log for more information.
      */
+    @SuppressWarnings("SynchronizeOnNonFinalField")
     public static void InitializeServerSideMod(IServerModInstance instance, Object mod_object)
             throws ArgumentNullException, ModInitializationException
     {
@@ -220,6 +223,7 @@ public final class BaseModsLib
      * Instead, wait until the {@link com.github.mdcdi1315.basemodslib.mods.IModInstance#RegisterEvents(EventManager)} method is called to your mod instance. <br />
      * However, if you still need to communicate with the manager during startup because of mod-loader startup handling, synchronize on the {@link BaseModsLib} class object.
      */
+    @Pure
     @NotNull
     @MaybeNullInMixin
     public static EventManager GetEventsManager() { return events_manager; }
@@ -387,6 +391,7 @@ public final class BaseModsLib
      * Gets a {@link Version} object describing the version of the Java Runtime that this class has been instantiated into.
      * @return The version of the Java Runtime.
      */
+    @Pure
     @NotNull
     public static Version GetJavaVersion()
     {
@@ -404,7 +409,8 @@ public final class BaseModsLib
      * Destroys data structures used by the library.
      */
     @ApiStatus.Internal
-    public static void Destroy() {
+    public static void Destroy()
+    {
         LOGGER.info("Mod loading complete. Dispatching mod loading complete event to implementing mods.");
         events_manager.FireEvent(new ModLoadingCompleteEvent());
         events_manager.DestroyDestroyableEvents();
@@ -437,38 +443,38 @@ public final class BaseModsLib
     @ApiStatus.Internal
     public static void DestroySelf()
     {
-        BaseModsLib.LOGGER.info("Destroying mdcdi1315's Base Mods Library.");
-        if (layer != null)
+        synchronized (BaseModsLib.class)
         {
-            IServerModInstance mi;
-            IEnumerator<IServerModInstance> i = null;
-            try {
-                i = mod_instances.GetEnumerator();
-                while (i.MoveNext())
+            BaseModsLib.LOGGER.info("Destroying mdcdi1315's Base Mods Library.");
+            if (layer != null)
+            {
+                IServerModInstance mi;
+                try (IEnumerator<IServerModInstance> i = mod_instances.GetEnumerator())
                 {
-                    mi = i.getCurrent();
-                    try {
-                        // Invoke to all mod instances the Dispose method.
-                        mi.Dispose();
-                    } catch (Exception e) {
-                        BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+                    while (i.MoveNext())
+                    {
+                        mi = i.getCurrent();
+                        try {
+                            // Invoke to all mod instances the Dispose method.
+                            mi.Dispose();
+                        } catch (Exception e) {
+                            BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+                        }
                     }
+                } catch (Exception e) {
+                    BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
                 }
-            } catch (Exception e) {
-                BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
-            } finally {
-                if (i != null) { i.Dispose(); }
             }
-        }
-        // Additional disposal code to be run.
-        mod_instances = null;
-        if (proxy_manager != null) {
-            proxy_manager.Dispose();
-            proxy_manager = null;
-        }
-        if (layer != null) {
-            layer.Dispose();
-            layer = null;
+            // Additional disposal code to be run.
+            mod_instances = null;
+            if (proxy_manager != null) {
+                proxy_manager.Dispose();
+                proxy_manager = null;
+            }
+            if (layer != null) {
+                layer.Dispose();
+                layer = null;
+            }
         }
     }
 }

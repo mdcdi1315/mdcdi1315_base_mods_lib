@@ -6,7 +6,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.basemodslib.utils.io.SevenBitEncodedInt;
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
-import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import java.io.IOException;
 
@@ -64,11 +63,10 @@ public abstract class BaseFixedArrayBinaryFormatEntry
     }
 
     @Override
-    public final void ReadFrom(PushbackWrappedInputStream stream)
+    public final void ReadFrom(WrappedInputStream stream, BinaryFormatEntryType type)
             throws IOException
     {
-        BinaryFormatEntryType read = BinaryFormatEntryType.ReadFrom(stream);
-        if (read.equals(GetType())) {
+        if (type.equals(GetType())) {
             int length = SevenBitEncodedInt.Read(stream);
             ReadArrayData(stream, length);
         } else {

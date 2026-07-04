@@ -1,0 +1,101 @@
+// This is future support, if we manage to do it sometime.
+// For now, leave it here as is because we need extra things.
+
+package com.github.mdcdi1315.basemodslib.registries;
+
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
+
+import com.github.mdcdi1315.basemodslib.BaseModsLib;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.DataResult;
+
+import net.minecraft.util.GsonHelper;
+import net.minecraft.server.packs.resources.*;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.util.profiling.ProfilerFiller;
+
+import java.util.Map;
+import java.io.Reader;
+import java.util.HashMap;
+import java.io.IOException;
+
+final class RegistryPLR<T>
+    extends SimplePreparableReloadListener<Map<ResourceLocation, JsonElement>>
+{
+    private final Codec<T> codec;
+    private final String directory;
+    private IModLoaderRegistry<T> registry_access;
+
+    public RegistryPLR(String directory, Codec<T> codec)
+    {
+        super();
+        this.codec = codec;
+        registry_access = null;
+        this.directory = directory;
+    }
+
+    @Override
+    protected Map<ResourceLocation, JsonElement> prepare(ResourceManager rm, ProfilerFiller pf)
+    {
+        if (registry_access == null) {
+            throw new InvalidOperationException("Registry not still available!!!");
+        } else {
+            return ScanDirectory(rm, this.directory, new Gson());
+        }
+    }
+
+    public void AssignRegistry(IModLoaderRegistry<T> registry_access)
+    {
+        ArgumentNullException.ThrowIfNull(registry_access, "registry_access");
+        this.registry_access = registry_access;
+    }
+
+    @Override
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    protected void apply(Map<ResourceLocation, JsonElement> map, ResourceManager rm, ProfilerFiller pf)
+    {
+        DataResult<T> result;
+        for (var entry : map.entrySet())
+        {
+            result = codec.parse(JsonOps.INSTANCE, entry.getValue());
+            if (result.isError()) {
+                throw new RegistryConstructionException(
+                        registry_access.GetRegistryKey().location(),
+                        String.format("Failed to convert registry entry '%s' based on the codec rules: \n%s", entry.getKey(), result.error().get().message())
+                );
+            } else {
+                registry_access.Register(entry.getKey(), result.result().get());
+            }
+        }
+    }
+
+    private static Map<ResourceLocation, JsonElement> ScanDirectory(ResourceManager resourceManager, String name, Gson gson)
+    {
+        Map<ResourceLocation, JsonElement> output = new HashMap<>();
+        FileToIdConverter filetoidconverter = FileToIdConverter.json(name);
+
+        for (var entry : filetoidconverter.listMatchingResources(resourceManager).entrySet())
+        {
+            ResourceLocation res_location = filetoidconverter.fileToId(entry.getKey());
+
+            try (Reader reader = entry.getValue().openAsReader())
+            {
+                if (output.put(res_location, GsonHelper.fromJson(gson, reader, JsonElement.class)) != null) {
+                    throw new IllegalStateException("Duplicate data file ignored with ID " + res_location);
+                }
+            } catch (IOException | JsonParseException | IllegalArgumentException jsonparseexception) {
+                BaseModsLib.LOGGER.error("[RegistryPLR] Couldn't parse data file {} from {}, effectively ignoring the file.", res_location, entry.getKey(), jsonparseexception);
+            }
+        }
+
+        return output;
+    }
+}

@@ -12,6 +12,7 @@ import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.eventapi.client.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
+import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
@@ -180,6 +181,7 @@ public final class BaseModsLibClient
      * Gets the player that has initialized this Minecraft instance.
      * @return The {@link Player} that has created this particular Minecraft instance.
      */
+    @Pure
     @MaybeNull
     public static Player GetLoggedInPlayer() { return Minecraft.getInstance().player; }
 
@@ -187,6 +189,7 @@ public final class BaseModsLibClient
      * Gets an enumerable implementation that enumerates through the available configuration screens detected by the library.
      * @return An enumerable implementation containing configuration screen factories.
      */
+    @Pure
     @NotNull
     public static IEnumerable<Pair<String, ConfigurationScreenFactory<?>>> GetConfigurationScreens() {
         return (config_factories == null) ? new EmptyEnumerable<>() : config_factories;
@@ -206,20 +209,17 @@ public final class BaseModsLibClient
     public static IClientModInstance GetBMLModInstance(String mod_id)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(mod_id);
+        ArgumentNullException.ThrowIfNull(mod_id, "mod_id");
         if (mod_id.isBlank()) { return null; }
         IClientModInstance smi;
-        IEnumerator<IClientModInstance> en = mod_instances.GetEnumerator();
-        try {
-            while (en.MoveNext()) {
+        try (IEnumerator<IClientModInstance> en = mod_instances.GetEnumerator())
+        {
+            while (en.MoveNext())
+            {
                 smi = en.getCurrent();
-                if (smi.GetModId().equals(mod_id)) {
-                    return smi;
-                }
+                if (smi.GetModId().equals(mod_id)) { return smi; }
             }
             return null;
-        } finally {
-            en.Dispose();
         }
     }
 
@@ -229,32 +229,34 @@ public final class BaseModsLibClient
     @ApiStatus.Internal
     public static void DestroySelf()
     {
-        if (layer != null)
+        // Sync on the BML class object, so that disposal timing in both BML server/client instances is serialized.
+        synchronized (BaseModsLib.class)
         {
-            IClientModInstance mi;
-            IEnumerator<IClientModInstance> i = null;
-            try {
-                // Invoke to all mod instances the Dispose method.
-                i = mod_instances.GetEnumerator();
-                while (i.MoveNext())
+            BaseModsLib.LOGGER.info("Destroying mdcdi1315's Base Mods Library of client distribution side.");
+            if (layer != null)
+            {
+                IClientModInstance mi;
+                try (IEnumerator<IClientModInstance> i = mod_instances.GetEnumerator())
                 {
-                    mi = i.getCurrent();
-                    try {
-                        mi.Dispose();
-                    } catch (Exception e) {
-                        BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+                    // Invoke to all mod instances the Dispose method.
+                    while (i.MoveNext())
+                    {
+                        mi = i.getCurrent();
+                        try {
+                            mi.Dispose();
+                        } catch (Exception e) {
+                            BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+                        }
                     }
+                } catch (Exception e) {
+                    BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
                 }
-            } catch (Exception e) {
-                BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
-            } finally {
-                if (i != null) { i.Dispose(); }
+                layer.Dispose();
             }
-            layer.Dispose();
+            layer = null;
+            mod_instances = null;
+            config_factories = null;
+            ClothConfigIntegrationHandler.Destroy();
         }
-        layer = null;
-        mod_instances = null;
-        config_factories = null;
-        ClothConfigIntegrationHandler.Destroy();
     }
 }

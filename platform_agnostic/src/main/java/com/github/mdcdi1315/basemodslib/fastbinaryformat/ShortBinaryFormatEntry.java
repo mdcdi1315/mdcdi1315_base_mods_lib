@@ -2,8 +2,8 @@ package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
-import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import java.io.IOException;
 
@@ -21,6 +21,8 @@ public final class ShortBinaryFormatEntry
         }
     }
 
+    public ShortBinaryFormatEntry(short value) { this.value = value; }
+
     @Override
     public BinaryFormatEntryType GetType() { return BinaryFormatEntryType.SHORT; }
 
@@ -33,10 +35,10 @@ public final class ShortBinaryFormatEntry
     }
 
     @Override
-    public void ReadFrom(PushbackWrappedInputStream stream)
+    public void ReadFrom(WrappedInputStream stream, BinaryFormatEntryType type)
             throws IOException
     {
-        if (BinaryFormatEntryType.ReadFrom(stream) != BinaryFormatEntryType.SHORT) {
+        if (type != BinaryFormatEntryType.SHORT) {
             throw new IOException("Expected SHORT");
         } else {
             value = stream.ReadShortLE();

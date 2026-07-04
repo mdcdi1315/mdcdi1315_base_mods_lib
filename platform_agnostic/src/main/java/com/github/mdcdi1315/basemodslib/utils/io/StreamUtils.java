@@ -1,6 +1,8 @@
 package com.github.mdcdi1315.basemodslib.utils.io;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -259,4 +261,72 @@ public final class StreamUtils
      * @throws ArgumentNullException {@code stream} and/or {@code destination} are {@code null}.
      */
     public static long CopyTo(InputStream stream, OutputStream destination) throws IOException, ArgumentNullException { return CopyTo(stream, destination, 0); }
+
+    /**
+     * Writes the specified {@link ByteBuffer} to the specified stream.
+     * @param stream The {@link OutputStream} to write the specified {@link ByteBuffer} to.
+     * @param buffer The {@link ByteBuffer} to write.
+     * @throws ArgumentNullException {@code stream} and/or {@code buffer} are {@code null}.
+     * @throws IOException {@link OutputStream#write(byte[], int, int)} call threw an exception.
+     * @since 1.0.35
+     */
+    public static void WriteBuffer(OutputStream stream, ByteBuffer buffer)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(stream, "stream");
+        ArgumentNullException.ThrowIfNull(buffer, "buffer");
+
+        if (buffer.hasArray() && (!buffer.isReadOnly())) {
+            // Fast write path
+            stream.write(
+                    buffer.array(),
+                    buffer.arrayOffset() + buffer.position(),
+                    buffer.remaining()
+            );
+        } else {
+            // Slow write path, uses intermediate buffer to achieve this.
+            // Additionally, original position value must be preserved and restored after copy.
+            int previous_position = buffer.position();
+            try {
+                byte[] temp = new byte[buffer.remaining()];
+                buffer.get(temp);
+                stream.write(temp);
+            } finally {
+                buffer.position(previous_position);
+            }
+        }
+    }
+
+    /**
+     * Reads data from the given {@link InputStream} object as a {@link ByteBuffer}.
+     * @param stream The {@link InputStream} object to read data from.
+     * @param bytes_to_read The number of bytes to read from {@code stream}.
+     * @return The read {@link ByteBuffer} instance. <br />
+     * If the stream ended, the method will return {@code null} to indicate this. <br />
+     * Note also that giving the {@code number_of_bytes} a value of 0 is valid,
+     * but does always return an empty buffer, regardlessly the state of the provided stream.
+     * @throws IOException {@link InputStream#read(byte[], int, int)} call threw an exception.
+     * @throws ArgumentNullException {@code stream} is {@code null}.
+     * @throws ArgumentOutOfRangeException {@code bytes_to_read} is negative.
+     * @since 1.0.35
+     */
+    @MaybeNull
+    public static ByteBuffer ReadAsBuffer(InputStream stream, int bytes_to_read)
+            throws ArgumentNullException, ArgumentOutOfRangeException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(stream, "stream");
+        if (bytes_to_read < 0) {
+            throw new ArgumentOutOfRangeException("bytes_to_read", "Number of bytes to read cannot be less than 0.");
+        } else if (bytes_to_read == 0) {
+            return ByteBuffer.allocate(0);
+        } else {
+            ByteBuffer buffer = ByteBuffer.allocate(bytes_to_read);
+            int read = stream.read(
+                    buffer.array(),
+                    buffer.arrayOffset(),
+                    buffer.remaining()
+            );
+            return (read == -1) ? null : buffer.limit(read);
+        }
+    }
 }

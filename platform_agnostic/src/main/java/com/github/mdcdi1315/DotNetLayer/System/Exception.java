@@ -30,6 +30,7 @@ public class Exception
     extends RuntimeException 
 {
     protected static final String InnerExceptionPrefix = " ---> ";
+
     /**
      *  Creates an empty {@link Exception} object.
      */
@@ -106,12 +107,12 @@ public class Exception
         Method cm = null;
         Class<?> element_class = null;
         try {
-            element_class = Class.forName(e.getClassName());
+            element_class = Class.forName(e.getClassName(), false, null);
             cm = element_class.getMethod(e.getMethodName());
-        } catch (java.lang.Exception ex) {}
-        if (cm == null) {
+        } catch (java.lang.Throwable t) {}
+        if (element_class == null) {
             return false;
-        } else if (cm.getAnnotation(StackTraceHidden.class) != null) {
+        } else if (cm != null && cm.getAnnotation(StackTraceHidden.class) != null) {
             return true;
         } else {
             return element_class.getAnnotation(StackTraceHidden.class) != null;

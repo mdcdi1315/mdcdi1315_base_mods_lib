@@ -9,6 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
  * @param <T> The type of the elements that are provided by the wrapped enumerator.
  * @since 1.0.26
  */
+@SuppressWarnings("resource")
 public final class SlicingEnumerator<T>
     extends BaseWrappedEnumerator<T>
 {
@@ -73,17 +74,19 @@ public final class SlicingEnumerator<T>
     @Override
     protected boolean MoveNextImpl()
     {
+        IEnumerator<T> w = GetWrapped();
+
         if (not_consumed_start_index)
         {
             // A gotcha here: If, for example, we have specified a starting index of 0,
             // no elements are needed to be skipped over.
             index = start_index;
-            while (index > 0 && GetWrapped().MoveNext()) { index--; }
+            while (index > 0 && w.MoveNext()) { index--; }
             index = -1;
             not_consumed_start_index = false;
         }
 
         // normally iterate 'count' elements.
-        return ++index < count && GetWrapped().MoveNext();
+        return ++index < count && w.MoveNext();
     }
 }

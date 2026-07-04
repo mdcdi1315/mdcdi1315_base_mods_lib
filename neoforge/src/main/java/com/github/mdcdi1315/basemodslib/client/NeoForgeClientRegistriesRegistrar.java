@@ -22,7 +22,7 @@ public final class NeoForgeClientRegistriesRegistrar
     public void RegisterResourceReloadListener(String name, PreparableReloadListener preparable_reload_listener)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNullOrEmpty(name, "name");
         ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
         client_resource_reload_listeners.Register(preparable_reload_listener);
     }

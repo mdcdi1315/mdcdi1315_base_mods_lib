@@ -5,8 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.io.SevenBitEncodedInt;
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
-import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import com.google.common.collect.ImmutableList;
 
@@ -39,23 +39,21 @@ public final class ArrayBinaryFormatEntry
     }
 
     @Override
-    public void ReadFrom(PushbackWrappedInputStream stream)
+    public void ReadFrom(WrappedInputStream stream, BinaryFormatEntryType type)
             throws IOException
     {
-        var e = BinaryFormatEntryType.ReadFrom(stream);
-        if (e.GetEntryCode() != BinaryFormatEntryType.ARRAY_ENTRY_CODE) {
+        if (type.GetEntryCode() != BinaryFormatEntryType.ARRAY_ENTRY_CODE) {
             throw new IOException("Expected ARRAY");
         } else {
             BinaryFormatEntry entry;
-            int elements = e.GetEntryData();
+            int elements = type.GetEntryData();
             if (elements > 14) { elements = SevenBitEncodedInt.Read(stream); }
             ImmutableList.Builder<BinaryFormatEntry> builder = ImmutableList.builderWithExpectedSize(elements);
             for (; elements > 0; elements--)
             {
-                e = BinaryFormatEntryType.ReadFrom(stream);
+                var e = BinaryFormatEntryType.ReadFrom(stream);
                 entry = FastBinaryFormatUtils.ConstructEntryFromType(e);
-                stream.Unread(e.GetEncodedValue());
-                entry.ReadFrom(stream);
+                entry.ReadFrom(stream, e);
                 builder.add(entry);
             }
             entries = builder.build();

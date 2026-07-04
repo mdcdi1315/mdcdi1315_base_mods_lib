@@ -1,7 +1,5 @@
 package com.github.mdcdi1315.basemodslib.utils.function;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
-
 import java.util.function.IntFunction;
 
 /**
@@ -11,7 +9,7 @@ import java.util.function.IntFunction;
  */
 @FunctionalInterface
 public interface PrimitiveIntegerFunction<TR>
-    extends Func2<Integer, TR>, IntFunction<TR>
+    extends PrimitiveNumericFunction<Integer, TR>, IntFunction<TR>
 {
     TR function(int value);
 
@@ -19,5 +17,11 @@ public interface PrimitiveIntegerFunction<TR>
     default TR apply(int value) { return function(value); }
 
     @Override
-    default TR function(Integer v) { return function(v.intValue()); }
+    default TR apply(Integer value) { return function(value.intValue()); }
+
+    @Override
+    default TR convert(Integer value) { return function(value.intValue()); }
+
+    @Override
+    default TR function(Integer value) { return function(value.intValue()); }
 }

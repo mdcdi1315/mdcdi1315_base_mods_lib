@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
@@ -34,7 +35,8 @@ public final class NeoForgeRegistriesRegistrar
     private SingleLinkedListBasedRegister<DatapackRegistryEntry<?>> datapack_registries;
     private SingleLinkedListBasedRegister<PreparableReloadListener> data_reload_listeners;
 
-    public NeoForgeRegistriesRegistrar(String mod_id) {
+    public NeoForgeRegistriesRegistrar(String mod_id)
+    {
         this.mod_id = mod_id;
         registers = new SingleLinkedListBasedRegister<>();
         datapack_registries = new SingleLinkedListBasedRegister<>();
@@ -46,28 +48,8 @@ public final class NeoForgeRegistriesRegistrar
 
     private record DatapackRegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Codec<T> element_codec) {}
 
-    @SuppressWarnings("unchecked")
-    private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<? extends Registry<T>> registry_key)
-    {
-        var en = registers.GetEnumerator();
-        try {
-            DeferredRegister<?> register;
-            while (en.MoveNext()) {
-                if ((register = en.getCurrent()).getRegistryKey().equals(registry_key)) {
-                    return (DeferredRegister<T>) register;
-                }
-            }
-        } finally {
-            en.Dispose();
-        }
-        // Enumeration finished and no register was found. Create a new one instead.
-        DeferredRegister<T> t = DeferredRegister.create(registry_key , mod_id);
-        registers.Register(t);
-        return t;
-    }
-
     private record DeferredRegisterImplementedBulkRegistryRegister<T>(DeferredRegister<T> reg)
-        implements IBulkRegistryObjectRegister<T>
+            implements IBulkRegistryObjectRegister<T>
     {
         @Override
         public void Add(String name, T object)
@@ -76,6 +58,25 @@ public final class NeoForgeRegistriesRegistrar
             ArgumentNullException.ThrowIfNull(name, "name");
             reg.register(name, new ElementSupplier<>(object));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<? extends Registry<T>> registry_key)
+    {
+        try (IEnumerator<DeferredRegister<?>> en = registers.GetEnumerator())
+        {
+            DeferredRegister<?> register;
+            while (en.MoveNext())
+            {
+                if ((register = en.getCurrent()).getRegistryKey().equals(registry_key)) {
+                    return (DeferredRegister<T>) register;
+                }
+            }
+        }
+        // Enumeration finished and no register was found. Create a new one instead.
+        DeferredRegister<T> t = DeferredRegister.create(registry_key , mod_id);
+        registers.Register(t);
+        return t;
     }
 
     @Override
@@ -146,13 +147,10 @@ public final class NeoForgeRegistriesRegistrar
 
     public void RegisterToEventBus(IEventBus bus)
     {
-        var registers_en = registers.GetEnumerator();
-        try {
-            while (registers_en.MoveNext()) {
-                registers_en.getCurrent().register(bus);
-            }
-        } finally {
-            registers_en.Dispose();
+        mod_id = null;
+        try (IEnumerator<DeferredRegister<?>> registers_en = registers.GetEnumerator())
+        {
+            while (registers_en.MoveNext()) { registers_en.getCurrent().register(bus); }
         }
         registers = null; // We can now sweep up memory.
         NeoForgeUtils.AddEnumerableListener(NeoForge.EVENT_BUS, AddReloadListenerEvent.class, data_reload_listeners, AddReloadListenerEvent::addListener);
@@ -161,6 +159,5 @@ public final class NeoForgeRegistriesRegistrar
         registries_to_create = null;
         NeoForgeUtils.AddEnumerableListener_DispatchOnce(bus, DataPackRegistryEvent.NewRegistry.class, datapack_registries, NeoForgeRegistriesRegistrar::CreateDatapackRegistry);
         datapack_registries = null;
-        mod_id = null;
     }
 }

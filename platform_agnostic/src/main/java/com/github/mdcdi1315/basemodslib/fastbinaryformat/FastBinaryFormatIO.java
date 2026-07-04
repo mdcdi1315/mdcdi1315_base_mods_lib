@@ -5,7 +5,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
-import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -33,6 +32,11 @@ public final class FastBinaryFormatIO
      * Always written and verified on every load operation.
      */
     public static final String HEADER = "FBF";
+    /**
+     * The length, in bytes, of the {@link #HEADER} constant.
+     * @since 1.0.35
+     */
+    public static final int HEADER_LENGTH = 3;
 
     /**
      * Loads a previously serialized object.
@@ -48,16 +52,15 @@ public final class FastBinaryFormatIO
         throws IOException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(stream, "stream");
-        try (PushbackWrappedInputStream s = new PushbackWrappedInputStream(stream, 1, false)) {
-            byte[] header = new byte[HEADER.length()];
-            int read = s.read(header);
-            if (read < header.length || !HEADER.equals(new String(header, 0, read, StandardCharsets.US_ASCII))) {
+        try (WrappedInputStream s = new WrappedInputStream(stream, false))
+        {
+            byte[] header = s.readNBytes(HEADER_LENGTH);
+            if (!HEADER.equals(new String(header, 0, HEADER_LENGTH, StandardCharsets.US_ASCII))) {
                 throw new IOException("Invalid FBF header");
             } else {
                 BinaryFormatEntryType t = BinaryFormatEntryType.ReadFrom(s);
                 BinaryFormatEntry entry = FastBinaryFormatUtils.ConstructEntryFromType(t);
-                s.Unread(t.GetEncodedValue());
-                entry.ReadFrom(s);
+                entry.ReadFrom(s, t);
                 return entry;
             }
         }

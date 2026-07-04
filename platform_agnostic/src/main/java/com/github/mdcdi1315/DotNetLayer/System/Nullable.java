@@ -1,11 +1,15 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.ClassIsDotNetStruct;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 /**
  * Represents a value type (i.e. {@link ValueType}) that can be assigned {@code null}.
  * @param <T> The underlying value type of the {@link Nullable} generic type.
  */
+@ClassIsDotNetStruct
 public final class Nullable<T extends ValueType> // Java: T extends ValueType C#: where T : struct
     extends ValueType
 {
@@ -29,6 +33,7 @@ public final class Nullable<T extends ValueType> // Java: T extends ValueType C#
     public Nullable(T value)
     {
         super();
+        ValidateNonNullStructure(value);
         this.value = value;
         hasValue = true;
     }
@@ -39,9 +44,7 @@ public final class Nullable<T extends ValueType> // Java: T extends ValueType C#
      */
     // [NonVersionable]
     // readonly
-    public boolean GetHasValue() {
-        return hasValue;
-    }
+    public boolean GetHasValue() { return hasValue; }
 
     /**
      * Gets the value of the current {@link Nullable} object if it has been assigned a valid underlying value.
@@ -50,6 +53,7 @@ public final class Nullable<T extends ValueType> // Java: T extends ValueType C#
      * @throws InvalidOperationException The {@link Nullable} is empty.
      */
     // readonly
+    @NotNull
     public T GetValue()
         throws InvalidOperationException
     {
@@ -68,9 +72,8 @@ public final class Nullable<T extends ValueType> // Java: T extends ValueType C#
      */
     // [NonVersionable]
     // readonly
-    public T GetValueOrDefault() {
-        return value;
-    }
+    @MaybeNull
+    public T GetValueOrDefault() { return value; }
 
     /**
      * Retrieves the value of the current {@link Nullable} object, or the specified default value.
@@ -80,9 +83,7 @@ public final class Nullable<T extends ValueType> // Java: T extends ValueType C#
     // [NonVersionable]
     // readonly
     @MaybeNull
-    public T GetValueOrDefault(@MaybeNull T defaultValue) {
-        return hasValue ? value : defaultValue;
-    }
+    public T GetValueOrDefault(@AllowNull T defaultValue) { return hasValue ? value : defaultValue; }
 
     /**
      * Indicates whether the current {@link Nullable} object is equal to a specified object.

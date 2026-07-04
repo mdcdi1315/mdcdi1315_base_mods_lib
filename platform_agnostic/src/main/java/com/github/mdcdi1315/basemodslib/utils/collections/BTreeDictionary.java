@@ -187,11 +187,9 @@ public class BTreeDictionary<TKey, TValue>
             } else if (arrayIndex + getCount() > array.length) {
                 throw new ArgumentException("The array does not have enough space to place all the elements of the current BTreeDictionary object.", "array");
             } else {
-                IEnumerator<TKey> e = GetEnumerator();
-                try {
+                try (IEnumerator<TKey> e = GetEnumerator())
+                {
                     for (int I = arrayIndex; e.MoveNext(); I++) { array[I] = e.getCurrent(); }
-                } finally {
-                    e.Dispose();
                 }
             }
         }
@@ -230,11 +228,9 @@ public class BTreeDictionary<TKey, TValue>
             } else if (arrayIndex + getCount() > array.length) {
                 throw new ArgumentException("The array does not have enough space to place all the elements of the current BTreeDictionary object.", "array");
             } else {
-                IEnumerator<TValue> e = GetEnumerator();
-                try {
+                try (IEnumerator<TValue> e = GetEnumerator())
+                {
                     for (int I = arrayIndex; e.MoveNext(); I++) { array[I] = e.getCurrent(); }
-                } finally {
-                    e.Dispose();
                 }
             }
         }
@@ -311,7 +307,7 @@ public class BTreeDictionary<TKey, TValue>
 
     /**
      * Constructs a new instance of the {@link BTreeDictionary} class,
-     * specifying 15 B-Trees and using the default equality comparer for comparing keys.
+     * specifying 10 B-Trees and using the default equality comparer for comparing keys.
      */
     @SuppressWarnings("unchecked")
     public BTreeDictionary()
@@ -459,9 +455,10 @@ public class BTreeDictionary<TKey, TValue>
             constructed.Parent = root; // Required so that our newly added node points to the correct parent
             root.RightChild = PutInBTree(constructed, root.RightChild);
         } else if (root instanceof DeletedBTreeNode<TK, TV> dn) {
-            // constructed.key == root.key will be true
+            // constructed.HashCode == root.HashCode will be true
             // Re-convert back to a node
             BTreeNode<TK, TV> ret = dn.ToNode();
+            ret.Key = constructed.Key;
             ret.Value = constructed.Value;
             // Return it.
             return ret;
@@ -517,9 +514,8 @@ public class BTreeDictionary<TKey, TValue>
     {
         IEqualityComparer<TValue> c = new JavaObjectEqualsEqualityComparer<>();
 
-        IEnumerator<KeyValuePair<TKey, TValue>> e = GetEnumerator();
-
-        try {
+        try (IEnumerator<KeyValuePair<TKey, TValue>> e = GetEnumerator())
+        {
             while (e.MoveNext())
             {
                 if (c.Equals(value, e.getCurrent().getValue()))
@@ -528,8 +524,6 @@ public class BTreeDictionary<TKey, TValue>
                 }
             }
             return false;
-        } finally {
-            e.Dispose();
         }
     }
 
@@ -647,11 +641,9 @@ public class BTreeDictionary<TKey, TValue>
         } else if (arrayIndex + count > array.length) {
             throw new ArgumentException("The array does not have enough space to place all the elements of the current BTreeDictionary object.", "array");
         } else {
-            Enumerator<TKey, TValue> e = new Enumerator<>(HashTable);
-            try {
+            try (Enumerator<TKey, TValue> e = new Enumerator<>(HashTable))
+            {
                 for (int I = arrayIndex; e.MoveNext(); I++) { array[I] = e.getCurrent(); }
-            } finally {
-                e.Dispose();
             }
         }
     }
@@ -665,8 +657,8 @@ public class BTreeDictionary<TKey, TValue>
         if (count == 0) {
             sb.append("<EMPTY>");
         } else {
-            var en = GetEnumerator();
-            try {
+            try (var en = GetEnumerator())
+            {
                 int cc = 0;
                 while (en.MoveNext())
                 {
@@ -675,8 +667,6 @@ public class BTreeDictionary<TKey, TValue>
                     sb.append('}');
                     if (++cc < count) { sb.append(", "); }
                 }
-            } finally {
-                en.Dispose();
             }
         }
         sb.append(" }");

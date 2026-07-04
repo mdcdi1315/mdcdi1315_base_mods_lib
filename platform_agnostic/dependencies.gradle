@@ -2,4 +2,5 @@ dependencies {
     compileOnly("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_api_version}") {
         exclude(group: "net.neoforged")
     }
+    annotationProcessor project(":annotation_processor")
 }

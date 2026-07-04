@@ -7,6 +7,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IReadOnlyList
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
+
 /**
  * Provides an {@link IList} implementation for Java arrays. <br />
  * Conventionally called as array view since the array is projected as a {@link IList} object. <br />
@@ -19,7 +21,11 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
  */
 public class ArrayView<T>
     extends BaseEnumerable<T>
-    implements IList<T>, IReadOnlyList<T>, ITraversableCollection<T>, ISupportsCloning<T>
+    implements IList<T>,
+        IReadOnlyList<T>,
+        ITraversableCollection<T>,
+        ISupportsCloning<T>,
+        ISynchronized // Because the array does not change it's size. It's elements may be mutated, but this is usage specific.
 {
     private final T[] array;
 
@@ -119,11 +125,12 @@ public class ArrayView<T>
 
     // Extensioned implementations
 
+    @SuppressWarnings({"SuspiciousSystemArraycopy", "unchecked"})
     private static <T> T[] CreateArray(T[] array, int index, int count)
     {
-        T[] target = (T[]) Array.CreateInstance(array.getClass().componentType(), count);
+        Object target = Array.CreateInstance(array.getClass().componentType(), count);
         System.arraycopy(array, index, target, 0, count);
-        return target;
+        return (T[])target;
     }
 
     /**

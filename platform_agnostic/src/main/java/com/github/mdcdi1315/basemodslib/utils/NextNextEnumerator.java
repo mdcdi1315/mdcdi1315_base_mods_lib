@@ -1,18 +1,21 @@
 package com.github.mdcdi1315.basemodslib.utils;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+
+import com.github.mdcdi1315.basemodslib.utils.collections.BaseWrappedEnumerator;
 
 /**
  * A wrapping implementation around the {@link IEnumerator} interface to find out while running in a loop whether a next element does exist from the underlying enumerator.
  * @param <T> The type of the elements to be enumerated.
  */
+@SuppressWarnings("resource")
 public class NextNextEnumerator<T>
-    implements IEnumerator<T>
+    extends BaseWrappedEnumerator<T>
 {
     private T current, next;
     private boolean hasnextnext;
-    private final IEnumerator<T> enumerator;
 
     /**
      * Initializes a new instance of the {@link NextNextEnumerator} class by wrapping the specified {@link IEnumerator} implementation.
@@ -22,10 +25,9 @@ public class NextNextEnumerator<T>
     public NextNextEnumerator(IEnumerator<T> enumerator)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(enumerator);
-        this.enumerator = enumerator;
-        current = next = null;
+        super(enumerator);
         hasnextnext = false;
+        current = next = null;
     }
 
     /**
@@ -38,8 +40,9 @@ public class NextNextEnumerator<T>
     public final T getCurrent() { return current; }
 
     @Override
-    public final boolean MoveNext()
+    protected final boolean MoveNextImpl()
     {
+        IEnumerator<T> enumerator = GetWrapped();
         if (hasnextnext) {
             current = next;
             next = (hasnextnext = enumerator.MoveNext()) ? enumerator.getCurrent() : null;
@@ -54,17 +57,11 @@ public class NextNextEnumerator<T>
     }
 
     @Override
-    public final void Reset()
+    protected final void ResetImpl()
     {
-        enumerator.Reset();
+        GetWrapped().Reset();
         hasnextnext = false;
         current = next = null;
     }
-
-    /**
-     * Disposes this {@link NextNextEnumerator} instance.
-     */
-    @Override
-    public void Dispose() { enumerator.Dispose(); }
 }
 
