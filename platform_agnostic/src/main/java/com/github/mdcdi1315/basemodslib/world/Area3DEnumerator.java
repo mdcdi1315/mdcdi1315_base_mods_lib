@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.world;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
@@ -15,10 +14,12 @@ import net.minecraft.core.BlockPos;
 /**
  * An improved version of the Minecraft's Cursor3D class. <br />
  * It implements the {@link com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator} interface. <br />
- * @implNote This class solves these issues that the Cursor3D currently has (as of 1.21.1): <br />
- * 1. It fails to process large areas. If {@code width * height * depth} overflows {@link Integer#MAX_VALUE}, the entire area won't be enumerated. <br />
- * 2. It does not produce directly {@link BlockPos} instances, you have to create them yourself. <br />
- * 3. It does not implement any iterator/iterable interface.
+ * @implNote This class solves these issues that the Cursor3D currently has (as of 1.21.1):
+ * <ol>
+ *     <li>It fails to process large areas. If {@code width * height * depth} overflows {@link Integer#MAX_VALUE}, the entire area won't be enumerated.</li>
+ *     <li>It does not produce directly {@link BlockPos} instances, you have to create them yourself.</li>
+ *     <li>It does not implement any iterator/iterable interface.</li>
+ * </ol>
  * @since 1.0.34
  */
 public final class Area3DEnumerator
@@ -196,6 +197,7 @@ public final class Area3DEnumerator
         CORNER
     }
 
+    @Pure
     private void InitCursor()
     {
         this.x = origin_x - 1;
@@ -302,12 +304,13 @@ public final class Area3DEnumerator
     @Override
     public BlockPos getCurrent() { return new BlockPos(x, y, z); }
 
+    @Pure
     @Override
-    protected void ResetImpl() throws InvalidOperationException { InitCursor(); }
+    protected void ResetImpl() { InitCursor(); }
 
+    @Pure
     @Override
     protected boolean MoveNextImpl()
-            throws InvalidOperationException
     {
         if (++x <= end_x && x >= origin_x) {
             return true;

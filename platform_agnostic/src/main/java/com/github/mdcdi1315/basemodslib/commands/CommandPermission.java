@@ -1,10 +1,9 @@
 package com.github.mdcdi1315.basemodslib.commands;
 
+import com.github.mdcdi1315.DotNetLayer.System.Predicate;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
 import net.minecraft.commands.CommandSourceStack;
-
-import java.util.function.Predicate;
 
 /**
  * Defines the base class for command permissions. <br />
@@ -21,7 +20,8 @@ public abstract class CommandPermission
     protected abstract boolean IsSatisfied(@DisallowNull CommandSourceStack stack);
 
     @Override
-    public final boolean test(CommandSourceStack commandSourceStack) {
-        return IsSatisfied(commandSourceStack);
-    }
+    public final boolean test(CommandSourceStack stack) { return IsSatisfied(stack); }
+
+    @Override
+    public final boolean predicate(CommandSourceStack stack) { return IsSatisfied(stack); }
 }

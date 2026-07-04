@@ -4,10 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import com.github.mdcdi1315.basemodslib.utils.io.StringIO;
-import com.github.mdcdi1315.basemodslib.utils.io.SevenBitEncodedInt;
-import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
-import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
+import com.github.mdcdi1315.basemodslib.utils.io.*;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -38,13 +35,12 @@ public abstract class BaseStringBinaryFormatEntry
     }
 
     @Override
-    public final void ReadFrom(PushbackWrappedInputStream stream)
+    public final void ReadFrom(WrappedInputStream stream, BinaryFormatEntryType type)
             throws IOException
     {
-        BinaryFormatEntryType t = BinaryFormatEntryType.ReadFrom(stream);
-        if (t.GetEntryCode() != GetType().GetEntryCode()) {
+        if (type.GetEntryCode() != GetType().GetEntryCode()) {
             throw new IOException("Expected STRING");
-        } else if (t.GetStringEncoding() != GetType().GetStringEncoding()) {
+        } else if (type.GetStringEncoding() != GetType().GetStringEncoding()) {
             throw new IOException(StringUtils.Format("Not a {0} string entry", GetType().GetStringEncoding()));
         } else {
             int bytes = SevenBitEncodedInt.Read(stream);

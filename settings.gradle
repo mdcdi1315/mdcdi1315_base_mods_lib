@@ -44,4 +44,4 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
 
-include('platform_agnostic', 'forge', 'neoforge', 'fabric', 'forge_bml_lang_provider', 'neoforge_bml_lang_provider')
+include('platform_agnostic', 'forge', 'neoforge', 'fabric', 'forge_bml_lang_provider', 'neoforge_bml_lang_provider', 'annotation_processor')

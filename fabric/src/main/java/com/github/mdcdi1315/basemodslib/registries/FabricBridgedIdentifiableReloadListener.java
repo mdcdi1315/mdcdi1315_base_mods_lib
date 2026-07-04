@@ -9,17 +9,16 @@ import net.minecraft.server.packs.resources.PreparableReloadListener;
 import java.util.concurrent.Executor;
 import java.util.concurrent.CompletableFuture;
 
+@SuppressWarnings("NullableProblems")
 public record FabricBridgedIdentifiableReloadListener(ResourceLocation location, PreparableReloadListener wrapped)
     implements IdentifiableResourceReloadListener
 {
     @Override
+    public String getName() { return location.toString(); }
+
+    @Override
     public ResourceLocation getFabricId() { return location; }
 
     @Override
-    public CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor backgroundExecutor, Executor gameExecutor) {
-        return wrapped.reload(barrier, manager, backgroundExecutor, gameExecutor);
-    }
-
-    @Override
-    public String getName() { return location.toString(); }
+    public CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager manager, Executor be, Executor ge) { return wrapped.reload(barrier, manager, be, ge); }
 }

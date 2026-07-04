@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.ByRefParameterType;
 import com.github.mdcdi1315.DotNetLayer.DotNetByRefParameter;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.MethodImpl;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.MethodImplOptions;
@@ -46,6 +47,23 @@ public final class StringUtils
     {
         // value == Empty: We want reference check instead.
         return value == null || value == Empty || value.isBlank();
+    }
+
+    /**
+     * Retrieves an object that can iterate through the individual characters in this string.
+     * @param value The string instance.
+     * @return An enumerator object.
+     * @throws NullPointerException {@code value} is {@code null}.
+     */
+    @NotNull
+    public static CharEnumerator GetEnumerator(String value)
+            throws NullPointerException
+    {
+        if (value == null) {
+            throw new NullPointerException();
+        } else {
+            return new CharEnumerator(value);
+        }
     }
 
     /**

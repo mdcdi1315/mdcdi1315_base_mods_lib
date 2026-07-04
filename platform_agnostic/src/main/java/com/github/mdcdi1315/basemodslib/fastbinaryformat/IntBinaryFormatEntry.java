@@ -1,7 +1,7 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
-import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import java.io.*;
 
@@ -24,10 +24,10 @@ public final class IntBinaryFormatEntry
     }
 
     @Override
-    public void ReadFrom(PushbackWrappedInputStream stream)
+    public void ReadFrom(WrappedInputStream stream, BinaryFormatEntryType type)
             throws IOException
     {
-        if (BinaryFormatEntryType.ReadFrom(stream) != BinaryFormatEntryType.INT) {
+        if (type != BinaryFormatEntryType.INT) {
             throw new IOException("Expected INT");
         } else {
             value = stream.ReadIntegerLE();

@@ -20,7 +20,8 @@ public final class NeoForgeClientRegistriesRegistrar
     private String mod_id;
     private SingleLinkedListBasedRegister<Pair<ResourceLocation, PreparableReloadListener>> client_resource_reload_listeners;
 
-    public NeoForgeClientRegistriesRegistrar(String mod_id) {
+    public NeoForgeClientRegistriesRegistrar(String mod_id)
+    {
         this.mod_id = mod_id;
         client_resource_reload_listeners = new SingleLinkedListBasedRegister<>();
     }
@@ -29,7 +30,6 @@ public final class NeoForgeClientRegistriesRegistrar
     public void RegisterResourceReloadListener(String name, PreparableReloadListener preparable_reload_listener)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
         client_resource_reload_listeners.Register(new Pair<>(RegistryUtils.ConstructResourceLocation(mod_id, name), preparable_reload_listener));
     }

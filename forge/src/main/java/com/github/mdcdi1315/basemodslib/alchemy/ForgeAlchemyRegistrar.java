@@ -28,7 +28,9 @@ public final class ForgeAlchemyRegistrar
     public <T extends ParticleOptions> void RegisterParticleType(String name, ParticleTypeRegistrationInfo<T> info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         PARTICLE_TYPE_REGISTER.register(name , info.particle_type_getter());
     }
 
@@ -36,7 +38,9 @@ public final class ForgeAlchemyRegistrar
     public void RegisterPotion(String name, PotionRegistrationInfo info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         POTION_REGISTER.register(name, info.potion_getter());
     }
 

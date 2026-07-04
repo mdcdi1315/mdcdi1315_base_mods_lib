@@ -1,7 +1,5 @@
 package com.github.mdcdi1315.basemodslib.utils.function;
 
-import com.github.mdcdi1315.DotNetLayer.System.Action1;
-
 import java.util.function.IntConsumer;
 
 /**
@@ -10,7 +8,7 @@ import java.util.function.IntConsumer;
  */
 @FunctionalInterface
 public interface PrimitiveIntegerAction
-    extends Action1<Integer>, IntConsumer
+    extends PrimitiveNumericAction<Integer>, IntConsumer
 {
     /**
      * Provides the method that should be implemented by all derivants of this interface.

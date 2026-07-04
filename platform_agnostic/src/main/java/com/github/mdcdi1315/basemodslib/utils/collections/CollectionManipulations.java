@@ -7,12 +7,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
-import com.github.mdcdi1315.basemodslib.utils.collections.helpers.*;
+import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerator;
 import com.github.mdcdi1315.basemodslib.utils.function.BiPredicate;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.*;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
 import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
-
-import java.util.Collection;
+import com.github.mdcdi1315.basemodslib.utils.collections.projections.IIntEnumerable;
+import com.github.mdcdi1315.basemodslib.utils.collections.projections.ILongEnumerable;
 
 /**
  * Provides utility and generalization methods around the {@link IEnumerable} type. <br />
@@ -28,15 +29,15 @@ public final class CollectionManipulations
     /**
      * Efficiently converts an {@link ICollection} instance to a
      * <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/doc-files/coll-index.html">Java Collections Framework</a>
-     * {@link Collection} instance.
+     * {@link java.util.Collection} instance.
      * @param collection The {@link ICollection} instance to convert.
-     * @return The converted instance represented as a {@link Collection} instance.
-     *         The only method that is not supported by the returned wrapper is the {@link Collection#retainAll(Collection)} method.
+     * @return The converted instance represented as a {@link java.util.Collection} instance.
+     *         The only method that is not supported by the returned wrapper is the {@link java.util.Collection#retainAll} method.
      * @param <T> The type of the elements of {@code collection}.
      * @throws ArgumentNullException {@code collection} is {@code null}.
      */
     @NotNull
-    public static <T> Collection<T> AsJavaCollection(ICollection<T> collection)
+    public static <T> java.util.Collection<T> AsJavaCollection(ICollection<T> collection)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(collection, "collection");
@@ -78,7 +79,7 @@ public final class CollectionManipulations
 
     /**
      * Efficiently converts a <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/doc-files/coll-index.html">Java Collections Framework</a>
-     * {@link Collection} instance to an {@link ICollection} instance.
+     * {@link java.util.Collection} instance to an {@link ICollection} instance.
      * @param collection The Java collection instance to be converted.
      * @return The converted instance represented as an {@link ICollection} instance.
      * @param <T> The type of the elements of {@code collection}.
@@ -86,7 +87,7 @@ public final class CollectionManipulations
      * @since 1.0.34
      */
     @NotNull
-    public static <T> ICollection<T> AsCollection(Collection<T> collection)
+    public static <T> ICollection<T> AsCollection(java.util.Collection<T> collection)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(collection, "collection");
@@ -119,7 +120,7 @@ public final class CollectionManipulations
      * @throws ArgumentNullException {@code queue} is {@code null}.
      * @since 1.0.34
      * @apiNote Due to the fact that the {@link java.util.Queue} interface extends from the
-     * {@link Collection} interface, the returned object does also implement the {@link ICollection} interface.
+     * {@link java.util.Collection} interface, the returned object does also implement the {@link ICollection} interface.
      */
     @NotNull
     public static <T> IQueue<T> AsQueue(java.util.Queue<T> queue)
@@ -127,6 +128,60 @@ public final class CollectionManipulations
     {
         ArgumentNullException.ThrowIfNull(queue, "queue");
         return new WrappedIQueueFromJavaQueue<>(queue);
+    }
+
+    /**
+     * Translates a given {@link KeyValuePair} instance to a read-only {@link java.util.Map.Entry} instance.
+     * @param pair The {@link KeyValuePair} to translate.
+     * @return The translated {@link java.util.Map.Entry} value of {@code pair}.
+     * @param <TKey> The type of the key of the input key-value pair.
+     * @param <TValue> The type of the value of the input key-value pair.
+     * @since 1.0.35
+     */
+    @NotNull
+    public static <TKey, TValue> java.util.Map.Entry<TKey, TValue> AsMapEntry(KeyValuePair<TKey, TValue> pair) { return new KVPToMapEntry<>(pair); }
+
+    /**
+     * Translates a given {@link java.util.Map.Entry} to a new {@link KeyValuePair} instance.
+     * @param map_entry The {@link java.util.Map.Entry} to translate.
+     * @return The translated {@link KeyValuePair} value of {@code map_entry}.
+     * @param <TKey> The type of the key of the input key-value pair.
+     * @param <TValue> The type of the value of the input key-value pair.
+     * @since 1.0.35
+     * @throws ArgumentNullException {@code map_entry} is {@code null}.
+     */
+    @NotNull
+    @SuppressWarnings("DeconstructionCanBeUsed")
+    public static <TKey, TValue> KeyValuePair<TKey, TValue> AsKeyValuePair(java.util.Map.Entry<TKey, TValue> map_entry)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(map_entry, "map_entry");
+        if (map_entry instanceof KVPToMapEntry<TKey, TValue> e) {
+            return e.pair();
+        } else {
+            return new KeyValuePair<>(map_entry.getKey(), map_entry.getValue());
+        }
+    }
+
+    /**
+     * Gets the enumerator instance of the specified {@link IEnumerable} object safely,
+     * even if the enumerable object is {@code null}, or if even it's dedicated {@link IEnumerable#GetEnumerator()} method returns {@code null}.
+     * @param enumerable The enumerable object to retrieve an enumerator for it.
+     * @return A new and unknown instance of the {@link IEnumerator} interface.
+     * @param <T> The type of objects to be returned through the enumerator.
+     * @apiNote This method does always return a non-null value, which must be disposed, even if {@code enumerable} is {@code null}.
+     * @since 1.0.35
+     */
+    @NotNull
+    @SuppressWarnings("resource")
+    public static <T> IEnumerator<T> GetEnumeratorSafe(@AllowNull IEnumerable<T> enumerable)
+    {
+        if (enumerable == null) {
+            return new EmptyEnumerator<>();
+        } else {
+            IEnumerator<T> e = enumerable.GetEnumerator();
+            return (e == null) ? new EmptyEnumerator<>() : e;
+        }
     }
 
     /**
@@ -191,6 +246,23 @@ public final class CollectionManipulations
         ArgumentNullException.ThrowIfNull(first, "first");
         ArgumentNullException.ThrowIfNull(second, "second");
         return new ConcatenatingEnumerable<>(first, second);
+    }
+
+    /**
+     * Concatenates a multiple of sequences.
+     * @param enumerables The sequences to concatenate.
+     * @return An {@link IEnumerable} that contains the concatenated elements of the input sequences.
+     * @param <T> The base type of the elements of the input sequences.
+     * @throws ArgumentNullException {@code enumerables} is {@code null}.
+     * @since 1.0.35
+     */
+    @NotNull
+    @SafeVarargs
+    public static <T> IEnumerable<T> Concat(IEnumerable<? extends T>... enumerables)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(enumerables, "enumerables");
+        return new MultipleConcatenatingEnumerablesEnumerable<>(enumerables);
     }
 
     /**
@@ -291,13 +363,12 @@ public final class CollectionManipulations
 
         if (list_inst instanceof IArrayBasedCollection ac && enumerable instanceof ITraversableCollection<T> t) { ac.EnsureCapacity(t.GetCount()); }
 
-        IEnumerator<T> enumerator = enumerable.GetEnumerator();
-        try {
-            while (enumerator.MoveNext()) {
+        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        {
+            while (enumerator.MoveNext())
+            {
                 list_inst.Add(enumerator.getCurrent());
             }
-        } finally {
-            enumerator.Dispose();
         }
 
         return list_inst;
@@ -309,9 +380,13 @@ public final class CollectionManipulations
      * @param count The number of sequential integers to generate.
      * @return An {@link IEnumerable} that contains a range of sequential integral numbers.
      * @throws ArgumentOutOfRangeException {@code count} is less than 0.
+     * @apiNote Since 1.0.35, this method returns an instance of the {@link IIntEnumerable} interface,
+     * better suited for primitive accessing and operations, and it's enumerator instances are able
+     * to return the unboxed type directly. This might be ABI incompatible for mods compiled against
+     * older versions of the library, but was done to avoid future breakage.
      */
     @NotNull
-    public static IEnumerable<Integer> Range(int start, int count)
+    public static IIntEnumerable Range(int start, int count)
         throws ArgumentOutOfRangeException
     {
         if (count < 0) {
@@ -320,6 +395,27 @@ public final class CollectionManipulations
             throw new ArgumentOutOfRangeException("count", "count + start - 1 is larger than 2147483647.");
         } else {
             return new RangeEnumerable(start, count);
+        }
+    }
+
+    /**
+     * Generates a sequence of integral numbers within a specified range.
+     * @param start The value of the first integer in the sequence.
+     * @param count The number of sequential integers to generate.
+     * @return An {@link IEnumerable} that contains a range of sequential integral numbers.
+     * @throws ArgumentOutOfRangeException {@code count} is less than 0.
+     * @since 1.0.35
+     */
+    @NotNull
+    public static ILongEnumerable LongRange(long start, long count)
+        throws ArgumentOutOfRangeException
+    {
+        if (count < 0L) {
+            throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
+        } else if (start + count < 0L) {
+            throw new ArgumentOutOfRangeException("count", "count + start - 1 is larger than 2147483647.");
+        } else {
+            return new LongRangeEnumerable(start, count);
         }
     }
 
@@ -360,12 +456,7 @@ public final class CollectionManipulations
         } else if (enumerable instanceof ICollection<T> c) {
             return c.getCount() == 0;
         } else {
-            IEnumerator<T> en = enumerable.GetEnumerator();
-            try {
-                return !en.MoveNext();
-            } finally {
-                en.Dispose();
-            }
+            try (IEnumerator<T> enumerator = enumerable.GetEnumerator()) { return !enumerator.MoveNext(); }
         }
     }
 
@@ -390,12 +481,7 @@ public final class CollectionManipulations
         } else if (enumerable instanceof ICollection<T> c) {
             return c.getCount() > 0;
         } else {
-            IEnumerator<T> en = enumerable.GetEnumerator();
-            try {
-                return en.MoveNext();
-            } finally {
-                en.Dispose();
-            }
+            try (IEnumerator<T> enumerator = enumerable.GetEnumerator()) { return enumerator.MoveNext(); }
         }
     }
 
@@ -419,14 +505,12 @@ public final class CollectionManipulations
         } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
             return false;
         } else {
-            IEnumerator<T> enumerator = enumerable.GetEnumerator();
-
-            try {
-                while (enumerator.MoveNext()) {
+            try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
                     if (predicate.predicate(enumerator.getCurrent())) { return true; }
                 }
-            } finally {
-                enumerator.Dispose();
             }
 
             return false;
@@ -450,15 +534,13 @@ public final class CollectionManipulations
             comparer = new JavaObjectEqualsEqualityComparer<>();
         }
 
-        IEnumerator<T> enumerator = enumerable.GetEnumerator();
-
-        try {
-            while (enumerator.MoveNext()) {
+        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        {
+            while (enumerator.MoveNext())
+            {
                 if (comparer.Equals(enumerator.getCurrent(), value)) { return true; }
             }
             return false;
-        } finally {
-            enumerator.Dispose();
         }
     }
 
@@ -484,11 +566,12 @@ public final class CollectionManipulations
     {
         ArgumentNullException.ThrowIfNull(action, "action");
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
-        IEnumerator<T> enumerator = enumerable.GetEnumerator();
-        try {
-            while (enumerator.MoveNext()) { action.action(enumerator.getCurrent()); }
-        } finally {
-            enumerator.Dispose();
+        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        {
+            while (enumerator.MoveNext())
+            {
+                action.action(enumerator.getCurrent());
+            }
         }
     }
 
@@ -513,12 +596,12 @@ public final class CollectionManipulations
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
         ArgumentNullException.ThrowIfNull(result_func, "result_func");
 
-        IEnumerator<T> enumerator = enumerable.GetEnumerator();
-
-        try {
-            while (enumerator.MoveNext()) { seed = func.function(seed, enumerator.getCurrent()); }
-        } finally {
-            enumerator.Dispose();
+        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        {
+            while (enumerator.MoveNext())
+            {
+                seed = func.function(seed, enumerator.getCurrent());
+            }
         }
 
         return result_func.function(seed);
@@ -543,17 +626,14 @@ public final class CollectionManipulations
         } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
             return false;
         } else {
-            IEnumerator<T> enumerator = enumerable.GetEnumerator();
-
-            try {
-                while (enumerator.MoveNext()) {
+            try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
                     if (!predicate.predicate(enumerator.getCurrent())) { return false; }
                 }
-            } finally {
-                enumerator.Dispose();
+                return true;
             }
-
-            return true;
         }
     }
 

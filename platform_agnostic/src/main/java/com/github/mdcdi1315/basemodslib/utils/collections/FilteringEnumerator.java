@@ -14,6 +14,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
  * -&gt; Do the above until all elements are processed.
  * @since 1.0.26
  */
+@SuppressWarnings("resource")
 public final class FilteringEnumerator<T>
     extends BaseWrappedEnumerator<T>
 {

@@ -1,6 +1,9 @@
 package com.github.mdcdi1315.DotNetLayer.System.Collections.Generic;
 
+import com.github.mdcdi1315.DotNetLayer.ClassIsDotNetStruct;
+
 import com.github.mdcdi1315.DotNetLayer.System.*;
+
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
@@ -20,8 +23,10 @@ public class List<T>
     /**
      * Enumerates the elements of a {@link List}.
      */
-    public final class Enumerator
-            implements IEnumerator<T>
+    @ClassIsDotNetStruct
+    public static final class Enumerator<T>
+        extends ValueType
+        implements IEnumerator<T>
     {
         private final List<T> _list;
         private int _index;
@@ -170,15 +175,9 @@ public class List<T>
             }
         } else {
             _items = CreateArrayOfSize(10);
-            IEnumerator<T> en = collection.GetEnumerator();
-            try
+            try (IEnumerator<T> en = collection.GetEnumerator())
             {
-                while (en.MoveNext())
-                {
-                    Add(en.getCurrent());
-                }
-            } finally {
-                en.Dispose();
+                while (en.MoveNext()) { Add(en.getCurrent()); }
             }
         }
     }
@@ -366,14 +365,9 @@ public class List<T>
                 _version++;
             }
         } else {
-            IEnumerator<T> en = collection.GetEnumerator();
-            try {
-                while (en.MoveNext())
-                {
-                    Add(en.getCurrent());
-                }
-            } finally {
-                en.Dispose();
+            try (IEnumerator<T> en = collection.GetEnumerator())
+            {
+                while (en.MoveNext()) { Add(en.getCurrent()); }
             }
         }
     }
@@ -799,7 +793,7 @@ public class List<T>
     }
 
     @Override
-    public Enumerator GetEnumerator() { return new Enumerator(this); }
+    public Enumerator<T> GetEnumerator() { return new Enumerator<>(this); }
 
     // Sets the capacity of this list to the size of the list. This method can
     // be used to minimize a list's memory overhead once it is known that no

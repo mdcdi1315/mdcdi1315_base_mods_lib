@@ -2,7 +2,7 @@ package com.github.mdcdi1315.basemodslib.utils.weight;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 
-import com.github.mdcdi1315.basemodslib.utils.StringSupplier;
+import com.github.mdcdi1315.basemodslib.codecs.CodecUtils;
 import com.github.mdcdi1315.basemodslib.codecs.PrimitiveCodec;
 
 import com.mojang.serialization.Codec;
@@ -40,36 +40,25 @@ public final class Weight
     private static final class InternalCodec
             extends PrimitiveCodec<Weight>
     {
-        private static DataResult<Weight> ErrorMapper(DataResult.Error<Number> pr) {
-            return DataResult.error(pr::message);
-        }
-
         private static DataResult<Weight> ValidateAndReturn(Number n)
         {
             int decoded = n.intValue();
             return (decoded < 0) ?
-                    DataResult.error(
-                            StringSupplier.FromFormatted("Weight must be more than or equal to zero.\nActual value: %d" , decoded)
-                    ) :
-                    DataResult.success(
-                            (decoded == 0) ? Weight.ZERO : ((decoded == 1) ? Weight.ONE : new Weight(decoded))
-                    );
+                    CodecUtils.CreateJavaFormattedErrorDataResult("Weight must be more than or equal to zero.\nActual value: %d" , decoded) :
+                    DataResult.success((decoded == 0) ? Weight.ZERO : ((decoded == 1) ? Weight.ONE : new Weight(decoded)));
         }
 
         @Override
-        @SuppressWarnings("all")
-        protected <T> DataResult<Weight> Read(DynamicOps<T> ops, T input) {
+        @SuppressWarnings({"OptionalIsPresent", "OptionalGetWithoutIsPresent"})
+        protected <T> DataResult<Weight> Read(DynamicOps<T> ops, T input)
+        {
             DataResult<Number> n = ops.getNumberValue(input);
             var e = n.error();
-            return e.<DataResult<Weight>>
-                            map(InternalCodec::ErrorMapper)
-                    .orElse(ValidateAndReturn(n.result().get())); // Either we will have an error or a result, not both
+            return e.isPresent() ? DataResult.error(e.get().messageSupplier()) : ValidateAndReturn(n.result().get());
         }
 
         @Override
-        protected <T> T Write(DynamicOps<T> ops, Weight value) {
-            return ops.createNumeric(value.Value);
-        }
+        protected <T> T Write(DynamicOps<T> ops, Weight value) { return ops.createNumeric(value.Value); }
     }
 
     /**

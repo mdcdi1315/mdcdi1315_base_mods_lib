@@ -45,15 +45,14 @@ public final class ObjectBinaryFormatEntry
     }
 
     @Override
-    public void ReadFrom(PushbackWrappedInputStream stream)
+    public void ReadFrom(WrappedInputStream stream, BinaryFormatEntryType type)
             throws IOException
     {
-        var e = BinaryFormatEntryType.ReadFrom(stream);
-        if (e.GetEntryCode() != BinaryFormatEntryType.OBJECT_ENTRY_CODE) {
+        if (type.GetEntryCode() != BinaryFormatEntryType.OBJECT_ENTRY_CODE) {
             throw new IOException("Expected OBJECT");
         } else {
             BinaryFormatEntry entry;
-            int elements = e.GetEntryData();
+            int elements = type.GetEntryData();
             if (elements > 14) { elements = SevenBitEncodedInt.Read(stream); }
             fields.clear();
             int field_name_size;
@@ -62,10 +61,9 @@ public final class ObjectBinaryFormatEntry
             {
                 FastBinaryFormatUtils.ThrowEOFIf((field_name_size = stream.read()) == -1);
                 field_name = StringIO.ReadString(stream, StandardCharsets.US_ASCII.newDecoder(), field_name_size);
-                e = BinaryFormatEntryType.ReadFrom(stream);
+                var e = BinaryFormatEntryType.ReadFrom(stream);
                 entry = FastBinaryFormatUtils.ConstructEntryFromType(e);
-                stream.Unread(e.GetEncodedValue());
-                entry.ReadFrom(stream);
+                entry.ReadFrom(stream, e);
                 fields.put(field_name, entry);
             }
         }
@@ -232,7 +230,7 @@ public final class ObjectBinaryFormatEntry
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(field_name, "field_name");
-        return fields.put(field_name, new BooleanBinaryFormatEntry(value));
+        return fields.put(field_name, value ? BooleanBinaryFormatEntry.TRUE : BooleanBinaryFormatEntry.FALSE);
     }
 
     @MaybeNull
@@ -314,6 +312,7 @@ public final class ObjectBinaryFormatEntry
 
     public int GetFieldCount() { return fields.size(); }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ObjectBinaryFormatEntry clone() { return new ObjectBinaryFormatEntry(new HashMap<>(fields)); }
 
     public Stream<Map.Entry<String, BinaryFormatEntry>> AsStream() { return fields.entrySet().stream(); }

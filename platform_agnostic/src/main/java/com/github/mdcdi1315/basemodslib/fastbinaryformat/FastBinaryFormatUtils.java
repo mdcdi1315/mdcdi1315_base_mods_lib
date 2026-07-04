@@ -5,10 +5,10 @@ import com.github.mdcdi1315.DotNetLayer.System.FormatException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
+import com.github.mdcdi1315.basemodslib.utils.io.StreamUtils;
 import com.github.mdcdi1315.basemodslib.utils.io.SevenBitEncodedInt;
 
 import java.io.*;
-import java.nio.ByteOrder;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -30,17 +30,7 @@ final class FastBinaryFormatUtils
         ByteBuffer bb = set.encode(string);
         bb.position(0);
         SevenBitEncodedInt.Write(stream, bb.remaining());
-        byte[] temp = new byte[1024];
-        int rem;
-        while ((rem = bb.remaining()) > 1024) {
-            bb.get(temp);
-            stream.write(temp);
-        }
-        if (rem > 0) {
-            temp = new byte[rem];
-            bb.get(temp);
-            stream.write(temp, 0, rem);
-        }
+        StreamUtils.WriteBuffer(stream, bb);
     }
 
     public static void WriteFieldNameString(OutputStream stream, String string)
@@ -52,33 +42,8 @@ final class FastBinaryFormatUtils
             throw new IOException("Too many bytes of what should have been a field name. Maximum allowed value is 255.");
         } else {
             stream.write(bb.remaining());
-            byte[] temp = new byte[1024];
-            int rem;
-            while ((rem = bb.remaining()) > 1024) {
-                bb.get(temp);
-                stream.write(temp);
-            }
-            if (rem > 0) {
-                temp = new byte[rem];
-                bb.get(temp);
-                stream.write(temp, 0, rem);
-            }
+            StreamUtils.WriteBuffer(stream, bb);
         }
-    }
-
-    @NotNull
-    public static ByteBuffer ReadBytes(InputStream stream, int n_bytes_to_read)
-            throws IOException
-    {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[n_bytes_to_read]);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        int read = 0, r;
-        do {
-            ThrowEOFIf((r = stream.read(bb.array(), read, n_bytes_to_read - read)) == -1);
-            read += r;
-        } while (read < n_bytes_to_read);
-        bb.rewind();
-        return bb;
     }
 
     @NotNull
@@ -95,7 +60,7 @@ final class FastBinaryFormatUtils
             case BinaryFormatEntryType.LONG_ENTRY_CODE -> new LongBinaryFormatEntry(0L);
             case BinaryFormatEntryType.FLOAT_ENTRY_CODE -> new FloatBinaryFormatEntry(0F);
             case BinaryFormatEntryType.DOUBLE_ENTRY_CODE -> new DoubleBinaryFormatEntry(0D);
-            case BinaryFormatEntryType.BOOLEAN_ENTRY_CODE -> new BooleanBinaryFormatEntry(false);
+            case BinaryFormatEntryType.BOOLEAN_ENTRY_CODE -> type == BinaryFormatEntryType.BOOLEAN_FALSE ? BooleanBinaryFormatEntry.FALSE : BooleanBinaryFormatEntry.TRUE;
             case BinaryFormatEntryType.SEVEN_BIT_ENCODED_INT_ENTRY_CODE -> new SevenBitEncodedIntBinaryFormatEntry(0);
             case BinaryFormatEntryType.STRING_ENTRY_CODE -> CreateStringEntry(type.GetStringEncoding());
             case BinaryFormatEntryType.FIXED_ARRAY_ENTRY_CODE -> CreateFixedArrayEntry(type.GetEntryData());

@@ -14,7 +14,6 @@
 
 	"mdcdi1315_base_mods_lib.cmds.completed_sucessfully": "Command was completed successfully.",
 	"mdcdi1315_base_mods_lib.cmds.requires_player_context": "This command requires a player context.",
-	"mdcdi1315_base_mods_lib.devcmds.describe_held_item_file_format_arg.invalid_value": "This value does not belong to the DescribeHeldItemFileFormat enumeration: %s. Supported values: JSON, NBT, NBT_COMPRESSED.",
 
 	"mdcdi1315_base_mods_lib.devcmds.update_structure_template.warn_dest_file_exists": "The specified destination path does exist. Note that the file will be overwritten.",
 	"mdcdi1315_base_mods_lib.devcmds.update_structure_template.update_failure": "Cannot update the specified NBT file as a structure template. See server error log for more information.",

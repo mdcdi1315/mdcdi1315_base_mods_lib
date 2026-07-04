@@ -1,7 +1,5 @@
 package com.github.mdcdi1315.basemodslib.utils.function;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
-
 import java.util.function.LongFunction;
 
 /**
@@ -11,16 +9,19 @@ import java.util.function.LongFunction;
  */
 @FunctionalInterface
 public interface PrimitiveLongFunction<TR>
-    extends Func2<Long, TR>, LongFunction<TR>
+    extends PrimitiveNumericFunction<Long, TR>, LongFunction<TR>
 {
     TR function(long value);
-
-    @Override
-    default TR apply(Long t) { return function(t); }
 
     @Override
     default TR apply(long value) { return function(value); }
 
     @Override
-    default TR function(Long input) { return function(input.longValue()); }
+    default TR apply(Long value) { return function(value.longValue()); }
+
+    @Override
+    default TR convert(Long value) { return function(value.longValue()); }
+
+    @Override
+    default TR function(Long value) { return function(value.longValue()); }
 }

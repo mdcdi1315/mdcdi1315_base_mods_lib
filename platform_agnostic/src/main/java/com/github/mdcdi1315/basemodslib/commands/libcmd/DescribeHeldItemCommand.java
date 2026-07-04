@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.commands.libcmd;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.world.NBTUtils;
+import com.github.mdcdi1315.basemodslib.commands.EnumArgument;
 import com.github.mdcdi1315.basemodslib.commands.AbstractCommand;
 import com.github.mdcdi1315.basemodslib.utils.ChatComponentSupplier;
 
@@ -13,7 +14,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.DataResult;
@@ -39,7 +39,7 @@ public final class DescribeHeldItemCommand
     protected LiteralArgumentBuilder<CommandSourceStack> CommandImplementation(LiteralArgumentBuilder<CommandSourceStack> builder)
     {
         return builder.then(
-                Commands.argument("file_format", StringArgumentType.string())
+                Commands.argument("file_format", EnumArgument.Create(DescribeHeldItemFileFormat.class))
                         .then(
                                 Commands.argument("file_path" , StringArgumentType.string())
                                         .executes(DescribeHeldItemCommand::DescribeItemGeneric)
@@ -57,19 +57,6 @@ public final class DescribeHeldItemCommand
         return stringWriter.toString();
     }
 
-    private static DescribeHeldItemFileFormat GetFormatArgOrFail(CommandContext<?> cxt, String arg_name)
-            throws CommandSyntaxException
-    {
-        String parsed = StringArgumentType.getString(cxt , arg_name);
-        DescribeHeldItemFileFormat fft;
-        try {
-            fft = DescribeHeldItemFileFormat.valueOf(parsed);
-        } catch (IllegalArgumentException iae) {
-            throw new SimpleCommandExceptionType(Component.translatable("mdcdi1315_base_mods_lib.devcmds.describe_held_item_file_format_arg.invalid_value" , parsed)).create();
-        }
-        return fft;
-    }
-
     private static int DescribeItemGeneric(CommandContext<CommandSourceStack> c)
             throws CommandSyntaxException
     {
@@ -78,7 +65,7 @@ public final class DescribeHeldItemCommand
             c.getSource().sendFailure(Component.translatable("mdcdi1315_base_mods_lib.cmds.requires_player_context"));
             return -1;
         }
-        DescribeHeldItemFileFormat fft = GetFormatArgOrFail(c , "file_format");
+        DescribeHeldItemFileFormat fft = c.getArgument("file_format", DescribeHeldItemFileFormat.class);
         File fp = new File(StringArgumentType.getString(c , "file_path"));
         int result = SaveToFile(fft , player , fp);
         if (result == -2) {
@@ -98,11 +85,15 @@ public final class DescribeHeldItemCommand
     private static int SaveToFile(DescribeHeldItemFileFormat file_format, ServerPlayer player, File out_file)
     {
         ItemStack is = player.getItemInHand(InteractionHand.MAIN_HAND);
-        if (is.isEmpty()) { return 1; }
-        return switch (file_format) {
-            case JSON -> SaveAsJson(is , out_file);
-            default -> SaveAsNbt(is , out_file , file_format == DescribeHeldItemFileFormat.NBT_COMPRESSED);
-        };
+        if (is.isEmpty()) {
+            return 1;
+        } else if (file_format == DescribeHeldItemFileFormat.JSON) {
+            return SaveAsJson(is , out_file);
+        } else if (file_format == DescribeHeldItemFileFormat.NBT) {
+            return SaveAsNbt(is , out_file, false);
+        } else {
+            return SaveAsNbt(is , out_file, true);
+        }
     }
 
     private static int SaveAsNbt(ItemStack is , File out_file, boolean compressed)
@@ -128,26 +119,28 @@ public final class DescribeHeldItemCommand
         }
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static int SaveAsJson(ItemStack is , File out_file)
     {
         DataResult<JsonElement> element = ItemStack.CODEC.encode(is , JsonOps.INSTANCE , JsonOps.INSTANCE.empty());
-        if (element.error().isPresent()) {
+        if (element.isError()) {
             BaseModsLib.LOGGER.error("Cannot encode the specified item stack.\nError details: {}" , element.error().get().message());
             return -2;
+        } else {
+            try (
+                    FileOutputStream fos = new FileOutputStream(out_file);
+                    OutputStreamWriter osw = new OutputStreamWriter(fos);
+                    JsonWriter writer = new JsonWriter(osw)
+            ) {
+                writer.setIndent("\t");
+                writer.setSerializeNulls(false);
+                new GsonBuilder().setPrettyPrinting().setLenient().create().toJson(element.result().get() , writer);
+            } catch (IOException ioex) {
+                BaseModsLib.LOGGER.error("Cannot encode the specified item stack" , ioex);
+                return -2;
+            }
+            return 0;
         }
-        try (
-                FileOutputStream fos = new FileOutputStream(out_file);
-                OutputStreamWriter osw = new OutputStreamWriter(fos);
-                JsonWriter writer = new JsonWriter(osw)
-        ) {
-            writer.setIndent("\t");
-            writer.setSerializeNulls(false);
-            new GsonBuilder().setPrettyPrinting().setLenient().create().toJson(element.result().get() , writer);
-        } catch (IOException ioex) {
-            BaseModsLib.LOGGER.error("Cannot encode the specified item stack" , ioex);
-            return -2;
-        }
-        return 0;
     }
 
     private static int DescribeItemPrintJsonInChat(CommandContext<CommandSourceStack> c)

@@ -16,7 +16,8 @@ public final class ForgeSoundRegistrar
 {
     private DeferredRegister<SoundEvent> SOUND_EVENT_REGISTER;
 
-    public ForgeSoundRegistrar(String mod_id) {
+    public ForgeSoundRegistrar(String mod_id)
+    {
         SOUND_EVENT_REGISTER = DeferredRegister.create(Registries.SOUND_EVENT, mod_id);
     }
 
@@ -26,6 +27,7 @@ public final class ForgeSoundRegistrar
     {
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(event, "event");
+
         SOUND_EVENT_REGISTER.register(name, new ElementSupplier<>(event));
     }
 

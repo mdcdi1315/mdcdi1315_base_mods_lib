@@ -194,7 +194,7 @@ public class WrappedOutputStream
      * @throws IOException An I/O exception was occurred while writing {@code buffer} to the stream.
      * @since 1.0.26
      */
-    public final void WriteByteBuffer(ByteBuffer buffer) throws IOException { ByteBufferUtils.WriteToStream(this, buffer); }
+    public final void WriteByteBuffer(ByteBuffer buffer) throws IOException { StreamUtils.WriteBuffer(this, buffer); }
 
     /**
      * Closes this input stream and releases any system resources associated with the stream.

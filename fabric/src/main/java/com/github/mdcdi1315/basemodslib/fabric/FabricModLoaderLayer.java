@@ -1,13 +1,11 @@
 package com.github.mdcdi1315.basemodslib.fabric;
 
-import com.github.mdcdi1315.DotNetLayer.System.Action2;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
-import com.github.mdcdi1315.basemodslib.utils.Action2ToRunnable;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.commands.FabricCommandsRegistrar;
@@ -15,16 +13,15 @@ import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
 
+import com.google.common.collect.ImmutableList;
+
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import java.util.*;
 import java.nio.file.Path;
@@ -37,27 +34,26 @@ public final class FabricModLoaderLayer
     private Path config_dir, minecraft_dir;
     private ModdingEnvironment environment;
     private Version fabric_modloader_version;
-    private Map<String, Version> networking_versions_map;
-    private FabricCommandsRegistrar global_commands_registrar;
+    private FabricNetworkingHandler networking_handler;
 
     public FabricModLoaderLayer()
     {
-        networking_versions_map = new HashMap<>(10);
         var loader = FabricLoader.getInstance();
         config_dir = loader.getConfigDir();
         minecraft_dir = loader.getGameDir();
         dev_env = loader.isDevelopmentEnvironment();
         String id, version = null;
-        var l = new ArrayList<String>(10);
-        for (ModContainer m : loader.getAllMods())
+        var mod_containers = loader.getAllMods();
+        ImmutableList.Builder<String> builder = ImmutableList.builderWithExpectedSize(mod_containers.size());
+        for (ModContainer m : mod_containers)
         {
-            if ("fabricloader".equals(id = m.getMetadata().getId())) {
+            id = m.getMetadata().getId();
+            if ("fabricloader".equals(id)) {
                 version = m.getMetadata().getVersion().getFriendlyString();
             }
-            l.add(id);
+            builder.add(id);
         }
-        l.trimToSize();
-        mod_ids = l;
+        mod_ids = builder.build();
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;
@@ -70,86 +66,43 @@ public final class FabricModLoaderLayer
             fabric_modloader_version = new Version(0 , 0);
         }
 
-        var mod_verifier_type = new CustomPacketPayload.Type<ServerBoundModInfoPacket>(ServerBoundModInfoPacket.LOCATION);
-        PayloadTypeRegistry.playC2S().register(mod_verifier_type , new ServerBoundModInfoPacket.NetCodec());
-        ServerPlayNetworking.registerGlobalReceiver(
-                mod_verifier_type,
-                new ChannelHandler(this::ServerModInfoPacketHandler)
-        );
+        networking_handler = new FabricNetworkingHandler(FabricModLoaderLayer::ServerModInfoPacketHandler);
 
-        global_commands_registrar = new FabricCommandsRegistrar();
-        global_commands_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
+        var cmd_register = new FabricCommandsRegistrar(BaseModsLib.MOD_ID);
+        BaseModsLibraryCommand.InitializeLibraryCommandSupport(cmd_register);
+        cmd_register.RegistrationFinalized();
 
         ServerLifecycleEvents.SERVER_STOPPED.register(this::OnServerStopped);
-        ServerLifecycleEvents.SERVER_STOPPING.register(this::OnServerStopping);
+        ServerLifecycleEvents.SERVER_STOPPING.register(FabricModLoaderLayer::OnServerStopping);
         ServerLifecycleEvents.SERVER_STARTING.register(this::OnServerStarting);
         ServerLifecycleEvents.SERVER_STARTED.register(FabricModLoaderLayer::OnServerStarted);
-    }
-
-    @Override
-    public void Dispose() {
-        this.mod_ids = null;
-        this.config_dir = null;
-        this.environment = null;
-        this.minecraft_dir = null;
-        this.networking_versions_map = null;
-        this.fabric_modloader_version = null;
-        this.global_commands_registrar = null;
-    }
-
-    private record ChannelHandler(Action2<ServerPlayer , ServerBoundModInfoPacket> action)
-        implements ServerPlayNetworking.PlayPayloadHandler<ServerBoundModInfoPacket>
-    {
-        @Override
-        public void receive(ServerBoundModInfoPacket payload, ServerPlayNetworking.Context context) {
-            context.server().execute(new Action2ToRunnable<>(action, context.player(), payload));
-        }
     }
 
     private void OnServerStarting(MinecraftServer msr)
     {
         // Server env starts only once, make sure to finalize the library.
-        if (environment == ModdingEnvironment.SERVER) {
-            BaseModsLib.Destroy();
-            // Since we have now reached mod loading completed stage, we can just destroy the global command registrar.
-            this.global_commands_registrar = null;
-        }
+        if (environment == ModdingEnvironment.SERVER) { BaseModsLib.Destroy(); }
         EventManager.FireEventSafe(new ServerStartingEvent(msr));
     }
 
-    private void OnServerStopping(MinecraftServer msr)
-    {
-        if (environment == ModdingEnvironment.SERVER) {
-            // On dedicated server environments, make sure to destroy the channel once the server has started shutting down.
-            BaseModsLib.LOGGER.debug("Unregistering mod verifier network handler.");
-            ServerPlayNetworking.unregisterGlobalReceiver(ServerBoundModInfoPacket.LOCATION);
-        }
-        EventManager.FireEventSafe(new ServerStoppingEvent(msr));
-    }
+    private static void OnServerStopping(MinecraftServer msr) { EventManager.FireEventSafe(new ServerStoppingEvent(msr)); }
 
-    private static void OnServerStarted(MinecraftServer msr) {
-        EventManager.FireEventSafe(new ServerStartedEvent(msr));
-    }
+    private static void OnServerStarted(MinecraftServer msr) { EventManager.FireEventSafe(new ServerStartedEvent(msr)); }
 
     private void OnServerStopped(MinecraftServer msr)
     {
         EventManager.FireEventSafe(new ServerStoppedEvent(msr));
-        // In server env, we need to dispose the BML itself.
-        // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
         if (environment == ModdingEnvironment.SERVER) { BaseModsLib.DestroySelf(); }
     }
 
-    private void ServerModInfoPacketHandler(ServerPlayer sp , ServerBoundModInfoPacket p)
-    {
-        Version found_net_version = null; // Server mod networking version
+    private static void ServerModInfoPacketHandler(
+            FabricNetworkingHandler the_handler,
+            ServerPlayer sp,
+            ServerBoundModInfoPacket p
+    ) {
+        // Server mod networking version
         // Lookup stored networking version.
-        for (var i : networking_versions_map.entrySet())
-        {
-            if (p.Mod_ID.equals(i.getKey())) {
-                found_net_version = i.getValue();
-                break;
-            }
-        }
+        Version found_net_version = p.Mod_ID == null ? null : the_handler.LookupVersion(p.Mod_ID);
         // If we have a null version it means that the mod is absent on server side. Check if we can continue.
         if (found_net_version == null) {
             if (!p.OptionalOnClient()) {
@@ -177,12 +130,11 @@ public final class FabricModLoaderLayer
         BaseModsLib.LOGGER.info("NETWORKING_MANAGER: ModInfoPacket: Successfully negotiated mod ID {} with client version {} to server mod version {}" , p.Mod_ID , p.Mod_Network_Version , found_net_version == null ? "<Non-existent>" : found_net_version);
     }
 
-    private void Client_RegisterModInfoHandshakePacketOnServerConnection(ServerBoundModInfoPacket p) {
-        FabricClientModLoaderLayer.RegisterModInfoPacketDispatcher(p);
-    }
+    private static void Client_RegisterModInfoHandshakePacketOnServerConnection(ServerBoundModInfoPacket p) { FabricClientModLoaderLayer.RegisterModInfoPacketDispatcher(p); }
 
     @Override
-    public void InitializeServerModInstance(IServerModInstance mod_instance, Object o) {
+    public void InitializeServerModInstance(IServerModInstance mod_instance, Object o)
+    {
         if (!(o instanceof EmptyModObject)) {
             throw new InvalidOperationException(String.format("The mod object was not of type EmptyModObject!!!!\nActual type: %s", o == null ? "<NULL>" : o.getClass().getName()));
         }
@@ -204,22 +156,25 @@ public final class FabricModLoaderLayer
         mod_instance.RegisterMenuTypes(registrar);
         mod_instance.RegisterSoundObjects(registrar);
 
-        mod_instance.RegisterCommands(global_commands_registrar);
-
         FabricBasedNetworkManager manager = new FabricBasedNetworkManager(mod_id);
 
         mod_instance.InitializeNetwork(manager);
 
         var builder = manager.GetBuilderAndDestroy();
         manager.InitializeNetworkManager(builder);
-        if (builder != null) {
-            synchronized (networking_versions_map) {
-                networking_versions_map.put(manager.Mod_Info.Mod_ID, manager.Mod_Info.Mod_Network_Version);
+        if (builder != null)
+        {
+            synchronized (networking_handler) {
+                networking_handler.RegisterVersionByPacket(manager.Mod_Info);
             }
             if (environment == ModdingEnvironment.CLIENT) {
                 Client_RegisterModInfoHandshakePacketOnServerConnection(manager.Mod_Info);
             }
         }
+
+        var cmd_register = new FabricCommandsRegistrar(mod_id);
+        mod_instance.RegisterCommands(cmd_register);
+        cmd_register.RegistrationFinalized();
     }
 
     @Override
@@ -257,4 +212,19 @@ public final class FabricModLoaderLayer
 
     @Override
     public boolean IsDevelopmentEnvironmentBuild() { return dev_env; }
+
+    @Override
+    public void Dispose()
+    {
+        this.mod_ids = null;
+        this.config_dir = null;
+        this.environment = null;
+        this.minecraft_dir = null;
+        if (this.networking_handler != null)
+        {
+            this.networking_handler.Dispose();
+            this.networking_handler = null;
+        }
+        this.fabric_modloader_version = null;
+    }
 }

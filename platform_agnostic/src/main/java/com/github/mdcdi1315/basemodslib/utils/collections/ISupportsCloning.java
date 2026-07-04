@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
+import com.github.mdcdi1315.DotNetLayer.System.ICloneable;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
@@ -9,12 +10,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
  * but they do have the same number of elements and behavioral properties as the original collection. <br />
  * By default, it is applied transitively on classes that implement the {@link ISupportsSlicing} interface, because if they can support cloning only a portion of them,
  * that means that the entire collection data could be cloned as well. <br />
- * Can be only applied to traversable collections.
+ * Can be only applied to traversable collections. <br />
+ * Since 1.0.35, it also implements the {@link ICloneable} interface, since the method {@link #Clone()} is implicitly existing.
  * @param <T> The type of the elements that the current collection holds.
  * @since 1.0.31
  */
 public interface ISupportsCloning<T>
-    extends ISupportsSlicing<T>, ITraversableCollection<T>
+    extends ISupportsSlicing<T>, ITraversableCollection<T>, ICloneable
 {
     /**
      * Stores the specified portion of elements of the current collection to a new instance.

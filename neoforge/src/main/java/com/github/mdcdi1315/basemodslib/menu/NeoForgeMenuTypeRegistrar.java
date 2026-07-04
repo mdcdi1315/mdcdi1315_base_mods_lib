@@ -20,7 +20,8 @@ public final class NeoForgeMenuTypeRegistrar
 {
     private DeferredRegister<MenuType<?>> MENU_TYPE_REGISTER;
 
-    public NeoForgeMenuTypeRegistrar(String mod_id) {
+    public NeoForgeMenuTypeRegistrar(String mod_id)
+    {
         MENU_TYPE_REGISTER = DeferredRegister.create(Registries.MENU, mod_id);
     }
 
@@ -28,32 +29,32 @@ public final class NeoForgeMenuTypeRegistrar
         implements MenuType.MenuSupplier<T>
     {
         @Override
-        public T create(int i, Inventory inventory) {
-            return crt.Create(i , inventory);
-        }
+        @SuppressWarnings("NullableProblems")
+        public T create(int i, Inventory inventory) { return crt.Create(i , inventory); }
     }
 
     private record MenuCreaterExToIContainerFactory<T extends AbstractContainerMenu>(MenuTypeCreaterEx<T> crt)
             implements IContainerFactory<T>
     {
         @Override
-        public T create(int p_create_1_, Inventory p_create_2_) {
-            return crt.Create(p_create_1_ , p_create_2_);
-        }
+        @SuppressWarnings("NullableProblems")
+        public T create(int p_create_1_, Inventory p_create_2_) { return crt.Create(p_create_1_ , p_create_2_); }
 
         @Override
-        public T create(int i, Inventory inventory, RegistryFriendlyByteBuf friendlyByteBuf) {
-            return crt.Create(i , inventory, friendlyByteBuf);
-        }
+        @SuppressWarnings("NullableProblems")
+        public T create(int i, Inventory inventory, RegistryFriendlyByteBuf friendlyByteBuf) { return crt.Create(i , inventory, friendlyByteBuf); }
     }
 
     private record MenuTypeSupplier<T extends AbstractContainerMenu>(MenuTypeRegistrationInfo<T> info)
         implements Func1<MenuType<T>>
     {
         @Override
-        public MenuType<T> function() {
+        public MenuType<T> function()
+        {
             MenuTypeCreater<T> crt = info.creater();
-            return (crt instanceof MenuTypeCreaterEx<T> t_ex) ? new MenuType<>(new MenuCreaterExToIContainerFactory<>(t_ex) , info.required_features()) : new MenuType<>(new MenuCreaterToMenuSupplier<>(crt), info.required_features());
+            return (crt instanceof MenuTypeCreaterEx<T> t_ex) ?
+                    new MenuType<>(new MenuCreaterExToIContainerFactory<>(t_ex) , info.required_features()) :
+                    new MenuType<>(new MenuCreaterToMenuSupplier<>(crt), info.required_features());
         }
     }
 
@@ -67,7 +68,8 @@ public final class NeoForgeMenuTypeRegistrar
         MENU_TYPE_REGISTER.register(name , new MenuTypeSupplier<>(info));
     }
 
-    public void RegisterToEventBus(IEventBus evb) {
+    public void RegisterToEventBus(IEventBus evb)
+    {
         NeoForgeUtils.DeferredRegister_RegisterIfHasItems(evb, MENU_TYPE_REGISTER);
         MENU_TYPE_REGISTER = null;
     }

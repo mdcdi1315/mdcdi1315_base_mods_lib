@@ -1,7 +1,5 @@
 package com.github.mdcdi1315.basemodslib.utils.function;
 
-import com.github.mdcdi1315.DotNetLayer.System.Func2;
-
 /**
  * Provides a function and returns a value of type {@link TR} that accepts a non-null {@link Float} value as input.
  * @param <TR> The type of the result value to return.
@@ -9,12 +7,15 @@ import com.github.mdcdi1315.DotNetLayer.System.Func2;
  */
 @FunctionalInterface
 public interface PrimitiveFloatFunction<TR>
-    extends Func2<Float, TR>
+    extends PrimitiveNumericFunction<Float, TR>
 {
     TR function(float input);
 
     @Override
     default TR apply(Float input) { return function(input.floatValue()); }
+
+    @Override
+    default TR convert(Float input) { return function(input.floatValue()); }
 
     @Override
     default TR function(Float input) { return function(input.floatValue()); }

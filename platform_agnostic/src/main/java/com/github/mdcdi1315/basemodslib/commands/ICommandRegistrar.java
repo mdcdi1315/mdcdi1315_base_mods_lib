@@ -3,12 +3,15 @@ package com.github.mdcdi1315.basemodslib.commands;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
 import com.github.mdcdi1315.basemodslib.Contract;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.ArgumentType;
 
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 
 /**
  * Provides a way to register system chat commands to Minecraft.
@@ -23,16 +26,17 @@ public interface ICommandRegistrar
      */
     void Register(Action1<CommandDispatcher<CommandSourceStack>> command) throws ArgumentNullException;
 
-    // Class for creating commands.
-    // This is used by the default implementation of RegisterByCommand method.
-    record RegisterByCommand_InternalLayer<T extends AbstractCommand>(Func1<T> factory)
-        implements Action1<CommandDispatcher<CommandSourceStack>>
-    {
-        @Override
-        public void action(CommandDispatcher<CommandSourceStack> obj) {
-            factory.function().RegisterToDispatcher(obj);
-        }
-    }
+    /**
+     * Registers a new argument type to Minecraft.
+     * @param info The {@link ArgumentTypeInfo} instance to register.
+     * @param name The name of the newly registered argument type information.
+     * @param argument_type_class The class of the argument type that resolves the argument type.
+     * @param <T> The Brigadier argument type to register.
+     * @param <A> The template used to unpack the argument type.
+     * @throws ArgumentNullException {@code info} and/or {@code name} are {@code null}.
+     * @since 1.0.35
+     */
+    <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>> void RegisterArgumentTypeInfo(@ConstantExpected String name, Class<A> argument_type_class, ArgumentTypeInfo<A, T> info) throws ArgumentNullException;
 
     /**
      * Registers a chat command to Minecraft.

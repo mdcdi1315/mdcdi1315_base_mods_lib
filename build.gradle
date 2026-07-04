@@ -18,7 +18,15 @@ tasks.register("full_publish") {
     group = 'publishing'
     description = "Publishes all the Jar archives to GitHub for developers, and CurseForge for consumers."
 
-    it.dependsOn(":fabric:publish", ":forge:publish", ":neoforge:publish", ":fabric:curseforge", ":forge:curseforge", ":neoforge:curseforge", ":platform_agnostic:publish")
+    it.dependsOn(
+            ":fabric:publish",
+            ":forge:publish",
+            ":neoforge:publish",
+            ":fabric:curseforge",
+            ":forge:curseforge",
+            ":neoforge:curseforge",
+            ":platform_agnostic:publish"
+    )
 }
 
 tasks.register("publish_to_packages_only") {
@@ -26,4 +34,11 @@ tasks.register("publish_to_packages_only") {
     description = "Publishes all the Jar archives to GitHub for developers. Use full_publish for also publishing to CurseForge."
 
     it.dependsOn(":fabric:publish", ":forge:publish", ":neoforge:publish", ":platform_agnostic:publish")
+}
+
+tasks.register("ap_publish") {
+    group = 'publishing'
+    description = "Publishes the Annotation Processor project to GitHub for developers."
+
+    it.dependsOn(":annotation_processor:publish");
 }

@@ -8,18 +8,12 @@ import java.util.Objects;
  * {@link IEqualityComparer} implementation for Java objects in general.
  * @param <T> The type of the Java object to be compared.
  */
-public final class JavaObjectEqualsEqualityComparer<T>
+public record JavaObjectEqualsEqualityComparer<T>()
     implements IEqualityComparer<T>, ISynchronized
 {
-    public JavaObjectEqualsEqualityComparer() { }
+    @Override
+    public boolean Equals(T x, T y) { return Objects.equals(x, y); }
 
     @Override
-    public boolean Equals(T x, T y) {
-        return Objects.equals(x, y);
-    }
-
-    @Override
-    public int GetHashCode(T obj) {
-        return Objects.hashCode(obj);
-    }
+    public int GetHashCode(T obj) { return Objects.hashCode(obj); }
 }

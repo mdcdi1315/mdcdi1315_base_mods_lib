@@ -51,11 +51,9 @@ public interface IQueue<T>
         throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(items);
-        IEnumerator<T> e = items.GetEnumerator();
-        try {
+        try (IEnumerator<T> e = items.GetEnumerator())
+        {
             while (e.MoveNext()) { Enqueue(e.getCurrent()); }
-        } finally {
-            e.Dispose();
         }
     }
 }

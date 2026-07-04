@@ -19,6 +19,7 @@ public final class SkipWhileWithIndexEnumerable<T>
         this.enumerable = enumerable;
     }
 
+    @SuppressWarnings("resource")
     private static final class Enumerator<T>
             extends BaseWrappedEnumerator<T>
     {

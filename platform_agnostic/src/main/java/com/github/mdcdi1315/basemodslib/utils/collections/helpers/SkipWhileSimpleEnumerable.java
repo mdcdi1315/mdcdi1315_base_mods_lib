@@ -19,6 +19,7 @@ public final class SkipWhileSimpleEnumerable<T>
         this.enumerable = enumerable;
     }
 
+    @SuppressWarnings("resource")
     private static final class Enumerator<T>
         extends BaseWrappedEnumerator<T>
     {
@@ -43,6 +44,7 @@ public final class SkipWhileSimpleEnumerable<T>
         }
 
         @Override
+        @SuppressWarnings("StatementWithEmptyBody")
         protected boolean MoveNextImpl()
         {
             IEnumerator<T> w = GetWrapped();

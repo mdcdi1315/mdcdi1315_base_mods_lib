@@ -9,6 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
  * @param <T> The type of elements to be enumerated.
  * @since 1.0.31
  */
+@SuppressWarnings("resource")
 public final class SkippingEnumerator<T>
     extends BaseWrappedEnumerator<T>
 {
@@ -30,6 +31,7 @@ public final class SkippingEnumerator<T>
         if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count must not be a negative number");
         } else {
+            not_skipped = true;
             n_initial_skip = count;
         }
     }
@@ -57,6 +59,7 @@ public final class SkippingEnumerator<T>
                 if (!wrapped.MoveNext()) { return false; }
                 I++;
             }
+            not_skipped = false;
         }
 
         return wrapped.MoveNext();

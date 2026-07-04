@@ -8,6 +8,7 @@ import com.github.mdcdi1315.basemodslib.utils.collections.IArrayBasedCollection;
 
 import java.util.*;
 
+@SuppressWarnings("NullableProblems")
 public final class WrappedJavaListFromIList<T>
     extends WrappedJavaCollectionFromICollection<T, IList<T>>
     implements List<T>
@@ -130,6 +131,7 @@ public final class WrappedJavaListFromIList<T>
     public @NotNull ListIterator<T> listIterator(int index) { return new ListIteratorImpl<>(GetCollection(), index); }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<T> subList(int fromIndex, int toIndex)
     {
         IList<T> list = GetCollection();

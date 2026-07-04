@@ -43,7 +43,9 @@ public final class ForgeEntityTypeRegistrar
     public <T extends Entity> void RegisterEntity(String name, EntityTypeRegistrationInfo<T> info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         ENTITY_TYPES.register(name , info.entity_provider());
     }
 
@@ -51,7 +53,9 @@ public final class ForgeEntityTypeRegistrar
     public <T> void RegisterMemoryModuleType(String name, MemoryModuleTypeRegistrationInfo<T> info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         MEM_MODULE_TYPES.register(name, new ElementSupplier<>(new MemoryModuleType<>(info.optional_codec())));
     }
 
@@ -59,7 +63,9 @@ public final class ForgeEntityTypeRegistrar
     public void RegisterEntityAttribute(String name, AttributeRegistrationInfo info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         ATTRIBUTES.register(name, info.attribute_getter());
     }
 
@@ -67,7 +73,9 @@ public final class ForgeEntityTypeRegistrar
     public <T extends Sensor<?>> void RegisterSensorType(String name, SensorTypeRegistrationInfo<T> info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         SENSOR_TYPES.register(name , info.sensor_type_getter());
     }
 
@@ -75,7 +83,9 @@ public final class ForgeEntityTypeRegistrar
     public void RegisterMobEffect(String name, MobEffectRegistrationInfo info)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(info, "info");
+
         MOB_EFFECTS.register(name, info.effect_getter());
     }
 

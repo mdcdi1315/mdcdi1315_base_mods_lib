@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
@@ -41,61 +42,22 @@ public final class ForgeRegistriesRegistrar
         data_reload_listeners = new SingleLinkedListBasedRegister<>();
     }
 
+    private record RegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Action1<IModLoaderRegistry<T>> on_ready) {}
+
+    private record DatapackRegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Codec<T> element_codec) {}
+
     private record ROSRegister<T>(RegistryObjectSupplier<T> ts , ResourceLocation location)
-        implements Supplier<T>
+            implements Supplier<T>
     {
         @Override
         public T get() { return ts.Get(location); }
     }
-
-    private record RegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Action1<IModLoaderRegistry<T>> on_ready) {}
-
-    private record DatapackRegistryEntry<T>(ResourceKey<Registry<T>> resource_key, Codec<T> element_codec) {}
 
     private record OnRegistryFilledCallback<T>(Action1<IModLoaderRegistry<T>> action)
         implements Consumer<IForgeRegistry<T>>
     {
         @Override
         public void accept(IForgeRegistry<T> ts) { action.action(new ForgeRegistryWrappedInRegistry<>(ts)); }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<? extends Registry<T>> registry_key)
-    {
-        var en = registers.GetEnumerator();
-        try {
-            DeferredRegister<?> register;
-            while (en.MoveNext()) {
-                if ((register = en.getCurrent()).getRegistryKey().equals(registry_key)) {
-                    return (DeferredRegister<T>) register;
-                }
-            }
-        } finally {
-            en.Dispose();
-        }
-        // Enumeration finished and no register was found. Create a new one instead.
-        DeferredRegister<T> t = DeferredRegister.create(registry_key , mod_id);
-        registers.Register(t);
-        return t;
-    }
-
-    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, RegistryObjectSupplier<T> supplier)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(name, "name");
-        ArgumentNullException.ThrowIfNull(supplier, "supplier");
-        ArgumentNullException.ThrowIfNull(registry, "registry");
-        CreateIfAbsentOrReturn(registry).register(name, new ROSRegister<>(supplier , RegistryUtils.ConstructResourceLocation(mod_id, name)));
-    }
-
-    @Override
-    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Supplier<T> supplier)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(name, "name");
-        ArgumentNullException.ThrowIfNull(supplier, "supplier");
-        ArgumentNullException.ThrowIfNull(registry, "registry");
-        CreateIfAbsentOrReturn(registry).register(name , supplier);
     }
 
     private record DeferredRegisterImplementedBulkRegistryRegister<T>(DeferredRegister<T> reg)
@@ -108,6 +70,44 @@ public final class ForgeRegistriesRegistrar
             ArgumentNullException.ThrowIfNull(name, "name");
             reg.register(name, new ElementSupplier<>(object));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> DeferredRegister<T> CreateIfAbsentOrReturn(ResourceKey<? extends Registry<T>> registry_key)
+    {
+        try (IEnumerator<DeferredRegister<?>> en = registers.GetEnumerator())
+        {
+            DeferredRegister<?> register;
+            while (en.MoveNext())
+            {
+                if ((register = en.getCurrent()).getRegistryKey().equals(registry_key)) {
+                    return (DeferredRegister<T>) register;
+                }
+            }
+        }
+        // Enumeration finished and no register was found. Create a new one instead.
+        DeferredRegister<T> t = DeferredRegister.create(registry_key , mod_id);
+        registers.Register(t);
+        return t;
+    }
+
+    @Override
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, RegistryObjectSupplier<T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        CreateIfAbsentOrReturn(registry).register(name, new ROSRegister<>(supplier, RegistryUtils.ConstructResourceLocation(mod_id, name)));
+    }
+
+    @Override
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Supplier<T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(name, "name");
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        CreateIfAbsentOrReturn(registry).register(name , supplier);
     }
 
     @Override
@@ -159,14 +159,11 @@ public final class ForgeRegistriesRegistrar
 
     public void RegisterToEventBus(IEventBus evb)
     {
-        var en = registers.GetEnumerator();
-        try {
-            while (en.MoveNext()) {
-                en.getCurrent().register(evb);
-            }
-        } finally {
-            en.Dispose();
+        try (IEnumerator<DeferredRegister<?>> en = registers.GetEnumerator())
+        {
+            while (en.MoveNext()) { en.getCurrent().register(evb); }
         }
+        mod_id = null;
         // We can cleanup this list once all registers have made it to be registered to the mod event bus.
         registers = null;
         ForgeUtils.AddEnumerableListener_DispatchOnce(evb, NewRegistryEvent.class, registries_to_create, ForgeRegistriesRegistrar::CreateRegistry);
@@ -179,6 +176,5 @@ public final class ForgeRegistriesRegistrar
         // We can't sweep up memory here - the data may be reloaded many times.
         ForgeUtils.AddEnumerableListener(MinecraftForge.EVENT_BUS, AddReloadListenerEvent.class, data_reload_listeners, AddReloadListenerEvent::addListener);
         data_reload_listeners = null; // However, we can disown the reference.
-        mod_id = null;
     }
 }

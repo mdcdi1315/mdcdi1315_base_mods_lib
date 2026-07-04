@@ -1,13 +1,25 @@
-### Now releasing 1.0.34:
+### Now releasing 1.0.35:
 
--> Event API: Redesign how it is loaded and shut down. Additionally, this fixes issue #1.
+-> Bugfixes for issues #2 and #3
 
--> Collections package: Added `BTreeDictionary`, which is the first `IDictionary` implementation!
+-> Additional other bugfixes
 
--> Added more annotations to the new annotations package.
+-> Fixed several .NET Layer issues and added more classes again.
 
--> World package: Added several block manipulation helpers, and added the `Area3DEnumerator` for retrieving all the block positions in the defined area.
+-> Added an annotation processor for validating several annotations in the library,
+will be coming soon to the developers as well.
 
--> Debug Events Manager: The Debug events manager now properly logs each dispatched event to console. This is meant as an internal improvement for mod developers.
+-> Command API: Added a way for registering new custom command argument types to Minecraft.
 
--> Deprecated the `JavaCollectionsCompatibilityHelper` class, as it is incomplete. The `CollectionManipulations` class now provides everything needed for translating collection classes.
+-> Added several additional default functions, and made all the Primitive*Function/Action interfaces inherit 
+from the PrimitiveNumericAction and PrimitiveNumericFunction interfaces.
+
+-> Made the `Pure` annotation to be also defined in class constructors.
+
+-> Made the Fast Binary Format a bit faster by removing the pushback stream for reading, and instead reading from the data stream directly.
+
+-> Collections: Added priority queue interface, and it's implementations.
+
+-> Made the BML Logger `static final`.
+
+-> Documentation additions and fixes.

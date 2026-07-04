@@ -4,22 +4,14 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import net.minecraft.core.Registry;
 
-public final class FabricBridgedBulkRegister<T>
+public record FabricBridgedBulkRegister<T>(String mod_id, Registry<T> registry)
     implements IBulkRegistryObjectRegister<T>
 {
-    private final String mod_id;
-    private final Registry<T> registry;
-
-    public FabricBridgedBulkRegister(String mod_id, Registry<T> registry) {
-        this.mod_id = mod_id;
-        this.registry = registry;
-    }
-
     @Override
     public void Add(String name, T object)
             throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(name, "name");
+        // 'name' parameter validation is handled by RegistryUtils#ConstructResourceLocation method.
         Registry.register(registry, RegistryUtils.ConstructResourceLocation(mod_id, name), object);
     }
 }

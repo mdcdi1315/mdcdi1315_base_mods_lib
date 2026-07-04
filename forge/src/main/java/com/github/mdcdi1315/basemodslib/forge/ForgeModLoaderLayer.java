@@ -49,39 +49,36 @@ public final class ForgeModLoaderLayer
     private List<IModInfo> forge_mod_info;
     // private DisposableObjectsTracker tracker;
     private Version forge_modloader_version;
-    private ForgeCommandRegistrar global_command_registrar;
 
     public ForgeModLoaderLayer(FMLJavaModLoadingContext baselibmodcontext)
     {
         forge_mod_info = ModList.get().getMods();
-        global_command_registrar = new ForgeCommandRegistrar();
-        global_command_registrar.RegisterByCommand(BaseModsLibraryCommand::new);
-        Version fg_ver;
         try {
-            fg_ver = Version.Parse(ForgeVersion.getVersion());
+            forge_modloader_version = Version.Parse(ForgeVersion.getVersion());
         } catch (Exception e) {
             BaseModsLib.LOGGER.warn("Cannot retrieve Forge version due to an exception. Setting version values to 0,0.", e);
-            fg_ver = new Version(0 , 0);
+            forge_modloader_version = new Version(0 , 0);
         }
-        forge_modloader_version = fg_ver;
         IEventBus bus = baselibmodcontext.getModEventBus();
-        ForgeUtils.AddListener(bus, FMLCommonSetupEvent.class, this::OnCommonSetupEvent);
-        ForgeUtils.AddListener(bus, FMLLoadCompleteEvent.class, this::OnModLoadingComplete);
+        ForgeUtils.AddListener(bus, FMLCommonSetupEvent.class, ForgeModLoaderLayer::OnCommonSetupEvent);
+        ForgeUtils.AddListener(bus, FMLLoadCompleteEvent.class, ForgeModLoaderLayer::OnModLoadingComplete);
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStartedEvent.class, ForgeModLoaderLayer::OnServerStarted);
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStoppedEvent.class, ForgeModLoaderLayer::OnServerStopped);
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStartingEvent.class, ForgeModLoaderLayer::OnServerStarting);
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStoppingEvent.class, ForgeModLoaderLayer::OnServerStopping);
+        var lib_register = new ForgeCommandRegistrar(BaseModsLib.MOD_ID);
+        BaseModsLibraryCommand.InitializeLibraryCommandSupport(lib_register);
+        lib_register.RegisterToEventBus(bus);
     }
 
-    private IEventBus GetEventBusOrFail(Object mod_object) {
+    private IEventBus GetEventBusOrFail(Object mod_object)
+    {
         try {
             return (IEventBus) mod_object;
         } catch (ClassCastException cce) {
             throw new InvalidOperationException(String.format("The mod object was not of type IEventBus!!!!\nActual type: %s", mod_object.getClass().getName()));
         }
     }
-
-    private void DestroyInternalResources() { global_command_registrar = null; }
 
     // REGISTRY FINALIZATION BEGIN
     // The below 3 public methods are called in by the DispatchFinalizeRegistriesEventLoadingState class. See that class for more information.
@@ -92,7 +89,8 @@ public final class ForgeModLoaderLayer
             implements Func2<Void, Void>
     {
         @Override
-        public Void function(Void input) {
+        public Void function(Void input)
+        {
             BaseModsLib.LOGGER.info("Dispatching registry finalized event for {}", registry.getRegistryName());
             EventManager.FireEventSafe(event_getter.function(new ForgeRegistryWrappedInRegistry<>(registry)));
             increment_meter_handler.run();
@@ -138,17 +136,15 @@ public final class ForgeModLoaderLayer
         EventManager.FireEventSafe(new ServerStartedEvent(e.getServer()));
     }
 
-    private void OnCommonSetupEvent(FMLCommonSetupEvent event) {
+    private static void OnCommonSetupEvent(FMLCommonSetupEvent event)
+    {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
         CommonSetupEvent cse = new CommonSetupEvent();
         EventManager.FireEventSafe(cse);
         event.enqueueWork(cse::Run);
     }
 
-    private void OnModLoadingComplete(FMLLoadCompleteEvent event) {
-        event.enqueueWork(BaseModsLib::Destroy);
-        event.enqueueWork(this::DestroyInternalResources);
-    }
+    private static void OnModLoadingComplete(FMLLoadCompleteEvent event) { event.enqueueWork(BaseModsLib::Destroy); }
 
     @Override
     public void InitializeServerModInstance(IServerModInstance instance, Object mod_object)
@@ -190,7 +186,9 @@ public final class ForgeModLoaderLayer
         instance.RegisterMenuTypes(reg5);
         reg5.RegisterToEventBus(mod_event_bus);
 
-        instance.RegisterCommands(global_command_registrar);
+        var reg8 = new ForgeCommandRegistrar(mod_id);
+        instance.RegisterCommands(reg8);
+        reg8.RegisterToEventBus(mod_event_bus);
     }
 
     @Override
@@ -245,8 +243,7 @@ public final class ForgeModLoaderLayer
     @Override
     public void Dispose()
     {
-        this.global_command_registrar = null;
-        this.forge_modloader_version = null;
         this.forge_mod_info = null;
+        this.forge_modloader_version = null;
     }
 }

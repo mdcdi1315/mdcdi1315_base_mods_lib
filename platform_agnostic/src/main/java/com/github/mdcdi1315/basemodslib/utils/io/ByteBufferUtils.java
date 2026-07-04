@@ -34,32 +34,14 @@ public final class ByteBufferUtils
      * is restored when the method returns. Even on hard I/O failure the position is restored. <br />
      * Additionally, if the buffer has a backing array and is not a read-only buffer, it directly
      * accesses that array and performs the write operation on-the-fly.
+     * @apiNote This API now forwards to {@link StreamUtils#WriteBuffer(OutputStream, ByteBuffer)}
+     * and returns the value of the {@link ByteBuffer#remaining()} method upon return.
      */
     public static int WriteToStream(OutputStream os, ByteBuffer buffer)
             throws IOException
     {
-        int count = buffer.remaining(), prev_position = buffer.position();
-
-        try {
-            if (buffer.hasArray() && !buffer.isReadOnly()) {
-                // Fast path:
-                os.write(buffer.array(), buffer.arrayOffset() + prev_position, count);
-                return count;
-            } else {
-                byte[] temp_buf = new byte[DEFAULT_RECOMMENDED_COPY_BUFFER_SIZE];
-                int cp, copied = 0;
-                while (copied < count)
-                {
-                    cp = Extensions.ComputeStreamBufferSize(copied, count, temp_buf.length);
-                    buffer.get(temp_buf, 0, cp);
-                    os.write(temp_buf, 0, cp);
-                    copied += cp;
-                }
-                return copied;
-            }
-        } finally {
-            buffer.position(prev_position);
-        }
+        StreamUtils.WriteBuffer(os, buffer);
+        return buffer.remaining();
     }
 
     /**
@@ -72,6 +54,8 @@ public final class ByteBufferUtils
      *         invoke the {@link ByteBuffer#limit()} method on the returned value.
      * @throws IOException An I/O exception was occurred.
      * @throws ArgumentOutOfRangeException {@code number_of_bytes} is a negative value.
+     * @apiNote Since 1.0.35, it is more preferable to use the {@link StreamUtils#ReadAsBuffer(InputStream, int)}
+     * method, as that exposes the stream ended case, which for it returns {@code null}.
      */
     @NotNull
     public static ByteBuffer ReadFromStream(InputStream is, int number_of_bytes)
@@ -82,15 +66,15 @@ public final class ByteBufferUtils
         } else {
             byte[] buf = new byte[number_of_bytes];
             int read = is.read(buf, 0, number_of_bytes);
-            return ByteBuffer.wrap(buf, 0, Math.max(read, 0));
+            return ByteBuffer.wrap(buf, 0, Extensions.Max(read, 0));
         }
     }
 
     /**
      * Safely slices the input {@code source} buffer by copying the data into a new {@link ByteBuffer}, and returning that back to the caller. <br />
      * This differs from the {@link ByteBuffer#slice(int, int)} method, which it does return a view {@link ByteBuffer} of the source one. <br />
-     * Note also that the method does the slicing based on the current position of the {@linkplain ByteBuffer byte buffer}, and not regardless
-     * of its value.
+     * Note also that the method does the slicing based on the {@linkplain ByteBuffer#position() current position of the byte buffer},
+     * and not regardless of its value.
      * @param source The source {@linkplain ByteBuffer byte buffer} to perform the slice on.
      * @param start_index The starting index to additionally apply on the current position of the {@linkplain ByteBuffer byte buffer}.
      * @param length The number of elements to copy from the source {@linkplain ByteBuffer byte buffer}.
@@ -130,9 +114,7 @@ public final class ByteBufferUtils
                         copied += cp;
                     }
                     // Result buffer: clear the buffer position and assign the limit.
-                    result.rewind();
-                    result.limit(copied);
-                    return result;
+                    return result.rewind().limit(copied);
                 }
             } catch (IllegalArgumentException iae) {
                 throw new ArgumentOutOfRangeException("start_index", "Start index must be less than the byte buffer's length.");

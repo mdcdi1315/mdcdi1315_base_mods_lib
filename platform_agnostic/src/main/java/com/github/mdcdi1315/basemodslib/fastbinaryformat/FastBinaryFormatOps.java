@@ -370,7 +370,7 @@ public final class FastBinaryFormatOps
     public DoubleBinaryFormatEntry createDouble(double value) { return new DoubleBinaryFormatEntry(value); }
 
     @Override
-    public BooleanBinaryFormatEntry createBoolean(boolean value) { return new BooleanBinaryFormatEntry(value); }
+    public BooleanBinaryFormatEntry createBoolean(boolean value) { return value ? BooleanBinaryFormatEntry.TRUE : BooleanBinaryFormatEntry.FALSE; }
 
     @Override
     public DataResult<BinaryFormatEntry> get(BinaryFormatEntry input, String key)

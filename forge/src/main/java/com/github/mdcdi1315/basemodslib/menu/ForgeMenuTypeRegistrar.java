@@ -20,7 +20,8 @@ public final class ForgeMenuTypeRegistrar
 {
     private DeferredRegister<MenuType<?>> MENU_TYPE_REGISTER;
 
-    public ForgeMenuTypeRegistrar(String mod_id) {
+    public ForgeMenuTypeRegistrar(String mod_id)
+    {
         MENU_TYPE_REGISTER = DeferredRegister.create(ForgeRegistries.MENU_TYPES , mod_id);
     }
 
@@ -28,23 +29,19 @@ public final class ForgeMenuTypeRegistrar
         implements MenuType.MenuSupplier<T>
     {
         @Override
-        public T create(int i, Inventory inventory) {
-            return crt.Create(i , inventory);
-        }
+        @SuppressWarnings("NullableProblems")
+        public T create(int i, Inventory inventory) { return crt.Create(i , inventory); }
     }
 
     private record MenuCreaterExToIContainerFactory<T extends AbstractContainerMenu>(MenuTypeCreaterEx<T> crt)
             implements IContainerFactory<T>
     {
         @Override
-        public T create(int p_create_1_, Inventory p_create_2_) {
-            return crt.Create(p_create_1_ , p_create_2_);
-        }
+        @SuppressWarnings("NullableProblems")
+        public T create(int p_create_1_, Inventory p_create_2_) { return crt.Create(p_create_1_ , p_create_2_); }
 
         @Override
-        public T create(int i, Inventory inventory, FriendlyByteBuf friendlyByteBuf) {
-            return crt.Create(i , inventory, friendlyByteBuf);
-        }
+        public T create(int i, Inventory inventory, FriendlyByteBuf friendlyByteBuf) { return crt.Create(i , inventory, friendlyByteBuf); }
     }
 
     private record MenuTypeSupplier<T extends AbstractContainerMenu>(MenuTypeRegistrationInfo<T> info)
@@ -67,7 +64,8 @@ public final class ForgeMenuTypeRegistrar
         MENU_TYPE_REGISTER.register(name , new MenuTypeSupplier<>(info));
     }
 
-    public void RegisterToEventBus(IEventBus evb) {
+    public void RegisterToEventBus(IEventBus evb)
+    {
         ForgeUtils.DeferredRegister_RegisterIfHasItems(evb, MENU_TYPE_REGISTER);
         MENU_TYPE_REGISTER = null;
     }

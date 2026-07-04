@@ -5,6 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
+
 /**
  * Provides the base layout and enumeration services for all the {@link IEnumerator} implementations provided in this package.
  * @param <T> The type of the elements to be enumerated.
@@ -17,10 +19,8 @@ public abstract class BaseEnumerator<T>
     /**
      * Initializes an instance of the {@link BaseEnumerator} class.
      */
-    protected BaseEnumerator()
-    {
-        not_disposed = true;
-    }
+    @Pure
+    protected BaseEnumerator() { not_disposed = true; }
 
     @MaybeNull
     public abstract T getCurrent();
@@ -29,10 +29,8 @@ public abstract class BaseEnumerator<T>
      * Disposes this {@link BaseEnumerator} instance. <br />
      * Implementers overriding this MUST also call this method as well.
      */
-    public void Dispose()
-    {
-        not_disposed = false;
-    }
+    @Pure
+    public void Dispose() { not_disposed = false; }
 
     /**
      * Advances the enumerator to the next element of the collection.

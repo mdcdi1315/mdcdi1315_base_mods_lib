@@ -3,8 +3,8 @@ package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
-import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import java.io.IOException;
 
@@ -29,8 +29,9 @@ public interface BinaryFormatEntry
 
     /**
      * Loads the entry from the specified stream.
+     * @param type The type loaded from the data stream.
      * @param stream The data stream to load the entry from.
      * @throws IOException An I/O exception was occurred.
      */
-    void ReadFrom(@DisallowNull PushbackWrappedInputStream stream) throws IOException;
+    void ReadFrom(@DisallowNull WrappedInputStream stream, @DisallowNull BinaryFormatEntryType type) throws IOException;
 }

@@ -1,8 +1,8 @@
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
 
 import com.github.mdcdi1315.basemodslib.utils.io.SevenBitEncodedInt;
+import com.github.mdcdi1315.basemodslib.utils.io.WrappedInputStream;
 import com.github.mdcdi1315.basemodslib.utils.io.WrappedOutputStream;
-import com.github.mdcdi1315.basemodslib.utils.io.PushbackWrappedInputStream;
 
 import java.io.IOException;
 
@@ -25,10 +25,10 @@ public final class SevenBitEncodedIntBinaryFormatEntry
     }
 
     @Override
-    public void ReadFrom(PushbackWrappedInputStream stream)
+    public void ReadFrom(WrappedInputStream stream, BinaryFormatEntryType type)
             throws IOException
     {
-        if (BinaryFormatEntryType.ReadFrom(stream) !=  BinaryFormatEntryType.SEVEN_BIT_ENCODED_INT) {
+        if (type != BinaryFormatEntryType.SEVEN_BIT_ENCODED_INT) {
             throw new IOException("Expected SEVEN_BIT_ENCODED_INT");
         } else {
             value = SevenBitEncodedInt.Read(stream);

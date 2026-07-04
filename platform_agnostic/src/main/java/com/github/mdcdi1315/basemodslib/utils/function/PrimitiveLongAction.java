@@ -1,7 +1,5 @@
 package com.github.mdcdi1315.basemodslib.utils.function;
 
-import com.github.mdcdi1315.DotNetLayer.System.Action1;
-
 import java.util.function.LongConsumer;
 
 /**
@@ -10,7 +8,7 @@ import java.util.function.LongConsumer;
  */
 @FunctionalInterface
 public interface PrimitiveLongAction
-    extends Action1<Long>, LongConsumer
+    extends PrimitiveNumericAction<Long>, LongConsumer
 {
     void action(long value);
 
