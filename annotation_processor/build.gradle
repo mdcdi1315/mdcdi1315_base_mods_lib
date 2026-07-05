@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-def lib_version = "1.0.0"
+def lib_version = "1.0.1"
 
 base {
     version = lib_version

@@ -1,8 +1,6 @@
 package com.github.mdcdi1315.basemodslib.utils.io;
 
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
+import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.ICollection;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
@@ -11,11 +9,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 import com.github.mdcdi1315.basemodslib.utils.Extensions;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection;
 import com.github.mdcdi1315.basemodslib.utils.collections.projections.IByteEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.collections.projections.IByteEnumerator;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import java.nio.ByteBuffer;
 
@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
  */
 public class MemoryStream
     extends InputStream
-    implements IByteEnumerable
+    implements IByteEnumerable, ICloneable
 {
     private int current_buffer_index;
     private final ByteBuffer[] buffers;
@@ -111,6 +111,44 @@ public class MemoryStream
         }
     }
 
+    /**
+     * Constructs a new instance of the {@link MemoryStream} class, from the specified traversable collection
+     * of {@link ByteBuffer}s.
+     * The collection will be treated as the data that the buffers contain are contiguous.
+     * @param buffers The array of {@link ByteBuffer}s to specify.
+     * @throws ArgumentNullException {@code buffers} is {@code null}.
+     * @since 1.0.36
+     */
+    public MemoryStream(ITraversableCollection<ByteBuffer> buffers)
+    {
+        super();
+        ArgumentNullException.ThrowIfNull(buffers, "buffers");
+        int I = 0;
+        length_absolute = 0L;
+        position_absolute = 0L;
+        current_buffer_index = -1;
+        this.buffers = new ByteBuffer[buffers.GetCount()];
+        try (IEnumerator<ByteBuffer> e = buffers.GetEnumerator())
+        {
+            ByteBuffer b;
+            while (e.MoveNext())
+            {
+                this.buffers[I++] = b = e.getCurrent();
+                length_absolute += b.limit();
+            }
+        }
+    }
+
+    private MemoryStream(ByteBuffer[] buffers, long length_known)
+    {
+        super();
+        position_absolute = 0L;
+        this.buffers = buffers;
+        current_buffer_index = -1;
+        length_absolute = length_known;
+    }
+
+    @Pure
     private static final class Enumerator
             extends BaseEnumerator<Byte>
             implements IByteEnumerator
@@ -119,6 +157,7 @@ public class MemoryStream
         private byte current_element;
         private ByteBuffer[] buffers;
 
+        @Pure
         public Enumerator(MemoryStream stream)
         {
             index = 0;
@@ -139,9 +178,9 @@ public class MemoryStream
         @Override
         protected void ResetImpl() { index = 0; }
 
+        @Pure
         @Override
         protected boolean MoveNextImpl()
-                throws InvalidOperationException
         {
             ByteBuffer buffer;
             do {
@@ -170,14 +209,18 @@ public class MemoryStream
     }
 
     @MaybeNull
-    private ByteBuffer GetCurrentBuffer()
+    private ByteBuffer GetCurrentBuffer(int number_of_bytes_to_get)
     {
-        ByteBuffer buffer;
-        if (current_buffer_index < 0) { current_buffer_index = 0; }
-        do {
-            buffer = buffers[current_buffer_index];
-        } while (buffer.remaining() == 0 && ++current_buffer_index < buffers.length);
-        return (current_buffer_index < buffers.length) ? buffer : null;
+        if (Math.addExact(position_absolute, number_of_bytes_to_get) < length_absolute) {
+            ByteBuffer buffer;
+            if (current_buffer_index < 0) { current_buffer_index = 0; }
+            do {
+                buffer = buffers[current_buffer_index];
+            } while (buffer.remaining() == 0 && ++current_buffer_index < buffers.length);
+            return (current_buffer_index < buffers.length) ? buffer : null;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -207,6 +250,10 @@ public class MemoryStream
             throw new ArgumentOutOfRangeException("new_position", "New position cannot be less than 0.");
         } else if (new_position > length_absolute) {
             throw new ArgumentOutOfRangeException("new_position", "New position cannot be more than the stream's length.");
+        } else if (new_position == position_absolute) {
+            // If positioning to the same position as the stored value, we
+            // do nothing, and we return the position value itself.
+            return new_position;
         } else {
             long remaining;
             ByteBuffer buffer;
@@ -268,7 +315,7 @@ public class MemoryStream
 
         while (n > 0L)
         {
-            buffer = GetCurrentBuffer();
+            buffer = GetCurrentBuffer(0);
             if (buffer == null) { break; }
             rem = buffer.remaining();
             buffer.position(buffer.limit());
@@ -284,7 +331,7 @@ public class MemoryStream
     public int read()
             throws IOException
     {
-        ByteBuffer buffer = GetCurrentBuffer();
+        ByteBuffer buffer = GetCurrentBuffer(1);
         if (buffer == null) {
             return -1;
         } else {
@@ -308,7 +355,7 @@ public class MemoryStream
             rem_length = length,
             current_buffer_rem;
         do {
-            buffer = GetCurrentBuffer();
+            buffer = GetCurrentBuffer(rem_length);
             if (buffer == null)
             {
                 if (rw > 0) {
@@ -326,6 +373,106 @@ public class MemoryStream
         } while (rw < length);
         position_absolute += rw;
         return rw;
+    }
+
+    @Override
+    public long transferTo(OutputStream out)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(out, "out");
+        ByteBuffer bb;
+        int now_bytes_to_copy;
+        long bytes_copied = 0L;
+        // Initialize a temporary buffer to do our copy logic...
+        byte[] temp_buffer = new byte[ByteBufferUtils.DEFAULT_RECOMMENDED_COPY_BUFFER_SIZE];
+        while ((bb = GetCurrentBuffer(0)) != null)
+        {
+            now_bytes_to_copy = bb.remaining();
+            // If the temporary buffer size is too small,
+            // create a new one of the required bytes from the byte buffer.
+            if (now_bytes_to_copy > temp_buffer.length) {
+                temp_buffer = new byte[now_bytes_to_copy];
+            }
+            bb.get(temp_buffer, 0, now_bytes_to_copy);
+            out.write(temp_buffer, 0, now_bytes_to_copy);
+            bytes_copied += now_bytes_to_copy;
+        }
+        position_absolute += bytes_copied;
+        return bytes_copied;
+    }
+
+    /**
+     * Gets a portion of this memory stream as a new {@link MemoryStream} object.
+     * @param position The absolute position in the current stream where copy begins.
+     * @param length The desired absolute length, in bytes, of the new memory stream.
+     * @return A new {@link MemoryStream} instance, having only the specified portion of bytes.
+     * @throws ArgumentException {@code position + length} is greater than {@link #GetLength()}.
+     * @throws ArgumentOutOfRangeException {@code position} and/or {@code length} are negative values.
+     * @since 1.0.36
+     */
+    @NotNull
+    public MemoryStream Slice(long position, long length)
+            throws ArgumentOutOfRangeException, ArgumentException
+    {
+        if (position < 0L) {
+            throw new ArgumentOutOfRangeException("position", "Position cannot be a negative number");
+        } else if (length < 0L) {
+            throw new ArgumentOutOfRangeException("length", "Length cannot be a negative number");
+        } else if (Math.addExact(position, length) > this.length_absolute) {
+            throw new ArgumentException("The specified position and length values do exceed the stream's length.");
+        } else if (length == 0L) {
+            return new MemoryStream();
+        } else {
+            ByteBuffer temp;
+            long remaining_bytes = length;
+            long old_position = this.position_absolute;
+            try {
+                this.SetPosition(position);
+                int first_buffer_index = this.current_buffer_index, limit;
+                ByteBuffer[] buffers = new ByteBuffer[this.buffers.length - first_buffer_index];
+                buffers[0] = this.buffers[first_buffer_index].slice();
+                for (int I = first_buffer_index + 1; I < this.buffers.length; I++)
+                {
+                    temp = this.buffers[I].asReadOnlyBuffer().rewind();
+                    limit = temp.limit();
+                    if (limit > remaining_bytes) { temp.limit((int)remaining_bytes); }
+                    remaining_bytes -= limit;
+                    buffers[I] = temp;
+                }
+                return new MemoryStream(buffers, length);
+            } finally {
+                this.SetPosition(old_position);
+            }
+        }
+    }
+
+    /**
+     * Gets a portion of this memory stream as a new {@link MemoryStream} object, that
+     * starts copying bytes from the beginning of the stream.
+     * @param length The desired absolute length, in bytes, of the new memory stream.
+     * @return A new {@link MemoryStream} instance, having only the specified portion of bytes.
+     * @throws ArgumentException {@code length} is greater than {@link #GetLength()}.
+     * @throws ArgumentOutOfRangeException {@code length} is a negative value.
+     * @since 1.0.36
+     */
+    @NotNull
+    public MemoryStream Slice(long length) throws ArgumentOutOfRangeException, ArgumentException { return Slice(0L, length); }
+
+    /**
+     * Returns a new instance of the {@link MemoryStream} class that
+     * references the same data, but with an independent seek pointer.
+     * @return A new, cloned instance of the current {@link MemoryStream} object.
+     * @since 1.0.36
+     */
+    @NotNull
+    public MemoryStream Clone()
+    {
+        ByteBuffer[] buffers = new ByteBuffer[this.buffers.length];
+        for (int I = 0; I < this.buffers.length; I++)
+        {
+            buffers[I] = this.buffers[I].asReadOnlyBuffer().rewind();
+        }
+        return new MemoryStream(buffers, this.length_absolute);
     }
 
     /**
