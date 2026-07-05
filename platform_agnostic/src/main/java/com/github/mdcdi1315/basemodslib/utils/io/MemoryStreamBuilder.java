@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
+import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -147,7 +148,7 @@ public final class MemoryStreamBuilder
      * @return The built memory stream.
      */
     @NotNull
-    public MemoryStream Build() { return new MemoryStream(buffers); }
+    public MemoryStream Build() { return new MemoryStream((ITraversableCollection<ByteBuffer>) buffers); }
 
     @NotNull
     @Override

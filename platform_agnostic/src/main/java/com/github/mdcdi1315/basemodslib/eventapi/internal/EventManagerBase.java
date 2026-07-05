@@ -4,14 +4,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
+import com.github.mdcdi1315.basemodslib.eventapi.*;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.eventapi.IEvent;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
-import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
-import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
-import com.github.mdcdi1315.basemodslib.eventapi.InvalidEventDispatchException;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -77,20 +76,30 @@ abstract class EventManagerBase
     }
 
     @StackTraceHidden
-    @SuppressWarnings("unchecked")
     private static <TEvent extends IEvent> void FireEventInternal(TEvent evt, @MaybeNull Object actions)
     {
-        if (actions == null) {
+        if (actions == null)
+        {
             if (evt instanceof IDestroyableIfUnusedEvent) {
-                // Will be null, meaning that the event was removed. We cannot throw.
+                // This means that the event was removed. We cannot throw.
                 return;
+            } else if (evt instanceof IDestroyedOnUseEvent) {
+                // Single-use event, MUST NOT be dispatched a second time.
+                throw new InvalidEventDispatchException(evt, "Attempted to dispatch an event that is meant to be dispatched only once!");
             } else {
                 // This shouldn't happen, you have fired an unknown event.
                 throw new InvalidEventDispatchException(evt, "Attempted to fire an event not yet registered!");
             }
         }
-        var e = ((SingleLinkedListBasedRegister<Action1<TEvent>>)actions).GetEnumerator();
-        try {
+        FireEventHelper(evt, actions);
+    }
+
+    @StackTraceHidden
+    @SuppressWarnings("unchecked")
+    public static <TEvent extends IEvent> void FireEventHelper(TEvent evt, @DisallowNull Object actions)
+    {
+        try (IEnumerator<Action1<TEvent>> e = ((SingleLinkedListBasedRegister<Action1<TEvent>>)actions).GetEnumerator())
+        {
             while (e.MoveNext())
             {
                 try {
@@ -99,8 +108,14 @@ abstract class EventManagerBase
                     BaseModsLib.LOGGER.error("Cannot invoke event on one of the event handlers. Exception will be eaten." , ex);
                 }
             }
-        } finally {
-            e.Dispose();
+        }
+    }
+
+    public static void IfDestroyedOnUseRemove(EventManagerBase manager, IEvent evt)
+    {
+        if (evt instanceof IDestroyedOnUseEvent && manager.actions.remove(evt.getClass()) == null)
+        {
+            throw new InvalidEventDispatchException(evt, "Attempted to dispatch an event that was already used once!");
         }
     }
 
@@ -110,6 +125,7 @@ abstract class EventManagerBase
     {
         ArgumentNullException.ThrowIfNull(event_data, "event_data");
         FireEventInternal(event_data , actions.get(event_data.getClass()));
+        IfDestroyedOnUseRemove(this, event_data);
     }
 
     @Override

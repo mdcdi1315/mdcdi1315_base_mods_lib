@@ -116,6 +116,7 @@ public final class ChannelInputStream
         {
             temp_buffer.get(buffer, 0, rb = Extensions.ComputeStreamBufferSize(temp_buffer.position(), temp_buffer.limit(), buffer.length));
             out.write(buffer, 0, rb);
+            transferred += rb;
         }
 
         // Follow a different strategy here:

@@ -27,5 +27,6 @@ public final class AnnotationImplementationsHandler
         AnnotationList.RegisterAnnotationToSearch(new VerifyCorrectClassIsDotNetStructUsage());
         AnnotationList.RegisterAnnotationToSearch(new VerifyContractAppliesToInterfaceTypeOnly());
         AnnotationList.RegisterAnnotationToSearch(new VerifyCorrectPackageIsDotNetNamespaceUsage());
+        AnnotationList.RegisterAnnotationToSearch(new VerifyPermitsRecursiveFiringAppliedToIEventClasses());
     }
 }

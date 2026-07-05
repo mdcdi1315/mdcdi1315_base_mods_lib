@@ -1,25 +1,9 @@
-### Now releasing 1.0.35:
+### Now releasing 1.0.36:
 
--> Bugfixes for issues #2 and #3
+-> Further bugfixes on I/O package, and extended the capabilities of the `MemoryStream` class.
 
--> Additional other bugfixes
+-> Event API: Added `IDestroyedOnUseEvent` interface, that allows to construct events that 
+once they are fired, they are removed from the events manager.
 
--> Fixed several .NET Layer issues and added more classes again.
-
--> Added an annotation processor for validating several annotations in the library,
-will be coming soon to the developers as well.
-
--> Command API: Added a way for registering new custom command argument types to Minecraft.
-
--> Added several additional default functions, and made all the Primitive*Function/Action interfaces inherit 
-from the PrimitiveNumericAction and PrimitiveNumericFunction interfaces.
-
--> Made the `Pure` annotation to be also defined in class constructors.
-
--> Made the Fast Binary Format a bit faster by removing the pushback stream for reading, and instead reading from the data stream directly.
-
--> Collections: Added priority queue interface, and it's implementations.
-
--> Made the BML Logger `static final`.
-
--> Documentation additions and fixes.
+-> Event API: Firing events in event handlers is no longer allowed, except if the event that 
+is being fired of specifies the `PermitsRecursiveFiring` annotation.
