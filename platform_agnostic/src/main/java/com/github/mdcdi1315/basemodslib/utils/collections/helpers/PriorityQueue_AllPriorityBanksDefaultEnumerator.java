@@ -15,26 +15,33 @@ public final class PriorityQueue_AllPriorityBanksDefaultEnumerator<T>
 
     public PriorityQueue_AllPriorityBanksDefaultEnumerator(IPriorityQueue<T> the_queue)
     {
-        current_priority = -1;
+        current_priority = 0;
         current_enumerator = null;
         this.the_queue = the_queue;
     }
 
-    private boolean GetNextPriorityBank()
+    private boolean GetNextPriorityBank(boolean current_finished)
     {
+        // If we reached here because the current enumerator has no elements
+        // to give to us, we dispose it and move on to the next priority, if available.
+        if (current_finished) { DisposeCurrentEnumerator(); current_priority++; }
         // Loop through the priority banks.
         // See below for the reason why we are looping through them.
-        while (++current_priority < the_queue.GetPriorityCount())
+        while (current_priority < the_queue.GetPriorityCount())
         {
-            DisposeCurrentEnumerator();
-            current_enumerator = the_queue.GetEnumerator(current_priority);
+            if (current_enumerator == null) {
+                // Only get the enumerator if we have not got it before
+                current_enumerator = the_queue.GetEnumerator(current_priority);
+            }
             // There might be the case that a priority bank might be empty.
             // If that is the case, just dispose the current enumerator and move on to the next one,
             // if we have a priority bank available.
             if (current_enumerator.MoveNext()) { return true; }
+            DisposeCurrentEnumerator();
+            current_priority++;
         }
 
-        // We do not have any avaliable priority banks, so give up.
+        // We do not have any available priority banks, so give up.
         // Note also that we do not dispose the currently allocated enumerator - if there is one,
         // that would be done in Dispose method call time.
         return false;
@@ -54,7 +61,7 @@ public final class PriorityQueue_AllPriorityBanksDefaultEnumerator<T>
     protected void ResetImpl()
             throws InvalidOperationException
     {
-        current_priority = -1;
+        current_priority = 0;
         DisposeCurrentEnumerator();
     }
 
@@ -63,11 +70,11 @@ public final class PriorityQueue_AllPriorityBanksDefaultEnumerator<T>
             throws InvalidOperationException
     {
         if (current_enumerator == null) {
-            return GetNextPriorityBank();
+            return GetNextPriorityBank(false);
         } else if (current_enumerator.MoveNext()) {
             return true;
         } else {
-            return GetNextPriorityBank();
+            return GetNextPriorityBank(true);
         }
     }
 

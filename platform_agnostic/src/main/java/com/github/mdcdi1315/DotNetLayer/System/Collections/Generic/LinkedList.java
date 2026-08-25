@@ -7,8 +7,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
-import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
-
 /**
  * Represents a doubly linked list.
  * @param <T> Specifies the element type of the linked list.
@@ -310,7 +308,7 @@ public class LinkedList<T>
     public LinkedListNode<T> Find(@AllowNull T value)
     {
         LinkedListNode<T> node = head;
-        IEqualityComparer<T> c = new JavaObjectEqualsEqualityComparer<>(); // EqualityComparer<T>.Default;
+        IEqualityComparer<T> c = EqualityComparer.GetDefault();
         if (node != null)
         {
             if (value != null) {
@@ -340,7 +338,7 @@ public class LinkedList<T>
 
         LinkedListNode<T> last = head.prev;
         LinkedListNode<T> node = last;
-        IEqualityComparer<T> c = new JavaObjectEqualsEqualityComparer<>(); // EqualityComparer<T>.Default;
+        IEqualityComparer<T> c = EqualityComparer.GetDefault();
         if (node != null)
         {
             if (value != null) {
@@ -481,6 +479,12 @@ public class LinkedList<T>
         private final int _version;
         @AllowNull
         private T _current;
+
+        public Enumerator()
+        {
+            _list = new LinkedList<>();
+            _version = 0;
+        }
 
         private Enumerator(LinkedList<T> list)
         {

@@ -614,6 +614,27 @@ public final class FunctionManipulations
     }
 
     /**
+     * Returns a function that maps elements of type {@link TS} to {@link TR},
+     * by first invoking a mapper that maps elements of type {@link TS} to type {@link TM},
+     * and then invoking a mapper that maps elements of type {@link TM} to type {@link TR}.
+     * @param first The first mapping function that maps elements of type {@link TS} to type {@link TM}.
+     * @param second The second mapping function that maps elements of type {@link TM} to type {@link TR}.
+     * @return A function that maps elements of type {@link TS} to {@link TR}.
+     * @param <TS> The type of the input to map to {@link TR}.
+     * @param <TM> The type of intermediate output of the first function that is passed as a parameter to the second function.
+     * @param <TR> The type of the output that is the result of mapping {@link TS} to {@link TR}.
+     * @throws ArgumentNullException {@code first} and/or {@code second} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static <TS, TM, TR> Converter<TS, TR> ThenMap(Converter<TS, TM> first, Converter<TM, TR> second)
+    {
+        ArgumentNullException.ThrowIfNull(first, "first");
+        ArgumentNullException.ThrowIfNull(second, "second");
+        return new MapTwoFunctions_Converter<>(first, second);
+    }
+
+    /**
      * Returns a function that maps the input arguments of type {@link T1} and {@link T2} to {@link TR},
      * by first invoking a mapper that maps the input arguments of type {@link T1} and {@link T2} to type {@link TM},
      * and then invoking a mapper that maps elements of type {@link TM} to type {@link TR}.

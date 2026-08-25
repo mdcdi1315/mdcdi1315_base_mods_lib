@@ -1,6 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 /**
  * The exception that is thrown when an attempt is made to access an element of
@@ -12,31 +12,22 @@ public final class IndexOutOfRangeException
     /**
      * Initializes a new instance of the {@link IndexOutOfRangeException} class.
      */
-    public IndexOutOfRangeException()
-    {
-        super();
-    }
+    public IndexOutOfRangeException() { super(); }
 
     /**
      * Initializes a new instance of the {@link IndexOutOfRangeException} class with a specified error message.
      * @param message The message that describes the error.
      */
-    public IndexOutOfRangeException(@MaybeNull String message)
-    {
-        super(message);
-    }
+    public IndexOutOfRangeException(@AllowNull String message) { super(message); }
 
     /**
-     *  Initializes a new instance of the {@link IndexOutOfRangeException} class with
-     *  a specified error message and a reference to the inner exception that is the
-     *  cause of this exception.
+     * Initializes a new instance of the {@link IndexOutOfRangeException} class with
+     * a specified error message and a reference to the inner exception that is the
+     * cause of this exception.
      * @param message The error message that explains the reason for the exception.
      * @param innerException The exception that is the cause of the current exception. If the innerException
      * parameter is not a null reference (Nothing in Visual Basic), the current exception
      * is raised in a catch block that handles the inner exception.
      */
-    public IndexOutOfRangeException(@MaybeNull String message, @MaybeNull Exception innerException)
-    {
-        super(message , innerException);
-    }
+    public IndexOutOfRangeException(@AllowNull String message, @AllowNull Exception innerException) { super(message , innerException); }
 }

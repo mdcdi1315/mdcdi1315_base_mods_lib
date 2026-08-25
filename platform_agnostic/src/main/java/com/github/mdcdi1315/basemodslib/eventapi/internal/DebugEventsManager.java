@@ -1,5 +1,7 @@
 package com.github.mdcdi1315.basemodslib.eventapi.internal;
 
+import com.github.mdcdi1315.DotNetLayer.ByRefParameter;
+import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
@@ -10,8 +12,6 @@ import com.github.mdcdi1315.basemodslib.eventapi.*;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
-
-import com.google.common.collect.ImmutableSet;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -104,7 +104,14 @@ class DebugEventsManager
         ArgumentNullException.ThrowIfNull(event_data, "event_data");
         Class<? extends IEvent> event_class = event_data.getClass();
         BaseModsLib.LOGGER.info("EVENTS_MANAGER: Dispatching event of type {}." , event_class.getName());
-        FireEventInternal(event_data , GetActions().get(event_class));
+        ByRefParameter<SingleLinkedListBasedRegister<Action1<? extends IEvent>>> acts = new ByRefParameter<>();
+        Lock().lock();
+        try {
+            GetActions().TryGetValue(event_data.getClass(), acts);
+        } finally {
+            Lock().unlock();
+        }
+        FireEventInternal(event_data, acts.Value);
         IfDestroyedOnUseRemove(this, event_data);
     }
 
@@ -118,38 +125,64 @@ class DebugEventsManager
         var actions = GetActions();
         Class<?> destroyable = IDestroyableEvent.class,
                 destroyable_if_unused = IDestroyableIfUnusedEvent.class;
-        for (Class<?> i : ImmutableSet.copyOf(actions.keySet())) // Guava's copyOf is much better and faster than new HashSet<>(actions.keySet()).
-        {
-            // Running the below loop for each event could be a VERY HEAVY OPERATION. However, each event object registered is unique, so we check each time for different class objects, so this is OK and acceptable.
-            for (Class<?> cls : ReflectionUtils.GetAllImplementedInterfaces(i))
+        Lock().lock();
+        try {
+            SingleLinkedListBasedRegister<Class<? extends IEvent>> events_to_remove = new SingleLinkedListBasedRegister<>();
+            try (var e = actions.GetEnumerator())
             {
-                if (cls == destroyable_if_unused) {
-                    var list = actions.get(i);
-                    if (list != null && (!list.HasItems())) {
-                        actions.remove(i);
-                        removed_events.Register((Class<? extends IDestroyableIfUnusedEvent>) i);
-                        removed++;
+                while (e.MoveNext())
+                {
+                    var ce = e.getCurrent();
+                    var i = ce.getKey();
+                    // Running the below loop for each event could be a VERY HEAVY OPERATION.
+                    // However, each event object registered is unique, so we check each time for different class objects, so this is OK and acceptable.
+                    for (Class<?> cls : ReflectionUtils.GetAllImplementedInterfaces(i))
+                    {
+                        if (cls == destroyable_if_unused) {
+                            if ((!ce.getValue().HasItems())) { events_to_remove.Register(i); }
+                            break;
+                        } else if (cls == destroyable) {
+                            events_to_remove.Register(i);
+                            break;
+                        }
                     }
-                    break;
-                } else if (cls == destroyable) {
-                    actions.remove(i);
-                    removed++;
-                    break;
                 }
             }
+            try (var e = events_to_remove.GetEnumerator())
+            {
+                while (e.MoveNext())
+                {
+                    var cls = e.getCurrent();
+                    if (actions.Remove_Ordinal2(cls))
+                    {
+                        if (destroyable_if_unused.isAssignableFrom(cls))
+                        {
+                            removed_events.Register((Class<? extends IDestroyableIfUnusedEvent>)cls);
+                        }
+                        removed++;
+                    }
+                }
+            }
+            actions.TrimExcess();
+        } finally {
+            Lock().unlock();
         }
-        BaseModsLib.LOGGER.info("EVENTS_MANAGER: Successfully removed {} destroyable events" , removed);
+        BaseModsLib.LOGGER.info("EVENTS_MANAGER: Successfully removed {} destroyable events", removed);
     }
 
     @Override
     public void Dispose()
     {
         // Check whether we have memory leaks from non-dispatched single-use events.
-        for (Class<? extends IEvent> e : GetActions().keySet())
+        try (IEnumerator<Class<? extends IEvent>> e = GetActions().getKeys().GetEnumerator())
         {
-            if (IDestroyedOnUseEvent.class.isAssignableFrom(e))
+            while (e.MoveNext())
             {
-                BaseModsLib.LOGGER.warn("[DebugEventsManager] Detected memory leak on registered event class {}: This class was never dispatched in the lifetime of the event manager.", e.getName());
+                var cls = e.getCurrent();
+                if (IDestroyedOnUseEvent.class.isAssignableFrom(cls))
+                {
+                    BaseModsLib.LOGGER.warn("[DebugEventsManager] Detected memory leak on registered event class {}: This class was never dispatched in the lifetime of the event manager.", cls.getName());
+                }
             }
         }
         super.Dispose();

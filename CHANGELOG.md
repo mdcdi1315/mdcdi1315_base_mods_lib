@@ -1,9 +1,21 @@
-### Now releasing 1.0.36:
+### Now releasing 1.0.37:
 
--> Further bugfixes on I/O package, and extended the capabilities of the `MemoryStream` class.
+-> Expanded the I/O package (Again!)
 
--> Event API: Added `IDestroyedOnUseEvent` interface, that allows to construct events that 
-once they are fired, they are removed from the events manager.
+-> Collections package: Added several API's:
+    - `FixedArrayBasedList`: An non-expandable list, based by the `ArrayBasedList` class.
+    - Added better empty collection handling
+    - `ArrayBasedList`: Several code cleanups
+    - Added sorting algorithms, plus checker whether an enumerable is sorted.
+    - Added common comparer implementations, accessible under the `comparers` sub-package.
 
--> Event API: Firing events in event handlers is no longer allowed, except if the event that 
-is being fired of specifies the `PermitsRecursiveFiring` annotation.
+-> .NET Layer additions:
+  - Most notable: Added the `Dictionary` implementation
+  - Completed the exception classes
+  - Added the non-generic `ArrayList` implementation
+  - Updated annotation processor to better handle the `ClassIsDotNetStruct` annotation
+
+-> Further cleanups on `BaseModsLib` and `BaseModsLibClient` classes,
+and they now use a `Dictionary` instance to store the mod instances.
+
+-> Function package: Added Provides* function signatures

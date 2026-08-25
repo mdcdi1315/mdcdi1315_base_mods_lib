@@ -8,5 +8,19 @@ package com.github.mdcdi1315.basemodslib.utils.collections;
 public interface ITraversableStack<T>
         extends IStack<T>, ITraversableCollection<T>
 {
-
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default T DuplicateLastItem()
+    {
+        if (GetCount() == 0) {
+            return null;
+        } else {
+            T value = TryPop();
+            Push(value);
+            Push(value);
+            return value;
+        }
+    }
 }

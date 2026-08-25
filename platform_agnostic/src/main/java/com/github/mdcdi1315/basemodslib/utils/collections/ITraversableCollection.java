@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 /**
  * Specifies the base interface for traversable collections; that is, collections that their individual elements can be accessed by simple 32-bit integers.
@@ -23,5 +24,6 @@ public interface ITraversableCollection<T>
      * @return The item's value at {@code index}.
      * @throws ArgumentOutOfRangeException {@code index} is negative or outside the current collection bounds.
      */
+    @MaybeNull
     T GetItem(int index) throws ArgumentOutOfRangeException;
 }

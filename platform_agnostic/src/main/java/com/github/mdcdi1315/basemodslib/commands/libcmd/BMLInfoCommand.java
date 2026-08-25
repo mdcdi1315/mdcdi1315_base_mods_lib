@@ -1,5 +1,8 @@
 package com.github.mdcdi1315.basemodslib.commands.libcmd;
 
+import com.github.mdcdi1315.DotNetLayer.System.AppContext;
+import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.RuntimeFeature;
+
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.VersionInfo;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
@@ -21,6 +24,7 @@ public final class BMLInfoCommand
     @Override
     protected LiteralArgumentBuilder<CommandSourceStack> CommandImplementation(LiteralArgumentBuilder<CommandSourceStack> builder) { return builder.executes(BMLInfoCommand::Implementation); }
 
+    @SuppressWarnings("OptionalIsPresent")
     private static int Implementation(CommandContext<CommandSourceStack> context)
     {
         context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.header"));
@@ -28,8 +32,33 @@ public final class BMLInfoCommand
         context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.bml_build_time", VersionInfo.GetPropertyOrEmpty(VersionInfo.PROPERTY_BUILD_TIME)));
         context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.mc_version", BaseModsLib.GetMinecraftVersion().toString()));
         context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.mod_loader", BaseModsLib.GetModLoaderBranding(), BaseModsLib.GetModLoaderVersion().toString()));
-        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.loaded_instances", BaseModsLib.GetModInstancesCount()));
+        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.loaded_instances", BaseModsLib.GetModInstanceCollection().getCount()));
         context.getSource().sendSystemMessage(Component.translatable(BaseModsLib.IsDevelopmentEnvironment() ? "mdcdi1315_base_mods_lib.devcmds.get_bml_info.is_dev_env_yes" : "mdcdi1315_base_mods_lib.devcmds.get_bml_info.is_dev_env_no"));
+        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.banner"));
+        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.targetframeworkname", AppContext.GetTargetFrameworkName()));
+        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.app_context_directory", AppContext.GetBaseDirectory()));
+        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.runtimefeatures.banner"));
+        for (var c : new String[] {
+                RuntimeFeature.PortablePdb,
+                RuntimeFeature.DefaultImplementationsOfInterfaces,
+                RuntimeFeature.UnmanagedSignatureCallingConvention,
+                RuntimeFeature.CovariantReturnsOfClasses,
+                RuntimeFeature.ByRefFields,
+                RuntimeFeature.ByRefLikeGenerics,
+                RuntimeFeature.VirtualStaticsInInterfaces,
+                RuntimeFeature.NumericIntPtr
+        })
+        {
+            context.getSource().sendSystemMessage(
+                    Component.translatable(
+                            "mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.runtimefeatures.feature",
+                            c,
+                            RuntimeFeature.IsSupported(c) ?
+                                    Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.runtimefeatures.feature.supported") :
+                                    Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.runtimefeatures.feature.unsupported")
+                    )
+            );
+        }
         Runtime.Version v = Runtime.version();
         if (BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT)
         {

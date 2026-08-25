@@ -1,19 +1,23 @@
 package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
+import com.github.mdcdi1315.DotNetLayer.ByRefParameter;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.Stopwatch;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+
+import com.github.mdcdi1315.DotNetLayer.appconfig.AppConfigXMLReader;
 
 import com.github.mdcdi1315.basemodslib.eventapi.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MixinUnsafe;
+import com.github.mdcdi1315.basemodslib.mods.ServerModInstanceCollection;
 import com.github.mdcdi1315.basemodslib.eventapi.internal.EventAPIHelpers;
 import com.github.mdcdi1315.basemodslib.utils.annotations.MaybeNullInMixin;
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -22,6 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.nio.file.Files;
+
+import java.io.IOException;
+import java.io.InputStream;
+
 import java.lang.Exception;
 
 /**
@@ -41,7 +50,7 @@ public final class BaseModsLib
     private static ProxyManager proxy_manager;
     private static EventManager events_manager;
     private static volatile boolean initialized;
-    private static SingleLinkedList<IServerModInstance> mod_instances;
+    private static ServerModInstanceCollection mod_instances;
 
     public static final Logger LOGGER;
 
@@ -49,6 +58,7 @@ public final class BaseModsLib
         layer = null;
         initialized = false;
         proxy_manager = null; // Initialized once the layer is ready.
+        mod_instances = null;
         events_manager = EventAPIHelpers.CreateEarly();
         LOGGER = LoggerFactory.getLogger("mdcdi1315's Base Mods Lib logger");
         LOGGER.info("BML Library is statically initialized - initialization will start in a bit.");
@@ -92,7 +102,7 @@ public final class BaseModsLib
             // This allows to avoid subtle registration issues on startup, if so the user requires it.
             synchronized (BaseModsLib.class) { events_manager = EventAPIHelpers.PerformEventHanding(events_manager); }
             LOGGER.debug("Hand out completed.");
-            mod_instances = new SingleLinkedList<>();
+            mod_instances = new ServerModInstanceCollection();
             proxy_manager = new ProxyManager();
             ConstructShutdownHook();
             LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion(), GetMinecraftVersion(), layer.GetEnvironment());
@@ -109,21 +119,34 @@ public final class BaseModsLib
                 throw new CriticalLibraryInitializationException(e);
             }
         }
-        LOGGER.info("Now marking the library as initialized.");
-        initialized = true;
         LOGGER.info("The library took {} seconds to initialize.", sw.GetElapsed().GetTotalSeconds());
-        IModResourceLookup bml_lookup = GetModResourceLookup(MOD_ID);
+        IModResourceLookup bml_lookup = layer.GetBMLResourceLookup();
         if (bml_lookup == null) {
             LOGGER.info("Cannot get the BML resource lookup! Versioning data won't be loaded.");
         } else {
             try {
                 VersionInfo.LoadProjectInfo(bml_lookup.GetResource("project.mdcdi1315_info"));
+                LoadDotNetLayerConfig(bml_lookup.GetResource("META-INF/dotnetlayer.config"));
             } finally {
                 bml_lookup.Dispose();
             }
         }
+        LOGGER.info("Now marking the library as initialized.");
+        initialized = true;
         String ver = VersionInfo.GetProperty(VersionInfo.PROPERTY_VERSION);
         if (ver != null) { BaseModsLib.LOGGER.info("Successfully identified BML version: {}", ver); }
+        ver = AppContext.GetTargetFrameworkName();
+        if (ver != null) { BaseModsLib.LOGGER.info("Successfully identified .NET Layer info: {}", ver); }
+    }
+
+    private static void LoadDotNetLayerConfig(Path config_file)
+    {
+        try (InputStream stream = Files.newInputStream(config_file)) {
+            AppConfigXMLReader.ApplyToApplicationContext(AppConfigXMLReader.ReadFromStream(stream));
+            BaseModsLib.LOGGER.info("[DotNetLayer] Loaded .NET layer configuration.");
+        } catch (IOException ioex) {
+            BaseModsLib.LOGGER.error("[DotNetLayer] Error while reading .NET Layer config file {}", config_file, ioex);
+        }
     }
 
     /**
@@ -164,7 +187,6 @@ public final class BaseModsLib
      * @throws ArgumentNullException {@code instance} was {@code null}.
      * @throws ModInitializationException The mod instance passed failed to be initialized. Check error log for more information.
      */
-    @SuppressWarnings("SynchronizeOnNonFinalField")
     public static void InitializeServerSideMod(IServerModInstance instance, Object mod_object)
             throws ArgumentNullException, ModInitializationException
     {
@@ -198,9 +220,7 @@ public final class BaseModsLib
 
             LOGGER.info("BASEMODSLIB: Server mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
-            synchronized (mod_instances) {
-                mod_instances.Add(instance); // The instance is made known to other mods after the mod has completed initialization.
-            }
+            mod_instances.Add(instance);
         } catch (Throwable th) {
             var id = instance.GetModId();
             sw.Stop();
@@ -241,15 +261,37 @@ public final class BaseModsLib
     /**
      * Gets an enumerable of mod instances currently registered.
      * @return The registered mod instances.
+     * @deprecated Since 1.0.37, this method returns the exact same value as the
+     * {@link #GetModInstanceCollection()} method. For new development,
+     * using the {@link #GetModInstanceCollection()} method is recommended instead,
+     * despite the fact that this method won't be removed.
      */
+    @Pure
     @NotNull
+    @Deprecated(since = "1.0.37")
     public static IEnumerable<IServerModInstance> GetModInstances() { return mod_instances; }
+
+    /**
+     * Returns a list of all the BML mods currently discovered and registered by the BML.
+     * @return The {@link ServerModInstanceCollection} containing all the discovered mods.
+     * @since 1.0.37
+     */
+    @Pure
+    @NotNull
+    @MixinUnsafe
+    @MaybeNullInMixin
+    public static ServerModInstanceCollection GetModInstanceCollection() { return mod_instances; }
 
     /**
      * Gets the number of mod instances that should be returned through the {@link #GetModInstances()} method.
      * @return The number of mod instances contained in the return value of {@link #GetModInstances()} method.
      * @since 1.0.21
+     * @deprecated Since 1.0.37, this method returns the exact same count as the
+     * {@link #GetModInstanceCollection()} method's {@link ServerModInstanceCollection#getCount()} method.
+     * For new development, using the {@link #GetModInstanceCollection()} method is recommended instead,
+     * despite the fact that this method won't be removed.
      */
+    @Deprecated(since = "1.0.37")
     public static int GetModInstancesCount() { return mod_instances.getCount(); }
 
     /**
@@ -268,19 +310,10 @@ public final class BaseModsLib
     {
         ArgumentNullException.ThrowIfNull(mod_id);
         if (mod_id.isBlank()) { return null; }
-        IServerModInstance smi;
-        IEnumerator<IServerModInstance> en = mod_instances.GetEnumerator();
-        try {
-            while (en.MoveNext()) {
-                smi = en.getCurrent();
-                if (smi.GetModId().equals(mod_id)) {
-                    return smi;
-                }
-            }
-            return null;
-        } finally {
-            en.Dispose();
-        }
+        ByRefParameter<IServerModInstance> instance = new ByRefParameter<>();
+        instance.Value = null;
+        mod_instances.TryGetValue(mod_id, instance);
+        return instance.Value;
     }
 
     /**
@@ -411,7 +444,9 @@ public final class BaseModsLib
     @ApiStatus.Internal
     public static void Destroy()
     {
-        LOGGER.info("Mod loading complete. Dispatching mod loading complete event to implementing mods.");
+        LOGGER.info("Mod loading complete. Freezing mod instance collection.");
+        mod_instances.Freeze();
+        LOGGER.info("Mod instance collection has been frozen, dispatching mod loading complete event to implementing mods.");
         events_manager.FireEvent(new ModLoadingCompleteEvent());
         events_manager.DestroyDestroyableEvents();
         if (!proxy_manager.Lock()) {
@@ -449,7 +484,7 @@ public final class BaseModsLib
             if (layer != null)
             {
                 IServerModInstance mi;
-                try (IEnumerator<IServerModInstance> i = mod_instances.GetEnumerator())
+                try (var i = mod_instances.GetEnumerator())
                 {
                     while (i.MoveNext())
                     {

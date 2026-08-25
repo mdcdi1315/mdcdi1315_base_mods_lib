@@ -6,8 +6,11 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.io.OutputStream;
+import java.io.EOFException;
+
+import java.nio.ByteOrder;
+import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
@@ -18,6 +21,20 @@ import java.nio.channels.WritableByteChannel;
 public final class StreamUtils
 {
     private StreamUtils() {}
+
+    private static void WriteBufferEnsured_Unsafe(WritableByteChannel channel, ByteBuffer buffer)
+            throws IOException { while (buffer.hasRemaining()) { channel.write(buffer); } }
+
+    private static void ReadBufferEnsured_Unsafe(ReadableByteChannel channel, ByteBuffer buffer)
+            throws IOException
+    {
+        while (buffer.hasRemaining())
+        {
+            if (channel.read(buffer) == -1) {
+                throw new EOFException("The stream ended prematurely");
+            }
+        }
+    }
 
     /**
      * Copies all the data of the specified {@linkplain ReadableByteChannel readable byte channel} to the specified
@@ -124,10 +141,10 @@ public final class StreamUtils
 
         int rb;
         if (buffer.hasArray()) {
-            temp = null;
+            temp = buffer.array();
             while ((rb = channel.read(buffer)) > -1)
             {
-                destination.write(buffer.array(), 0, rb);
+                destination.write(temp, 0, rb);
                 buffer.rewind();
                 transferred += rb;
             }
@@ -268,6 +285,7 @@ public final class StreamUtils
      * @param buffer The {@link ByteBuffer} to write.
      * @throws ArgumentNullException {@code stream} and/or {@code buffer} are {@code null}.
      * @throws IOException {@link OutputStream#write(byte[], int, int)} call threw an exception.
+     * @see OutputStreamToWriteableByteChannel
      * @since 1.0.35
      */
     public static void WriteBuffer(OutputStream stream, ByteBuffer buffer)
@@ -298,6 +316,43 @@ public final class StreamUtils
     }
 
     /**
+     * Writes the specified {@link ByteBuffer} to the specified writable byte channel,
+     * ensuring that the entire remaining buffer contents are written to the channel.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the {@linkplain ByteBuffer byte buffer} to.
+     * @param buffer The {@linkplain ByteBuffer byte buffer} whose contents are to be written to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @throws ArgumentNullException {@code channel} and/or {@code buffer} are {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an I/O exception.
+     * @since 1.0.37
+     */
+    public static void WriteBufferEnsured(WritableByteChannel channel, ByteBuffer buffer)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(buffer, "buffer");
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+
+        WriteBufferEnsured_Unsafe(channel, buffer);
+    }
+
+    /**
+     * Reads data from the specified {@link ReadableByteChannel} to the specified {@link ByteBuffer},
+     * ensuring that the entire remaining buffer capacity is read from the channel.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to fill the {@linkplain ByteBuffer byte buffer} with data.
+     * @param buffer The {@linkplain ByteBuffer byte buffer} that is to be filled with data from the specified {@linkplain ReadableByteChannel readable byte channel}.
+     * @throws ArgumentNullException {@code channel} and/or {@code buffer} are {@code null}.
+     * @throws IOException {@link ReadableByteChannel#read(ByteBuffer)} threw an I/O exception.
+     * @throws EOFException The stream ended before the entire buffer was filled.
+     * @since 1.0.37
+     */
+    public static void ReadBufferEnsured(ReadableByteChannel channel, ByteBuffer buffer)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(buffer, "buffer");
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+
+        ReadBufferEnsured_Unsafe(channel, buffer);
+    }
+
+    /**
      * Reads data from the given {@link InputStream} object as a {@link ByteBuffer}.
      * @param stream The {@link InputStream} object to read data from.
      * @param bytes_to_read The number of bytes to read from {@code stream}.
@@ -308,6 +363,7 @@ public final class StreamUtils
      * @throws IOException {@link InputStream#read(byte[], int, int)} call threw an exception.
      * @throws ArgumentNullException {@code stream} is {@code null}.
      * @throws ArgumentOutOfRangeException {@code bytes_to_read} is negative.
+     * @see InputStreamToReadableByteChannel
      * @since 1.0.35
      */
     @MaybeNull
@@ -328,5 +384,433 @@ public final class StreamUtils
             );
             return (read == -1) ? null : buffer.limit(read);
         }
+    }
+
+    /**
+     * Writes the specified value as byte value of range 0..255 to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified byte value to.
+     * @param byte_value_to_write The byte value to write to the channel. It's high-order 24 bits are completely ignored.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteByte(WritableByteChannel channel, int byte_value_to_write)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Byte.BYTES)
+                        .put((byte)(byte_value_to_write & 0xFF))
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a little-endian {@code short} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code short} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteShortLE(WritableByteChannel channel, short value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Short.BYTES)
+                        .order(ByteOrder.LITTLE_ENDIAN)
+                        .putShort(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a big-endian {@code short} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code short} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteShortBE(WritableByteChannel channel, short value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Short.BYTES)
+                        .order(ByteOrder.BIG_ENDIAN)
+                        .putShort(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a little-endian {@code int} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code int} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteIntLE(WritableByteChannel channel, int value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Integer.BYTES)
+                        .order(ByteOrder.LITTLE_ENDIAN)
+                        .putInt(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a big-endian {@code int} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code int} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteIntBE(WritableByteChannel channel, int value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Integer.BYTES)
+                        .order(ByteOrder.BIG_ENDIAN)
+                        .putInt(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a little-endian {@code long} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code long} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteLongLE(WritableByteChannel channel, long value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Long.BYTES)
+                        .order(ByteOrder.LITTLE_ENDIAN)
+                        .putLong(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a big-endian {@code long} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code long} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteLongBE(WritableByteChannel channel, long value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Long.BYTES)
+                        .order(ByteOrder.BIG_ENDIAN)
+                        .putLong(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a little-endian {@code float} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code float} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteFloatLE(WritableByteChannel channel, float value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Float.BYTES)
+                        .order(ByteOrder.LITTLE_ENDIAN)
+                        .putFloat(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a big-endian {@code float} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code float} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteFloatBE(WritableByteChannel channel, float value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Float.BYTES)
+                        .order(ByteOrder.BIG_ENDIAN)
+                        .putFloat(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a little-endian {@code double} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code double} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteDoubleLE(WritableByteChannel channel, double value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Double.BYTES)
+                        .order(ByteOrder.LITTLE_ENDIAN)
+                        .putDouble(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Writes the specified value as a big-endian {@code double} value to the specified {@linkplain WritableByteChannel writable byte channel}.
+     * @param channel The {@linkplain WritableByteChannel writable byte channel} to write the specified {@code double} value to.
+     * @param value The value to write to the channel.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @throws IOException {@link WritableByteChannel#write(ByteBuffer)} threw an exception.
+     * @since 1.0.37
+     */
+    public static void WriteDoubleBE(WritableByteChannel channel, double value)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        WriteBufferEnsured_Unsafe(
+                channel,
+                ByteBuffer
+                        .allocate(Double.BYTES)
+                        .order(ByteOrder.BIG_ENDIAN)
+                        .putDouble(value)
+                        .rewind()
+        );
+    }
+
+    /**
+     * Reads a single byte from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the byte from.
+     * @return The read byte value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static byte ReadByte(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().get();
+    }
+
+    /**
+     * Reads a {@code short} value, encoded in little-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code short} from.
+     * @return The read {@code short} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static short ReadShortLE(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.LITTLE_ENDIAN).getShort();
+    }
+
+    /**
+     * Reads a {@code short} value, encoded in big-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code short} from.
+     * @return The read {@code short} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static short ReadShortBE(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.BIG_ENDIAN).getShort();
+    }
+
+    /**
+     * Reads a {@code int} value, encoded in little-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code int} from.
+     * @return The read {@code int} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static int ReadIntLE(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.LITTLE_ENDIAN).getInt();
+    }
+
+    /**
+     * Reads a {@code int} value, encoded in big-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code int} from.
+     * @return The read {@code int} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static int ReadIntBE(ReadableByteChannel channel)
+        throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.BIG_ENDIAN).getInt();
+    }
+
+    /**
+     * Reads a {@code long} value, encoded in little-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code long} from.
+     * @return The read {@code long} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static long ReadLongLE(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.LITTLE_ENDIAN).getLong();
+    }
+
+    /**
+     * Reads a {@code long} value, encoded in big-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code long} from.
+     * @return The read {@code long} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static long ReadLongBE(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.BIG_ENDIAN).getLong();
+    }
+
+    /**
+     * Reads a {@code float} value, encoded in little-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code float} from.
+     * @return The read {@code float} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static float ReadFloatLE(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Float.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.LITTLE_ENDIAN).getFloat();
+    }
+
+    /**
+     * Reads a {@code float} value, encoded in big-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code float} from.
+     * @return The read {@code float} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static float ReadFloatBE(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Float.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.BIG_ENDIAN).getFloat();
+    }
+
+    /**
+     * Reads a {@code double} value, encoded in little-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code double} from.
+     * @return The read {@code double} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static double ReadDoubleLE(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Double.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.LITTLE_ENDIAN).getDouble();
+    }
+
+    /**
+     * Reads a {@code double} value, encoded in big-endian from the given {@linkplain ReadableByteChannel readable byte channel}.
+     * @param channel The {@linkplain ReadableByteChannel readable byte channel} to read the {@code double} from.
+     * @return The read {@code double} value.
+     * @throws IOException An I/O exception occurred while reading.
+     * @throws ArgumentNullException {@code channel} is {@code null}.
+     * @since 1.0.37
+     */
+    public static double ReadDoubleBE(ReadableByteChannel channel)
+            throws ArgumentNullException, IOException
+    {
+        ArgumentNullException.ThrowIfNull(channel, "channel");
+        ByteBuffer buffer = ByteBuffer.allocate(Double.BYTES);
+        ReadBufferEnsured_Unsafe(channel, buffer);
+        return buffer.rewind().order(ByteOrder.BIG_ENDIAN).getDouble();
     }
 }

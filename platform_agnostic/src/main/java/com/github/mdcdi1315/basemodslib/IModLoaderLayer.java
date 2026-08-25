@@ -111,4 +111,12 @@ public interface IModLoaderLayer
      */
     @MaybeNull
     IModResourceLookup GetResourceLookupByID(String mod_id);
+
+    /**
+     * Returns a {@link IModResourceLookup} instance for the BML library.
+     * @return The library's mod resource lookup. {@code null} if the layer cannot find the library (probably the mod-loader is misbehaving)
+     * @since 1.0.37
+     */
+    @MaybeNull
+    default IModResourceLookup GetBMLResourceLookup() { return GetResourceLookupByID(BaseModsLib.MOD_ID); }
 }

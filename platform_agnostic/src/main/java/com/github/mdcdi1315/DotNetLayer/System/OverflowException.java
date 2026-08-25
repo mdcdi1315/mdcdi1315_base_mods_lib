@@ -1,7 +1,12 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.TypeForwardedFrom;
 
+/**
+ * The exception that is thrown when an arithmetic, casting, or conversion operation in a checked context results in an overflow.
+ */
+@TypeForwardedFrom(AssemblyFullName = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")
 public class OverflowException
         extends ArithmeticException
 {

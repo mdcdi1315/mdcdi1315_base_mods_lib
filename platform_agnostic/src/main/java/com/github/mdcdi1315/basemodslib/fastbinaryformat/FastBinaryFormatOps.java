@@ -331,7 +331,7 @@ public final class FastBinaryFormatOps
                     return CodecUtils.CreateDotNetFormattedErrorDataResult("Not a byte: {0}", v);
                 }
             }
-            return DataResult.success(bb);
+            return DataResult.success(bb.rewind());
         } else if (input instanceof NullBinaryFormatEntry) {
             return DataResult.success(ByteBuffer.allocate(0));
         } else if (input instanceof ByteFixedArrayBinaryFormatEntry e) {

@@ -355,6 +355,14 @@ public final class ArraySegment<T>
         private final int _end; // cache Offset + Count, since it's a little slow
         private int _current;
 
+        public Enumerator()
+        {
+            _array = null;
+            _start = 0;
+            _end = 0;
+            _current = 0;
+        }
+
         private Enumerator(ArraySegment<T> segment)
         {
             _array = segment._array;

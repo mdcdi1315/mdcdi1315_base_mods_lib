@@ -7,17 +7,17 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointer;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointerEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithPreviousPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithPreviousPointerEnumerator;
 
 /**
  * A default implementation of the {@link IStack} interface, by using a reverse single linked list. <br />
- * From 1.0.18, it now implements the {@link ITraversableStack} interface as well.
+ * Since 1.0.18, it implements the {@link ITraversableStack} interface as well.
  * @param <T> The type of the elements that this stack will hold.
  */
 public class SingleLinkedListBasedStack<T>
     extends BaseEnumerable<T>
-    implements ITraversableStack<T>
+    implements ITraversableStack<T>, ICloneableEnumerable<T>
 {
     private static final class Synchronized<T>
             extends SingleLinkedListBasedStack<T>
@@ -31,6 +31,9 @@ public class SingleLinkedListBasedStack<T>
         public Object GetSyncObject() { return lock; }
 
         @Override
+        public void Clear() { synchronized (lock) { super.Clear(); } }
+
+        @Override
         public T TryPop() { synchronized (lock) { return super.TryPop(); } }
 
         @Override
@@ -40,7 +43,7 @@ public class SingleLinkedListBasedStack<T>
         public void Push(T item) { synchronized (lock) { super.Push(item); } }
 
         @Override
-        public void Clear() { synchronized (lock) { super.Clear(); } }
+        public T DuplicateLastItem() { synchronized (lock) { return super.DuplicateLastItem(); } }
 
         @Override
         public IEnumerator<T> GetEnumerator() { synchronized (lock) { return super.GetEnumerator(); } }
@@ -54,14 +57,28 @@ public class SingleLinkedListBasedStack<T>
         {
             ArgumentNullException.ThrowIfNull(items, "items");
             // Instead of taking the lock each time on every push, we will get it only once.
-            synchronized (lock) {
-                IEnumerator<T> enumerator = items.GetEnumerator();
-                try {
-                    while (enumerator.MoveNext()) { super.Push(enumerator.getCurrent()); }
-                } finally {
-                    enumerator.Dispose();
+            synchronized (lock)
+            {
+                try (IEnumerator<T> enumerator = items.GetEnumerator())
+                {
+                    while (enumerator.MoveNext())
+                    {
+                        super.Push(enumerator.getCurrent());
+                    }
                 }
             }
+        }
+
+        @Override
+        public Synchronized<T> Clone()
+        {
+            Synchronized<T> copy = new Synchronized<>();
+            synchronized (lock)
+            {
+                ((SingleLinkedListBasedStack<T>)copy).current = super.current;
+                ((SingleLinkedListBasedStack<T>)copy).count = super.count;
+            }
+            return copy;
         }
     }
 
@@ -99,9 +116,6 @@ public class SingleLinkedListBasedStack<T>
     }
 
     @Override
-    public T TryPeek() { return (current == null) ? null : current.Value; }
-
-    @Override
     public void Push(T item)
     {
         NodeWithPreviousPointer<T> n = new NodeWithPreviousPointer<>(item);
@@ -111,10 +125,28 @@ public class SingleLinkedListBasedStack<T>
     }
 
     @Override
-    public void Clear() { current = null; count = 0; }
+    public T DuplicateLastItem()
+    {
+        if (current == null) {
+            return null;
+        } else {
+            T value = current.Value;
+            NodeWithPreviousPointer<T> n = new NodeWithPreviousPointer<>(value);
+            n.Previous = current;
+            current = n;
+            count++;
+            return value;
+        }
+    }
 
     @Override
-    public int GetCount() { return count; }
+    public SingleLinkedListBasedStack<T> Clone()
+    {
+        SingleLinkedListBasedStack<T> copy = new SingleLinkedListBasedStack<>();
+        copy.count = this.count;
+        copy.current = this.current;
+        return copy;
+    }
 
     @Override
     public T GetItem(int index)
@@ -135,6 +167,15 @@ public class SingleLinkedListBasedStack<T>
             return p.Value;
         }
     }
+
+    @Override
+    public int GetCount() { return count; }
+
+    @Override
+    public void Clear() { current = null; count = 0; }
+
+    @Override
+    public T TryPeek() { return (current == null) ? null : current.Value; }
 
     @Override
     public IEnumerator<T> GetEnumerator() { return new NodeWithPreviousPointerEnumerator<>(current); }

@@ -7,8 +7,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointer;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointerEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithPreviousPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithPreviousPointerEnumerator;
 
 /**
  * An implementation of the {@link ITraversableQueue} interface by using a technique similar to the {@link java.util.LinkedList} class implementation.
@@ -17,7 +17,7 @@ import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPr
  */
 public class SingleLinkedListBasedQueue<T>
     extends BaseEnumerable<T>
-    implements ITraversableQueue<T>
+    implements ITraversableQueue<T>, ICloneableEnumerable<T>
 {
     private static final class Synchronized<T>
             extends SingleLinkedListBasedQueue<T>
@@ -31,7 +31,7 @@ public class SingleLinkedListBasedQueue<T>
         public Object GetSyncObject() { return lock; }
 
         @Override
-        public T TryDequeue() { synchronized (lock) { return super.TryDequeue(); } }
+        public void Clear() { synchronized(lock) { super.Clear(); } }
 
         @Override
         public T TryPeek() { synchronized (lock) { return super.TryPeek(); } }
@@ -40,10 +40,10 @@ public class SingleLinkedListBasedQueue<T>
         public void Enqueue(T item) { synchronized(lock) { super.Enqueue(item); } }
 
         @Override
-        public IEnumerator<T> GetEnumerator() { synchronized(lock) { return super.GetEnumerator(); } }
+        public T TryDequeue() { synchronized (lock) { return super.TryDequeue(); } }
 
         @Override
-        public void Clear() { synchronized(lock) { super.Clear(); } }
+        public IEnumerator<T> GetEnumerator() { synchronized(lock) { return super.GetEnumerator(); } }
 
         @Override
         public T GetItem(int index) throws ArgumentOutOfRangeException { synchronized(lock) { return super.GetItem(index); } }
@@ -54,14 +54,29 @@ public class SingleLinkedListBasedQueue<T>
         {
             ArgumentNullException.ThrowIfNull(items, "items");
             // Instead of taking the lock each time on every enqueue, we will get it only once.
-            synchronized (lock) {
-                IEnumerator<T> enumerator = items.GetEnumerator();
-                try {
-                    while (enumerator.MoveNext()) { super.Enqueue(enumerator.getCurrent()); }
-                } finally {
-                    enumerator.Dispose();
+            synchronized (lock)
+            {
+                try (IEnumerator<T> enumerator = items.GetEnumerator())
+                {
+                    while (enumerator.MoveNext())
+                    {
+                        super.Enqueue(enumerator.getCurrent());
+                    }
                 }
             }
+        }
+
+        @Override
+        public Synchronized<T> Clone()
+        {
+            Synchronized<T> copy = new Synchronized<>();
+            synchronized (lock)
+            {
+                ((SingleLinkedListBasedQueue<T>)copy).head = super.head;
+                ((SingleLinkedListBasedQueue<T>)copy).tail = super.tail;
+                ((SingleLinkedListBasedQueue<T>)copy).count = super.count;
+            }
+            return copy;
         }
     }
 
@@ -98,9 +113,6 @@ public class SingleLinkedListBasedQueue<T>
     }
 
     @Override
-    public T TryPeek() { return (count < 1) ? null : head.Value; }
-
-    @Override
     public void Enqueue(T item)
     {
         NodeWithPreviousPointer<T> t = new NodeWithPreviousPointer<>(item);
@@ -120,13 +132,11 @@ public class SingleLinkedListBasedQueue<T>
     }
 
     @Override
-    public void Clear() {
+    public void Clear()
+    {
         count = 0;
         tail = head = null;
     }
-
-    @Override
-    public int GetCount() { return count; }
 
     @Override
     public T GetItem(int index)
@@ -147,6 +157,22 @@ public class SingleLinkedListBasedQueue<T>
             return p.Value;
         }
     }
+
+    @Override
+    public SingleLinkedListBasedQueue<T> Clone()
+    {
+        SingleLinkedListBasedQueue<T> copy = new SingleLinkedListBasedQueue<>();
+        copy.tail = this.tail;
+        copy.head = this.head;
+        copy.count = this.count;
+        return copy;
+    }
+
+    @Override
+    public int GetCount() { return count; }
+
+    @Override
+    public T TryPeek() { return (count < 1) ? null : head.Value; }
 
     @Override
     public IEnumerator<T> GetEnumerator() { return new NodeWithPreviousPointerEnumerator<>(head); }

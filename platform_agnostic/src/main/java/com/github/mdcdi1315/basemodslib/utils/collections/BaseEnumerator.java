@@ -14,13 +14,17 @@ import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 public abstract class BaseEnumerator<T>
         implements IEnumerator<T>
 {
-    private volatile boolean not_disposed;
+    private volatile boolean not_disposed, not_reset;
 
     /**
      * Initializes an instance of the {@link BaseEnumerator} class.
      */
     @Pure
-    protected BaseEnumerator() { not_disposed = true; }
+    protected BaseEnumerator()
+    {
+        not_reset = true;
+        not_disposed = true;
+    }
 
     @MaybeNull
     public abstract T getCurrent();
@@ -37,7 +41,20 @@ public abstract class BaseEnumerator<T>
      * @return {@code true} if the enumerator was successfully advanced to the next element; {@code false} if the enumerator has passed the end of the collection.
      * @exception InvalidOperationException The collection was modified after the enumerator was created.
      */
-    public final boolean MoveNext() throws InvalidOperationException { return not_disposed && MoveNextImpl(); }
+    public final boolean MoveNext()
+            throws InvalidOperationException
+    {
+        if (not_disposed && not_reset) {
+            if (MoveNextImpl()) {
+                return true;
+            } else {
+                not_reset = false;
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 
     /**
      * Sets the enumerator to its initial position, which is before the first element in the collection.
@@ -49,6 +66,7 @@ public abstract class BaseEnumerator<T>
     {
         ObjectDisposedException.ThrowIf(!not_disposed , this);
         ResetImpl();
+        not_reset = true;
     }
 
     /**

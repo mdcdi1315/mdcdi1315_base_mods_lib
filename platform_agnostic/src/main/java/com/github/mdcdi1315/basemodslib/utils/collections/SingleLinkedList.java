@@ -1,19 +1,15 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IList;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.Extensions;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
-import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextPointer;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextPointerEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextPointerEnumerator;
 
 /**
  * Provides an implementation of the {@link IList} interface implemented using a pointer to the next node.
@@ -102,7 +98,7 @@ public class SingleLinkedList<T>
     {
         count = 0;
         root = current = null;
-        comparer = new JavaObjectEqualsEqualityComparer<>();
+        comparer = new EqualityComparer.ObjectEqualityComparer<>();
     }
 
     /**
@@ -114,7 +110,7 @@ public class SingleLinkedList<T>
     {
         count = 0;
         root = current = null;
-        this.comparer = (comparer == null) ? new JavaObjectEqualsEqualityComparer<>() : comparer;
+        this.comparer = (comparer == null) ? new EqualityComparer.ObjectEqualityComparer<>() : comparer;
     }
 
     /**

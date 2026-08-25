@@ -6,12 +6,11 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import com.github.mdcdi1315.basemodslib.utils.function.*;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerator;
-import com.github.mdcdi1315.basemodslib.utils.function.BiPredicate;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.*;
-import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
-import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.sorting.*;
 import com.github.mdcdi1315.basemodslib.utils.collections.projections.IIntEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.collections.projections.ILongEnumerable;
 
@@ -131,6 +130,28 @@ public final class CollectionManipulations
     }
 
     /**
+     * Efficiently converts an instance of the {@link IReadOnlyList} interface, to an
+     * {@link ITraversableCollection}, while also implementing the {@link IReadOnlyList}.
+     * @param read_only The read-only list to convert to a traversable collection.
+     * @return A new wrapper instance that references the given {@code read_only} list,
+     * and delegates it's methods to it.
+     * @param <T> The type of the elements of {@code read_only}.
+     * @throws ArgumentNullException {@code read_only} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static <T> ITraversableCollection<T> AsTraversableCollection(IReadOnlyList<T> read_only)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(read_only, "read_only");
+        if (read_only instanceof ReadOnlyListToTraversableCollection<T> c) {
+            return c;
+        } else {
+            return new ReadOnlyListToTraversableCollection<>(read_only);
+        }
+    }
+
+    /**
      * Translates a given {@link KeyValuePair} instance to a read-only {@link java.util.Map.Entry} instance.
      * @param pair The {@link KeyValuePair} to translate.
      * @return The translated {@link java.util.Map.Entry} value of {@code pair}.
@@ -176,7 +197,7 @@ public final class CollectionManipulations
     @SuppressWarnings("resource")
     public static <T> IEnumerator<T> GetEnumeratorSafe(@AllowNull IEnumerable<T> enumerable)
     {
-        if (enumerable == null) {
+        if (enumerable == null || IsEmptyUnsafe(enumerable)) {
             return new EmptyEnumerator<>();
         } else {
             IEnumerator<T> e = enumerable.GetEnumerator();
@@ -199,7 +220,9 @@ public final class CollectionManipulations
     {
         ArgumentNullException.ThrowIfNull(converter, "converter");
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
-        if (enumerable instanceof ISupportsDirectConversionTo<TS> c_supported) {
+        if (IsEmptyUnsafe(enumerable)) {
+            return new EmptyEnumerable<>();
+        } else if (enumerable instanceof ISupportsDirectConversionTo<TS> c_supported) {
             return c_supported.ConvertAll(converter);
         } else {
             return new MapToMethodEnumerable<>(enumerable, converter);
@@ -222,7 +245,7 @@ public final class CollectionManipulations
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
         if (FunctionManipulations.IsAlwaysTrue(predicate)) {
             return enumerable;
-        } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
+        } else if (IsEmptyUnsafe(enumerable) || FunctionManipulations.IsAlwaysFalse(predicate)) {
             return new EmptyEnumerable<>();
         } else if (enumerable instanceof ISupportsFiltering<T> c_supported) {
             return c_supported.FilterBy(predicate);
@@ -245,7 +268,13 @@ public final class CollectionManipulations
     {
         ArgumentNullException.ThrowIfNull(first, "first");
         ArgumentNullException.ThrowIfNull(second, "second");
-        return new ConcatenatingEnumerable<>(first, second);
+        boolean ee_1 = IsEmptyUnsafe(first);
+        boolean ee_2 = IsEmptyUnsafe(second);
+        return (ee_1 && ee_2) ? new EmptyEnumerable<>() : (
+                (ee_1) ? second : (
+                        (ee_2) ? first : new ConcatenatingEnumerable<>(first, second)
+                )
+        );
     }
 
     /**
@@ -262,7 +291,9 @@ public final class CollectionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(enumerables, "enumerables");
-        return new MultipleConcatenatingEnumerablesEnumerable<>(enumerables);
+        return enumerables.length == 0 ?
+                new EmptyEnumerable<>() :
+                new MultipleConcatenatingEnumerablesEnumerable<>(enumerables);
     }
 
     /**
@@ -282,6 +313,8 @@ public final class CollectionManipulations
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
         if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
+        } else if (IsEmptyUnsafe(enumerable)) {
+            return new EmptyEnumerable<>();
         } else {
             return new SkipEnumerable<>(enumerable, count);
         }
@@ -303,6 +336,8 @@ public final class CollectionManipulations
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
         if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
+        } else if (count == 0 || IsEmptyUnsafe(enumerable)) {
+            return new EmptyEnumerable<>();
         } else if (enumerable instanceof ISupportsSlicing<T> c_supported) {
             return c_supported.Slice(0, count);
         } else {
@@ -361,16 +396,22 @@ public final class CollectionManipulations
 
         TL list_inst = list_creator.function();
 
-        if (list_inst instanceof IArrayBasedCollection ac && enumerable instanceof ITraversableCollection<T> t) { ac.EnsureCapacity(t.GetCount()); }
-
-        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        if (!IsEmptyUnsafe(enumerable))
         {
-            while (enumerator.MoveNext())
+            if (list_inst instanceof IArrayBasedCollection ac &&
+                    enumerable instanceof ITraversableCollection<T> t)
             {
-                list_inst.Add(enumerator.getCurrent());
+                ac.EnsureCapacity(t.GetCount());
+            }
+
+            try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
+                    list_inst.Add(enumerator.getCurrent());
+                }
             }
         }
-
         return list_inst;
     }
 
@@ -444,20 +485,11 @@ public final class CollectionManipulations
      * @param <T> The type of the elements that the {@code enumerable} contains.
      * @throws ArgumentNullException {@code enumerable} is {@code null}.
      */
-    @SuppressWarnings("IfCanBeSwitch")
     public static <T> boolean IsEmpty(IEnumerable<T> enumerable)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
-        if (enumerable instanceof EmptyEnumerable<T>) {
-            return true;
-        } else if (enumerable instanceof ITraversableCollection<T> t) {
-            return t.GetCount() == 0;
-        } else if (enumerable instanceof ICollection<T> c) {
-            return c.getCount() == 0;
-        } else {
-            try (IEnumerator<T> enumerator = enumerable.GetEnumerator()) { return !enumerator.MoveNext(); }
-        }
+        return IsEmptyUnsafe(enumerable);
     }
 
     /**
@@ -469,19 +501,31 @@ public final class CollectionManipulations
      * @apiNote This API is the exact opposite of the {@link #IsEmpty(IEnumerable)} API.
      * @see #IsEmpty(IEnumerable)
      */
-    @SuppressWarnings("IfCanBeSwitch")
     public static <T> boolean Any(IEnumerable<T> enumerable)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
-        if (enumerable instanceof EmptyEnumerable<T>) {
-            return false;
+        return !IsEmptyUnsafe(enumerable);
+    }
+
+    @SuppressWarnings({"IfCanBeSwitch", "resource"})
+    private static <T> boolean IsEmptyUnsafe(IEnumerable<T> enumerable)
+    {
+        if (enumerable instanceof IEmptyEnumerable) {
+            return true;
         } else if (enumerable instanceof ITraversableCollection<T> t) {
-            return t.GetCount() > 0;
+            return t.GetCount() == 0;
         } else if (enumerable instanceof ICollection<T> c) {
-            return c.getCount() > 0;
+            return c.getCount() == 0;
+        } else if (enumerable instanceof SingletonEnumeratorEnumerable<T>) {
+            // Avoid enumerating elements on singleton enumerator enumerables,
+            // only check whether we have an empty enumerator on it.
+            // There is also a small possibility that MoveNext returns false on allegedly
+            // non-empty instance, but doing so may spoil the enumerator's position,
+            // since it is only itself.
+            return enumerable.GetEnumerator() instanceof EmptyEnumerator<T>;
         } else {
-            try (IEnumerator<T> enumerator = enumerable.GetEnumerator()) { return enumerator.MoveNext(); }
+            try (IEnumerator<T> enumerator = enumerable.GetEnumerator()) { return !enumerator.MoveNext(); }
         }
     }
 
@@ -503,6 +547,8 @@ public final class CollectionManipulations
         if (FunctionManipulations.IsAlwaysTrue(predicate)) {
             return true;
         } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
+            return false;
+        } else if (IsEmptyUnsafe(enumerable)) {
             return false;
         } else {
             try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
@@ -530,18 +576,23 @@ public final class CollectionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
-        if (comparer == null) {
-            comparer = new JavaObjectEqualsEqualityComparer<>();
+
+        if (!IsEmptyUnsafe(enumerable))
+        {
+            if (comparer == null) {
+                comparer = new EqualityComparer.ObjectEqualityComparer<>();
+            }
+
+            try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
+                    if (comparer.Equals(enumerator.getCurrent(), value)) { return true; }
+                }
+            }
         }
 
-        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
-        {
-            while (enumerator.MoveNext())
-            {
-                if (comparer.Equals(enumerator.getCurrent(), value)) { return true; }
-            }
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -566,6 +617,7 @@ public final class CollectionManipulations
     {
         ArgumentNullException.ThrowIfNull(action, "action");
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
+        if (IsEmptyUnsafe(enumerable)) { return; }
         try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
         {
             while (enumerator.MoveNext())
@@ -596,11 +648,14 @@ public final class CollectionManipulations
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
         ArgumentNullException.ThrowIfNull(result_func, "result_func");
 
-        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        if (!IsEmptyUnsafe(enumerable))
         {
-            while (enumerator.MoveNext())
+            try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
             {
-                seed = func.function(seed, enumerator.getCurrent());
+                while (enumerator.MoveNext())
+                {
+                    seed = func.function(seed, enumerator.getCurrent());
+                }
             }
         }
 
@@ -623,7 +678,7 @@ public final class CollectionManipulations
 
         if (FunctionManipulations.IsAlwaysTrue(predicate)) {
             return true;
-        } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
+        } else if (IsEmptyUnsafe(enumerable) || FunctionManipulations.IsAlwaysFalse(predicate)) {
             return false;
         } else {
             try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
@@ -632,15 +687,15 @@ public final class CollectionManipulations
                 {
                     if (!predicate.predicate(enumerator.getCurrent())) { return false; }
                 }
-                return true;
             }
+            return true;
         }
     }
 
     /**
      * Produces the set intersection of two sequences by using the specified {@link IEqualityComparer} to compare values.
-     * @param first An {@link IEnumerable} whose distinct elements that also appear in second will be returned.
-     * @param second An {@link IEnumerable} whose distinct elements that also appear in the first sequence will be returned.
+     * @param first An {@link IEnumerable} whose distinct elements that also appear in {@code second} will be returned.
+     * @param second An {@link IEnumerable} whose distinct elements that also appear in the {@code first} sequence will be returned.
      * @param comparer An {@link IEqualityComparer} to compare values.
      * @return A sequence that contains the elements that form the set intersection of two sequences.
      * @param <T> The type of the elements of the input sequences.
@@ -667,7 +722,7 @@ public final class CollectionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
-        return new IndexEnumerable<>(enumerable);
+        return IsEmptyUnsafe(enumerable) ? new EmptyEnumerable<>() : new IndexEnumerable<>(enumerable);
     }
 
     /**
@@ -684,7 +739,7 @@ public final class CollectionManipulations
     {
         ArgumentNullException.ThrowIfNull(predicate, "predicate");
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
-        if (FunctionManipulations.IsAlwaysTrue(predicate)) {
+        if (IsEmptyUnsafe(enumerable) || FunctionManipulations.IsAlwaysTrue(predicate)) {
             return new EmptyEnumerable<>();
         } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
             return enumerable;
@@ -708,12 +763,291 @@ public final class CollectionManipulations
     {
         ArgumentNullException.ThrowIfNull(predicate, "predicate");
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
-        if (FunctionManipulations.IsAlwaysTrue(predicate)) {
+        if (IsEmptyUnsafe(enumerable) || FunctionManipulations.IsAlwaysTrue(predicate)) {
             return new EmptyEnumerable<>();
         } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
             return enumerable;
         } else {
             return new SkipWhileWithIndexEnumerable<>(enumerable, predicate);
         }
+    }
+
+    /**
+     * Stores the specified portion of elements of the current traversable collection to a new instance.
+     * @param collection The traversable collection to get the elements from.
+     * @param index The starting index to start copying elements from the current collection.
+     * @param count The number of elements to copy from the current collection to the new one.
+     * @return A new collection containing only the specified portion of elements.
+     * @param <T> The type of elements contained in {@code collection}.
+     * @throws ArgumentNullException {@code collection} is {@code null}.
+     * @throws ArgumentOutOfRangeException {@code index} and/or {@code count} are negative values.
+     * @throws ArgumentException {@code index} + {@code count} was exceeding the collection's bounds.
+     * @since 1.0.37
+     */
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public static <T> ITraversableCollection<T> Slice(ITraversableCollection<T> collection, int index, int count)
+            throws ArgumentNullException, ArgumentOutOfRangeException, ArgumentException
+    {
+        ArgumentNullException.ThrowIfNull(collection, "collection");
+        if (index < 0) {
+            throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
+        } else if (count < 0) {
+            throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
+        } else if (count == 0) {
+            return new TraversableCollectionSlice.Empty<>();
+        } else if (collection instanceof ISupportsSlicing<?> s) {
+            return (ITraversableCollection<T>) s.Slice(index, count);
+        } else if (((long)index + count - 1L) >= collection.GetCount()) {
+            throw new ArgumentException("The specified combination of the index and count parameters are outside of the collections's bounds.");
+        } else {
+            return new TraversableCollectionSlice<>(collection, index, count);
+        }
+    }
+
+    /**
+     * Provides a way to check whether a given enumerable has all it's elements sorted by a specified sorting order.
+     * @param enumerable The enumerable to check.
+     * @param comparer The {@link IComparer} instance that can compare two instances of type {@link T}.
+     * @param order The sort ordering under which the elements in {@code enuemrable} are expected to be found as.
+     * @return A value whether the array is sorted by the specified comparer and selected sorting order.
+     * @param <T> The type of elements to compare.
+     * @throws ArgumentNullException {@code enumerable} and/or {@code comparer} and/or {@code order} are {@code null}.
+     * @throws ArgumentException {@code order} is not of type {@link SortingOrder#ASCENDING} or {@link SortingOrder#DESCENDING}.
+     * @since 1.0.37
+     * @apiNote This operation has complexity of O(n).
+     */
+    public static <T> boolean IsSortedBy(IEnumerable<T> enumerable, IComparer<? super T> comparer, SortingOrder order)
+            throws ArgumentNullException, ArgumentException
+    {
+        ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
+
+        SortOrdering<T> ordering = SortOrdering.ConstructFromOrderAndComparer(order, comparer);
+
+        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        {
+            T before = null, next = null;
+            boolean before_assigned = false, after_assigned = false;
+            while (enumerator.MoveNext())
+            {
+                if (before_assigned) {
+                    next = enumerator.getCurrent();
+                    after_assigned = true;
+                } else {
+                    before = enumerator.getCurrent();
+                    before_assigned = true;
+                }
+                if (after_assigned)
+                {
+                    if (ordering.Test(before, next)) {
+                        before = next;
+                        next = null;
+                        after_assigned = false;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Locates an item's index of the specified item in the specified traversable collection.
+     * @param collection The traversable collection to run the binary search against.
+     * @param item The item to search.
+     * @param comparer The comparer to use for comparing values and determining the next step of the binary search.
+     * @return The index of {@code item}, or -1 if not found in {@code collection}.
+     * @param <T> The type of the item to specify in the {@code item} parameter.
+     * @throws ArgumentNullException {@code collection} is {@code null}.
+     * @since 1.0.37
+     */
+    public static <T> int BinarySearch(ITraversableCollection<T> collection, @AllowNull T item, @AllowNull IComparer<? super T> comparer)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(collection, "collection");
+        return BinarySearchInternal(collection::GetItem, collection.GetCount(), item, comparer);
+    }
+
+    /**
+     * Locates an item's index of the specified item in the specified read-only list.
+     * @param read_only_list The read-only list to run the binary search against.
+     * @param item The item to search.
+     * @param comparer The comparer to use for comparing values and determining the next step of the binary search.
+     * @return The index of {@code item}, or -1 if not found in {@code read_only_list}.
+     * @param <T> The type of the item to specify in the {@code item} parameter.
+     * @throws ArgumentNullException {@code read_only_list} is {@code null}.
+     * @since 1.0.37
+     */
+    public static <T> int BinarySearch(IReadOnlyList<T> read_only_list, @AllowNull T item, @AllowNull IComparer<? super T> comparer)
+    {
+        ArgumentNullException.ThrowIfNull(read_only_list, "read_only_list");
+        return BinarySearchInternal(read_only_list::getItem, read_only_list.getCount(), item, comparer);
+    }
+
+    /**
+     * Locates an item's index of the specified item in the specified list.
+     * @param list The list to run the binary search against.
+     * @param item The item to search.
+     * @param comparer The comparer to use for comparing values and determining the next step of the binary search.
+     * @return The index of {@code item}, or -1 if not found in {@code list}.
+     * @param <T> The type of the item to specify in the {@code item} parameter.
+     * @throws ArgumentNullException {@code list} is {@code null}.
+     * @since 1.0.37
+     */
+    public static <T> int BinarySearch(IList<T> list, @AllowNull T item, @AllowNull IComparer<? super T> comparer)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(list, "list");
+        return BinarySearchInternal(list::getItem, list.getCount(), item, comparer);
+    }
+
+    private static <T> int BinarySearchInternal(
+            PrimitiveIntegerFunction<T> get_item_function,
+            int count,
+            T item,
+            IComparer<? super T> comparer
+    ) {
+        if (comparer == null) { comparer = Comparer.GetDefault(); }
+
+        int mid, low = 0, high = count - 1;
+
+        while (low <= high)
+        {
+            mid = low + ((high - low) >>> 1);
+
+            int cr = comparer.Compare(get_item_function.function(mid), item);
+            if (cr < 0) {
+                low = mid + 1;
+            } else if (cr > 0) {
+                high = mid - 1;
+            } else {
+                return mid;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Sorts the two given traversable collections and returns the sorted result into one list.
+     * @param first The first traversable collection as input to the sort algorithm.
+     * @param second The second traversable collection as input to the sort algorithm.
+     * @param order The sorting order to apply for this sort operation.
+     * @param comparer The {@link IComparer} instance that is able to compare the values and deduce a sort result.
+     * @return The sorted result, stored into a list object.
+     * @param <T> The type of objects to be sorted.
+     * @throws ArgumentNullException {@code first} and/or {@code second} and/or {@code order} and/or {@code comparer} are {@code null}.
+     * @apiNote This sorting algorithm has complexity of O(n log n), if assuming that the enumerators move and get the next element from the collection in O(1) time.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static <T> IList<T> MergeSort(
+            ITraversableCollection<T> first,
+            ITraversableCollection<T> second,
+            SortingOrder order,
+            IComparer<? super T> comparer
+    ) throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(first, "first");
+        ArgumentNullException.ThrowIfNull(second, "second");
+        return MergeSort.Algorithm(
+                first,
+                second,
+                SortOrdering.ConstructFromOrderAndComparer(order, comparer)
+        );
+    }
+
+    /**
+     * Sorts the given traversable collection and returns the result as a list.
+     * @param collection The traversable collection to sort.
+     * @param order The sorting order to apply for this sort operation.
+     * @param comparer The {@link IComparer} instance that is able to compare the values and deduce a sort result.
+     * @return The sorted result, stored into a list object.
+     * @param <T> The type of objects to be sorted.
+     * @throws ArgumentNullException {@code collection} and/or {@code order} and/or {@code comparer} are {@code null}.
+     * @apiNote This sorting algorithm has complexity of O(n log n), if assuming that the enumerators move and get the next element from the collection in O(1) time.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static <T> IList<T> MergeSort(
+            ITraversableCollection<T> collection,
+            SortingOrder order,
+            IComparer<? super T> comparer
+    ) throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(collection, "collection");
+        return MergeSort.Algorithm(
+                collection,
+                SortOrdering.ConstructFromOrderAndComparer(order, comparer)
+        );
+    }
+
+    /**
+     * Sorts the given list.
+     * The list is sorted directly.
+     * @param list The list to sort its elements.
+     * @param order The sorting order to apply for this sort operation.
+     * @param comparer The {@link IComparer} instance that is able to compare the values and deduce a sort result.
+     * @param index Target index in {@code list} to begin sorting from.
+     * @param count Number of elements in {@code list} to sort.
+     * @param <T> The type of objects to be sorted.
+     * @throws ArgumentNullException {@code list} and/or {@code order} and/or {@code comparer} are {@code null}.
+     * @throws ArgumentOutOfRangeException {@code index} and/or {@code count} are negative values.
+     * @throws ArgumentException {@code index + count} does exceed the list's bounds.
+     * @apiNote Unlike MergeSort, this algorithm does in-place sort of the given list, which it might be faster in some cases,
+     * since no new lists are allocated. <br />
+     * Its complexity is O(n log n), if assuming that the {@link IList#getItem(int)} and {@link IList#setItem(int, Object)} calls have a complexity of O(1).
+     * @since 1.0.37
+     */
+    public static <T> void QuickSort(
+            IList<T> list,
+            SortingOrder order,
+            IComparer<? super T> comparer,
+            int index,
+            int count
+    ) throws ArgumentNullException, ArgumentOutOfRangeException, ArgumentException
+    {
+        ArgumentNullException.ThrowIfNull(list, "list");
+        if (index < 0) {
+            throw new ArgumentOutOfRangeException("index", "Index cannot be less than 0.");
+        } else if (count < 0) {
+            throw new ArgumentOutOfRangeException("count", "Count cannot be less than 0.");
+        } else if (Math.addExact(index, count) > list.getCount()) {
+            throw new ArgumentException("Index and Count parameter values are exceeding the bounds of the list.");
+        } else {
+            QuickSort.Algorithm(
+                    list,
+                    index,
+                    index + count - 1,
+                    SortOrdering.ConstructFromOrderAndComparer(order, comparer)
+            );
+        }
+    }
+
+    /**
+     * Sorts the given list.
+     * The list is sorted directly.
+     * @param list The list to sort its elements.
+     * @param order The sorting order to apply for this sort operation.
+     * @param comparer The {@link IComparer} instance that is able to compare the values and deduce a sort result.
+     * @param <T> The type of objects to be sorted.
+     * @throws ArgumentNullException {@code list} and/or {@code order} and/or {@code comparer} are {@code null}.
+     * @apiNote Unlike MergeSort, this algorithm does in-place sort of the given list, which it might be faster in some cases,
+     * since no new lists are allocated. <br />
+     * Its complexity is O(n log n), if assuming that the {@link IList#getItem(int)} and {@link IList#setItem(int, Object)} calls have a complexity of O(1).
+     * @since 1.0.37
+     */
+    public static <T> void QuickSort(
+            IList<T> list,
+            SortingOrder order,
+            IComparer<? super T> comparer
+    ) throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(list, "list");
+        QuickSort.Algorithm(
+                list,
+                SortOrdering.ConstructFromOrderAndComparer(order, comparer)
+        );
     }
 }

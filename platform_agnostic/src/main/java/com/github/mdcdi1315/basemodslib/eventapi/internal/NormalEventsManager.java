@@ -1,7 +1,7 @@
 package com.github.mdcdi1315.basemodslib.eventapi.internal;
 
+import com.github.mdcdi1315.DotNetLayer.ByRefParameter;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.IEvent;
@@ -9,8 +9,6 @@ import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
 import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
-
-import com.google.common.collect.ImmutableSet;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -44,24 +42,42 @@ class NormalEventsManager
         var actions = GetActions();
         Class<?> destroyable = IDestroyableEvent.class,
                 destroyable_if_unused = IDestroyableIfUnusedEvent.class;
-        for (Class<?> i : ImmutableSet.copyOf(actions.keySet())) // Guava's copyOf is much better and faster than new HashSet<>(actions.keySet()).
-        {
-            // Running the below loop for each event could be a VERY HEAVY OPERATION. However, each event object registered is unique, so we check each time for different class objects, so this is OK and acceptable.
-            for (Class<?> cls : ReflectionUtils.GetAllImplementedInterfaces(i))
+        Lock().lock();
+        try {
+            SingleLinkedListBasedRegister<Class<? extends IEvent>> events_to_remove = new SingleLinkedListBasedRegister<>();
+            try (var e = actions.GetEnumerator())
             {
-                if (cls == destroyable_if_unused) {
-                    var list = actions.get(i);
-                    if (list != null && (!list.HasItems())) {
-                        actions.remove(i);
-                        removed++;
+                while (e.MoveNext())
+                {
+                    var ce = e.getCurrent();
+                    var i = ce.getKey();
+                    // Running the below loop for each event could be a VERY HEAVY OPERATION.
+                    // However, each event object registered is unique, so we check each time for different class objects, so this is OK and acceptable.
+                    for (Class<?> cls : ReflectionUtils.GetAllImplementedInterfaces(i))
+                    {
+                        if (cls == destroyable_if_unused) {
+                            if ((!ce.getValue().HasItems())) { events_to_remove.Register(i); }
+                            break;
+                        } else if (cls == destroyable) {
+                            events_to_remove.Register(i);
+                            break;
+                        }
                     }
-                    break;
-                } else if (cls == destroyable) {
-                    actions.remove(i);
-                    removed++;
-                    break;
                 }
             }
+            try (var e = events_to_remove.GetEnumerator())
+            {
+                while (e.MoveNext())
+                {
+                    if (actions.Remove_Ordinal2(e.getCurrent()))
+                    {
+                        removed++;
+                    }
+                }
+            }
+            actions.TrimExcess();
+        } finally {
+            Lock().unlock();
         }
         BaseModsLib.LOGGER.info("EVENTS_MANAGER: Successfully removed {} destroyable events" , removed);
     }
@@ -69,25 +85,29 @@ class NormalEventsManager
     public void HandEventsFromEarly(EarlyEventsManager early)
     {
         var c_actions = GetActions();
-        synchronized (c_actions)
-        {
-            IEnumerator<Action1<? extends IEvent>> et;
+        Lock().lock();
+        try {
+            ByRefParameter<SingleLinkedListBasedRegister<Action1<? extends IEvent>>> p = new ByRefParameter<>();
             SingleLinkedListBasedRegister<Action1<? extends IEvent>> actions;
-            for (var kvp : early.GetActions().entrySet())
+            try (var en = early.GetActions().GetEnumerator())
             {
-                et = kvp.getValue().GetEnumerator();
-                try {
-                    actions = c_actions.computeIfAbsent(kvp.getKey() , NormalEventsManager::RegisterProvider);
-                    while (et.MoveNext()) { actions.Register(et.getCurrent()); }
-                } finally {
-                    et.Dispose();
+                while (en.MoveNext())
+                {
+                    var kvp = en.getCurrent();
+                    var event = kvp.getKey();
+                    if (c_actions.TryGetValue(event, p)) {
+                        actions = p.Value;
+                    } else {
+                        c_actions.Add(event, actions = new SingleLinkedListBasedRegister<>());
+                    }
+                    actions.RegisterRange(kvp.getValue());
                 }
             }
+        } finally {
+            Lock().unlock();
         }
     }
 
     @Override
     protected boolean HasBeenFinalized() { return finalized; }
-
-    private static <T extends IEvent> SingleLinkedListBasedRegister<Action1<? extends IEvent>> RegisterProvider(Class<T> cls) { return new SingleLinkedListBasedRegister<>(); }
 }

@@ -7,7 +7,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
-import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
 
 /**
  * Provides a default implementation of the {@link ITraversableRegister} interface. <br />
@@ -33,7 +32,7 @@ public class ArrayBasedRegister<T>
     public ArrayBasedRegister()
     {
         super();
-        comparer = new JavaObjectEqualsEqualityComparer<>();
+        comparer = new EqualityComparer.ObjectEqualityComparer<>();
         elements = new Object[0];
         count = 0;
     }
@@ -50,7 +49,7 @@ public class ArrayBasedRegister<T>
         if (capacity < 0) {
             throw new ArgumentOutOfRangeException("capacity" , "Initial collection capacity cannot be negative.");
         } else {
-            comparer = new JavaObjectEqualsEqualityComparer<>();
+            comparer = new EqualityComparer.ObjectEqualityComparer<>();
             elements = new Object[capacity];
             count = 0;
         }
@@ -62,7 +61,7 @@ public class ArrayBasedRegister<T>
      */
     public ArrayBasedRegister(@AllowNull IEqualityComparer<T> comparer)
     {
-        this.comparer = (comparer == null) ? new JavaObjectEqualsEqualityComparer<>() : comparer;
+        this.comparer = (comparer == null) ? new EqualityComparer.ObjectEqualityComparer<>() : comparer;
         elements = new Object[0];
         count = 0;
     }
@@ -79,7 +78,7 @@ public class ArrayBasedRegister<T>
         if (capacity < 0) {
             throw new ArgumentOutOfRangeException("capacity", "Initial collection capacity cannot be negative.");
         } else {
-            this.comparer = (comparer == null) ? new JavaObjectEqualsEqualityComparer<>() : comparer;
+            this.comparer = (comparer == null) ? new EqualityComparer.ObjectEqualityComparer<>() : comparer;
             elements = new Object[capacity];
             count = 0;
         }

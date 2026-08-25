@@ -2,12 +2,13 @@ package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
-import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
 
 /**
  * A custom implementation of the {@link IList} interface, backed by an array.
@@ -31,7 +32,7 @@ public class ArrayBasedList<T>
      */
     public ArrayBasedList()
     {
-        comparer = new JavaObjectEqualsEqualityComparer<>();
+        comparer = new EqualityComparer.ObjectEqualityComparer<>();
         elements = new Object[0];
         count = 0;
     }
@@ -47,7 +48,7 @@ public class ArrayBasedList<T>
         if (capacity < 0) {
             throw new ArgumentOutOfRangeException("capacity", "Capacity cannot be a negative number.");
         } else {
-            comparer = new JavaObjectEqualsEqualityComparer<>();
+            comparer = new EqualityComparer.ObjectEqualityComparer<>();
             elements = new Object[capacity];
             count = 0;
         }
@@ -65,7 +66,7 @@ public class ArrayBasedList<T>
         if (capacity < 0) {
             throw new ArgumentOutOfRangeException("capacity", "Capacity cannot be a negative number.");
         } else {
-            this.comparer = comparer == null ? new JavaObjectEqualsEqualityComparer<>() : comparer;
+            this.comparer = comparer == null ? new EqualityComparer.ObjectEqualityComparer<>() : comparer;
             elements = new Object[capacity];
             count = 0;
         }
@@ -77,7 +78,7 @@ public class ArrayBasedList<T>
      */
     public ArrayBasedList(@AllowNull IEqualityComparer<T> comparer)
     {
-        this.comparer = comparer == null ? new JavaObjectEqualsEqualityComparer<>() : comparer;
+        this.comparer = comparer == null ? new EqualityComparer.ObjectEqualityComparer<>() : comparer;
         elements = new Object[0];
         count = 0;
     }
@@ -105,125 +106,6 @@ public class ArrayBasedList<T>
     {
         this(comparer);
         AddRange(items);
-    }
-
-    private static final class Synchronized<T>
-        extends ArrayBasedList<T>
-        implements ISynchronizedByObject
-    {
-        private final Object lock;
-
-        public Synchronized()
-        {
-            super();
-            this.lock = new Object();
-        }
-
-        public Synchronized(int capacity)
-                throws ArgumentOutOfRangeException
-        {
-            super(capacity);
-            this.lock = new Object();
-        }
-
-        public Synchronized(int capacity, IEqualityComparer<T> comparer)
-                throws ArgumentOutOfRangeException
-        {
-            super(capacity, comparer);
-            this.lock = new Object();
-        }
-
-        public Synchronized(IEqualityComparer<T> comparer)
-        {
-            super(comparer);
-            this.lock = new Object();
-        }
-
-        public Synchronized(IEnumerable<T> items)
-                throws ArgumentNullException
-        {
-            super(items);
-            this.lock = new Object();
-        }
-
-        public Synchronized(IEnumerable<T> items, IEqualityComparer<T> comparer)
-                throws ArgumentNullException
-        {
-            super(items, comparer);
-            this.lock = new Object();
-        }
-
-        @Override
-        public Object GetSyncObject() { return lock; }
-
-        @Override
-        public T GetItem(int index) throws ArgumentOutOfRangeException { synchronized (lock) { return getItem(index); } }
-
-        @Override
-        public T getItem(int index) throws ArrayIndexOutOfBoundsException { synchronized (lock) { return super.getItem(index); } }
-
-        @Override
-        public void setItem(int index, T value) throws ArgumentOutOfRangeException { synchronized (lock) { super.setItem(index, value); } }
-
-        @Override
-        public int IndexOf(T item) { synchronized (lock) { return super.IndexOf(item); } }
-
-        @Override
-        public void Insert(int index, T item) throws ArgumentOutOfRangeException, OverflowException { synchronized (lock) { super.Insert(index, item); } }
-
-        @Override
-        public void InsertRange(int index, T[] items) throws ArgumentOutOfRangeException, ArgumentNullException, OverflowException { synchronized (lock) { super.InsertRange(index, items); } }
-
-        @Override
-        public void RemoveAt(int index) { synchronized (lock) { super.RemoveAt(index); } }
-
-        @Override
-        public boolean Remove(T item) { synchronized (lock) { return super.Remove(item); } }
-
-        @Override
-        public void Add(T item) { synchronized (lock) { super.Add(item); } }
-
-        @Override
-        public void Clear() { synchronized (lock) { super.Clear(); } }
-
-        @Override
-        public boolean Contains(T item) { synchronized (lock) { return super.Contains(item); } }
-
-        @Override
-        public void CopyTo(T[] array, int arrayIndex) { synchronized (lock) { super.CopyTo(array, arrayIndex); } }
-
-        @Override
-        public void TrimExcess() { synchronized (lock) { super.TrimExcess(); } }
-
-        @Override
-        public void AddRange(IEnumerable<T> items) throws ArgumentOutOfRangeException { synchronized (lock) { super.AddRange(items); } }
-
-        @Override
-        public void AddRange(T... items) throws ArgumentNullException { synchronized (lock) { super.AddRange(items); } }
-
-        @Override
-        public void EnsureCapacity(int n_elements) throws ArgumentOutOfRangeException { synchronized (lock) { super.EnsureCapacity(n_elements); } }
-
-        @Override
-        public IEnumerator<T> GetEnumerator() { synchronized (lock) { return super.GetEnumerator(); } }
-
-        @Override
-        public ArrayBasedList<T> Clone() { synchronized (lock) { return super.Clone(); } }
-
-        @Override
-        public ArrayBasedList<T> Slice(int count) throws ArgumentException { synchronized (lock) { return super.Slice(count); } }
-
-        @Override
-        public ArrayBasedList<T> Slice(int index, int count) throws ArgumentException { synchronized (lock) { return super.Slice(index, count); } }
-
-        @Override
-        public ArrayBasedList<T> FilterBy(Predicate<T> predicate) throws ArgumentNullException { synchronized (lock) { return super.FilterBy(predicate); } }
-
-        @Override
-        public <TO> ArrayBasedList<TO> ConvertAll(Converter<T, TO> converter) throws ArgumentNullException { synchronized (lock) { return super.ConvertAll(converter, null); } }
-
-        @Override
-        public <TG> ArrayBasedList<TG> ConvertAll(Converter<T, TG> converter, IEqualityComparer<TG> comparer) throws ArgumentNullException { synchronized (lock) { return super.ConvertAll(converter, comparer); } }
     }
 
     /**
@@ -273,6 +155,184 @@ public class ArrayBasedList<T>
      */
     public static <T> ArrayBasedList<T> CreateSynchronized(IEnumerable<T> items, @AllowNull IEqualityComparer<T> comparer) throws ArgumentNullException { return new Synchronized<>(items, comparer); }
 
+    private static final class Synchronized<T>
+            extends ArrayBasedList<T>
+            implements ISynchronizedByObject
+    {
+        private final Object lock;
+
+        public Synchronized()
+        {
+            super();
+            this.lock = new Object();
+        }
+
+        public Synchronized(int capacity)
+                throws ArgumentOutOfRangeException
+        {
+            super(capacity);
+            this.lock = new Object();
+        }
+
+        public Synchronized(int capacity, IEqualityComparer<T> comparer)
+                throws ArgumentOutOfRangeException
+        {
+            super(capacity, comparer);
+            this.lock = new Object();
+        }
+
+        public Synchronized(IEqualityComparer<T> comparer)
+        {
+            super(comparer);
+            this.lock = new Object();
+        }
+
+        public Synchronized(IEnumerable<T> items)
+                throws ArgumentNullException
+        {
+            super(items);
+            this.lock = new Object();
+        }
+
+        public Synchronized(IEnumerable<T> items, IEqualityComparer<T> comparer)
+                throws ArgumentNullException
+        {
+            super(items, comparer);
+            this.lock = new Object();
+        }
+
+        @Override
+        public Object GetSyncObject() { return lock; }
+
+        @Override
+        public void Clear() { synchronized (lock) { super.Clear(); } }
+
+        @Override
+        public void Add(T item) { synchronized (lock) { super.Add(item); } }
+
+        @Override
+        public void TrimExcess() { synchronized (lock) { super.TrimExcess(); } }
+
+        @Override
+        public int IndexOf(T item) { synchronized (lock) { return super.IndexOf(item); } }
+
+        @Override
+        public void RemoveAt(int index) { synchronized (lock) { super.RemoveAt(index); } }
+
+        @Override
+        public boolean Remove(T item) { synchronized (lock) { return super.Remove(item); } }
+
+        @Override
+        public boolean Contains(T item) { synchronized (lock) { return super.Contains(item); } }
+
+        @Override
+        public IEnumerator<T> GetEnumerator() { synchronized (lock) { return super.GetEnumerator(); } }
+
+        @Override
+        public void CopyTo(T[] array, int arrayIndex) { synchronized (lock) { super.CopyTo(array, arrayIndex); } }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void AddRange(T... items) throws ArgumentNullException { synchronized (lock) { super.AddRange(items); } }
+
+        @Override
+        public T GetItem(int index) throws ArgumentOutOfRangeException { synchronized (lock) { return getItem(index); } }
+
+        @Override
+        public ArrayBasedList<T> Slice(int count) throws ArgumentException { synchronized (lock) { return super.Slice(count); } }
+
+        @Override
+        public T getItem(int index) throws ArrayIndexOutOfBoundsException { synchronized (lock) { return super.getItem(index); } }
+
+        @Override
+        public void AddRange(IEnumerable<T> items) throws ArgumentOutOfRangeException { synchronized (lock) { super.AddRange(items); } }
+
+        @Override
+        public void setItem(int index, T value) throws ArgumentOutOfRangeException { synchronized (lock) { super.setItem(index, value); } }
+
+        @Override
+        public ArrayBasedList<T> Slice(int index, int count) throws ArgumentException { synchronized (lock) { return super.Slice(index, count); } }
+
+        @Override
+        public void EnsureCapacity(int n_elements) throws ArgumentOutOfRangeException { synchronized (lock) { super.EnsureCapacity(n_elements); } }
+
+        @Override
+        public void Insert(int index, T item) throws ArgumentOutOfRangeException, OverflowException { synchronized (lock) { super.Insert(index, item); } }
+
+        @Override
+        public <TO> ArrayBasedList<TO> ConvertAll(Converter<T, TO> converter) throws ArgumentNullException { return this.ConvertAll(converter, null); }
+
+        @Override
+        public void InsertRange(int index, T[] items) throws ArgumentOutOfRangeException, ArgumentNullException, OverflowException { synchronized (lock) { super.InsertRange(index, items); } }
+
+        @Override
+        public Synchronized<T> FilterBy(Predicate<T> predicate)
+                throws ArgumentNullException
+        {
+            ArgumentNullException.ThrowIfNull(predicate, "predicate");
+            if (FunctionManipulations.IsAlwaysTrue(predicate)) {
+                return this;
+            } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
+                return new Synchronized<>(super.comparer);
+            } else {
+                synchronized (lock)
+                {
+                    Synchronized<T> result = new Synchronized<>(super.count, super.comparer);
+                    try (IEnumerator<T> enumerator = GetEnumerator())
+                    {
+                        T item;
+                        while (enumerator.MoveNext())
+                        {
+                            if (predicate.predicate(item = enumerator.getCurrent())) { result.Add(item); }
+                        }
+                    }
+
+                    result.TrimExcess();
+                    return result;
+                }
+            }
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <TG> Synchronized<TG> ConvertAll(Converter<T, TG> converter, IEqualityComparer<TG> comparer)
+                throws ArgumentNullException
+        {
+            ArgumentNullException.ThrowIfNull(converter, "converter");
+            synchronized (lock)
+            {
+                int ct = super.count;
+                Synchronized<TG> tg = new Synchronized<>(ct, comparer);
+                for (int I = 0; I < ct; I++) {
+                    ((ArrayBasedList<TG>)tg).elements[I] = converter.convert((T) super.elements[I]);
+                }
+                ((ArrayBasedList<TG>)tg).count = ct;
+                return tg;
+            }
+        }
+
+        @Override
+        public Synchronized<T> Clone()
+        {
+            synchronized (lock)
+            {
+                int ct = super.count;
+                Synchronized<T> ret = new Synchronized<>(ct, super.comparer);
+                System.arraycopy(super.elements, 0, ((ArrayBasedList<T>)ret).elements, 0, ct);
+                ((ArrayBasedList<T>)ret).count = ct;
+                return ret;
+            }
+        }
+    }
+
+    private record IndexOfPredicate<T>(IEqualityComparer<T> eqc, T item)
+            implements Predicate<Object>
+    {
+        @Override
+        @SuppressWarnings("unchecked")
+        public boolean predicate(Object obj) { return eqc.Equals((T)obj, item); }
+    }
+
     private void EnlargeArray(int by)
     {
         int new_count = count + by;
@@ -283,73 +343,17 @@ public class ArrayBasedList<T>
             // Check whether we can add 10 more elements to avoid additional resizes.
             int nc_additional = new_count + 10;
             // If nc_additional > 0, we can do that, otherwise we have overflown by this and as such we need to resize by new_count.
-            EnlargeInternal(nc_additional > 0 ? nc_additional : new_count);
+            nc_additional = nc_additional > 0 ? nc_additional : new_count;
+            if (nc_additional > elements.length)
+            {
+                Object[] new_elements = new Object[nc_additional];
+                System.arraycopy(elements, 0, new_elements, 0, elements.length);
+                elements = new_elements;
+            }
         }
     }
 
-    private void EnlargeInternal(int nc)
-    {
-        if (nc > elements.length) {
-            Object[] new_elements = new Object[nc];
-            System.arraycopy(elements, 0, new_elements, 0, elements.length);
-            elements = new_elements;
-        }
-    }
-
-    @Override
-    public T getItem(int index)
-        throws ArrayIndexOutOfBoundsException
-    {
-        if (index < 0) {
-            throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
-        } else if (index >= count) {
-            throw new ArgumentOutOfRangeException("index", "Index is outside of the list's bounds.");
-        } else {
-            return (T) elements[index];
-        }
-    }
-
-    @Override
-    public void setItem(int index, @AllowNull T value)
-        throws ArgumentOutOfRangeException
-    {
-        if (index < 0) {
-            throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
-        } else if (index >= count) {
-            throw new ArgumentOutOfRangeException("index", "Index is outside of the list's bounds.");
-        } else {
-            elements[index] = value;
-        }
-    }
-
-    @Override
-    public int GetCount() { return count; }
-
-    @Override
-    public T GetItem(int index) throws ArgumentOutOfRangeException { return getItem(index); }
-
-    private record IndexOfPredicate<T>(IEqualityComparer<T> eqc, T item)
-        implements Predicate<Object>
-    {
-        @Override
-        public boolean predicate(Object obj) { return eqc.Equals((T)obj, item); }
-    }
-
-    @Override
-    public int IndexOf(T item) {
-        return Array.FindIndex(elements,0 , count, new IndexOfPredicate<>(comparer, item));
-    }
-
-    @Override
-    public void Insert(int index, T item) throws ArgumentOutOfRangeException, OverflowException { InsertRangeInternal(index, new Object[]{ item }); }
-
-    public void InsertRange(int index, T[] items)
-        throws ArgumentOutOfRangeException, ArgumentNullException, OverflowException
-    {
-        ArgumentNullException.ThrowIfNull(items, "items");
-        InsertRangeInternal(index, items);
-    }
-
+    @StackTraceHidden
     private void InsertRangeInternal(int index, Object[] items)
             throws ArgumentOutOfRangeException, ArgumentNullException, OverflowException
     {
@@ -378,11 +382,65 @@ public class ArrayBasedList<T>
 
             elements = constructed;
             count += items.length;
-        } else if (index == 0) {
+        } else {
             elements = new Object[items.length];
             Array.Copy(items, 0, elements, 0, items.length);
             count = items.length;
         }
+    }
+
+    @Override
+    public void Clear() { count = 0; }
+
+    @Override
+    public int getCount() { return count; }
+
+    @Override
+    public int GetCount() { return count; }
+
+    @Override
+    public boolean getIsReadOnly() { return false; }
+
+    @Override
+    public boolean Contains(T item) { return IndexOf(item) > -1; }
+
+    @Override
+    public T GetItem(int index) throws ArgumentOutOfRangeException { return getItem(index); }
+
+    @Override
+    public int IndexOf(T item) { return Array.FindIndex(elements,0 , count, new IndexOfPredicate<>(comparer, item)); }
+
+    @Override
+    public void Insert(int index, T item)
+            throws ArgumentOutOfRangeException, OverflowException
+    {
+        if (index < 0) {
+            throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
+        } else if (index > count) {
+            throw new ArgumentOutOfRangeException("index", "Index is outside of the list's bounds.");
+        } else if (index == count) {
+            Add(item);
+        } else {
+            EnlargeArray(1);
+            // Shift all elements by 1 index value.
+            for (int I = count - 1; I >= index; I--) { this.elements[I+1] = this.elements[I]; }
+            this.elements[index] = item;
+            count++;
+        }
+    }
+
+    @Override
+    public void Add(T item)
+    {
+        EnlargeArray(1);
+        elements[count++] = item;
+    }
+
+    public void InsertRange(int index, T[] items)
+            throws ArgumentOutOfRangeException, ArgumentNullException, OverflowException
+    {
+        ArgumentNullException.ThrowIfNull(items, "items");
+        InsertRangeInternal(index, items);
     }
 
     @Override
@@ -393,8 +451,8 @@ public class ArrayBasedList<T>
         } else if (index >= count) {
             throw new ArgumentOutOfRangeException("index", "Index is outside of the list's bounds.");
         } else {
-            int index_after = index + 1;
-            Array.Copy(elements, index_after, elements, index, count - index_after);
+            int ct_total = count - 1;
+            for (int I = index; I < ct_total; I++) { this.elements[I] = this.elements[I+1]; }
             count--;
         }
     }
@@ -412,26 +470,37 @@ public class ArrayBasedList<T>
     }
 
     @Override
-    public int getCount() { return count; }
-
-    @Override
-    public boolean getIsReadOnly() { return false; }
-
-    @Override
-    public void Add(T item)
+    @MaybeNull
+    @SuppressWarnings("unchecked")
+    public T getItem(int index)
+            throws ArgumentOutOfRangeException
     {
-        EnlargeArray(1);
-        elements[count++] = item;
+        if (index < 0) {
+            throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
+        } else if (index >= count) {
+            throw new ArgumentOutOfRangeException("index", "Index is outside of the list's bounds.");
+        } else {
+            return (T) elements[index];
+        }
     }
 
     @Override
-    public void Clear() { count = 0; }
+    public void setItem(int index, @AllowNull T value)
+            throws ArgumentOutOfRangeException
+    {
+        if (index < 0) {
+            throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
+        } else if (index >= count) {
+            throw new ArgumentOutOfRangeException("index", "Index is outside of the list's bounds.");
+        } else {
+            elements[index] = value;
+        }
+    }
 
     @Override
-    public boolean Contains(T item) { return IndexOf(item) > -1; }
-
-    @Override
-    public void CopyTo(T[] array, int arrayIndex) {
+    public void CopyTo(T[] array, int arrayIndex)
+            throws ArgumentOutOfRangeException
+    {
         try {
             Array.Copy(elements, array, arrayIndex);
         } catch (IndexOutOfRangeException e) {
@@ -469,15 +538,14 @@ public class ArrayBasedList<T>
             } else if (items instanceof ITraversableCollection<T> c) {
                 EnlargeArray(c.GetCount());
             }
-            IEnumerator<T> en = items.GetEnumerator();
-            try {
+            try (IEnumerator<T> en = items.GetEnumerator())
+            {
                 while (en.MoveNext()) { Add(en.getCurrent()); }
-            } finally {
-                en.Dispose();
             }
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void AddRange(T... items)
             throws ArgumentNullException
     {
@@ -528,6 +596,8 @@ public class ArrayBasedList<T>
      * @param <TG> The type of the converted elements that the returned instance will contain.
      * @throws ArgumentNullException {@code converter} is {@code null}.
      */
+    @NotNull
+    @SuppressWarnings("unchecked")
     public <TG> ArrayBasedList<TG> ConvertAll(Converter<T, TG> converter, @AllowNull IEqualityComparer<TG> comparer)
         throws ArgumentNullException
     {
@@ -550,6 +620,7 @@ public class ArrayBasedList<T>
      * @throws ArgumentOutOfRangeException {@code index} and/or {@code count} are negative values.
      * @throws ArgumentException {@code index} + {@code count} value does exceed the list's bounds.
      */
+    @NotNull
     public ArrayBasedList<T> Slice(int index, int count)
         throws ArgumentOutOfRangeException, ArgumentException
     {
@@ -578,6 +649,7 @@ public class ArrayBasedList<T>
      * @throws ArgumentException {@code count} value does exceed the list's bounds.
      * @since 1.0.26
      */
+    @NotNull
     public ArrayBasedList<T> Slice(int count)
         throws ArgumentOutOfRangeException, ArgumentException
     {
@@ -593,6 +665,7 @@ public class ArrayBasedList<T>
         }
     }
 
+    @NotNull
     @Override
     public ArrayBasedList<T> FilterBy(Predicate<T> predicate)
             throws ArgumentNullException
@@ -603,16 +676,14 @@ public class ArrayBasedList<T>
         } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
             return new ArrayBasedList<>(comparer);
         } else {
-            IEnumerator<T> enumerator = GetEnumerator();
             ArrayBasedList<T> result = new ArrayBasedList<>(count, comparer);
-
-            try {
+            try (IEnumerator<T> enumerator = GetEnumerator())
+            {
                 T item;
-                while (enumerator.MoveNext()) {
+                while (enumerator.MoveNext())
+                {
                     if (predicate.predicate(item = enumerator.getCurrent())) { result.Add(item); }
                 }
-            } finally {
-                enumerator.Dispose();
             }
 
             result.TrimExcess();

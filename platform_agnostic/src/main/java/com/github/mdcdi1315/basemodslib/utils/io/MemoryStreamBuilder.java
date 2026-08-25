@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
+import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection;
 
@@ -13,14 +14,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Provides the class for building {@link MemoryStream} instances. <br />
  * This class does also extend from the {@link OutputStream} class.
+ * @apiNote Since 1.0.37, the builder does also implement the {@link WritableByteChannel} interface.
  * @since 1.0.35
  */
 public final class MemoryStreamBuilder
     extends OutputStream
+    implements WritableByteChannel
 {
     private final SingleLinkedList<ByteBuffer> buffers;
 
@@ -84,7 +88,8 @@ public final class MemoryStreamBuilder
     /**
      * Constructs a copy of the specified buffer and adds it to the builder.
      * @param buffer The {@link ByteBuffer} to copy it's remaining data to the builder.
-     * @throws ArgumentNullException {@code builder} is {@code null}.
+     * @throws ArgumentNullException {@code buffer} is {@code null}.
+     * @apiNote This method does not modify the position of the provided buffer.
      */
     public void WriteBuffer(ByteBuffer buffer)
             throws ArgumentNullException
@@ -96,6 +101,29 @@ public final class MemoryStreamBuilder
         } finally {
             buffer.position(previous_position);
         }
+    }
+
+    /**
+     * Constructs a copy of the specified buffer and adds it to the builder.
+     * @param src The {@link ByteBuffer} to copy it's remaining data to the builder.
+     * @return The number of bytes copied to the builder.
+     * @throws IOException Never thrown, it is brought in by the interface contract,
+     * however this may be subject to change in the future.
+     * @apiNote Unlike the {@link #WriteBuffer(ByteBuffer)} method, this method
+     * is thread-safe, and it does modify the position of the provided buffer to the number
+     * of bytes copied to the builder.
+     */
+    @Override
+    public int write(ByteBuffer src)
+            throws IOException
+    {
+        int written_bytes = src.remaining();
+        ByteBuffer buffer =
+                ByteBuffer.allocate(written_bytes)
+                        .put(src)
+                        .rewind();
+        synchronized (buffers) { buffers.Add(buffer); }
+        return written_bytes;
     }
 
     /**
@@ -136,6 +164,10 @@ public final class MemoryStreamBuilder
             }
         }
     }
+
+    @Pure
+    @Override
+    public boolean isOpen() { return true; }
 
     /**
      * Removes all the added buffers added so far.

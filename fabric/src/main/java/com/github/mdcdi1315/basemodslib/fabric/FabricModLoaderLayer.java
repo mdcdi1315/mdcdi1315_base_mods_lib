@@ -7,6 +7,7 @@ import com.github.mdcdi1315.basemodslib.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
 import com.github.mdcdi1315.basemodslib.commands.FabricCommandsRegistrar;
 import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
@@ -42,18 +43,24 @@ public final class FabricModLoaderLayer
         config_dir = loader.getConfigDir();
         minecraft_dir = loader.getGameDir();
         dev_env = loader.isDevelopmentEnvironment();
-        String id, version = null;
+        String version =
+                loader.getModContainer("fabricloader")
+                        .get()
+                        .getMetadata()
+                        .getVersion()
+                        .getFriendlyString();
         var mod_containers = loader.getAllMods();
-        ImmutableList.Builder<String> builder = ImmutableList.builderWithExpectedSize(mod_containers.size());
-        for (ModContainer m : mod_containers)
+        if (mod_containers instanceof List<ModContainer> direct_list)
         {
-            id = m.getMetadata().getId();
-            if ("fabricloader".equals(id)) {
-                version = m.getMetadata().getVersion().getFriendlyString();
-            }
-            builder.add(id);
+            mod_ids = new DirectlyMappedList<>(direct_list, FabricModLoaderLayer::ModContainerToId);
         }
-        mod_ids = builder.build();
+        else
+        {
+            // Slow path, adding the id's one by one to the list
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            for (var mc : mod_containers) { builder.add(mc.getMetadata().getId()); }
+            mod_ids = builder.build();
+        }
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;
@@ -85,15 +92,15 @@ public final class FabricModLoaderLayer
         EventManager.FireEventSafe(new ServerStartingEvent(msr));
     }
 
-    private static void OnServerStopping(MinecraftServer msr) { EventManager.FireEventSafe(new ServerStoppingEvent(msr)); }
-
-    private static void OnServerStarted(MinecraftServer msr) { EventManager.FireEventSafe(new ServerStartedEvent(msr)); }
-
     private void OnServerStopped(MinecraftServer msr)
     {
         EventManager.FireEventSafe(new ServerStoppedEvent(msr));
         if (environment == ModdingEnvironment.SERVER) { BaseModsLib.DestroySelf(); }
     }
+
+    private static void OnServerStopping(MinecraftServer msr) { EventManager.FireEventSafe(new ServerStoppingEvent(msr)); }
+
+    private static void OnServerStarted(MinecraftServer msr) { EventManager.FireEventSafe(new ServerStartedEvent(msr)); }
 
     private static void ServerModInfoPacketHandler(
             FabricNetworkingHandler the_handler,
@@ -132,6 +139,69 @@ public final class FabricModLoaderLayer
 
     private static void Client_RegisterModInfoHandshakePacketOnServerConnection(ServerBoundModInfoPacket p) { FabricClientModLoaderLayer.RegisterModInfoPacketDispatcher(p); }
 
+    private static String ModContainerToId(ModContainer mc) { return mc.getMetadata().getId(); }
+
+    @Override
+    public boolean IsModLoaded(String mod_id)
+    {
+        return FabricLoader
+                .getInstance()
+                .getModContainer(mod_id)
+                .isPresent();
+    }
+
+    @Override
+    @SuppressWarnings("OptionalIsPresent")
+    public IModResourceLookup GetResourceLookupByID(String mod_id)
+    {
+        Optional<ModContainer> mc = FabricLoader.getInstance().getModContainer(mod_id);
+        return mc.isPresent() ? new FabricModResourceLookup(mc.get(), true) : null;
+    }
+
+    @Override
+    @SuppressWarnings("OptionalIsPresent")
+    public IModResourceLookup GetBMLResourceLookup()
+    {
+        Optional<ModContainer> mc = FabricLoader.getInstance().getModContainer(BaseModsLib.MOD_ID);
+        return mc.isPresent() ? new FabricModResourceLookup(mc.get(), false) : null;
+    }
+
+    @Override
+    public List<String> GetLoadedMods() { return mod_ids; }
+
+    @Override
+    public String GetModLoaderBranding() { return "Fabric"; }
+
+    @Override
+    public Path GetMinecraftDirectory() { return minecraft_dir; }
+
+    @Override
+    public Path GetConfigurationDirectory() { return config_dir; }
+
+    @Override
+    public boolean IsDevelopmentEnvironmentBuild() { return dev_env; }
+
+    @Override
+    public ModdingEnvironment GetEnvironment() { return environment; }
+
+    @Override
+    public Version GetModLoaderVersion() { return fabric_modloader_version; }
+
+    @Override
+    public void Dispose()
+    {
+        this.mod_ids = null;
+        this.config_dir = null;
+        this.environment = null;
+        this.minecraft_dir = null;
+        if (this.networking_handler != null)
+        {
+            this.networking_handler.Dispose();
+            this.networking_handler = null;
+        }
+        this.fabric_modloader_version = null;
+    }
+
     @Override
     public void InitializeServerModInstance(IServerModInstance mod_instance, Object o)
     {
@@ -164,7 +234,7 @@ public final class FabricModLoaderLayer
         manager.InitializeNetworkManager(builder);
         if (builder != null)
         {
-            synchronized (networking_handler) {
+            synchronized (EmptyModObject.INSTANCE) {
                 networking_handler.RegisterVersionByPacket(manager.Mod_Info);
             }
             if (environment == ModdingEnvironment.CLIENT) {
@@ -175,56 +245,5 @@ public final class FabricModLoaderLayer
         var cmd_register = new FabricCommandsRegistrar(mod_id);
         mod_instance.RegisterCommands(cmd_register);
         cmd_register.RegistrationFinalized();
-    }
-
-    @Override
-    public boolean IsModLoaded(String s) { return mod_ids.contains(s); }
-
-    @Override
-    public IModResourceLookup GetResourceLookupByID(String mod_id)
-    {
-        for (ModContainer m : FabricLoader.getInstance().getAllMods())
-        {
-            if (m.getMetadata().getId().equals(mod_id)) {
-                return new FabricModResourceLookup(m);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public List<String> GetLoadedMods() { return mod_ids; }
-
-    @Override
-    public ModdingEnvironment GetEnvironment() { return environment; }
-
-    @Override
-    public String GetModLoaderBranding() { return "Fabric"; }
-
-    @Override
-    public Version GetModLoaderVersion() { return fabric_modloader_version; }
-
-    @Override
-    public Path GetConfigurationDirectory() { return config_dir; }
-
-    @Override
-    public Path GetMinecraftDirectory() { return minecraft_dir; }
-
-    @Override
-    public boolean IsDevelopmentEnvironmentBuild() { return dev_env; }
-
-    @Override
-    public void Dispose()
-    {
-        this.mod_ids = null;
-        this.config_dir = null;
-        this.environment = null;
-        this.minecraft_dir = null;
-        if (this.networking_handler != null)
-        {
-            this.networking_handler.Dispose();
-            this.networking_handler = null;
-        }
-        this.fabric_modloader_version = null;
     }
 }

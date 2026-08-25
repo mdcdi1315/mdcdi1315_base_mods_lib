@@ -18,15 +18,13 @@ public final class CollectionBridgingHelpers
     public static <T, TE extends IEnumerable<T>> Object[] ToArray(TE enumerable, Func2<TE, Integer> count_accessor)
     {
         Object[] result = new Object[count_accessor.function(enumerable)];
-        IEnumerator<T> enumerator = enumerable.GetEnumerator();
-        try {
+        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        {
             int I = 0;
             while (enumerator.MoveNext() && I < result.length)
             {
                 result[I++] = enumerator.getCurrent();
             }
-        } finally {
-            enumerator.Dispose();
         }
         return result;
     }
@@ -39,50 +37,43 @@ public final class CollectionBridgingHelpers
         {
             input_array = (T1[]) Array.newInstance(input_array.getClass().componentType(), count);
         }
-        IEnumerator<T> enumerator = enumerable.GetEnumerator();
-        try {
+        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        {
             int I = 0;
             while (enumerator.MoveNext() && I < input_array.length)
             {
-                input_array[I++] = (T1)enumerator.getCurrent();
+                input_array[I++] = (T1) enumerator.getCurrent();
             }
-        } finally {
-            enumerator.Dispose();
         }
         return input_array;
     }
 
     public static <T> boolean Contains(IEnumerable<T> enumerable, Object value)
     {
-        IEnumerator<T> enumerator = enumerable.GetEnumerator();
-        try {
+        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        {
             while (enumerator.MoveNext())
             {
                 if (Objects.equals(enumerator.getCurrent(), value)) { return true; }
             }
-        } finally {
-            enumerator.Dispose();
         }
         return false;
     }
 
     public static <T> boolean ContainsAll(IEnumerable<T> enumerable, Collection<?> values)
     {
-        IEnumerator<T> enumerator;
         Iterator<?> iterator = values.iterator();
 
         Object element;
         while (iterator.hasNext())
         {
             element = iterator.next();
-            enumerator = enumerable.GetEnumerator();
-            try {
+            try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+            {
                 while (enumerator.MoveNext())
                 {
                     if (!Objects.equals(enumerator.getCurrent(), element)) { return false; }
                 }
-            } finally {
-                enumerator.Dispose();
             }
         }
         return true;

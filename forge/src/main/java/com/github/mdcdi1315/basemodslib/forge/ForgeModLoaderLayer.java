@@ -2,11 +2,10 @@ package com.github.mdcdi1315.basemodslib.forge;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
-import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.*;
-import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
+import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.sounds.ForgeSoundRegistrar;
@@ -26,6 +25,7 @@ import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.ForgeRegistryWrappedInRegistry;
 
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.common.MinecraftForge;
@@ -41,18 +41,16 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 import java.util.List;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class ForgeModLoaderLayer
     implements IModLoaderLayer
 {
-    private List<IModInfo> forge_mod_info;
-    // private DisposableObjectsTracker tracker;
     private Version forge_modloader_version;
 
-    public ForgeModLoaderLayer(FMLJavaModLoadingContext baselibmodcontext)
+    public ForgeModLoaderLayer(FMLJavaModLoadingContext bml_context)
     {
-        forge_mod_info = ModList.get().getMods();
         Version fg_ver;
         try {
             fg_ver = Version.Parse(ForgeVersion.getVersion());
@@ -61,25 +59,20 @@ public final class ForgeModLoaderLayer
             fg_ver = new Version(0 , 0);
         }
         forge_modloader_version = fg_ver;
-        IEventBus bus = baselibmodcontext.getModEventBus();
-        ForgeUtils.AddListener(bus, FMLCommonSetupEvent.class, this::OnCommonSetupEvent);
-        ForgeUtils.AddListener(bus, FMLLoadCompleteEvent.class, this::OnModLoadingComplete);
+
+        IEventBus bus = bml_context.getModEventBus();
+        // Add event listeners
+        ForgeUtils.AddListener(bus, FMLCommonSetupEvent.class, ForgeModLoaderLayer::OnCommonSetupEvent);
+        ForgeUtils.AddListener(bus, FMLLoadCompleteEvent.class, ForgeModLoaderLayer::OnModLoadingComplete);
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStartedEvent.class, ForgeModLoaderLayer::OnServerStarted);
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStoppedEvent.class, ForgeModLoaderLayer::OnServerStopped);
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStartingEvent.class, ForgeModLoaderLayer::OnServerStarting);
         ForgeUtils.AddListener(MinecraftForge.EVENT_BUS, net.minecraftforge.event.server.ServerStoppingEvent.class, ForgeModLoaderLayer::OnServerStopping);
+
+        // Register the BML's commands
         var lib_register = new ForgeCommandRegistrar(BaseModsLib.MOD_ID);
         BaseModsLibraryCommand.InitializeLibraryCommandSupport(lib_register);
         lib_register.RegisterToEventBus(bus);
-    }
-
-    private IEventBus GetEventBusOrFail(Object mod_object)
-    {
-        try {
-            return (IEventBus) mod_object;
-        } catch (ClassCastException cce) {
-            throw new InvalidOperationException(String.format("The mod object was not of type IEventBus!!!!\nActual type: %s", mod_object.getClass().getName()));
-        }
     }
 
     // REGISTRY FINALIZATION BEGIN
@@ -119,26 +112,15 @@ public final class ForgeModLoaderLayer
 
     // REGISTRY FINALIZATION END
 
-    private static void OnServerStarting(net.minecraftforge.event.server.ServerStartingEvent e) {
-        EventManager.FireEventSafe(new ServerStartingEvent(e.getServer()));
-    }
-
-    private static void OnServerStopping(net.minecraftforge.event.server.ServerStoppingEvent e) {
-        EventManager.FireEventSafe(new ServerStoppingEvent(e.getServer()));
-    }
-
-    private static void OnServerStopped(net.minecraftforge.event.server.ServerStoppedEvent e) {
+    private static void OnServerStopped(net.minecraftforge.event.server.ServerStoppedEvent e)
+    {
         EventManager.FireEventSafe(new ServerStoppedEvent(e.getServer()));
         // In server env, we need to dispose the BML itself.
         // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { BaseModsLib.DestroySelf(); }
     }
 
-    private static void OnServerStarted(net.minecraftforge.event.server.ServerStartedEvent e) {
-        EventManager.FireEventSafe(new ServerStartedEvent(e.getServer()));
-    }
-
-    private void OnCommonSetupEvent(FMLCommonSetupEvent event)
+    private static void OnCommonSetupEvent(FMLCommonSetupEvent event)
     {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
         CommonSetupEvent cse = new CommonSetupEvent();
@@ -146,12 +128,68 @@ public final class ForgeModLoaderLayer
         event.enqueueWork(cse::Run);
     }
 
-    private void OnModLoadingComplete(FMLLoadCompleteEvent event) { event.enqueueWork(BaseModsLib::Destroy); }
+    private static void OnModLoadingComplete(FMLLoadCompleteEvent event) { event.enqueueWork(BaseModsLib::Destroy); }
+
+    private static void OnServerStarted(net.minecraftforge.event.server.ServerStartedEvent e) { EventManager.FireEventSafe(new ServerStartedEvent(e.getServer())); }
+
+    private static void OnServerStarting(net.minecraftforge.event.server.ServerStartingEvent e) { EventManager.FireEventSafe(new ServerStartingEvent(e.getServer())); }
+
+    private static void OnServerStopping(net.minecraftforge.event.server.ServerStoppingEvent e) { EventManager.FireEventSafe(new ServerStoppingEvent(e.getServer())); }
+
+    @Override
+    public boolean IsModLoaded(String mod_id)
+    {
+        return ModList.get().getModContainerById(mod_id).isPresent();
+    }
+
+    @Override
+    @SuppressWarnings("OptionalIsPresent")
+    public IModResourceLookup GetResourceLookupByID(String mod_id)
+    {
+        Optional<? extends ModContainer> mod_container = ModList.get().getModContainerById(mod_id);
+        return mod_container.isPresent() ? new ForgeModResourceLookup(mod_container.get().getModInfo()) : null;
+    }
+
+    @Override
+    public ModdingEnvironment GetEnvironment()
+    {
+        return switch (FMLEnvironment.dist) {
+            case CLIENT -> ModdingEnvironment.CLIENT;
+            case DEDICATED_SERVER -> ModdingEnvironment.SERVER;
+        };
+    }
+
+    @Override
+    public String GetModLoaderBranding() { return "Forge"; }
+
+    @Override
+    public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
+
+    @Override
+    public Version GetModLoaderVersion() { return forge_modloader_version; }
+
+    @Override
+    public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
+
+    @Override
+    public IModResourceLookup GetBMLResourceLookup() { return new BMLModSpecialRLP(); }
+
+    @Override
+    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
+
+    @Override
+    public List<String> GetLoadedMods() { return new DirectlyMappedList<>(ModList.get().getMods(), IModInfo::getModId); }
+
+    @Override
+    public void Dispose()
+    {
+        this.forge_modloader_version = null;
+    }
 
     @Override
     public void InitializeServerModInstance(IServerModInstance instance, Object mod_object)
     {
-        IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
+        IEventBus mod_event_bus = ForgeUtils.GetEventBusOrFail(mod_object);
         String mod_id = instance.GetModId();
 
         // Initialize sensitive things - blocks, items, registries, etc.
@@ -191,61 +229,5 @@ public final class ForgeModLoaderLayer
         var reg8 = new ForgeCommandRegistrar(mod_id);
         instance.RegisterCommands(reg8);
         reg8.RegisterToEventBus(mod_event_bus);
-    }
-
-    @Override
-    public boolean IsModLoaded(String mod_id)
-    {
-        for (var i : forge_mod_info) {
-            if (i.getModId().equals(mod_id)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public IModResourceLookup GetResourceLookupByID(String mod_id)
-    {
-        for (var i : forge_mod_info) {
-            if (i.getModId().equals(mod_id)) {
-                return new ForgeModResourceLookup(i);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public ModdingEnvironment GetEnvironment()
-    {
-        return switch (FMLEnvironment.dist) {
-            case CLIENT -> ModdingEnvironment.CLIENT;
-            case DEDICATED_SERVER -> ModdingEnvironment.SERVER;
-        };
-    }
-
-    @Override
-    public String GetModLoaderBranding() { return "Forge"; }
-
-    @Override
-    public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
-
-    @Override
-    public Version GetModLoaderVersion() { return forge_modloader_version; }
-
-    @Override
-    public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
-
-    @Override
-    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
-
-    @Override
-    public List<String> GetLoadedMods() { return new DirectlyMappedList<>(forge_mod_info, IModInfo::getModId); }
-
-    @Override
-    public void Dispose()
-    {
-        this.forge_mod_info = null;
-        this.forge_modloader_version = null;
     }
 }

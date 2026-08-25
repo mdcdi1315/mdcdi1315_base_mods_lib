@@ -31,6 +31,7 @@
  * SOFTWARE. <br />
  */
 @PackageIsDotNetNamespace
+@CLSCompliant(IsCompliant = true)
 package com.github.mdcdi1315.DotNetLayer.System;
 
 import com.github.mdcdi1315.DotNetLayer.PackageIsDotNetNamespace;

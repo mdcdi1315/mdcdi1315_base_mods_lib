@@ -6,12 +6,15 @@ import com.github.mdcdi1315.basemodslib.utils.Extensions;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.io.OutputStream;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CharsetDecoder;
+import java.nio.channels.WritableByteChannel;
+import java.nio.channels.ReadableByteChannel;
 
 /**
  * Provides a way for reading and writing strings from/to data streams. <br />
@@ -40,10 +43,15 @@ public final class StringIO
         CoderResult cr;
         CharBuffer cb = CharBuffer.wrap(string);
         ByteBuffer bb = ByteBuffer.allocate(1024);
+
         do {
             bb.rewind();
             cr = encoder.encode(cb, bb, true);
-            stream.write(bb.array(), 0, buf_written = bb.position());
+            stream.write(
+                    bb.array(),
+                    bb.arrayOffset(),
+                    buf_written = bb.position()
+            );
             written += buf_written;
         } while (cr.isOverflow());
         if (cr.isError()) { cr.throwException(); }
@@ -51,9 +59,51 @@ public final class StringIO
         do {
             bb.rewind();
             cr = encoder.flush(bb);
-            stream.write(bb.array(), 0, buf_written = bb.position());
+            stream.write(
+                    bb.array(),
+                    bb.arrayOffset(),
+                    buf_written = bb.position()
+            );
             written += buf_written;
         } while (cr.isOverflow());
+        if (cr.isError()) { cr.throwException(); }
+        return written;
+    }
+
+    /**
+     * Writes the specified character sequence to the specified stream and returns the number of bytes that the sequence occupies in the data stream space.
+     * @param channel The data stream to write the string to.
+     * @param encoder The {@link CharsetEncoder} object to use for transforming the character sequence into bytes.
+     * @param string The character sequence to encode.
+     * @return The number of bytes written to {@code stream}.
+     * @throws IOException An I/O exception occurred.
+     * @since 1.0.37
+     */
+    public static long WriteString(WritableByteChannel channel, CharsetEncoder encoder, CharSequence string)
+            throws IOException
+    {
+        int buf_written;
+        long written = 0L;
+        CoderResult cr;
+        CharBuffer cb = CharBuffer.wrap(string);
+        ByteBuffer bb = ByteBuffer.allocate(1024);
+        do {
+            bb.limit(bb.capacity()).rewind();
+            cr = encoder.encode(cb, bb, true);
+            buf_written = bb.position();
+            StreamUtils.WriteBufferEnsured(channel, bb.limit(buf_written).rewind());
+            written += buf_written;
+        } while (cr.isOverflow());
+        if (cr.isError()) { cr.throwException(); }
+
+        do {
+            bb.limit(bb.capacity()).rewind();
+            cr = encoder.flush(bb);
+            buf_written = bb.position();
+            StreamUtils.WriteBufferEnsured(channel, bb.limit(buf_written).rewind());
+            written += buf_written;
+        } while (cr.isOverflow());
+
         if (cr.isError()) { cr.throwException(); }
         return written;
     }
@@ -90,24 +140,86 @@ public final class StringIO
             ByteBuffer bb = ByteBuffer.wrap(temp, 0, read);
             // Decode...
             do {
-                buffer.rewind();
-                buffer.limit(buffer.capacity());
-                cr = decoder.decode(bb, buffer, total_read >= bytes);
-                buffer.limit(buffer.position());
-                buffer.rewind();
-                string_builder.append(buffer);
+                cr = decoder.decode(
+                        bb,
+                        buffer.limit(buffer.capacity()).rewind(),
+                        total_read >= bytes
+                );
+                string_builder.append(
+                        buffer.limit(buffer.position()).rewind()
+                );
             } while (cr.isOverflow());
             // Throw exception if we have an error.
             if (cr.isError()) { cr.throwException(); }
         }
         // Final flush as instructed by Java API
         do {
-            buffer.rewind();
-            buffer.limit(buffer.capacity());
-            cr = decoder.flush(buffer);
-            buffer.limit(buffer.position());
-            buffer.rewind();
-            string_builder.append(buffer);
+            cr = decoder.flush(
+                    buffer.limit(buffer.capacity()).rewind()
+            );
+            string_builder.append(
+                    buffer.limit(buffer.position()).rewind()
+            );
+        } while (cr.isOverflow());
+        if (cr.isError()) { cr.throwException(); }
+        // Get value, and we are done.
+        return string_builder.toString();
+    }
+
+    /**
+     * Reads the previously encoded character sequence as a {@link String}.
+     * @param channel The data stream to read the string from.
+     * @param decoder The {@link CharsetDecoder} object to use for transforming the stream's bytes into a string.
+     * @param bytes The number of bytes of the string, returned from the {@link #WriteString(OutputStream, CharsetEncoder, CharSequence)} return value.
+     * @return The decoded string contents contained in {@code stream}.
+     * @throws IOException An I/O exception occurred.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static String ReadString(ReadableByteChannel channel, CharsetDecoder decoder, long bytes)
+            throws IOException
+    {
+        int read;
+        CoderResult cr;
+        long total_read = 0;
+
+        // Allocate necessary buffers
+        ByteBuffer src_buffer = ByteBuffer.allocate(1024);
+        StringBuilder string_builder = new StringBuilder(Extensions.Floor(decoder.averageCharsPerByte() * bytes));
+        CharBuffer buffer = CharBuffer.allocate(Extensions.Ceiling(decoder.maxCharsPerByte() * src_buffer.capacity()));
+
+        while (total_read < bytes)
+        {
+            read = channel.read(
+                    src_buffer
+                            .limit(Extensions.ComputeStreamBufferSize(total_read, bytes, src_buffer.capacity()))
+                            .rewind()
+            );
+            if (read > -1) { total_read += read; } else { break; }
+            src_buffer.limit(read).rewind();
+            // Decode...
+            do {
+                cr = decoder.decode(
+                        src_buffer,
+                        buffer.limit(buffer.capacity()).rewind(),
+                        total_read >= bytes
+                );
+                string_builder.append(
+                        buffer.limit(buffer.position()).rewind()
+                );
+            } while (cr.isOverflow());
+            // Throw exception if we have an error.
+            if (cr.isError()) { cr.throwException(); }
+        }
+
+        // Final flush as instructed by Java API
+        do {
+            cr = decoder.flush(
+                    buffer.limit(buffer.capacity()).rewind()
+            );
+            string_builder.append(
+                    buffer.limit(buffer.position()).rewind()
+            );
         } while (cr.isOverflow());
         if (cr.isError()) { cr.throwException(); }
         // Get value, and we are done.

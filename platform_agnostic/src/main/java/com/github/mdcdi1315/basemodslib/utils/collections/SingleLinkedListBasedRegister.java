@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Predicate;
 import com.github.mdcdi1315.DotNetLayer.System.Converter;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
@@ -10,8 +11,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextPointer;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextPointerEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextPointerEnumerator;
 
 /**
  * Provides a simple and fast implementation of the {@link IRegister} interface. <br />
@@ -44,6 +45,32 @@ public class SingleLinkedListBasedRegister<T>
         }
     }
 
+    @Override
+    public void RegisterRange(IEnumerable<T> items)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(items, "items");
+        if (items instanceof SingleLinkedListBasedRegister<T> reg) {
+            NodeWithNextPointer<T> current = reg.root;
+            while (current != null)
+            {
+                NodeWithNextPointer<T> n = new NodeWithNextPointer<>(current.Value);
+                if (root == null) {
+                    root = this.current = n;
+                } else {
+                    this.current.Next = n;
+                    this.current = n;
+                }
+                current = current.Next;
+            }
+        } else {
+            try (var en = items.GetEnumerator())
+            {
+                while (en.MoveNext()) { Register(en.getCurrent()); }
+            }
+        }
+    }
+
     @NotNull
     @Override
     public IEnumerator<T> GetEnumerator() { return new NodeWithNextPointerEnumerator<>(root); }
@@ -64,11 +91,12 @@ public class SingleLinkedListBasedRegister<T>
 
         SingleLinkedListBasedRegister<TO> result = new SingleLinkedListBasedRegister<>();
 
-        IEnumerator<T> enumerator = GetEnumerator();
-        try {
-            while (enumerator.MoveNext()) { result.Register(converter.convert(enumerator.getCurrent())); }
-        } finally {
-            enumerator.Dispose();
+        try (IEnumerator<T> enumerator = GetEnumerator())
+        {
+            while (enumerator.MoveNext())
+            {
+                result.Register(converter.convert(enumerator.getCurrent()));
+            }
         }
 
         return result;
@@ -86,14 +114,16 @@ public class SingleLinkedListBasedRegister<T>
             return new SingleLinkedListBasedRegister<>();
         } else {
             SingleLinkedListBasedRegister<T> register = new SingleLinkedListBasedRegister<>();
-            IEnumerator<T> enumerator = GetEnumerator();
-            try {
+            try (IEnumerator<T> enumerator = GetEnumerator())
+            {
                 T item;
-                while (enumerator.MoveNext()) {
-                    if (predicate.predicate(item = enumerator.getCurrent())) { register.Register(item); }
+                while (enumerator.MoveNext())
+                {
+                    if (predicate.predicate(item = enumerator.getCurrent()))
+                    {
+                        register.Register(item);
+                    }
                 }
-            } finally {
-                enumerator.Dispose();
             }
             return register;
         }

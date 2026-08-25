@@ -1,9 +1,10 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.*;
 
+/**
+ * The exception that is thrown when an operation is performed on a disposed object.
+ */
 public class ObjectDisposedException
     extends InvalidOperationException
 {
@@ -16,7 +17,7 @@ public class ObjectDisposedException
      * @param instance The object whose type's full name should be included in any resulting {@link ObjectDisposedException}.
      * @exception ObjectDisposedException The {@code condition} is {@code true}.
      */
-    public static void ThrowIf(boolean condition, @NotNull Object instance)
+    public static void ThrowIf(@DoesNotReturnIf(ParameterValue = true) boolean condition, @DisallowNull Object instance)
         throws ObjectDisposedException
     {
         if (condition) {
@@ -25,10 +26,25 @@ public class ObjectDisposedException
     }
 
     /**
+     * Throws an {@link ObjectDisposedException} if the specified condition is true.
+     * @param condition The condition to evaluate.
+     * @param instance_class The type whose full name should be included in any resulting {@link ObjectDisposedException}.
+     * @throws ObjectDisposedException The {@code condition} is {@code true}.
+     */
+    public static void ThrowIf(@DoesNotReturnIf(ParameterValue = true) boolean condition, @DisallowNull Class<?> instance_class)
+            throws ObjectDisposedException
+    {
+        if (condition) {
+            throw new ObjectDisposedException(instance_class.getName());
+        }
+    }
+
+    /**
      * Initializes a new instance of the {@link ObjectDisposedException} class with a string containing the name of the disposed object.
      * @param object_name A string containing the name of the disposed object.
      */
-    public ObjectDisposedException(@MaybeNull String object_name) {
+    public ObjectDisposedException(@AllowNull String object_name)
+    {
         super("The specified object is disposed.");
         this.object_name = object_name;
     }
@@ -39,7 +55,8 @@ public class ObjectDisposedException
      * @param innerException The exception that is the cause of the current exception.
      *                       If {@code innerException} is not {@code null}, the current exception is raised in a {@code catch} block that handles the inner exception.
      */
-    public ObjectDisposedException(@MaybeNull String message, @MaybeNull Exception innerException) {
+    public ObjectDisposedException(@AllowNull String message, @AllowNull Exception innerException)
+    {
         super(message , innerException);
         object_name = null;
     }
@@ -49,7 +66,8 @@ public class ObjectDisposedException
      * @param objectName The name of the disposed object.
      * @param message The error message that explains the reason for the exception.
      */
-    public ObjectDisposedException(@MaybeNull String objectName, @MaybeNull String message) {
+    public ObjectDisposedException(@AllowNull String objectName, @AllowNull String message)
+    {
         super(message);
         object_name = objectName;
     }
@@ -57,21 +75,16 @@ public class ObjectDisposedException
     /**
      * Gets the name of the disposed object. <br /> <br />
      * Remarks: <br />
-     * If the current property is not {@code null} or {@link String#isEmpty()}, the value of this property is included in the string returned by the Message property.
+     * If the underlying value of the current method return value is not {@code null} or {@link String#isEmpty()}, the value of this method is included in the string returned by the {@link #getMessage()} method.
      * @return A string containing the name of the disposed object.
      */
-    @MaybeNull
-    public String GetObjectName() {
-        return object_name;
-    }
+    @NotNull
+    public String GetObjectName() { return object_name == null ? StringUtils.Empty : object_name; }
 
     @Override
-    public String getMessage() {
+    public String getMessage()
+    {
         String m = super.getMessage();
-        if (object_name != null && !object_name.isEmpty()) {
-            return String.format("%s\nObject Name: %s" , m , object_name);
-        } else {
-            return m;
-        }
+        return StringUtils.IsNullOrEmpty(object_name) ? m : m + "\nObject Name: " + object_name;
     }
 }

@@ -1,10 +1,12 @@
 package com.github.mdcdi1315.basemodslib.utils.collections.projections;
 
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
+import com.github.mdcdi1315.DotNetLayer.System.*;
+import com.github.mdcdi1315.DotNetLayer.System.ArithmeticException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.projections.*;
+import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection;
+import com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations;
 
 /**
  * Complements the {@link com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations}
@@ -45,7 +47,7 @@ public final class PrimitiveCollectionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(input, "input");
-        long sum = 0;
+        long sum = 0L;
         try (ILongEnumerator en = input.GetEnumerator())
         {
             while (en.MoveNext())
@@ -66,7 +68,7 @@ public final class PrimitiveCollectionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(input, "input");
-        double sum = 0;
+        double sum = 0d;
         try (IDoubleEnumerator en = input.GetEnumerator())
         {
             while (en.MoveNext())
@@ -87,7 +89,7 @@ public final class PrimitiveCollectionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(input, "input");
-        float sum = 0;
+        float sum = 0f;
         try (IFloatEnumerator en = input.GetEnumerator())
         {
             while (en.MoveNext())
@@ -135,8 +137,8 @@ public final class PrimitiveCollectionManipulations
             throws ArgumentNullException, ArithmeticException
     {
         ArgumentNullException.ThrowIfNull(input, "input");
-        long sum = 0;
-        long count = 0;
+        long sum = 0L;
+        long count = 0L;
         try (ILongEnumerator en = input.GetEnumerator())
         {
             while (en.MoveNext())
@@ -158,8 +160,8 @@ public final class PrimitiveCollectionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(input, "input");
-        float sum = 0;
-        long count = 0;
+        float sum = 0f;
+        long count = 0L;
         try (IFloatEnumerator en = input.GetEnumerator())
         {
             while (en.MoveNext())
@@ -181,8 +183,8 @@ public final class PrimitiveCollectionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(input, "input");
-        double sum = 0;
-        long count = 0;
+        double sum = 0d;
+        long count = 0L;
         try (IDoubleEnumerator en = input.GetEnumerator())
         {
             while (en.MoveNext())
@@ -192,6 +194,285 @@ public final class PrimitiveCollectionManipulations
             }
         }
         return sum / count;
+    }
+
+    /**
+     * Provides an {@link IFloatEnumerable} instance
+     * that returns a sequence of floating-point elements
+     * starting from the value of {@code min} and ending
+     * up to the value of {@code max}. Each iteration
+     * increments the next element by the value of {@code step}.
+     * @param min The minimum, inclusive bound of the range.
+     * @param max The maximum, inclusive bound of the range.
+     * @param step The value that each next element from {@code min} will be incremented by.
+     * @return A new instance of {@link IFloatEnumerable} returning the range of elements.
+     * @throws ArgumentException {@code min} is greater than {@code max}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IFloatEnumerable FloatRange(float min, float max, float step)
+            throws ArgumentException
+    {
+        if (min > max) {
+            throw new ArgumentException("Minimum bound cannot be greater than maximum bound");
+        } else {
+            return new FloatRangeEnumerable(min, max, step);
+        }
+    }
+
+    /**
+     * Provides an {@link IDoubleEnumerable} instance
+     * that returns a sequence of floating-point elements
+     * starting from the value of {@code min} and ending
+     * up to the value of {@code max}. Each iteration
+     * increments the next element by the value of {@code step}.
+     * @param min The minimum, inclusive bound of the range.
+     * @param max The maximum, inclusive bound of the range.
+     * @param step The value that each next element from {@code min} will be incremented by.
+     * @return A new instance of {@link IDoubleEnumerable} returning the range of elements.
+     * @throws ArgumentException {@code min} is greater than {@code max}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IDoubleEnumerable DoubleRange(double min, double max, double step)
+            throws ArgumentException
+    {
+        if (min > max) {
+            throw new ArgumentException("Minimum bound cannot be greater than maximum bound");
+        } else {
+            return new DoubleRangeEnumerable(min, max, step);
+        }
+    }
+
+    /**
+     * Takes the contents of the specified {@link ICharEnumerable} instance
+     * and puts them into a new {@link String} instance.
+     * @param enumerable The {@link ICharEnumerable} instance to copy its contents into a {@link String}.
+     * @return The {@link String}, containing all the characters contained into the {@code enumerable}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static String ToString(ICharEnumerable enumerable)
+        throws ArgumentNullException
+    {
+        if (CollectionManipulations.IsEmpty(enumerable)) {
+            return StringUtils.Empty;
+        } else {
+            StringBuilder builder;
+            if (enumerable instanceof ITraversableCollection<?> c) {
+                builder = new StringBuilder(c.GetCount());
+            } else {
+                builder = new StringBuilder(500);
+            }
+
+            try (ICharEnumerator en = enumerable.GetEnumerator())
+            {
+                while (en.MoveNext())
+                {
+                    builder.append(en.getUncastedCurrent());
+                }
+            }
+
+            return builder.toString();
+        }
+    }
+
+    /**
+     * Divides all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param divisor The value that each element is to be divided by.
+     * @return A new instance of the {@link IIntEnumerable} interface, describing all the elements
+     * of {@code input}, divided by {@code divisor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @throws DivideByZeroException {@code divisor} is 0.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IIntEnumerable DivideBy(IIntEnumerable input, int divisor)
+            throws ArgumentNullException, DivideByZeroException
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        if (divisor == 0) { throw new DivideByZeroException(); }
+        return new DivideAllElementsEnumerable_Int(input, divisor);
+    }
+
+    /**
+     * Divides all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param divisor The value that each element is to be divided by.
+     * @return A new instance of the {@link IFloatEnumerable} interface, describing all the elements
+     * of {@code input}, divided by {@code divisor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IFloatEnumerable DivideBy(IIntEnumerable input, float divisor)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new DivideAllElementsEnumerable_IntToFloat(input, divisor);
+    }
+
+    /**
+     * Divides all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param divisor The value that each element is to be divided by.
+     * @return A new instance of the {@link IFloatEnumerable} interface, describing all the elements
+     * of {@code input}, divided by {@code divisor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IDoubleEnumerable DivideBy(IIntEnumerable input, double divisor)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new DivideAllElementsEnumerable_IntToDouble(input, divisor);
+    }
+
+    /**
+     * Divides all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param divisor The value that each element is to be divided by.
+     * @return A new instance of the {@link IFloatEnumerable} interface, describing all the elements
+     * of {@code input}, divided by {@code divisor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IFloatEnumerable DivideBy(IFloatEnumerable input, float divisor)
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new DivideAllElementsEnumerable_Float(input, divisor);
+    }
+
+    /**
+     * Divides all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param divisor The value that each element is to be divided by.
+     * @return A new instance of the {@link IDoubleEnumerable} interface, describing all the elements
+     * of {@code input}, divided by {@code divisor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IDoubleEnumerable DivideBy(IFloatEnumerable input, double divisor)
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new DivideAllElementsEnumerable_FloatToDouble(input, divisor);
+    }
+
+    /**
+     * Divides all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param divisor The value that each element is to be divided by.
+     * @return A new instance of the {@link IDoubleEnumerable} interface, describing all the elements
+     * of {@code input}, divided by {@code divisor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IDoubleEnumerable DivideBy(IDoubleEnumerable input, double divisor)
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new DivideAllElementsEnumerable_Double(input, divisor);
+    }
+
+    /**
+     * Multiplies all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param factor The value that each element is to be multiplied by.
+     * @return A new instance of the {@link IIntEnumerable} interface, describing all the elements
+     * of {@code input}, multiplied by {@code factor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IIntEnumerable MultiplyBy(IIntEnumerable input, int factor)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new MultiplyAllElementsEnumerable_Int(input, factor);
+    }
+
+    /**
+     * Multiplies all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param factor The value that each element is to be multiplied by.
+     * @return A new instance of the {@link IFloatEnumerable} interface, describing all the elements
+     * of {@code input}, multiplied by {@code factor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IFloatEnumerable MultiplyBy(IIntEnumerable input, float factor)
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new MultiplyAllElementsEnumerable_IntToFloat(input, factor);
+    }
+
+    /**
+     * Multiplies all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param factor The value that each element is to be multiplied by.
+     * @return A new instance of the {@link IDoubleEnumerable} interface, describing all the elements
+     * of {@code input}, multiplied by {@code factor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IDoubleEnumerable MultiplyBy(IIntEnumerable input, double factor)
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new MultiplyAllElementsEnumerable_IntToDouble(input, factor);
+    }
+
+    /**
+     * Multiplies all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param factor The value that each element is to be multiplied by.
+     * @return A new instance of the {@link IFloatEnumerable} interface, describing all the elements
+     * of {@code input}, multiplied by {@code factor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IFloatEnumerable MultiplyBy(IFloatEnumerable input, float factor)
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new MultiplyAllElementsEnumerable_Float(input, factor);
+    }
+
+    /**
+     * Multiplies all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param factor The value that each element is to be multiplied by.
+     * @return A new instance of the {@link IDoubleEnumerable} interface, describing all the elements
+     * of {@code input}, multiplied by {@code factor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IDoubleEnumerable MultiplyBy(IFloatEnumerable input, double factor)
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new MultiplyAllElementsEnumerable_FloatToDouble(input, factor);
+    }
+
+    /**
+     * Multiplies all the elements of the given enumerable by the specified value.
+     * @param input The enumerable that provides the elements.
+     * @param factor The value that each element is to be multiplied by.
+     * @return A new instance of the {@link IDoubleEnumerable} interface, describing all the elements
+     * of {@code input}, multiplied by {@code factor}.
+     * @throws ArgumentNullException {@code input} is {@code null}.
+     * @since 1.0.37
+     */
+    @NotNull
+    public static IDoubleEnumerable MultiplyBy(IDoubleEnumerable input, double factor)
+    {
+        ArgumentNullException.ThrowIfNull(input, "input");
+        return new MultiplyAllElementsEnumerable_Double(input, factor);
     }
 
     /**

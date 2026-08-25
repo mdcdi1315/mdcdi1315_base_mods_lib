@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System.Collections.Generic;
 
+import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.IComparable;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
@@ -17,18 +18,23 @@ public abstract class Comparer<T>
         @SuppressWarnings({"unchecked", "rawtypes"})
         public int Compare(T x, T y)
         {
-            if (x == null && y == null) {
-                return 0;
-            } else if (x == null) {
-                return 1;
-            } else if (y == null) {
+            boolean y_is_null = y == null;
+            if (x == null) {
+                return y_is_null ? 0 : 1;
+            } else if (y_is_null) {
                 return -1;
+            } else if (x instanceof CharSequence c && y instanceof CharSequence c2) {
+                return CharSequence.compare(c, c2);
             } else if (x instanceof Comparable c) {
                 return c.compareTo(y);
             } else if (x instanceof IComparable c) {
                 return c.CompareTo(y);
+            } else if (y instanceof Comparable c) {
+                return -c.compareTo(x);
+            } else if (y instanceof IComparable c) {
+                return -c.CompareTo(x);
             } else {
-                return x.equals(y) ? 0 : 1;
+                throw new ArgumentException("Could not compare the input values because they do not either implement any comparable interface.");
             }
         }
     }

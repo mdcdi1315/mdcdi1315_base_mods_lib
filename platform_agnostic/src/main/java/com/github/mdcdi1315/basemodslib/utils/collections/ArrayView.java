@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.utils.collections;
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IList;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IReadOnlyList;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
@@ -39,6 +40,19 @@ public class ArrayView<T>
     {
         ArgumentNullException.ThrowIfNull(this.array = array, "array");
     }
+
+    // Implementations pertaining to this class only.
+
+    /**
+     * Gets the backing array component type.
+     * @return The component type of the backing array, that is the class of type {@link T}.
+     * @since 1.0.37
+     */
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public Class<T> GetArrayComponentType() { return (Class<T>) array.getClass().getComponentType(); }
+
+    // Interface implementations
 
     @Override
     @MaybeNull
@@ -128,7 +142,7 @@ public class ArrayView<T>
     @SuppressWarnings({"SuspiciousSystemArraycopy", "unchecked"})
     private static <T> T[] CreateArray(T[] array, int index, int count)
     {
-        Object target = Array.CreateInstance(array.getClass().componentType(), count);
+        Object target = Array.CreateInstance(array.getClass().getComponentType(), count);
         System.arraycopy(array, index, target, 0, count);
         return (T[])target;
     }
@@ -168,4 +182,26 @@ public class ArrayView<T>
      */
     @Override
     public ArrayView<T> Clone() { return new ArrayView<>(CreateArray(array, 0, array.length)); }
+
+    @NotNull
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder("ArrayView<")
+                .append(array.getClass().getComponentType().getName())
+                .append("> (")
+                .append(array.length)
+                .append(") { ");
+
+        int l = array.length - 1;
+
+        if (l < 0) {
+            sb.append("<EMPTY>");
+        } else {
+            for (int I = 0; I < l; I++) { sb.append(array[I]).append(", "); }
+            sb.append(array[l]);
+        }
+        sb.append(" }");
+        return sb.toString();
+    }
 }
