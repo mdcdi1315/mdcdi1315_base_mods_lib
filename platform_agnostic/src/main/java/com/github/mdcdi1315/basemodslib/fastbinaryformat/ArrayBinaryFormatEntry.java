@@ -131,4 +131,12 @@ public final class ArrayBinaryFormatEntry
         if (entries instanceof ImmutableList<BinaryFormatEntry>) { entries = new ArrayList<>(entries); }
         this.entries.addAll(entry.entries);
     }
+
+    public void AddFrom(List<BinaryFormatEntry> external_entries)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(external_entries, "external_entries");
+        if (entries instanceof ImmutableList<BinaryFormatEntry>) { entries = new ArrayList<>(entries); }
+        this.entries.addAll(external_entries);
+    }
 }

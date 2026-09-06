@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.neoforge;
 
 import com.github.mdcdi1315.DotNetLayer.System.Version;
-import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
@@ -23,6 +22,7 @@ import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.registries.NeoForgeRegistriesRegistrar;
 
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLPaths;
@@ -37,33 +37,34 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public final class NeoForgeModLoaderLayer
     implements IModLoaderLayer
 {
     private IEventBus event_bus;
-    private List<IModInfo> mods;
     private Version neoforge_version;
     // Boolean tracking down whether mod loading has been actually completed.
     // Helps to avoid calling the bake callbacks more than one times.
     // See NeoForgeUtils class for the usage of this.
     public static boolean mod_loading_complete;
-    // private DisposableObjectsTracker tracker;
 
     public NeoForgeModLoaderLayer(IEventBus event_bus)
     {
         this.event_bus = event_bus;
         mod_loading_complete = false;
-        mods = ModList.get().getMods();
+        Version fg_ver;
         try {
-            neoforge_version = Version.Parse(FMLLoader.versionInfo().neoForgeVersion());
+            fg_ver = Version.Parse(FMLLoader.versionInfo().neoForgeVersion());
         } catch (Exception e) {
             BaseModsLib.LOGGER.warn("Cannot retrieve NeoForge version due to an exception. Setting version values to 0,0.", e);
-            neoforge_version = new Version(0 , 0);
+            fg_ver = new Version(0 , 0);
         }
+        neoforge_version = fg_ver;
 
-        NeoForgeUtils.AddListener(this.event_bus, FMLLoadCompleteEvent.class, this::OnModLoadingCompleteEvent);
+        // Setup event bus listeners
         NeoForgeUtils.AddListener(this.event_bus, FMLCommonSetupEvent.class, NeoForgeModLoaderLayer::OnCommonSetupEvent);
+        NeoForgeUtils.AddListener(this.event_bus, FMLLoadCompleteEvent.class, NeoForgeModLoaderLayer::OnModLoadingCompleteEvent);
         NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, net.neoforged.neoforge.event.server.ServerStartedEvent.class, NeoForgeModLoaderLayer::OnServerStarted);
         NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, net.neoforged.neoforge.event.server.ServerStoppedEvent.class, NeoForgeModLoaderLayer::OnServerStopped);
         NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, net.neoforged.neoforge.event.server.ServerStartingEvent.class, NeoForgeModLoaderLayer::OnServerStarting);
@@ -88,59 +89,91 @@ public final class NeoForgeModLoaderLayer
         lib_register.RegisterToEventBus(this.event_bus);
     }
 
-    private static IEventBus GetEventBusOrFail(Object mod_object) {
-        try {
-            return (IEventBus) mod_object;
-        } catch (ClassCastException cce) {
-            throw new InvalidOperationException(String.format("The mod object was not of type IEventBus!!!!\nActual type: %s", mod_object.getClass().getName()));
-        }
-    }
-
-    private static void DestroyLayerData()
+    private static void OnCommonSetupEvent(FMLCommonSetupEvent event)
     {
-        /*
-        tracker.Dispose();
-        tracker = null;
-         */
-        mod_loading_complete = true;
-    }
-
-    private static void OnCommonSetupEvent(FMLCommonSetupEvent event) {
         BaseModsLib.LOGGER.info("Common setup event realized. Dispatching common setup to implementing mods.");
         CommonSetupEvent cse = new CommonSetupEvent();
         EventManager.FireEventSafe(cse);
         event.enqueueWork(cse::Run);
     }
 
-    private void OnModLoadingCompleteEvent(FMLLoadCompleteEvent event)
+    private static void OnModLoadingCompleteEvent(FMLLoadCompleteEvent event)
     {
         event.enqueueWork(BaseModsLib::Destroy);
         event.enqueueWork(NeoForgeModLoaderLayer::DestroyLayerData);
     }
 
-    private static void OnServerStarting(net.neoforged.neoforge.event.server.ServerStartingEvent e) {
-        EventManager.FireEventSafe(new ServerStartingEvent(e.getServer()));
-    }
-
-    private static void OnServerStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent e) {
-        EventManager.FireEventSafe(new ServerStoppingEvent(e.getServer()));
-    }
-
-    private static void OnServerStopped(net.neoforged.neoforge.event.server.ServerStoppedEvent e) {
+    private static void OnServerStopped(net.neoforged.neoforge.event.server.ServerStoppedEvent e)
+    {
         EventManager.FireEventSafe(new ServerStoppedEvent(e.getServer()));
         // In server env, we need to dispose the BML itself.
         // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { BaseModsLib.DestroySelf(); }
     }
 
-    private static void OnServerStarted(net.neoforged.neoforge.event.server.ServerStartedEvent e) {
-        EventManager.FireEventSafe(new ServerStartedEvent(e.getServer()));
+    private static void DestroyLayerData() { mod_loading_complete = true; }
+
+    private static void OnServerStarted(net.neoforged.neoforge.event.server.ServerStartedEvent e) { EventManager.FireEventSafe(new ServerStartedEvent(e.getServer())); }
+
+    private static void OnServerStarting(net.neoforged.neoforge.event.server.ServerStartingEvent e) { EventManager.FireEventSafe(new ServerStartingEvent(e.getServer())); }
+
+    private static void OnServerStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent e) { EventManager.FireEventSafe(new ServerStoppingEvent(e.getServer())); }
+
+    @Override
+    public boolean IsModLoaded(String mod_id)
+    {
+        return ModList.get().getModContainerById(mod_id).isPresent();
+    }
+
+    @Override
+    @SuppressWarnings("OptionalIsPresent")
+    public IModResourceLookup GetResourceLookupByID(String mod_id)
+    {
+        Optional<? extends ModContainer> mc = ModList.get().getModContainerById(mod_id);
+        return mc.isPresent() ? new NeoForgeModResourceLookup(mc.get().getModInfo()) : null;
+    }
+
+    @Override
+    public ModdingEnvironment GetEnvironment()
+    {
+        return switch (FMLEnvironment.dist) {
+            case CLIENT -> ModdingEnvironment.CLIENT;
+            case DEDICATED_SERVER -> ModdingEnvironment.SERVER;
+        };
+    }
+
+    @Override
+    public String GetModLoaderBranding() { return "NeoForge"; }
+
+    @Override
+    public Version GetModLoaderVersion() { return neoforge_version; }
+
+    @Override
+    public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
+
+    @Override
+    public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
+
+    @Override
+    public IModResourceLookup GetBMLResourceLookup() { return new BMLModSpecialRLP(); }
+
+    @Override
+    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
+
+    @Override
+    public List<String> GetLoadedMods() { return new DirectlyMappedList<>(ModList.get().getMods(), IModInfo::getModId); }
+
+    @Override
+    public void Dispose()
+    {
+        this.event_bus = null;
+        this.neoforge_version = null;
     }
 
     @Override
     public void InitializeServerModInstance(IServerModInstance instance, Object mod_object)
     {
-        IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
+        IEventBus mod_event_bus = NeoForgeUtils.GetEventBusOrFail(mod_object);
         String mod_id = instance.GetModId();
 
         // Initialize sensitive things - blocks, items, registries, etc.
@@ -187,59 +220,5 @@ public final class NeoForgeModLoaderLayer
         var reg_9 = new NeoForgeCommandRegistrar(mod_id);
         instance.RegisterCommands(reg_9);
         reg_9.RegisterToEventBus(mod_event_bus);
-    }
-
-    @Override
-    public boolean IsModLoaded(String mod_id)
-    {
-        for (var i : mods) {
-            if (i.getModId().equals(mod_id)) { return true; }
-        }
-        return false;
-    }
-
-    @Override
-    public IModResourceLookup GetResourceLookupByID(String mod_id)
-    {
-        for (var i : mods) {
-            if (i.getModId().equals(mod_id)) { return new NeoForgeModResourceLookup(i); }
-        }
-        return null;
-    }
-
-    @Override
-    public ModdingEnvironment GetEnvironment()
-    {
-        return switch (FMLEnvironment.dist) {
-            case CLIENT -> ModdingEnvironment.CLIENT;
-            case DEDICATED_SERVER -> ModdingEnvironment.SERVER;
-        };
-    }
-
-    @Override
-    public String GetModLoaderBranding() { return "NeoForge"; }
-
-    @Override
-    public Version GetModLoaderVersion() { return neoforge_version; }
-
-    @Override
-    public Path GetMinecraftDirectory() { return FMLPaths.GAMEDIR.get(); }
-
-    @Override
-    public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
-
-    @Override
-    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
-
-    @Override
-    public List<String> GetLoadedMods() { return new DirectlyMappedList<>(mods, IModInfo::getModId); }
-
-    @Override
-    public void Dispose()
-    {
-        // this.tracker = null;
-        this.mods = null;
-        this.event_bus = null;
-        this.neoforge_version = null;
     }
 }

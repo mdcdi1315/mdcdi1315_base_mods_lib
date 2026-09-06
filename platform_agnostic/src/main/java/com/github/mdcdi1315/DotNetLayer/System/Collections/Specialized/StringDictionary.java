@@ -4,10 +4,14 @@ import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.ICollection;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.DictionaryEntry;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.Dictionary;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.KeyValuePair;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
-import java.util.*;
-import java.util.function.BiConsumer;
+import java.text.Collator;
 
 /**
  * Implements a hash table with the key and the value strongly typed to be strings rather than objects.
@@ -15,156 +19,49 @@ import java.util.function.BiConsumer;
 public class StringDictionary
     implements IEnumerable
 {
-    // This is currently implemented with the below hash table implementation.
-    // It is desirable to move to a better and more .NET-like alternative at some point,
-    // however this one does currently keep the semantics as is in .NET .
-    private final Hashtable<String , String> contents;
-
-    private record KeysCollection(Hashtable<String, String> actual)
-            implements ICollection
-    {
-        @Override
-        public int getCount() {
-            return actual.size();
-        }
-
-        @Override
-        public boolean getIsSynchronized() {
-            return true;
-        }
-
-        @Override
-        public Object getSyncRoot() {
-            return actual;
-        }
-
-        @Override
-        public void CopyTo(Object array, int index)
-                throws ArgumentException {
-            actual.forEach(new CopyToOp(array, index));
-        }
-
-        private static final class CopyToOp
-                implements BiConsumer<String, String> {
-            private String[] array;
-            private int current_index, index;
-
-            public CopyToOp(Object array, int index) {
-                try {
-                    this.array = (String[]) array;
-                } catch (ClassCastException cce) {
-                    throw new ArgumentException("The type of the source array was not a string array!", "array");
-                }
-                this.index = index;
-                current_index = 0;
-            }
-
-            @Override
-            public void accept(String key, String value) {
-                array[current_index++] = key;
-            }
-        }
-
-        private static final class KeysEnumerator
-                implements IEnumerator
-        {
-            private String current;
-            private Enumeration<String> en;
-
-            public KeysEnumerator(Enumeration<String> en) {
-                this.en = en;
-            }
-
-            @Override
-            public Object getCurrent() {
-                return (current == null) ? current = en.nextElement() : current;
-            }
-
-            @Override
-            public boolean MoveNext() {
-                current = null;
-                return en.hasMoreElements();
-            }
-
-            @Override
-            public void Reset() {
-                throw new InvalidOperationException("Not supported for this enumerator object");
-            }
-        }
-
-        @Override
-        public IEnumerator GetEnumerator() {
-            return new KeysEnumerator(actual.keys());
-        }
-    }
-
-    private record ValuesCollection(Hashtable<String, String> actual)
-        implements ICollection
-    {
-        @Override
-        public int getCount() {
-            return actual.size();
-        }
-
-        @Override
-        public boolean getIsSynchronized() {
-            return true;
-        }
-
-        @Override
-        public Object getSyncRoot() {
-            return actual;
-        }
-
-        @Override
-        public void CopyTo(Object array, int index)
-                throws ArgumentException
-        {
-            ArgumentNullException.ThrowIfNull(array, "array");
-            if (index < 0) {
-                throw new ArgumentOutOfRangeException("index", "Index must be into the provided array bounds.");
-            }
-            actual.forEach(new CopyToOp(array , index));
-        }
-
-        private static final class ValuesEnumerator
-            implements IEnumerator
-        {
-            private String current;
-            private Iterator<String> en;
-
-            public ValuesEnumerator(Collection<String> en) {
-                this.en = en.iterator();
-            }
-
-            @Override
-            public Object getCurrent() {
-                return (current == null) ? current = en.next() : current;
-            }
-
-            @Override
-            public boolean MoveNext() {
-                current = null;
-                return en.hasNext();
-            }
-
-            @Override
-            public void Reset() {
-                throw new InvalidOperationException("Not supported for this enumerator object");
-            }
-        }
-
-        @Override
-        public IEnumerator GetEnumerator() {
-            return new ValuesEnumerator(actual.values());
-        }
-    }
+    private final Dictionary<String, String> dictionary;
 
     /**
      * Initializes a new instance of the {@link StringDictionary} class.
      */
-    public StringDictionary() {
-        contents = new Hashtable<>();
+    public StringDictionary()
+    {
+        dictionary = new Dictionary<>(10, new StringInvariantComparer());
+    }
+
+    private record Enumerator(com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator<KeyValuePair<String, String>> enumerator)
+            implements IEnumerator
+    {
+        @Override
+        public Object getCurrent()
+        {
+            var c = enumerator.getCurrent();
+            return new DictionaryEntry(c.getKey(), c.getValue());
+        }
+
+        @Override
+        public void Reset() throws InvalidOperationException { enumerator.Reset(); }
+
+        @Override
+        public boolean MoveNext() throws InvalidOperationException { return enumerator.MoveNext(); }
+    }
+
+    private static final class StringInvariantComparer
+        implements IEqualityComparer<String>
+    {
+        private final Collator c;
+
+        public StringInvariantComparer()
+        {
+            c = Collator.getInstance();
+            c.setStrength(Collator.PRIMARY);
+        }
+
+        @Override
+        public int GetHashCode(String obj) { return obj.hashCode(); }
+
+        @Override
+        public boolean Equals(String x, String y) { return c.equals(x, y); }
     }
 
     /**
@@ -172,27 +69,26 @@ public class StringDictionary
      * @return The number of key/value pairs in the {@link StringDictionary}. <br />
      * Retrieving the value of this method is an O(1) operation.
      */
-    public int GetCount() {
-        return contents.size();
-    }
+    public int GetCount() { return dictionary.getCount(); }
 
     /**
      * Gets a value indicating whether access to the {@link StringDictionary} is synchronized (thread safe).
      * @return {@code true} if access to the {@link StringDictionary} is synchronized (thread safe); otherwise, {@code false}.
      */
-    public boolean GetIsSynchronized() {
-        return true;
-    }
+    public boolean GetIsSynchronized() { return true; }
 
     /**
      * Gets the value associated with the specified key.
      * @param key The key whose value to get.
      * @return The value associated with the specified key. If the specified key is not found, it returns {@code null}.
+     * @throws ArgumentNullException {@code key} is {@code null}.
      */
     @MaybeNull
-    public String GetItem(String key) {
+    public String GetItem(String key)
+        throws ArgumentNullException
+    {
         ArgumentNullException.ThrowIfNull(key, "key");
-        return contents.get(key.toLowerCase(Locale.ROOT));
+        return dictionary.getItem(key);
     }
 
     /**
@@ -200,34 +96,30 @@ public class StringDictionary
      * @param key The key whose value to set.
      * @param value The value associated with the specified key. If the specified key is not found, it creates a new entry with the specified key.
      */
-    public void SetItem(String key, @MaybeNull String value) {
+    public void SetItem(String key, @AllowNull String value)
+        throws ArgumentNullException
+    {
         ArgumentNullException.ThrowIfNull(key, "key");
-        contents.put(key.toLowerCase(Locale.ROOT) , value);
+        dictionary.setItem(key , value);
     }
 
     /**
      * Gets a collection of keys in the {@link StringDictionary}.
      * @return An {@link ICollection} that provides the keys in the {@link StringDictionary}.
      */
-    public ICollection GetKeys() {
-        return new KeysCollection(contents);
-    }
+    public ICollection GetKeys() { return (ICollection)dictionary.getKeys(); }
 
     /**
      * Gets an object that can be used to synchronize access to the {@link StringDictionary}.
      * @return An {@link Object} that can be used to synchronize access to the {@link StringDictionary}.
      */
-    public Object GetSyncRoot() {
-        return contents;
-    }
+    public Object GetSyncRoot() { return dictionary; }
 
     /**
      * Gets a collection of values in the {@link StringDictionary}.
      * @return An {@link ICollection} that provides the values in the {@link StringDictionary}.
      */
-    public ICollection GetValues() {
-        return new ValuesCollection(contents);
-    }
+    public ICollection GetValues() { return (ICollection)dictionary.getValues(); }
 
     /**
      * Adds an entry with the specified key and value into the {@link StringDictionary}.
@@ -242,15 +134,13 @@ public class StringDictionary
     {
         ArgumentNullException.ThrowIfNull(key);
 
-        if (contents.putIfAbsent(key.toLowerCase(Locale.ROOT), value) != null) {
-            throw new ArgumentException(String.format("The entry with name %s does already exist in the collection!" , key));
-        }
+        dictionary.Add(key, value);
     }
 
     /**
      * Removes all entries from the {@link StringDictionary}.
      */
-    public void Clear() { contents.clear(); }
+    public void Clear() { dictionary.Clear(); }
 
     /**
      * Determines if the {@link StringDictionary} contains a specific key.
@@ -261,9 +151,9 @@ public class StringDictionary
     public boolean ContainsKey(String key)
         throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(key, "key");
 
-        return contents.containsKey(key.toLowerCase(Locale.ROOT));
+        return dictionary.ContainsKey(key);
     }
 
     /**
@@ -271,9 +161,7 @@ public class StringDictionary
      * @param value The value to locate in the {@link StringDictionary}. The value can be {@code null}.
      * @return {@code true} if the {@link StringDictionary} contains an element with the specified value; otherwise, {@code false}.
      */
-    public boolean ContainsValue(@MaybeNull String value) {
-        return contents.containsValue(value);
-    }
+    public boolean ContainsValue(@MaybeNull String value) { return dictionary.ContainsValue(value); }
 
     /**
      * Copies the string dictionary values to a one-dimensional array instance at the specified index.
@@ -293,30 +181,14 @@ public class StringDictionary
         ArgumentNullException.ThrowIfNull(array, "array");
         if (index < 0) {
             throw new ArgumentOutOfRangeException("index", "Index must be into the provided array bounds.");
-        }
-        contents.forEach(new CopyToOp(array , index));
-    }
-
-    private static final class CopyToOp
-        implements BiConsumer<String , String>
-    {
-        private String[] array;
-        private int current_index, index;
-
-        public CopyToOp(Object array, int index)
-        {
-            try {
-                this.array = (String[]) array;
-            } catch (ClassCastException cce) {
-                throw new ArgumentException("The type of the source array was not a string array!" , "array");
+        } else {
+            try (var enumerator = dictionary.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
+                    java.lang.reflect.Array.set(array, index++, enumerator.getCurrent().getValue());
+                }
             }
-            this.index = index;
-            current_index = 0;
-        }
-
-        @Override
-        public void accept(String key, String value) {
-            array[current_index++] = value;
         }
     }
 
@@ -324,9 +196,7 @@ public class StringDictionary
      * Returns an enumerator that iterates through the string dictionary.
      * @return An {@link IEnumerator} that iterates through the string dictionary.
      */
-    public IEnumerator GetEnumerator() {
-        return GetValues().GetEnumerator();
-    }
+    public IEnumerator GetEnumerator() { return new Enumerator(dictionary.GetEnumerator()); }
 
     /**
      * Removes the entry with the specified key from the string dictionary.
@@ -337,8 +207,8 @@ public class StringDictionary
     public void Remove(String key)
         throws ArgumentNullException, NotSupportedException
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(key, "key");
 
-        contents.remove(key.toLowerCase(Locale.ROOT));
+        dictionary.Remove_Ordinal2(key);
     }
 }

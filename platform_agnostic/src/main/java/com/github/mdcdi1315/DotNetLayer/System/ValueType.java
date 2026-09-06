@@ -75,4 +75,18 @@ public class ValueType
             throw new ExecutionEngineException("Structure parameter/field cannot be null.");
         }
     }
+
+    /**
+     * Validates that the all given {@link ValueType} instances in the array are not {@code null}. <br />
+     * Use this method on every possible call site to validate this fact. <br />
+     * Note - .NET structures cannot be {@code null} at any cost. <br />
+     * If {@code null}, a special runtime corruption exception is thrown.
+     * @param array The array {@link ValueType} instances to validate.
+     * @apiNote This API does not exist in .NET; it is .NET Layer-specific.
+     */
+    @StackTraceHidden
+    public static void ValidateElementsOfArray(ValueType[] array)
+    {
+        for (ValueType vt : array) { ValidateNonNullStructure(vt); }
+    }
 }

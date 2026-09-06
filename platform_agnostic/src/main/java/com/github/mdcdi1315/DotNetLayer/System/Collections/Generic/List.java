@@ -34,6 +34,12 @@ public class List<T>
         @AllowNull
         private T _current;
 
+        public Enumerator()
+        {
+            _list = new List<>();
+            _version = 0;
+        }
+
         private Enumerator(List<T> list)
         {
             _list = list;

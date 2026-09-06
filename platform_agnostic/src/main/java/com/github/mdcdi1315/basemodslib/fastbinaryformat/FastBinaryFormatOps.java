@@ -67,7 +67,7 @@ public final class FastBinaryFormatOps
                 case DoubleBinaryFormatEntry d -> ops.createDouble(d.GetValue());
                 case SevenBitEncodedIntBinaryFormatEntry gi -> ops.createInt(gi.GetValue());
                 case BaseStringBinaryFormatEntry s -> ops.createString(s.GetValue());
-                case ArrayBinaryFormatEntry a -> ops.createList(a.AsStream().map(new ConvertAnyToTD_Mapper<>(ops)));
+                case ArrayBinaryFormatEntry a -> ops.createList(a.AsStream().map(this));
                 case ObjectBinaryFormatEntry o -> ops.createMap(o.AsStream().map(new ConvertToConcreteValuesMapper<>(this)));
                 case ByteFixedArrayBinaryFormatEntry b -> ops.createByteList(ByteBuffer.wrap(b.GetData()));
                 case IntFixedArrayBinaryFormatEntry b -> ops.createIntList(Arrays.stream(b.GetData()));
@@ -147,15 +147,24 @@ public final class FastBinaryFormatOps
     @Override
     public DataResult<BinaryFormatEntry> mergeToList(BinaryFormatEntry list, List<BinaryFormatEntry> values)
     {
-        ArrayBinaryFormatEntry r = new ArrayBinaryFormatEntry();
-        for (BinaryFormatEntry value : values) { r.Add(value); }
-        return DataResult.success(r);
+        if (list instanceof ArrayBinaryFormatEntry a) {
+            ArrayBinaryFormatEntry r = new ArrayBinaryFormatEntry();
+            r.AddFrom(a);
+            r.AddFrom(values);
+            return DataResult.success(r);
+        } else if (list instanceof NullBinaryFormatEntry) {
+            ArrayBinaryFormatEntry r = new ArrayBinaryFormatEntry();
+            r.AddFrom(values);
+            return DataResult.success(r);
+        } else {
+            return CodecUtils.CreateDotNetFormattedErrorDataResult("Merge To List was called on a non-list type: {0}", list);
+        }
     }
 
     @Override
     public DataResult<BinaryFormatEntry> mergeToMap(BinaryFormatEntry map, BinaryFormatEntry key, BinaryFormatEntry value)
     {
-        if (map instanceof ObjectBinaryFormatEntry o)  {
+        if (map instanceof ObjectBinaryFormatEntry o) {
             return MergeToMap_Internal(o, key, value);
         } else if (map instanceof NullBinaryFormatEntry) {
             return MergeToMap_Internal(new ObjectBinaryFormatEntry(), key, value);
@@ -289,7 +298,11 @@ public final class FastBinaryFormatOps
                 IntStream.Builder builder = IntStream.builder();
                 for (BinaryFormatEntry i : a)
                 {
-                    if (i instanceof IntBinaryFormatEntry gi) { builder.add(gi.GetValue()); }
+                    if (i instanceof IntBinaryFormatEntry gi) {
+                        builder.add(gi.GetValue());
+                    } else if (i instanceof SevenBitEncodedIntBinaryFormatEntry svgi) {
+                        builder.add(svgi.GetValue());
+                    }
                 }
                 yield DataResult.success(builder.build());
             }
@@ -331,7 +344,7 @@ public final class FastBinaryFormatOps
                     return CodecUtils.CreateDotNetFormattedErrorDataResult("Not a byte: {0}", v);
                 }
             }
-            return DataResult.success(bb);
+            return DataResult.success(bb.rewind());
         } else if (input instanceof NullBinaryFormatEntry) {
             return DataResult.success(ByteBuffer.allocate(0));
         } else if (input instanceof ByteFixedArrayBinaryFormatEntry e) {

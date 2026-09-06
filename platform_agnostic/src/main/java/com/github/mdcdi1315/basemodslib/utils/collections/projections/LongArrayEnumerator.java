@@ -11,9 +11,8 @@ import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
  * Provides an {@link ILongEnumerator} implementation for concrete long integer arrays. <br />
  * For arrays that are of the {@link Long} boxed type, use the {@link com.github.mdcdi1315.basemodslib.utils.collections.ArrayEnumerator} class instead.
  */
-@Pure
 public final class LongArrayEnumerator
-        implements ILongEnumerator
+    extends BaseLongEnumerator
 {
     private int index;
     private long[] array;
@@ -50,10 +49,11 @@ public final class LongArrayEnumerator
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if ((this.bound = index + count) > array.length) {
+        } else if (((long)index + count) > array.length) {
             throw new ArgumentException("Specified index and count parameters are out of the given array bounds.");
         } else {
             this.array = array;
+            this.bound = index + count;
             this.start = this.index = index - 1;
         }
     }
@@ -69,13 +69,13 @@ public final class LongArrayEnumerator
 
     @Pure
     @Override
-    public void Reset() { index = start; }
+    protected void ResetImpl() { index = start; }
 
     @Pure
     @Override
-    public boolean MoveNext() { return ++index < bound; }
+    protected boolean MoveNextImpl() { return ++index < bound; }
 
     @Pure
     @Override
-    public void Dispose() { index = start; array = null; }
+    public void Dispose() { super.Dispose(); index = start; array = null; }
 }

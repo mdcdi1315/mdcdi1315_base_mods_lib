@@ -34,7 +34,7 @@
 	"mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.list_encoding_failed": "Cannot encode the biome temperatures list to JSON! See server error log for more information.",
 	"mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.not_multi_noise_source": "This command can be only used for multi-noise biome sources. The specified dimension is not defined using a multi-noise biome source.",
 
-	"mdcdi1315_base_mods_lib.devcmds.get_loaded_mods.mods_banner": "Displaying BML Mods: ",
+	"mdcdi1315_base_mods_lib.devcmds.get_loaded_mods.mods_banner": "Displaying BML Mods (%d mods detected): ",
 	"mdcdi1315_base_mods_lib.devcmds.get_loaded_mods.mod_info_msg": "Mod ID: %s, instance hash code: %d",
 
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.header": "Displaying BML information: ",
@@ -45,6 +45,13 @@
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.loaded_instances": "Loaded BML mod instances: %d",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.is_dev_env_no": "Is development environment: No",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.is_dev_env_yes": "Is development environment: Yes",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.banner": ".NET Layer information: ",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.targetframeworkname": "Target Framework Name: %s",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.app_context_directory": "App Context Base Directory: %s",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.runtimefeatures.banner": "Supported Runtime Features: ",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.runtimefeatures.feature": "Feature %s: %s",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.runtimefeatures.feature.supported": "Supported",
+	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.dotnetlayerinfo.runtimefeatures.feature.unsupported": "Unsupported",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.java_runtime_header": "Java Runtime Info: ",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.java_runtime_version": "Fully qualified version: %d.%d.%d.%d",
 	"mdcdi1315_base_mods_lib.devcmds.get_bml_info.java_runtime_prerelease_info": "Pre-release info: %s",

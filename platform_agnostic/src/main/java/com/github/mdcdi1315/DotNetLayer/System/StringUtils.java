@@ -25,6 +25,7 @@ public final class StringUtils
     /**
      * Represents the empty string. This field is read-only.
      */
+    @NotNull
     public static final String Empty = GetEmpty();
 
     /**
@@ -32,6 +33,7 @@ public final class StringUtils
      * @param value The string to test.
      * @return {@code true} if the {@code value} parameter is {@code null} or an empty string (""); otherwise, {@code false}.
      */
+    @SuppressWarnings("StringEquality")
     public static boolean IsNullOrEmpty(@AllowNull String value)
     {
         // value == Empty: We want reference check instead.
@@ -43,6 +45,7 @@ public final class StringUtils
      * @param value The string to test.
      * @return {@code true} if the {@code value} parameter is {@code null} or {@link #Empty}, or if {@code value} consists exclusively of white-space characters.
      */
+    @SuppressWarnings("StringEquality")
     public static boolean IsNullOrWhiteSpace(@AllowNull String value)
     {
         // value == Empty: We want reference check instead.
@@ -53,14 +56,14 @@ public final class StringUtils
      * Retrieves an object that can iterate through the individual characters in this string.
      * @param value The string instance.
      * @return An enumerator object.
-     * @throws NullPointerException {@code value} is {@code null}.
+     * @throws NullReferenceException {@code value} is {@code null}.
      */
     @NotNull
     public static CharEnumerator GetEnumerator(String value)
-            throws NullPointerException
+            throws NullReferenceException
     {
         if (value == null) {
-            throw new NullPointerException();
+            throw new NullReferenceException();
         } else {
             return new CharEnumerator(value);
         }
@@ -77,6 +80,7 @@ public final class StringUtils
      * {@link #Empty} if {@code values} has zero elements.
      * @throws ArgumentNullException {@code values} is {@code null}.
      */
+    @NotNull
     public static String Join(char separator, Object... values)
         throws ArgumentNullException
     {
@@ -106,6 +110,7 @@ public final class StringUtils
      * {@link #Empty} if {@code values} has zero elements.
      * @throws ArgumentNullException {@code values} is {@code null}.
      */
+    @NotNull
     public static String Join(char separator, String... values)
             throws ArgumentNullException
     {
@@ -135,12 +140,14 @@ public final class StringUtils
      * {@link #Empty} if {@code values} has zero elements.
      * @throws ArgumentNullException {@code values} is {@code null}.
      */
+    @NotNull
     public static String Join(@AllowNull String separator, IEnumerable<String> values)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(values, "values");
-        var en = values.GetEnumerator();
-        try {
+        separator = separator == null ? Empty : separator;
+        try (var en = values.GetEnumerator())
+        {
             StringBuilder builder = new StringBuilder();
             if (en.MoveNext()) {
                 builder.append(en.getCurrent());
@@ -152,8 +159,6 @@ public final class StringUtils
                 builder.append(en.getCurrent());
             }
             return builder.toString();
-        } finally {
-            en.Dispose();
         }
     }
 
@@ -163,6 +168,7 @@ public final class StringUtils
      * @param str1 The second string to concatenate.
      * @return The concatenation of {@code str0} and {@code str1}.
      */
+    @NotNull
     public static String Concat(@AllowNull String str0, @AllowNull String str1) { return ((str0 == null) ? Empty : str0).concat((str1 == null) ? Empty : str1); }
 
     /**
@@ -172,6 +178,7 @@ public final class StringUtils
      * @param str2 The third string to concatenate.
      * @return The concatenation of {@code str0}, {@code str1}, and {@code str2}.
      */
+    @NotNull
     public static String Concat(@AllowNull String str0, @AllowNull String str1, @AllowNull String str2) { return Concat(str0, Concat(str1 , str2)); }
 
     /**
@@ -182,6 +189,7 @@ public final class StringUtils
      * @param str3 The fourth string to concatenate.
      * @return The concatenation of {@code str0}, {@code str1}, {@code str2}, and {@code str3}.
      */
+    @NotNull
     public static String Concat(@AllowNull String str0, @AllowNull String str1, @AllowNull String str2, @AllowNull String str3) { return Concat(str0, str1, Concat(str2, str3)); }
 
     /**
@@ -190,6 +198,7 @@ public final class StringUtils
      * @return The concatenated elements of {@code values}.
      * @throws ArgumentNullException {@code values} is {@code null}.
      */
+    @NotNull
     @CLSCompliant(IsCompliant = false)
     public static String Concat(String... values)
             throws ArgumentNullException
@@ -208,6 +217,7 @@ public final class StringUtils
      * @return The concatenated string representations of the values of the elements in {@code values}.
      * @throws ArgumentNullException {@code values} is {@code null}.
      */
+    @NotNull
     public static String Concat(Object... values)
             throws ArgumentNullException
     {
@@ -226,18 +236,17 @@ public final class StringUtils
      * @param <T> The type of the members of {@code values}.
      * @throws ArgumentNullException {@code values} is {@code null}.
      */
+    @NotNull
     public static <T> String Concat(IEnumerable<T> values)
         throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(values, "values");
         StringBuilder builder = new StringBuilder();
-        var en = values.GetEnumerator();
-        try {
+        try (var en = values.GetEnumerator())
+        {
             while (en.MoveNext()) {
                 builder.append(en.getCurrent());
             }
-        } finally {
-            en.Dispose();
         }
         return builder.toString();
     }
@@ -254,6 +263,7 @@ public final class StringUtils
      *
      * The index of a format item is less than zero, or greater than or equal to the length of the {@code args} array.
      */
+    @NotNull
     public static String Format(String format, Object... args)
         throws ArgumentNullException, FormatException
     {
@@ -275,6 +285,7 @@ public final class StringUtils
      *
      * The index of a format item is not zero.
      */
+    @NotNull
     public static String Format(String format, @AllowNull Object arg0)
             throws ArgumentNullException, FormatException
     {
@@ -296,6 +307,7 @@ public final class StringUtils
      *
      * The index of a format item is less than zero, or greater than or equal to the length of the {@code args} array.
      */
+    @NotNull
     public static String Format(@AllowNull IFormatProvider provider, String format, Object... args)
             throws ArgumentNullException, FormatException
     {

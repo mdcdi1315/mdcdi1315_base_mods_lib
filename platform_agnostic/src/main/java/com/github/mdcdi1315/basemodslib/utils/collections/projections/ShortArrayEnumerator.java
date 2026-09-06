@@ -13,7 +13,7 @@ import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
  */
 @Pure
 public final class ShortArrayEnumerator
-        implements IShortEnumerator
+    extends BaseShortEnumerator
 {
     private int index;
     private short[] array;
@@ -69,13 +69,13 @@ public final class ShortArrayEnumerator
 
     @Pure
     @Override
-    public void Reset() { index = start; }
+    protected void ResetImpl() { index = start; }
 
     @Pure
     @Override
-    public boolean MoveNext() { return ++index < bound; }
+    protected boolean MoveNextImpl() { return ++index < bound; }
 
     @Pure
     @Override
-    public void Dispose() { index = start; array = null; }
+    public void Dispose() { super.Dispose(); index = start; array = null; }
 }

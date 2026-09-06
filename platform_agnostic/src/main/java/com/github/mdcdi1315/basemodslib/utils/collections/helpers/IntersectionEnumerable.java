@@ -3,11 +3,11 @@ package com.github.mdcdi1315.basemodslib.utils.collections.helpers;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.EqualityComparer;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerator;
-import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
 
 public final class IntersectionEnumerable<T>
         extends BaseEnumerable<T>
@@ -19,7 +19,7 @@ public final class IntersectionEnumerable<T>
     {
         this.first = first;
         this.second = second;
-        this.comparer = comparer == null ? new JavaObjectEqualsEqualityComparer<>() : comparer;
+        this.comparer = comparer == null ? new EqualityComparer.ObjectEqualityComparer<>() : comparer;
     }
 
     private static final class Enumerator<T>

@@ -6,8 +6,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointer;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithPreviousPointerEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithPreviousPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithPreviousPointerEnumerator;
 
 public final class PriorityQueueBank<T>
         implements IEnumerable<T>

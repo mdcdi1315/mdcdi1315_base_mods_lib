@@ -9,25 +9,22 @@ import com.github.mdcdi1315.DotNetLayer.System.ExecutionEngineException;
  */
 public final class ByRefParameter<T>
 {
-    private static final String ASSERTION_FAILED = "An assertion has been failed.";
+    private static final String ASSERTION_FAILED = "A by-reference parameter assertion has been failed.";
 
+    /**
+     * The value being passed as a reference.
+     */
     public T Value;
 
-    public ByRefParameter()
-    {
-        Value = null;
-    }
+    public ByRefParameter() { Value = null; }
 
-    public ByRefParameter(T initialvalue)
-    {
-        Value = initialvalue;
-    }
+    public ByRefParameter(T initial_value) { Value = initial_value; }
 
     @PrivateImplementationDetail
     public static void AssertEOut(ByRefParameter<?> any)
     {
         if (any == null) {
-            throw new AssertionError(ASSERTION_FAILED , new ExecutionEngineException("The specified output by-ref parameter was not properly initialized."));
+            throw new AssertionError(ASSERTION_FAILED, new ExecutionEngineException("The specified output by-ref parameter was not properly initialized."));
         }
     }
 
@@ -35,7 +32,7 @@ public final class ByRefParameter<T>
     public static void AssertEIn(ByRefParameter<?> any)
     {
         if (any == null) {
-            throw new AssertionError(ASSERTION_FAILED , new ExecutionEngineException("The specified input by-ref parameter was not properly initialized."));
+            throw new AssertionError(ASSERTION_FAILED, new ExecutionEngineException("The specified input by-ref parameter was not properly initialized."));
         }
     }
 
@@ -43,7 +40,7 @@ public final class ByRefParameter<T>
     public static void AssertERef(ByRefParameter<?> any)
     {
         if (any == null) {
-            throw new AssertionError(ASSERTION_FAILED , new ExecutionEngineException("The specified by-ref parameter was not properly initialized."));
+            throw new AssertionError(ASSERTION_FAILED, new ExecutionEngineException("The specified by-ref parameter was not properly initialized."));
         }
     }
 }

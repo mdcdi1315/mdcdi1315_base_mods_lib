@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.KeyValuePair;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.Extension;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.EqualityComparer;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
@@ -826,7 +827,7 @@ public final class Extensions
      */
     public static <T> T SelectRandomFromListWithExclusionUnsafe(List<T> list , @MaybeNull T item_to_exclude , RandomSource source)
     {
-        return SelectRandomFromListWithExclusionUnsafe(list , item_to_exclude , new JavaObjectEqualsEqualityComparer<>() , source);
+        return SelectRandomFromListWithExclusionUnsafe(list, item_to_exclude, EqualityComparer.GetDefault(), source);
     }
 
     /**

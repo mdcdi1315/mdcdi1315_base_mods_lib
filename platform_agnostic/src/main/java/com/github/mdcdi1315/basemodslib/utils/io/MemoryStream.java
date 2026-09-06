@@ -8,16 +8,17 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.github.mdcdi1315.basemodslib.utils.Extensions;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
-import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerator;
 import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection;
 import com.github.mdcdi1315.basemodslib.utils.collections.projections.IByteEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.collections.projections.IByteEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.projections.BaseByteEnumerator;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 
 /**
  * An {@link InputStream} implementation depending on {@link ByteBuffer}s to retain in-memory data. <br />
@@ -25,11 +26,14 @@ import java.nio.ByteBuffer;
  * or use the {@link MemoryStreamBuilder} class. <br />
  * This class does also implement the {@link IByteEnumerable} interface, for the purpose of retrieving the memory stream's
  * bytes without modifying any state of a given {@link MemoryStream} instance.
+ * @apiNote Since BML 1.0.37, the {@link MemoryStream} class does also implement the {@link ReadableByteChannel} interface.
  * @since 1.0.35
  */
 public class MemoryStream
     extends InputStream
-    implements IByteEnumerable, ICloneable
+    implements
+        ReadableByteChannel,
+        IByteEnumerable, ICloneable
 {
     private int current_buffer_index;
     private final ByteBuffer[] buffers;
@@ -148,10 +152,8 @@ public class MemoryStream
         length_absolute = length_known;
     }
 
-    @Pure
     private static final class Enumerator
-            extends BaseEnumerator<Byte>
-            implements IByteEnumerator
+            extends BaseByteEnumerator
     {
         private int index;
         private byte current_element;
@@ -211,17 +213,25 @@ public class MemoryStream
     @MaybeNull
     private ByteBuffer GetCurrentBuffer(int number_of_bytes_to_get)
     {
-        if (Math.addExact(position_absolute, number_of_bytes_to_get) < length_absolute) {
+        if (Math.addExact(position_absolute, number_of_bytes_to_get) > length_absolute) {
+            return null;
+        } else {
             ByteBuffer buffer;
             if (current_buffer_index < 0) { current_buffer_index = 0; }
             do {
                 buffer = buffers[current_buffer_index];
             } while (buffer.remaining() == 0 && ++current_buffer_index < buffers.length);
             return (current_buffer_index < buffers.length) ? buffer : null;
-        } else {
-            return null;
         }
     }
+
+    /**
+     * Gets a value whether this memory stream is still open, which it will always be,
+     * so this does always return {@code true}.
+     * @return Always {@code true}.
+     */
+    @Override
+    public boolean isOpen() { return true; }
 
     /**
      * Gets the length, in bytes, of this {@link MemoryStream} object.
@@ -281,6 +291,7 @@ public class MemoryStream
                 // Position is near the beginning of the stream, so do the positioning normally.
                 remaining = new_position;
                 current_buffer_index = 0;
+                boolean current_buffer_index_is_used = false;
                 do {
                     buffer = buffers[current_buffer_index].rewind();
                     if (buffer.limit() > remaining) {
@@ -289,13 +300,19 @@ public class MemoryStream
                         // Note also that the below value will always be in an (int) boundary.
                         buffer.position((int)remaining);
                         // We need this buffer to be included; so, stop the loop.
+                        current_buffer_index_is_used = true;
                         break;
                     } else {
                         remaining -= buffer.limit();
                     }
-                    current_buffer_index--;
+                    current_buffer_index++;
                 } while (remaining > 0L);
-                for (int I = Extensions.Max(current_buffer_index, 0); I < buffers.length; I++) { buffers[I].rewind(); }
+                // Rewind all the remaining buffers, if so required.
+                for (
+                   int I = current_buffer_index_is_used ? current_buffer_index + 1 : current_buffer_index;
+                   I < buffers.length;
+                   I++
+                ) { buffers[I].rewind(); }
             }
             long old_pos = position_absolute;
             position_absolute = new_position;
@@ -351,28 +368,58 @@ public class MemoryStream
             throws IOException
     {
         ByteBuffer buffer;
-        int rw = 0,
-            rem_length = length,
-            current_buffer_rem;
-        do {
-            buffer = GetCurrentBuffer(rem_length);
-            if (buffer == null)
-            {
-                if (rw > 0) {
-                    position_absolute += rw;
-                    return rw;
-                } else {
-                    return -1;
-                }
+        int read_bytes = 0, read_pass;
+        boolean stopped_due_to_stream_end = false;
+
+        while (length > 0)
+        {
+            buffer = GetCurrentBuffer(length);
+            if (buffer == null) {
+                stopped_due_to_stream_end = true;
+                break;
+            } else {
+                read_pass = Extensions.Min(buffer.remaining(), length);
+                buffer.get(b, offset, read_pass);
+                read_bytes += read_pass;
+                offset += read_pass;
+                length -= read_pass;
             }
-            current_buffer_rem = Extensions.Min(buffer.remaining(), rem_length);
-            buffer.get(b, offset, current_buffer_rem);
-            rw += current_buffer_rem;
-            offset += current_buffer_rem;
-            rem_length -= current_buffer_rem;
-        } while (rw < length);
-        position_absolute += rw;
-        return rw;
+        }
+
+        position_absolute += read_bytes;
+        return stopped_due_to_stream_end ? ((read_bytes > 0) ? read_bytes : -1) : read_bytes;
+    }
+
+    @Override
+    public synchronized int read(ByteBuffer dst)
+            throws IOException
+    {
+        ByteBuffer buffer;
+        int read_bytes = 0;
+        int buffer_pos, read_pass;
+        int remaining = dst.remaining();
+        int dst_position = dst.position();
+        boolean stopped_due_to_stream_end = false;
+
+        while (remaining > 0)
+        {
+            buffer = GetCurrentBuffer(remaining);
+            if (buffer == null) {
+                stopped_due_to_stream_end = true;
+                break;
+            } else {
+                buffer_pos = buffer.position();
+                read_pass = Extensions.Min(buffer.remaining(), remaining);
+                dst.put(dst_position + read_bytes, buffer, buffer_pos, read_pass);
+                buffer.position(buffer_pos + read_pass);
+                remaining -= read_pass;
+                read_bytes += read_pass;
+            }
+        }
+
+        position_absolute += read_bytes;
+        dst.position(dst_position + read_bytes);
+        return stopped_due_to_stream_end ? ((read_bytes > 0) ? read_bytes : -1) : read_bytes;
     }
 
     @Override
@@ -425,9 +472,8 @@ public class MemoryStream
         } else {
             ByteBuffer temp;
             long remaining_bytes = length;
-            long old_position = this.position_absolute;
+            long old_position = this.SetPosition(position);
             try {
-                this.SetPosition(position);
                 int first_buffer_index = this.current_buffer_index, limit;
                 ByteBuffer[] buffers = new ByteBuffer[this.buffers.length - first_buffer_index];
                 buffers[0] = this.buffers[first_buffer_index].slice();

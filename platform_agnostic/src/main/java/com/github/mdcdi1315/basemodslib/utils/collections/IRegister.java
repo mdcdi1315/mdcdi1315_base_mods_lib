@@ -19,7 +19,7 @@ public interface IRegister<T>
      * @param item The item to be saved to this instance.
      * @throws ArgumentException The class implementing the interface is enforcing object singularity and {@code item} already exists in the current register object.
      */
-    public void Register(@AllowNull T item) throws ArgumentException;
+    void Register(@AllowNull T item) throws ArgumentException;
 
     /**
      * Registers a multiple of items to this instance.
@@ -27,14 +27,13 @@ public interface IRegister<T>
      * @throws ArgumentNullException {@code items} is {@code null}.
      * @throws ArgumentException The class implementing the interface is enforcing object singularity and {@code items} already exist in the current register object.
      */
-    public default void RegisterRange(IEnumerable<T> items) throws ArgumentNullException
+    default void RegisterRange(IEnumerable<T> items)
+            throws ArgumentNullException, ArgumentException
     {
         ArgumentNullException.ThrowIfNull(items);
-        IEnumerator<T> en = items.GetEnumerator();
-        try {
+        try (IEnumerator<T> en = items.GetEnumerator())
+        {
             while (en.MoveNext()) { Register(en.getCurrent()); }
-        } finally {
-            en.Dispose();
         }
     }
 }

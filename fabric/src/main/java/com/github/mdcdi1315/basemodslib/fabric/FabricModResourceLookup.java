@@ -18,10 +18,14 @@ public final class FabricModResourceLookup
     @AllowNull
     private IServerModInstance mod_instance;
 
-    public FabricModResourceLookup(ModContainer container)
+    public FabricModResourceLookup(ModContainer container, boolean findMod)
     {
         this.container = container;
-        this.mod_instance = BaseModsLib.GetBMLModInstance(container.getMetadata().getId());
+        if (findMod) {
+            this.mod_instance = BaseModsLib.GetBMLModInstance(container.getMetadata().getId());
+        } else {
+            this.mod_instance = null;
+        }
     }
 
     @Override

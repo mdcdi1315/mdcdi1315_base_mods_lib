@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.fabric;
 
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.EmptyModObject;
@@ -32,7 +31,9 @@ public final class FabricClientModLoaderLayer
 
     public static void RegisterModInfoPacketDispatcher(ServerBoundModInfoPacket packet) { mod_info_packets.Register(packet); }
 
-    public FabricClientModLoaderLayer() {
+    @SuppressWarnings("resource")
+    public FabricClientModLoaderLayer()
+    {
         BaseModsLib.GetEventsManager().AddEventListener(ClientConnectedToServerEvent.class, FabricClientModLoaderLayer::DispatchModInfoPacketsAction);
         ClientLifecycleEvents.CLIENT_STARTED.register(FabricClientModLoaderLayer::OnClientStarted);
         ClientLifecycleEvents.CLIENT_STOPPING.register(ClientEventHooks::ClientStopping);
@@ -40,13 +41,11 @@ public final class FabricClientModLoaderLayer
 
     private static void DispatchModInfoPacketsAction(ClientConnectedToServerEvent event)
     {
-        IEnumerator<ServerBoundModInfoPacket> packets = mod_info_packets.GetEnumerator();
-        try {
+        try (var packets = mod_info_packets.GetEnumerator())
+        {
             while (packets.MoveNext()) {
                 ClientPlayNetworking.send(packets.getCurrent());
             }
-        } finally {
-            packets.Dispose();
         }
     }
 

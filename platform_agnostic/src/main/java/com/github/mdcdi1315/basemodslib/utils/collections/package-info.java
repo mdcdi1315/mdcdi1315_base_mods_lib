@@ -19,6 +19,19 @@
  *     <li>Custom projections and specializations for all primitive-type based enumerable collections.</li>
  *     <li>All kinds of manipulation (filtering, slicing, concatenation, mapping) exposed through simple attachment interfaces so that users can consume them directly.</li>
  * </ol>
+ * <h5>Thread safety</h5>
+ * Most of the BML collections provide, among the thread-<em>unsafe</em>
+ * collections, thread-safe counterparts that can be used by multiple
+ * threads at a time, but they incur additional semaphore locking during
+ * calls on their mutation and getter methods. <br />
+ * You can test whether an unknown BML collection enumerable is thread-safe,
+ * by querying the {@link com.github.mdcdi1315.basemodslib.utils.ISynchronized}
+ * interface on them. Note, however, that how each collection implements
+ * thread-safety and in which methods is used is implementation-specific.
+ * See the documentation supplied with the thread-safe wrapper for more
+ * information. <br />
+ * Note also that some collections are inherently thread-safe; for
+ * example, see the {@link com.github.mdcdi1315.basemodslib.utils.collections.ArrayView} class.
  * @since 1.0.17
  */
 package com.github.mdcdi1315.basemodslib.utils.collections;

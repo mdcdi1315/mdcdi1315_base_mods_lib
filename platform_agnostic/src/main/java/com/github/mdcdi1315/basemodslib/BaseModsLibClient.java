@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
+import com.github.mdcdi1315.DotNetLayer.ByRefParameter;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.Stopwatch;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
@@ -12,8 +13,12 @@ import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.eventapi.client.*;
 import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
+import com.github.mdcdi1315.basemodslib.utils.ThreadSafeObject;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MixinUnsafe;
+import com.github.mdcdi1315.basemodslib.mods.ClientModInstanceCollection;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MaybeNullInMixin;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.config.gui.ClothConfigIntegrationHandler;
@@ -32,10 +37,10 @@ public final class BaseModsLibClient
 {
     private static IClientModLoaderLayer layer;
     private static volatile boolean initialized;
-    private static SingleLinkedListBasedRegister<IClientModInstance> mod_instances;
+    private static ClientModInstanceCollection mod_instances;
     // The below field is created after the layer has been initialized.
     // Once mod loading completes and no factories are actually registered, this is then assigned to null.
-    private static SingleLinkedListBasedRegister<Pair<String, ConfigurationScreenFactory<?>>> config_factories;
+    private static final ThreadSafeObject<SingleLinkedListBasedRegister<Pair<String, ConfigurationScreenFactory<?>>>> config_factories;
 
     static {
         if (BaseModsLib.GetEnvironment() == ModdingEnvironment.SERVER) {
@@ -47,7 +52,7 @@ public final class BaseModsLibClient
         layer = null;
         initialized = false;
         mod_instances = null;
-        config_factories = null;
+        config_factories = new ThreadSafeObject<>();
     }
 
     // Do not let anyone instantiate this class.
@@ -64,6 +69,7 @@ public final class BaseModsLibClient
      * @throws CriticalLibraryInitializationException A critical initialization error has been realized by the library. Execution cannot continue.
      */
     @ApiStatus.Internal
+    @SuppressWarnings("resource")
     public static void InitializeBaseModsLibClient(Func1<IClientModLoaderLayer> client_layer_constructor)
             throws ArgumentNullException, InvalidOperationException, CriticalLibraryInitializationException
     {
@@ -78,8 +84,8 @@ public final class BaseModsLibClient
                 if (layer == null) {
                     throw new InvalidOperationException("Returned an empty client mod loader layer through the mod loader layer constructor. This is unexpected.");
                 } else {
-                    mod_instances = new SingleLinkedListBasedRegister<>();
-                    config_factories = new SingleLinkedListBasedRegister<>();
+                    mod_instances = new ClientModInstanceCollection();
+                    config_factories.SetValue(new SingleLinkedListBasedRegister<>());
                     BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, BaseModsLibClient::OnModLoadingCompleted);
                     ClothConfigIntegrationHandler.Instantiate();
                     sw.Stop();
@@ -103,7 +109,15 @@ public final class BaseModsLibClient
     // This is registered after the mod loader layer constructor has been invoked, so we can safely execute the below.
     private static void OnModLoadingCompleted(ModLoadingCompleteEvent event)
     {
-        if (!config_factories.HasItems()) { config_factories = null; }
+        boolean null_cfg_factories = false;
+        try (var ctx = config_factories.Acquire())
+        {
+            if (!ctx.GetValue().HasItems()) { null_cfg_factories = true; }
+        }
+        if (null_cfg_factories) {
+            config_factories.SetValue(null);
+        }
+        mod_instances.Freeze();
     }
 
     /**
@@ -120,7 +134,9 @@ public final class BaseModsLibClient
         ArgumentNullException.ThrowIfNull(instance, "instance");
         ArgumentNullException.ThrowIfNull(mod_object, "mod_object");
         Stopwatch sw = Stopwatch.StartNew();
+        String mod_id = null;
         try {
+            mod_id = instance.GetModId();
             instance.Initialize();
 
             while (!initialized) { Thread.onSpinWait(); } // Wait until the library is fully initialized.
@@ -143,8 +159,12 @@ public final class BaseModsLibClient
 
             var config_screen = instance.RegisterConfigurationScreenFactory();
 
-            if (config_screen != null) {
-                AddConfigScreenFactory(instance.GetModId(), config_screen);
+            if (config_screen != null)
+            {
+                try (var ctx = config_factories.Acquire())
+                {
+                    ctx.GetValue().Register(new Pair<>(mod_id, config_screen));
+                }
             }
 
             instance.OnInitializeEnd();
@@ -153,27 +173,17 @@ public final class BaseModsLibClient
 
             BaseModsLib.LOGGER.info("BASEMODSLIB: Client mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
-            synchronized (mod_instances) {
-                mod_instances.Register(instance); // The instance is made known to other mods after the mod has completed initialization.
-            }
+            mod_instances.Add(instance);
         } catch (Throwable th) {
-            var id = instance.GetModId();
             sw.Stop();
-            BaseModsLib.LOGGER.info("BASEMODSLIB: Mod instance with ID {} failed after {} seconds." , id, sw.GetElapsed().GetTotalSeconds());
-            BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot initialize client-side mod id {}!\nRethrowing the exception to the underlying mod." , id);
+            BaseModsLib.LOGGER.info("BASEMODSLIB: Mod instance with ID {} failed after {} seconds." , mod_id, sw.GetElapsed().GetTotalSeconds());
+            BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot initialize client-side mod id {}!\nRethrowing the exception to the underlying mod.", mod_id);
             Exception e = BaseModsLib.TranslateException(th);
             if (e == null) {
                 throw th;
             } else {
-                throw new ModInitializationException(id, e);
+                throw new ModInitializationException(mod_id, e);
             }
-        }
-    }
-
-    private static void AddConfigScreenFactory(String mod_id, ConfigurationScreenFactory<?> fact)
-    {
-        synchronized (config_factories) {
-            config_factories.Register(new Pair<>(mod_id, fact));
         }
     }
 
@@ -191,9 +201,28 @@ public final class BaseModsLibClient
      */
     @Pure
     @NotNull
-    public static IEnumerable<Pair<String, ConfigurationScreenFactory<?>>> GetConfigurationScreens() {
-        return (config_factories == null) ? new EmptyEnumerable<>() : config_factories;
+    public static IEnumerable<Pair<String, ConfigurationScreenFactory<?>>> GetConfigurationScreens()
+    {
+        if (config_factories.IsNull()) {
+            return new EmptyEnumerable<>();
+        } else {
+            try (var ctx = config_factories.Acquire())
+            {
+                return ctx.GetValue();
+            }
+        }
     }
+
+    /**
+     * Returns a list of all the client-side BML mods currently discovered and registered by the BML.
+     * @return The {@link ClientModInstanceCollection} containing all the discovered mods.
+     * @since 1.0.37
+     */
+    @Pure
+    @NotNull
+    @MixinUnsafe
+    @MaybeNullInMixin
+    public static ClientModInstanceCollection GetModInstances() { return mod_instances; }
 
     /**
      * Gets the associated {@link IClientModInstance} for the specified mod with the specified ID. <br />
@@ -211,16 +240,10 @@ public final class BaseModsLibClient
     {
         ArgumentNullException.ThrowIfNull(mod_id, "mod_id");
         if (mod_id.isBlank()) { return null; }
-        IClientModInstance smi;
-        try (IEnumerator<IClientModInstance> en = mod_instances.GetEnumerator())
-        {
-            while (en.MoveNext())
-            {
-                smi = en.getCurrent();
-                if (smi.GetModId().equals(mod_id)) { return smi; }
-            }
-            return null;
-        }
+        ByRefParameter<IClientModInstance> instance = new ByRefParameter<>();
+        instance.Value = null;
+        mod_instances.TryGetValue(mod_id, instance);
+        return instance.Value;
     }
 
     /**
@@ -255,7 +278,7 @@ public final class BaseModsLibClient
             }
             layer = null;
             mod_instances = null;
-            config_factories = null;
+            config_factories.SetValue(null);
             ClothConfigIntegrationHandler.Destroy();
         }
     }

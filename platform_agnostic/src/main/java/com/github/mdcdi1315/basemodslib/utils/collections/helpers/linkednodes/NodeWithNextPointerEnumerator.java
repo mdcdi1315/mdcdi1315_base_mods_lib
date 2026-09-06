@@ -1,20 +1,16 @@
-package com.github.mdcdi1315.basemodslib.utils.collections.linkednodes;
+package com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes;
 
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerator;
 
-public class NodeWithNextAndPrevPointerEnumerator<T>
+public class NodeWithNextPointerEnumerator<T>
     extends BaseEnumerator<T>
 {
-    private NodeWithNextAndPrevPointer<T> root, current;
+    private NodeWithNextPointer<T> root, current;
 
-    public NodeWithNextAndPrevPointerEnumerator(@AllowNull NodeWithNextAndPrevPointer<T> root)
-    {
-        this.root = root;
-        this.current = null;
-    }
+    public NodeWithNextPointerEnumerator(@AllowNull NodeWithNextPointer<T> element) { super(); root = element; current = null; }
 
     @Override
     public T getCurrent() { return current.Value; }
@@ -27,9 +23,10 @@ public class NodeWithNextAndPrevPointerEnumerator<T>
             throws InvalidOperationException
     {
         if (current == null) {
+            // Note - The constructor input accepts a null node - that means that we can receive a root of null, that's why this check here.
             return (current = root) != null;
         } else {
-            NodeWithNextAndPrevPointer<T> next_node = current.Next;
+            NodeWithNextPointer<T> next_node = current.Next;
             if (next_node == null) {
                 return false;
             } else {

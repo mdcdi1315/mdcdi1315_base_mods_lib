@@ -1,4 +1,4 @@
-package com.github.mdcdi1315.basemodslib.utils.collections.linkednodes;
+package com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes;
 
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;

@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.config;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
@@ -8,7 +9,7 @@ import com.github.mdcdi1315.basemodslib.config.reflect.ConfigCodec;
 
 import com.google.gson.JsonParser;
 import com.google.gson.JsonElement;
-import com.google.gson.internal.Streams;
+import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonWriter;
 
 import com.mojang.serialization.Codec;
@@ -38,10 +39,22 @@ public final class ConfigManager
      */
     public static final ConfigManager INSTANCE = new ConfigManager();
 
-    private ConfigManager() {
+    /**
+     * Provides the default config file extension when one is not provided.
+     * @since 1.0.37
+     */
+    public static final String DEFAULT_FILE_EXTENSION = "cfg";
+
+    private ConfigManager()
+    {
         json_file_format = new JsonConfigFileFormat();
         configuration_files = new ConcurrentHashMap<>();
     }
+
+    @MaybeNull
+    @SuppressWarnings("unchecked")
+    private <T extends IModConfig> ConfigurationManagerConfigReference<T> GetReference(Class<T> config_class)
+    { return (ConfigurationManagerConfigReference<T>) configuration_files.get(config_class); }
 
     /**
      * Instructs the configuration manager to track the specified configuration file by the specified parameters.
@@ -100,7 +113,7 @@ public final class ConfigManager
         ArgumentNullException.ThrowIfNull(config_class, "config_class");
         ArgumentNullException.ThrowIfNull(file_name_suffix, "file_name_suffix");
         ArgumentNullException.ThrowIfNull(config_constructor, "config_constructor");
-        if (file_name_suffix.isBlank()) { file_name_suffix = "cfg"; }
+        if (file_name_suffix.isBlank()) { file_name_suffix = DEFAULT_FILE_EXTENSION; }
         T cfg = config_constructor.function();
         String name = cfg.GetName();
         if (StringUtils.IsNullOrEmpty(name)) {
@@ -110,8 +123,7 @@ public final class ConfigManager
                     String.format("%s.%s" , name, file_name_suffix),
                     codec, file_format, cfg
             );
-            ConfigurationManagerConfigReference<?> old_ref = configuration_files.putIfAbsent(config_class, constructed);
-            if (old_ref == null) {
+            if (configuration_files.putIfAbsent(config_class, constructed) == null) {
                 BaseModsLib.LOGGER.info("ConfigManager: Tracking configuration file named as {}, with config class \"{}\".", constructed.file_name(), config_class.getName());
             } else {
                 throw new InvalidOperationException("The specified configuration file is already tracked!");
@@ -145,7 +157,7 @@ public final class ConfigManager
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(config_class, "config_class");
-        ConfigurationManagerConfigReference<T> cfg_info = (ConfigurationManagerConfigReference<T>) configuration_files.get(config_class);
+        ConfigurationManagerConfigReference<T> cfg_info = GetReference(config_class);
         if (cfg_info == null) {
             throw new InvalidOperationException("This configuration class is not tracked. Track it first, then attempt to read it.");
         } else {
@@ -184,7 +196,7 @@ public final class ConfigManager
             throws ConfigSaveException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(config_class, "config_class");
-        ConfigurationManagerConfigReference<T> cfg_info = (ConfigurationManagerConfigReference<T>) configuration_files.get(config_class);
+        ConfigurationManagerConfigReference<T> cfg_info = GetReference(config_class);
         if (cfg_info == null) {
             throw new InvalidOperationException("This configuration class is not tracked. Track it first, then attempt to read it.");
         } else {
@@ -214,7 +226,7 @@ public final class ConfigManager
      * This operation performs a lookup on the registered configuration classes, and if a match
      * is found, it is returned. Otherwise, it throws {@link InvalidOperationException}.
      * @param config_class The type of the configuration class to get its serialization codec.
-     * @return The {@link Codec} associated with the specified configuration clas in {@code config_class}.
+     * @return The {@link Codec} associated with the specified configuration class in {@code config_class}.
      * @param <T> The type of the mod configuration to return its serialization codec.
      * @throws ArgumentNullException {@code config_class} is {@code null}.
      * @throws InvalidOperationException The specified {@code config_class} is not tracked by the Configuration Manager.
@@ -224,7 +236,7 @@ public final class ConfigManager
             throws ArgumentNullException, InvalidOperationException
     {
         ArgumentNullException.ThrowIfNull(config_class, "config_class");
-        ConfigurationManagerConfigReference<T> reference = (ConfigurationManagerConfigReference<T>) configuration_files.get(config_class);
+        ConfigurationManagerConfigReference<T> reference = GetReference(config_class);
         if (reference == null) {
             throw new InvalidOperationException("The specified configuration class is not tracked with the BML configuration manager.");
         } else {
@@ -245,7 +257,7 @@ public final class ConfigManager
         throws ArgumentNullException, InvalidOperationException
     {
         ArgumentNullException.ThrowIfNull(config_class, "config_class");
-        ConfigurationManagerConfigReference<T> reference = (ConfigurationManagerConfigReference<T>) configuration_files.get(config_class);
+        ConfigurationManagerConfigReference<T> reference = GetReference(config_class);
         if (reference == null) {
             throw new InvalidOperationException("The specified configuration class is not tracked with the BML configuration manager.");
         } else {
@@ -261,6 +273,7 @@ public final class ConfigManager
      * @throws InvalidOperationException The class associated with {@code config_data} is not tracked by this configuration manager.
      * @throws ConfigSaveException An exception was occurred while attempting to save the configuration file.
      */
+    @SuppressWarnings("unchecked")
     public <T extends IModConfig> void SaveConfigurationFile(T config_data)
             throws ArgumentNullException, InvalidOperationException, ConfigSaveException
     {
@@ -291,7 +304,8 @@ public final class ConfigManager
         }
 
         @Override
-        public void SaveToStream(OutputStream os, JsonElement jsonElement) throws IOException
+        public void SaveToStream(OutputStream os, JsonElement jsonElement)
+                throws IOException
         {
             try (
                  OutputStreamWriter osw = new OutputStreamWriter(os);
@@ -299,7 +313,11 @@ public final class ConfigManager
             ) {
                 writer.setIndent("\t");
                 writer.setLenient(true);
-                Streams.write(jsonElement, writer);
+                new GsonBuilder()
+                        .serializeNulls()
+                        .setPrettyPrinting()
+                        .create()
+                        .toJson(jsonElement, writer);
             }
         }
     }

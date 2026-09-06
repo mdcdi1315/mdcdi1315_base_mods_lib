@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
+import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.ICollection;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 
@@ -61,6 +62,17 @@ public final class ForgeUtils
     {
         if (AddEnumerableListener_ShouldRegister(enumerable)) {
             AddListener(bus, event_class, new FGUtils_AddAllEnumerableElementsEventTransformer_Dispose<>(enumerable, action));
+        }
+    }
+
+    // Attempts to get the mod's event bus from the specified mod
+    // object, or it fails fast.
+    public static IEventBus GetEventBusOrFail(Object mod_object)
+    {
+        try {
+            return (IEventBus) mod_object;
+        } catch (ClassCastException cce) {
+            throw new InvalidOperationException(String.format("The mod object was not of type IEventBus!!!!\nActual type: %s", mod_object.getClass().getName()));
         }
     }
 }

@@ -12,7 +12,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
-import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
 
 import java.util.Arrays;
 
@@ -314,7 +313,7 @@ public class BTreeDictionary<TKey, TValue>
     {
         count = 0;
         HashTable = new BTreeNode[10];
-        comparer = new JavaObjectEqualsEqualityComparer<>();
+        comparer = new EqualityComparer.ObjectEqualityComparer<>();
     }
 
     /**
@@ -334,7 +333,7 @@ public class BTreeDictionary<TKey, TValue>
         } else {
             count = 0;
             HashTable = new BTreeNode[hash_table_size];
-            comparer = new JavaObjectEqualsEqualityComparer<>();
+            comparer = new EqualityComparer.ObjectEqualityComparer<>();
         }
     }
 
@@ -349,7 +348,7 @@ public class BTreeDictionary<TKey, TValue>
     {
         count = 0;
         HashTable = new BTreeNode[10];
-        this.comparer = comparer == null ? new JavaObjectEqualsEqualityComparer<>() : comparer;
+        this.comparer = comparer == null ? new EqualityComparer.ObjectEqualityComparer<>() : comparer;
     }
 
     /**
@@ -367,7 +366,7 @@ public class BTreeDictionary<TKey, TValue>
         } else {
             count = 0;
             HashTable = new BTreeNode[hash_table_size];
-            this.comparer = comparer == null ? new JavaObjectEqualsEqualityComparer<>() : comparer;
+            this.comparer = comparer == null ? new EqualityComparer.ObjectEqualityComparer<>() : comparer;
         }
     }
 
@@ -512,7 +511,7 @@ public class BTreeDictionary<TKey, TValue>
      */
     public boolean ContainsValue(@AllowNull TValue value)
     {
-        IEqualityComparer<TValue> c = new JavaObjectEqualsEqualityComparer<>();
+        IEqualityComparer<TValue> c = new EqualityComparer.ObjectEqualityComparer<>();
 
         try (IEnumerator<KeyValuePair<TKey, TValue>> e = GetEnumerator())
         {

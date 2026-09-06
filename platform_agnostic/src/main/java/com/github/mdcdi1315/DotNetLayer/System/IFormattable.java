@@ -1,7 +1,7 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 /**
  * Provides functionality to format the value of an object into a string representation.
@@ -15,5 +15,5 @@ public interface IFormattable
      * @return The value of the current instance in the specified format.
      */
     @NotNull
-    String ToString(@MaybeNull String format, @MaybeNull IFormatProvider formatProvider);
+    String ToString(@AllowNull String format, @AllowNull IFormatProvider formatProvider);
 }

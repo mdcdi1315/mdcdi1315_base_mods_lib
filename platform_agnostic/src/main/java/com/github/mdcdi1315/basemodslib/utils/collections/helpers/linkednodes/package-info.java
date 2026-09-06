@@ -4,6 +4,6 @@
  * All the classes in these package are private implementation details - do not use by your code.
  */
 @ApiStatus.Internal
-package com.github.mdcdi1315.basemodslib.utils.collections.linkednodes;
+package com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes;
 
 import org.jetbrains.annotations.ApiStatus;

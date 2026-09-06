@@ -81,7 +81,7 @@ public final class BinaryFormatEntryType
      * On strings, this stores the encoding under which the string is stored as. To decode the value properly, use the dedicated {@link #GetStringEncoding()} method instead. <br />
      * On arrays, if the number of entries is less than 15, this value stores this. Otherwise, it is 15 and a 7-bit encoded integer follows the type, indicating the actual number of entries stored.
      */
-    public int GetEntryData() { return packed_data >> 4; }
+    public int GetEntryData() { return (packed_data >> 4) & 0xF; }
 
     /**
      * Returns the value as it is stored in a Fast Binary Format file.
@@ -103,13 +103,6 @@ public final class BinaryFormatEntryType
             return StringEncoding.values()[GetEntryData()];
         }
     }
-
-    /**
-     * Gets a value whether the current entry type instance is an array of the specified type.
-     * @param type Type that the array is presumed to encompass.
-     * @return A value whether the current entry type is an array of the specified type.
-     */
-    public boolean IsArrayOf(BinaryFormatEntryType type) { return type != null && this.GetEntryCode() == ARRAY_ENTRY_CODE && type.GetEntryCode() == this.GetEntryData(); }
 
     /**
      * Gets a value whether the current {@link BinaryFormatEntryType} is the same as another {@link BinaryFormatEntryType}.

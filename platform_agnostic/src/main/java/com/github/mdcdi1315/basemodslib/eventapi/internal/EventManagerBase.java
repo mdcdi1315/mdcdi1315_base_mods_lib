@@ -1,10 +1,11 @@
 package com.github.mdcdi1315.basemodslib.eventapi.internal;
 
+import com.github.mdcdi1315.DotNetLayer.ByRefParameter;
 import com.github.mdcdi1315.DotNetLayer.System.Action1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.Dictionary;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
@@ -15,8 +16,8 @@ import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedR
 
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Provides base stuff used by all the deriving event managers. Not to be used by your code.
@@ -25,14 +26,16 @@ import java.util.concurrent.ConcurrentHashMap;
 abstract class EventManagerBase
     extends EventManager
 {
-    private Map<Class<? extends IEvent>, SingleLinkedListBasedRegister<Action1<? extends IEvent>>> actions;
+    private final ReentrantLock lock;
+    private Dictionary<Class<? extends IEvent>, SingleLinkedListBasedRegister<Action1<? extends IEvent>>> actions;
 
     /**
      * Initializes a new instance of the {@link EventManagerBase} class.
      */
     public EventManagerBase()
     {
-        actions = new ConcurrentHashMap<>();
+        lock = new ReentrantLock();
+        actions = new Dictionary<>();
 
         if (this instanceof IBMLEventManager)
         {
@@ -49,7 +52,7 @@ abstract class EventManagerBase
     private <TEvent extends IEvent> void AddEventFast(Class<TEvent> cls)
     {
         ArgumentNullException.ThrowIfNull(cls, "cls");
-        actions.put(cls, new SingleLinkedListBasedRegister<>());
+        actions.Add(cls, new SingleLinkedListBasedRegister<>());
     }
 
     @Override
@@ -63,10 +66,17 @@ abstract class EventManagerBase
             throw new InvalidOperationException("Cannot add event listeners after mod loading is complete!");
         }
 
-        SingleLinkedListBasedRegister<Action1<? extends IEvent>> acts = actions.get(event_class);
-
-        if (acts == null) {
-            throw new InvalidOperationException(String.format("The event with type %s is not registered to this instance!", event_class.getName()));
+        SingleLinkedListBasedRegister<Action1<? extends IEvent>> acts;
+        lock.lock();
+        try {
+            ByRefParameter<SingleLinkedListBasedRegister<Action1<? extends IEvent>>> delegate_list = new ByRefParameter<>();
+            if (!actions.TryGetValue(event_class, delegate_list))
+            {
+                throw new InvalidOperationException(String.format("The event with type %s is not registered to this instance!", event_class.getName()));
+            }
+            acts = delegate_list.Value;
+        } finally {
+            lock.unlock();
         }
 
         synchronized (acts) {
@@ -98,7 +108,7 @@ abstract class EventManagerBase
     @SuppressWarnings("unchecked")
     public static <TEvent extends IEvent> void FireEventHelper(TEvent evt, @DisallowNull Object actions)
     {
-        try (IEnumerator<Action1<TEvent>> e = ((SingleLinkedListBasedRegister<Action1<TEvent>>)actions).GetEnumerator())
+        try (var e = ((SingleLinkedListBasedRegister<Action1<TEvent>>)actions).GetEnumerator())
         {
             while (e.MoveNext())
             {
@@ -113,7 +123,14 @@ abstract class EventManagerBase
 
     public static void IfDestroyedOnUseRemove(EventManagerBase manager, IEvent evt)
     {
-        if (evt instanceof IDestroyedOnUseEvent && manager.actions.remove(evt.getClass()) == null)
+        boolean result;
+        manager.lock.lock();
+        try {
+            result = manager.actions.Remove_Ordinal2(evt.getClass());
+        } finally {
+            manager.lock.unlock();
+        }
+        if (evt instanceof IDestroyedOnUseEvent && (!result))
         {
             throw new InvalidEventDispatchException(evt, "Attempted to dispatch an event that was already used once!");
         }
@@ -124,7 +141,14 @@ abstract class EventManagerBase
             throws ArgumentNullException, InvalidOperationException
     {
         ArgumentNullException.ThrowIfNull(event_data, "event_data");
-        FireEventInternal(event_data , actions.get(event_data.getClass()));
+        ByRefParameter<SingleLinkedListBasedRegister<Action1<? extends IEvent>>> acts = new ByRefParameter<>();
+        lock.lock();
+        try {
+            GetActions().TryGetValue(event_data.getClass(), acts);
+        } finally {
+            lock.unlock();
+        }
+        FireEventInternal(event_data, acts.Value);
         IfDestroyedOnUseRemove(this, event_data);
     }
 
@@ -136,20 +160,27 @@ abstract class EventManagerBase
         if (HasBeenFinalized()) {
             throw new InvalidOperationException("Cannot add event types after mod loading is complete!");
         } else {
-            synchronized (actions) {
+            lock.lock();
+            try {
                 // Typically, events are added by the library, but mods may add their own as well. So locking on the object avoids to double-register an existing event class.
-                actions.computeIfAbsent(cls, EventManagerBase::RegisterProvider);
+                actions.TryAdd(cls, new SingleLinkedListBasedRegister<>());
+            } finally {
+                lock.unlock();
             }
         }
     }
 
-    private static <T extends IEvent> SingleLinkedListBasedRegister<Action1<? extends IEvent>> RegisterProvider(Class<T> cls) { return new SingleLinkedListBasedRegister<>(); }
+    /**
+     * Gets the {@link ReentrantLock} that this event manager uses to ensure thread safety.
+     * @return The {@link ReentrantLock} that this event manager is using.
+     */
+    protected Lock Lock() { return lock; }
 
     /**
      * Gets the map that is used to register actions. Used to gain access of the registered stuff for other event manager classes.
      * @return The backing map.
      */
-    protected Map<Class<? extends IEvent>, SingleLinkedListBasedRegister<Action1<? extends IEvent>>> GetActions() { return actions; }
+    protected Dictionary<Class<? extends IEvent>, SingleLinkedListBasedRegister<Action1<? extends IEvent>>> GetActions() { return actions; }
 
     /**
      * Gets a value whether the extending event manager instance has been finalized. Typically happens after the mod loading complete event has been fired.

@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.EqualityComparer;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
@@ -8,9 +9,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComp
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
-import com.github.mdcdi1315.basemodslib.utils.JavaObjectEqualsEqualityComparer;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextAndPrevPointer;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextAndPrevPointerEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextAndPrevPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextAndPrevPointerEnumerator;
 
 /**
  * Provides a default implementation of a double-linked list.
@@ -33,7 +33,7 @@ public class DoubleLinkedList<T>
     {
         count = 0;
         root = current = null;
-        comparer = new JavaObjectEqualsEqualityComparer<>();
+        comparer = new EqualityComparer.ObjectEqualityComparer<>();
     }
 
     /**
@@ -46,7 +46,7 @@ public class DoubleLinkedList<T>
     {
         count = 0;
         root = current = null;
-        this.comparer = comparer == null ? new JavaObjectEqualsEqualityComparer<>() : comparer;
+        this.comparer = comparer == null ? new EqualityComparer.ObjectEqualityComparer<>() : comparer;
     }
 
     /**

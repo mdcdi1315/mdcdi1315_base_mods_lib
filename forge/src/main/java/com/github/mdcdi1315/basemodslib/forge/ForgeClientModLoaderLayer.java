@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.forge;
 
 import com.github.mdcdi1315.DotNetLayer.System.Action2;
-import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.ForgeUtils;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
@@ -34,44 +33,42 @@ public final class ForgeClientModLoaderLayer
     implements IClientModLoaderLayer
 {
     // Used for the mods, see the RegisterCodec method in the ForgeClientArtifactsRegistrar class for more information about this.
-    public static Action2<ResourceLocation , MapCodec<? extends SpecialModelRenderer.Unbaked>> id_mapper_method;
+    public static Action2<ResourceLocation, MapCodec<? extends SpecialModelRenderer.Unbaked>> id_mapper_method;
 
-    public ForgeClientModLoaderLayer(FMLJavaModLoadingContext context) {
+    @SuppressWarnings("resource")
+    public ForgeClientModLoaderLayer(FMLJavaModLoadingContext context)
+    {
         BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, ForgeClientModLoaderLayer::OnModLoadingComplete);
-        ForgeUtils.AddListener(context.getModEventBus(), FMLClientSetupEvent.class, this::OnClientSetupClient);
+        ForgeUtils.AddListener(context.getModEventBus(), FMLClientSetupEvent.class, ForgeClientModLoaderLayer::OnClientSetupClient);
     }
 
     private static void OnModLoadingComplete(ModLoadingCompleteEvent completed)
     {
         var mod_list = ModList.get();
-        var en = BaseModsLibClient.GetConfigurationScreens().GetEnumerator();
-        try {
-            Pair<String, ConfigurationScreenFactory<?>> pair;
+        try (var en = BaseModsLibClient.GetConfigurationScreens().GetEnumerator())
+        {
             Optional<? extends ModContainer> container;
-            while (en.MoveNext()) {
+            Pair<String, ConfigurationScreenFactory<?>> pair;
+
+            while (en.MoveNext())
+            {
                 pair = en.getCurrent();
                 if ((container = mod_list.getModContainerById(pair.first())).isEmpty()) {
                     BaseModsLib.LOGGER.error("Cannot find mod container with ID {}! This means that your mod is misconfigured." , pair.first());
                 } else {
-                    container.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, new ConfigScreenFactorySupplierImplementation<>(pair.second()));
+                    container.get().registerExtensionPoint(
+                            ConfigScreenHandler.ConfigScreenFactory.class,
+                            new ConfigScreenFactorySupplierImplementation<>(pair.second())
+                    );
                 }
             }
-        } finally {
-            en.Dispose();
         }
         // Mod loading complete - mods cannot access this in any way anymore.
         id_mapper_method = null;
     }
 
-    private static IEventBus GetEventBusOrFail(Object mod_object) {
-        try {
-            return (IEventBus) mod_object;
-        } catch (ClassCastException cce) {
-            throw new InvalidOperationException(String.format("The mod object was not of type IEventBus!!!!\nActual type: %s", mod_object.getClass().getName()));
-        }
-    }
-
-    private void OnClientSetupClient(FMLClientSetupEvent event) {
+    private static void OnClientSetupClient(FMLClientSetupEvent event)
+    {
         BaseModsLib.LOGGER.info("Client setup event realized. Dispatching client setup to implementing mods.");
         ClientSetupEvent cse = new ClientSetupEvent();
         EventManager.FireEventSafe(cse);
@@ -79,8 +76,9 @@ public final class ForgeClientModLoaderLayer
     }
 
     @Override
-    public void InitializeClientModInstance(IClientModInstance instance, Object mod_object) {
-        IEventBus mod_event_bus = GetEventBusOrFail(mod_object);
+    public void InitializeClientModInstance(IClientModInstance instance, Object mod_object)
+    {
+        IEventBus mod_event_bus = ForgeUtils.GetEventBusOrFail(mod_object);
 
         ForgeClientArtifactsRegistrar reg = new ForgeClientArtifactsRegistrar(id_mapper_method);
 

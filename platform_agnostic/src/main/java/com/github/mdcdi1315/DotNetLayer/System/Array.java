@@ -1,6 +1,8 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Comparer;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.List;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.IComparer;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.RequiresDynamicCode;
@@ -538,6 +540,162 @@ public final class Array
             firstindex++;
             lastindex--;
         } while (firstindex < lastindex);
+    }
+
+    /**
+     * Searches a range of elements in a one-dimensional sorted array for a value, using the specified IComparer interface.
+     * @param array The sorted one-dimensional Array to search.
+     * @param index The starting index of the range to search.
+     * @param length The length of the range to search.
+     * @param value The object to search for.
+     * @param comparer The {@link IComparer} implementation to use when comparing elements. <br /> <br />
+     *
+     * -or- <br /> <br />
+     *
+     * {@code null} to use the {@link IComparable} implementation of each element.
+     * @return The index of the specified value in the specified array, if {@code value} is found; otherwise, a negative number.
+     * If {@code value} is not found and {@code value} is less than one or more elements in {@code array}, the negative number returned
+     * is the bitwise complement of the index of the first element that is larger than {@code value}.
+     * If {@code value} is not found and {@code value} is greater than all elements in {@code array}, the negative number returned
+     * is the bitwise complement of (the index of the last element plus 1).
+     * If this method is called with a non-sorted array, the return value can be incorrect and a negative number could be returned,
+     * even if {@code value} is present in {@code array}.
+     * @throws ArgumentNullException {@code array} is {@code null}.
+     * @throws ArgumentOutOfRangeException {@code index} is less than the lower bound of {@code array}. <br /> <br />
+     *
+     * -or- <br /> <br />
+     *
+     * {@code length} is less than zero.
+     * @throws ArgumentException {@code index} and {@code length} do not specify a valid range in {@code array}.  <br /> <br />
+     *
+     * -or-  <br /> <br />
+     *
+     * {@code comparer} is {@code null}, and {@code value} is of a type that is not compatible with the elements of {@code array}.
+     * @throws InvalidOperationException {@code comparer} is {@code null}, {@code value} does not implement the {@link IComparable} interface,
+     * and the search encounters an element that does not implement the {@link IComparable} interface.
+     */
+    public static int BinarySearch(Object array, int index, int length, @AllowNull Object value, @AllowNull IComparer comparer)
+        throws ArgumentNullException, ArgumentOutOfRangeException, ArgumentException, InvalidOperationException
+    {
+        ArgumentNullException.ThrowIfNull(array, "array");
+        if (index < 0)
+            throw new ArgumentOutOfRangeException("index", index, "Index must not be a negative number");
+            // ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
+        if (length < 0)
+            throw new ArgumentOutOfRangeException("length", length, "Length must not be a negative number");
+            // ThrowHelper.ThrowLengthArgumentOutOfRange_ArgumentOutOfRange_NeedNonNegNum();
+        if (java.lang.reflect.Array.getLength(array) - index < length)
+            throw new ArgumentException("array", "Specified index and length parameters do exceed the array's bounds.");
+            // ThrowHelper.ThrowArgumentException(ExceptionResource.Argument_InvalidOffLen);
+
+        if (comparer == null) { comparer = Comparer.Default;}
+
+        int lo = index;
+        int hi = index + length - 1;
+        while (lo <= hi)
+        {
+            // i might overflow if lo and hi are both large positive numbers.
+            int i = lo + ((hi - lo) >>> 1);
+            int c;
+            try
+            {
+                c = comparer.Compare(java.lang.reflect.Array.get(array, i), value);
+            }
+            catch (Exception e)
+            {
+                // ThrowHelper.ThrowInvalidOperationException(ExceptionResource.InvalidOperation_IComparerFailed, e);
+                throw new InvalidOperationException("Comparer implementation failed.", e);
+            }
+            if (c == 0) {
+                return i;
+            } else if (c < 0) {
+                lo = i + 1;
+            } else {
+                hi = i - 1;
+            }
+        }
+        return ~lo;
+    }
+
+    /**
+     * Searches a range of elements in a one-dimensional sorted array for a value, using the {@link IComparable} interface implemented by each element of the array and by the specified value.
+     * @param array The sorted one-dimensional Array to search.
+     * @param index The starting index of the range to search.
+     * @param length The length of the range to search.
+     * @param value The object to search for.
+     * @return The index of the specified value in the specified array, if {@code value} is found; otherwise, a negative number.
+     * If {@code value} is not found and {@code value} is less than one or more elements in {@code array}, the negative number returned
+     * is the bitwise complement of the index of the first element that is larger than {@code value}.
+     * If {@code value} is not found and {@code value} is greater than all elements in {@code array}, the negative number returned
+     * is the bitwise complement of (the index of the last element plus 1).
+     * If this method is called with a non-sorted array, the return value can be incorrect and a negative number could be returned,
+     * even if {@code value} is present in {@code array}.
+     * @throws ArgumentNullException {@code array} is {@code null}.
+     * @throws ArgumentOutOfRangeException {@code index} is less than the lower bound of {@code array}. <br /> <br />
+     *
+     * -or- <br /> <br />
+     *
+     * {@code length} is less than zero.
+     * @throws ArgumentException {@code index} and {@code length} do not specify a valid range in {@code array}.  <br /> <br />
+     *
+     * -or-  <br /> <br />
+     *
+     * {@code value} is of a type that is not compatible with the elements of {@code array}.
+     * @throws InvalidOperationException {@code value} does not implement the {@link IComparable} interface,
+     * and the search encounters an element that does not implement the {@link IComparable} interface.
+     */
+    public static int BinarySearch(Object array, int index, int length, @AllowNull Object value)
+        throws ArgumentNullException, ArgumentOutOfRangeException, ArgumentException, InvalidOperationException
+    { return BinarySearch(array, index, length, value, null); }
+
+    /**
+     * Searches an entire one-dimensional sorted array for a value using the specified IComparer interface.
+     * @param array The sorted one-dimensional Array to search.
+     * @param value The object to search for.
+     * @param comparer The {@link IComparer} implementation to use when comparing elements. <br /> <br />
+     *
+     * -or- <br /> <br />
+     *
+     * {@code null} to use the {@link IComparable} implementation of each element.
+     * @return The index of the specified value in the specified array, if {@code value} is found; otherwise, a negative number.
+     * If {@code value} is not found and {@code value} is less than one or more elements in {@code array}, the negative number returned
+     * is the bitwise complement of the index of the first element that is larger than {@code value}.
+     * If {@code value} is not found and {@code value} is greater than all elements in {@code array}, the negative number returned
+     * is the bitwise complement of (the index of the last element plus 1).
+     * If this method is called with a non-sorted array, the return value can be incorrect and a negative number could be returned,
+     * even if {@code value} is present in {@code array}.
+     * @throws ArgumentNullException {@code array} is {@code null}.
+     * @throws InvalidOperationException {@code value} does not implement the {@link IComparable} interface,
+     * and the search encounters an element that does not implement the {@link IComparable} interface.
+     */
+    public static int BinarySearch(Object array, @AllowNull Object value, @AllowNull IComparer comparer)
+            throws ArgumentNullException, InvalidOperationException
+    {
+        ArgumentNullException.ThrowIfNull(array, "array");
+        return BinarySearch(array, 0, java.lang.reflect.Array.getLength(array), value, comparer);
+    }
+
+    /**
+     * Searches an entire one-dimensional sorted array for a specific element,
+     * using the {@link IComparable} interface implemented by each element of the array and by the specified object.
+     * @param array The sorted one-dimensional Array to search.
+     * @param value The object to search for.
+     * @return The index of the specified value in the specified array, if {@code value} is found; otherwise, a negative number.
+     * If {@code value} is not found and {@code value} is less than one or more elements in {@code array}, the negative number returned
+     * is the bitwise complement of the index of the first element that is larger than {@code value}.
+     * If {@code value} is not found and {@code value} is greater than all elements in {@code array}, the negative number returned
+     * is the bitwise complement of (the index of the last element plus 1).
+     * If this method is called with a non-sorted array, the return value can be incorrect and a negative number could be returned,
+     * even if {@code value} is present in {@code array}.
+     * @throws ArgumentNullException {@code array} is {@code null}.
+     * @throws InvalidOperationException {@code value} does not implement the {@link IComparable} interface,
+     * and the search encounters an element that does not implement the {@link IComparable} interface.
+     */
+    public static int BinarySearch(Object array, @AllowNull Object value)
+            throws ArgumentNullException, InvalidOperationException
+    {
+        ArgumentNullException.ThrowIfNull(array, "array");
+        return BinarySearch(array, 0, java.lang.reflect.Array.getLength(array), value, null);
     }
 
     /**

@@ -21,9 +21,20 @@ public interface ISupportsSlicing<T>
      * @return A new collection containing only the specified portion of elements.
      * @throws ArgumentException {@code index} + {@code count} was exceeding the collection's bounds (Optional if the number of elements are unknown)
      * @throws ArgumentOutOfRangeException {@code index} and/or {@code count} are negative values.
-     * @apiNote -&gt; Typically, an implementer of this API should return an instance behaviorally the same as the current one
-     * (i.e. having the same equality comparer, having the same API contract), apart from the slicing properties. <br />
-     * -&gt; Note, if the current collection is a thread-safe collection, it is NOT necessary that the returned collection will be thread-safe as well.
+     * @apiNote Implementations of this API should:
+     * <ul>
+     *     <li>
+     *          Return an instance behaviorally the same as the current one
+     *          (i.e. having the same equality comparer, having the same API contract),
+     *          apart from the slicing properties.
+     *     </li>
+     *     <li>
+     *         Return an instance at least of the type where the method is implemented. <br />
+     *         This should happen so that {@code instanceof} checks against, for example,
+     *         {@link ITraversableCollection} implementations, should slice and return a {@link ITraversableCollection}.
+     *     </li>
+     * </ul>
+     * <em>Note</em>: if the current collection is a thread-safe collection, it is NOT necessary that the returned collection will be thread-safe as well.
      * Check the returned object against {@link com.github.mdcdi1315.basemodslib.utils.ISynchronized} to verify that it will be a synchronized collection.
      */
     @NotNull

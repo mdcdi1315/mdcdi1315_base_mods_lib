@@ -10,9 +10,6 @@ public record DisposableSpliteratorImplFromEnumerator<T>(IEnumerator<T> enumerat
     implements DisposableSpliterator<T>
 {
     @Override
-    public void close() { enumerator.Dispose(); }
-
-    @Override
     public boolean tryAdvance(Consumer<? super T> action)
     {
         if (enumerator.MoveNext()) {
@@ -24,7 +21,19 @@ public record DisposableSpliteratorImplFromEnumerator<T>(IEnumerator<T> enumerat
     }
 
     @Override
+    public void forEachRemaining(Consumer<? super T> action)
+    {
+        while (enumerator.MoveNext())
+        {
+            action.accept(enumerator.getCurrent());
+        }
+    }
+
+    @Override
     public long estimateSize() { return 0; }
+
+    @Override
+    public void close() { enumerator.Dispose(); }
 
     @Override
     public Spliterator<T> trySplit() { return null; }

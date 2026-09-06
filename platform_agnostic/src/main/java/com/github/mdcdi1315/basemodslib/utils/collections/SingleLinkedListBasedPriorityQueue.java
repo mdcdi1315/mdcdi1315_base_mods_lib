@@ -12,7 +12,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 import com.github.mdcdi1315.basemodslib.utils.NextNextEnumerator;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.PriorityQueueBank;
-import com.github.mdcdi1315.basemodslib.utils.collections.linkednodes.NodeWithNextPointer;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextPointer;
 
 /**
  * Provides a default implementation of the {@link IPriorityQueue} interface, that manages the priority banks by a single linked list.
