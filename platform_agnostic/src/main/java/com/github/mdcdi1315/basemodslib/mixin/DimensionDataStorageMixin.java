@@ -71,7 +71,7 @@ public abstract class DimensionDataStorageMixin
 
     @Unique
     @Override
-    public ISavedData MDCDI1315$BML$RegisterSavedData(String name, Func1<? extends ISavedData> saved_data)
+    public synchronized ISavedData MDCDI1315$BML$RegisterSavedData(String name, Func1<? extends ISavedData> saved_data)
             throws ArgumentException
     {
         ArgumentNullException.ThrowIfNullOrEmpty(name, "name");
