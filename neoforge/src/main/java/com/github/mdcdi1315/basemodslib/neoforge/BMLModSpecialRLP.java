@@ -10,6 +10,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.neoforgespi.language.IModFileInfo;
 
 import java.nio.file.Path;
+import java.nio.file.Files;
 
 public final class BMLModSpecialRLP
     implements IModResourceLookup
@@ -34,7 +35,13 @@ public final class BMLModSpecialRLP
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull("path", path);
-        return mod_info.getFile().getContents().getPrimaryPath().resolve(path);
+        var paths = mod_info.getFile().getContents().getContentRoots();
+        for (var p : paths)
+        {
+            Path new_path = p.resolve(path);
+            if (Files.exists(new_path)) { return new_path; }
+        }
+        return null;
     }
 
     @Override

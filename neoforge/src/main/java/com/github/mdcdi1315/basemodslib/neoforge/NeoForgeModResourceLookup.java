@@ -10,6 +10,7 @@ import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import net.neoforged.neoforgespi.language.IModInfo;
 
 import java.nio.file.Path;
+import java.nio.file.Files;
 
 public final class NeoForgeModResourceLookup
     implements IModResourceLookup
@@ -35,7 +36,13 @@ public final class NeoForgeModResourceLookup
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull("path", path);
-        return mod_info.getOwningFile().getFile().getContents().getPrimaryPath().resolve(path);
+        var paths = mod_info.getOwningFile().getFile().getContents().getContentRoots();
+        for (var p : paths)
+        {
+            Path new_path = p.resolve(path);
+            if (Files.exists(new_path)) { return new_path; }
+        }
+        return null;
     }
 
     @Override
