@@ -15,3 +15,5 @@ well as the `weight` utility package, which was also reworked as `random.weighte
 
 -> Function package: Added primitive transformation function signatures,
 that is, given an input number, it provides the same number type but might of a different value.
+
+-> First attempt for the 26.1 base Minecraft Version!
