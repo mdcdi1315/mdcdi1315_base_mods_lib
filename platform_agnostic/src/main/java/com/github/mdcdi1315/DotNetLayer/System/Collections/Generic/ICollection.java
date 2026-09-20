@@ -42,7 +42,7 @@ public interface ICollection<T>
     /**
      * Copies the elements of the {@link ICollection} to an array, starting at a particular array index.
      * @param array The one-dimensional System.Array that is the destination of the elements copied from {@link ICollection}. The array must have zero-based indexing.
-     * @param arrayIndex The zero-based index in `array` at which copying begins.
+     * @param arrayIndex The zero-based index in {@code array} at which copying begins.
      * @exception com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException {@code array} is {@code null}.
      * @exception com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException {@code arrayIndex} is less than 0.
      * @exception com.github.mdcdi1315.DotNetLayer.System.ArgumentException The number of elements in the source
@@ -53,8 +53,8 @@ public interface ICollection<T>
     /**
      * Removes the first occurrence of a specific object from the {@link ICollection}.
      * @param item The object to remove from the {@link ICollection}.
-     * @return true if item was successfully removed from the {@link ICollection}; otherwise, false.
-     * This method also returns false if item is not found in the original {@link ICollection}.
+     * @return {@code true} if {@code item} was successfully removed from the {@link ICollection}; otherwise, {@code false}.
+     * This method also returns {@code false} if {@code item} is not found in the original {@link ICollection}.
      * @exception com.github.mdcdi1315.DotNetLayer.System.NotSupportedException The {@link ICollection} is read-only.
      */
     boolean Remove(T item);

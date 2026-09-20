@@ -1,18 +1,16 @@
 package com.github.mdcdi1315.basemodslib.utils.collections.projections;
 
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.IndexOutOfRangeException;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
+import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.utils.collections.ISupportsCloning;
 import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
- * Provides a read-only view of a {@code int} array as an {@link IFloatEnumerable} instance. <br />
+ * Provides a read-only view of a {@code float} array as an {@link IFloatEnumerable} instance. <br />
  * It does also expose the {@link ITraversableCollection} interface for accessing individual
  * elements + the length of the provided array.
  */
@@ -57,11 +55,10 @@ public final class ReadOnlyFloatArrayView
             throw new ArgumentOutOfRangeException("offset", "Offset cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if ((this.bound = offset + count) > array.length) {
-            throw new ArgumentException("Specified offset and count parameters are out of the given array bounds.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(offset, count, array.length);
             this.array = array;
-            this.start = offset;
+            this.bound = (this.start = offset) + count;
         }
     }
 
@@ -95,25 +92,6 @@ public final class ReadOnlyFloatArrayView
         }
     }
 
-    @NotNull
-    @Override
-    public String toString()
-    {
-        int len = GetCount();
-
-        StringBuilder sb = new StringBuilder("ReadOnlyShortArrayView (")
-                .append(len)
-                .append(") { ");
-
-        for (int I = 0; I < len; I++)
-        {
-            sb.append(array[start + I]);
-            if ((I + 1) < len) { sb.append(", "); }
-        }
-
-        return sb.append(" }").toString();
-    }
-
     @Pure
     @Override
     public int GetCount() { return bound - start; }
@@ -131,7 +109,7 @@ public final class ReadOnlyFloatArrayView
     @Pure
     @NotNull
     @Override
-    public FloatArrayEnumerator GetEnumerator() { return new FloatArrayEnumerator(this.array, start, bound - start); }
+    public FloatArrayEnumerator GetEnumerator() { return new FloatArrayEnumerator(this.array, start, GetCount()); }
 
     @NotNull
     @Override
@@ -140,4 +118,18 @@ public final class ReadOnlyFloatArrayView
     @NotNull
     @Override
     public ReadOnlyFloatArrayView Slice(int index, int count) throws ArgumentException { return new ReadOnlyFloatArrayView(array, start + index, count); }
+
+    @NotNull
+    @Override
+    public String toString()
+    {
+        int len = GetCount();
+
+        return StringUtils.Concat(
+                "ReadOnlyFloatArrayView (",
+                CollectionHelpers.GetStringSafe(len),
+                ") ",
+                CollectionHelpers.PutArrayContentsToString(array, start, len)
+        );
+    }
 }

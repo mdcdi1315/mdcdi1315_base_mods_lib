@@ -14,6 +14,33 @@ subprojects {
 	}
 }
 
+public static String ConstructCurseForgeReleaseTypeString(String release_cycle)
+{
+    if (release_cycle.equalsIgnoreCase("DEV")) {
+        return "alpha";
+    } else if (release_cycle.equalsIgnoreCase("RC") || release_cycle.equalsIgnoreCase("PR")) {
+        return "beta";
+    } else if (release_cycle.equalsIgnoreCase("Stable")) {
+        return "release";
+    } else {
+        throw new IllegalArgumentException("The given release cycle is invalid: " + release_cycle);
+    }
+}
+
+// Currently, the constants used by modring
+public static String ConstructModrinthReleaseTypeString(String release_cycle)
+{
+    if (release_cycle.equalsIgnoreCase("DEV")) {
+        return "alpha";
+    } else if (release_cycle.equalsIgnoreCase("RC") || release_cycle.equalsIgnoreCase("PR")) {
+        return "beta";
+    } else if (release_cycle.equalsIgnoreCase("Stable")) {
+        return "release";
+    } else {
+        throw new IllegalArgumentException("The given release cycle is invalid: " + release_cycle);
+    }
+}
+
 tasks.register("full_publish") {
     group = 'publishing'
     description = "Publishes all the Jar archives to GitHub for developers, and CurseForge for consumers."

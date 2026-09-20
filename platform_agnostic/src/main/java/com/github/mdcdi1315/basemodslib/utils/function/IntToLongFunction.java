@@ -5,8 +5,12 @@ package com.github.mdcdi1315.basemodslib.utils.function;
  * @since 1.0.35
  */
 public record IntToLongFunction()
-    implements PrimitiveIntegerFunction<Long>
+    implements PrimitiveIntegerFunction<Long>,
+        java.util.function.IntToLongFunction
 {
+    @Override
+    public long applyAsLong(int value) { return value; }
+
     @Override
     public Long apply(int value) { return (long)value; }
 

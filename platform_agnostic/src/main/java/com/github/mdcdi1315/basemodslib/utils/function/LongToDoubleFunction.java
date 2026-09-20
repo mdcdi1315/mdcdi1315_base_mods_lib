@@ -5,8 +5,12 @@ package com.github.mdcdi1315.basemodslib.utils.function;
  * @since 1.0.35
  */
 public record LongToDoubleFunction()
-    implements PrimitiveLongFunction<Double>
+    implements PrimitiveLongFunction<Double>,
+        java.util.function.LongToDoubleFunction
 {
+    @Override
+    public double applyAsDouble(long value) { return value; }
+
     @Override
     public Double apply(long value) { return (double)value; }
 

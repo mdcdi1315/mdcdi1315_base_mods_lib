@@ -1,14 +1,15 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.EqualityComparer;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.EqualityComparer;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextAndPrevPointer;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextAndPrevPointerEnumerator;
 
@@ -460,9 +461,8 @@ public class DoubleLinkedList<T>
         ArgumentNullException.ThrowIfNull(array, "array");
         if (arrayIndex < 0) {
             throw new ArgumentOutOfRangeException("arrayIndex", "Array index cannot be a negative value.");
-        } else if (arrayIndex + count > array.length) {
-            throw new ArgumentException("The array does not have enough space to place all the elements of the current SingleLinkedList object.", "array");
         } else {
+            CollectionHelpers.CheckCopyToArguments(arrayIndex, array.length, count);
             NodeWithNextAndPrevPointer<T> p = root;
             for (int I = arrayIndex; p != null; p = p.Next) { array[I++] = p.Value; }
         }
@@ -480,14 +480,12 @@ public class DoubleLinkedList<T>
         } else {
             DoubleLinkedList<T> ret = new DoubleLinkedList<>(comparer);
 
-            IEnumerator<T> en = GetEnumerator();
-            try {
+            try (IEnumerator<T> en = GetEnumerator())
+            {
                 T element;
                 while (en.MoveNext()) {
                     if (predicate.predicate(element = en.getCurrent())) { ret.Add(element); }
                 }
-            } finally {
-                en.Dispose();
             }
 
             return ret;
@@ -503,15 +501,11 @@ public class DoubleLinkedList<T>
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else {
-            int total = index + count;
-            if (total > this.count || total < 0) {
-                throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
-            } else {
-                DoubleLinkedList<T> ret = new DoubleLinkedList<>(comparer);
-                NodeWithNextAndPrevPointer<T> nd = InternalGetNode(index);
-                for (int I = 0; I < count; I++, nd = nd.Next) { ret.Add(nd.Value); }
-                return ret;
-            }
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, this.count);
+            DoubleLinkedList<T> ret = new DoubleLinkedList<>(comparer);
+            NodeWithNextAndPrevPointer<T> nd = InternalGetNode(index);
+            for (int I = 0; I < count; I++, nd = nd.Next) { ret.Add(nd.Value); }
+            return ret;
         }
     }
 
@@ -523,13 +517,11 @@ public class DoubleLinkedList<T>
 
         DoubleLinkedList<TO> ret = new DoubleLinkedList<>(comparer);
 
-        IEnumerator<T> en = GetEnumerator();
-        try {
+        try (IEnumerator<T> en = GetEnumerator())
+        {
             while (en.MoveNext()) {
                 ret.Add(converter.convert(en.getCurrent()));
             }
-        } finally {
-            en.Dispose();
         }
 
         return ret;
@@ -540,11 +532,9 @@ public class DoubleLinkedList<T>
     {
         DoubleLinkedList<T> ret = new DoubleLinkedList<>(comparer);
 
-        IEnumerator<T> en = GetEnumerator();
-        try {
+        try (IEnumerator<T> en = GetEnumerator())
+        {
             while (en.MoveNext()) { ret.Add(en.getCurrent()); }
-        } finally {
-            en.Dispose();
         }
 
         return ret;

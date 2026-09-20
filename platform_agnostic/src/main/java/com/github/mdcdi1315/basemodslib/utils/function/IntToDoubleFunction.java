@@ -5,8 +5,12 @@ package com.github.mdcdi1315.basemodslib.utils.function;
  * @since 1.0.35
  */
 public record IntToDoubleFunction()
-    implements PrimitiveIntegerFunction<Double>
+    implements PrimitiveIntegerFunction<Double>,
+        java.util.function.IntToDoubleFunction
 {
+    @Override
+    public double applyAsDouble(int value) { return value; }
+
     @Override
     public Double apply(int value) { return (double)value; }
 

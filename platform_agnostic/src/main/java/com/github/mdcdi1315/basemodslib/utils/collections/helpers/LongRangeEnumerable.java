@@ -3,13 +3,14 @@ package com.github.mdcdi1315.basemodslib.utils.collections.helpers;
 import com.github.mdcdi1315.DotNetLayer.System.*;
 
 import com.github.mdcdi1315.basemodslib.utils.Extensions;
-import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerable;
+import com.github.mdcdi1315.basemodslib.utils.collections.*;
 import com.github.mdcdi1315.basemodslib.utils.collections.projections.ILongEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.collections.projections.BaseLongEnumerator;
 
-public final class LongRangeEnumerable
+public class LongRangeEnumerable
         extends BaseEnumerable<Long>
-        implements ILongEnumerable
+        implements ILongEnumerable,
+        ISupportsCloning<Long>
 {
     private final long start, count;
 
@@ -17,6 +18,27 @@ public final class LongRangeEnumerable
     {
         this.start = start;
         this.count = count;
+    }
+
+    private static final class Empty
+        extends LongRangeEnumerable
+        implements IEmptyEnumerable
+    { public Empty() { super(0, 0); } }
+
+    @Override
+    public int GetCount() { return (int)Extensions.Min(count, Integer.MAX_VALUE); }
+
+    @Override
+    public Long GetItem(int index)
+            throws ArgumentOutOfRangeException
+    {
+        if (index < 0) {
+            throw new ArgumentOutOfRangeException("index", "Index cannot be a negative number.");
+        } else if (index >= GetCount()) {
+            throw new ArgumentOutOfRangeException("index", "Index is out of bounds of the current collection.");
+        } else {
+            return start + index;
+        }
     }
 
     private static final class Enumerator
@@ -48,10 +70,10 @@ public final class LongRangeEnumerable
     public BaseLongEnumerator GetEnumerator() { return new Enumerator(start, count); }
 
     @Override
-    public BaseEnumerable<Long> Slice(int count) throws ArgumentException { return Slice(0, count); }
+    public LongRangeEnumerable Slice(int count) throws ArgumentException { return Slice(0, count); }
 
     @Override
-    public BaseEnumerable<Long> Slice(int index, int count)
+    public LongRangeEnumerable Slice(int index, int count)
             throws ArgumentException
     {
         if (index < 0) {
@@ -59,7 +81,7 @@ public final class LongRangeEnumerable
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else if (count == 0 || this.count == 0L) {
-            return new EmptyBaseEnumerable<>();
+            return new Empty();
         } else {
             // Index is selected by doing this.start + index, and
             // the count is deduced by the min of count and this.count.

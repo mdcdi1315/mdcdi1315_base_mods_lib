@@ -9,6 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
  * Provides an {@link IList} implementation for Java arrays. <br />
@@ -160,9 +161,8 @@ public class ArrayView<T>
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if (index + count > array.length) {
-            throw new ArgumentException("Index and count parameters exceed the backing array length.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, array.length);
             return new ArrayView<>(CreateArray(array, index, count));
         }
     }
@@ -187,21 +187,13 @@ public class ArrayView<T>
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder("ArrayView<")
-                .append(array.getClass().getComponentType().getName())
-                .append("> (")
-                .append(array.length)
-                .append(") { ");
-
-        int l = array.length - 1;
-
-        if (l < 0) {
-            sb.append("<EMPTY>");
-        } else {
-            for (int I = 0; I < l; I++) { sb.append(array[I]).append(", "); }
-            sb.append(array[l]);
-        }
-        sb.append(" }");
-        return sb.toString();
+        return StringUtils.Concat(
+                "ArrayView<",
+                array.getClass().getComponentType().getName(),
+                "> (",
+                CollectionHelpers.GetStringSafe(array.length),
+                ") ",
+                CollectionHelpers.PutArrayContentsToString(array, 0, array.length)
+        );
     }
 }

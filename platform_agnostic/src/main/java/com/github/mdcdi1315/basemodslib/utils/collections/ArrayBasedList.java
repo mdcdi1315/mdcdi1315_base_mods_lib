@@ -9,6 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
  * A custom implementation of the {@link IList} interface, backed by an array.
@@ -325,14 +326,6 @@ public class ArrayBasedList<T>
         }
     }
 
-    private record IndexOfPredicate<T>(IEqualityComparer<T> eqc, T item)
-            implements Predicate<Object>
-    {
-        @Override
-        @SuppressWarnings("unchecked")
-        public boolean predicate(Object obj) { return eqc.Equals((T)obj, item); }
-    }
-
     private void EnlargeArray(int by)
     {
         int new_count = count + by;
@@ -354,6 +347,7 @@ public class ArrayBasedList<T>
     }
 
     @StackTraceHidden
+    @SuppressWarnings("GrazieInspection")
     private void InsertRangeInternal(int index, Object[] items)
             throws ArgumentOutOfRangeException, ArgumentNullException, OverflowException
     {
@@ -370,21 +364,21 @@ public class ArrayBasedList<T>
             // [index..index+items.Length] -> Elements from the 'items' array are put.
             // [index+items.Length..count] -> Element at index goes to index+items.Length, and the rest items are copied as-is.
 
-            Array.Copy(elements, 0, constructed, 0, index);
+            System.arraycopy(elements, 0, constructed, 0, index);
 
-            Array.Copy(items, 0, constructed, index, items.length);
+            System.arraycopy(items, 0, constructed, index, items.length);
 
             int rem_items = count - index;
 
             if (rem_items > 0) {
-                Array.Copy(elements, index, constructed, index + items.length, rem_items);
+                System.arraycopy(elements, index, constructed, index + items.length, rem_items);
             }
 
             elements = constructed;
             count += items.length;
         } else {
             elements = new Object[items.length];
-            Array.Copy(items, 0, elements, 0, items.length);
+            System.arraycopy(items, 0, elements, 0, items.length);
             count = items.length;
         }
     }
@@ -408,7 +402,7 @@ public class ArrayBasedList<T>
     public T GetItem(int index) throws ArgumentOutOfRangeException { return getItem(index); }
 
     @Override
-    public int IndexOf(T item) { return Array.FindIndex(elements,0 , count, new IndexOfPredicate<>(comparer, item)); }
+    public int IndexOf(T item) { return CollectionHelpers.IndexOfArray(elements, 0, count, item, comparer); }
 
     @Override
     public void Insert(int index, T item)
@@ -498,13 +492,16 @@ public class ArrayBasedList<T>
     }
 
     @Override
+    @SuppressWarnings("SuspiciousSystemArraycopy")
     public void CopyTo(T[] array, int arrayIndex)
             throws ArgumentOutOfRangeException
     {
-        try {
-            Array.Copy(elements, array, arrayIndex);
-        } catch (IndexOutOfRangeException e) {
-            throw new ArgumentOutOfRangeException("arrayIndex", "Not enough space to store all the list's elements to the specified array.");
+        ArgumentNullException.ThrowIfNull(array, "array");
+        if (arrayIndex < 0) {
+            throw new ArgumentOutOfRangeException("arrayIndex", "Index cannot be a negative value.");
+        } else {
+            CollectionHelpers.CheckCopyToArguments(arrayIndex, array.length, count);
+            System.arraycopy(elements, 0, array, arrayIndex, count);
         }
     }
 
@@ -535,7 +532,7 @@ public class ArrayBasedList<T>
         } else {
             if (items instanceof ICollection<T> collection) {
                 EnlargeArray(collection.getCount());
-            } else if (items instanceof ITraversableCollection<T> c) {
+            } else if (items instanceof ICountableCollection<T> c) {
                 EnlargeArray(c.GetCount());
             }
             try (IEnumerator<T> en = items.GetEnumerator())
@@ -604,10 +601,12 @@ public class ArrayBasedList<T>
         ArgumentNullException.ThrowIfNull(converter, "converter");
 
         ArrayBasedList<TG> tg = new ArrayBasedList<>(count, comparer);
-        for (int I = 0; I < count; I++) {
+
+        tg.count = count;
+        for (int I = 0; I < count; I++)
+        {
             tg.elements[I] = converter.convert((T) elements[I]);
         }
-        tg.count = count;
 
         return tg;
     }
@@ -629,15 +628,11 @@ public class ArrayBasedList<T>
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else {
-            int total = index + count;
-            if (total > this.count || total < 0) {
-                throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
-            } else {
-                ArrayBasedList<T> ret = new ArrayBasedList<>(count, comparer);
-                System.arraycopy(elements, index, ret.elements, 0, count);
-                ret.count = count;
-                return ret;
-            }
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, this.count);
+            ArrayBasedList<T> ret = new ArrayBasedList<>(count, comparer);
+            System.arraycopy(elements, index, ret.elements, 0, count);
+            ret.count = count;
+            return ret;
         }
     }
 
@@ -713,26 +708,11 @@ public class ArrayBasedList<T>
     @Override
     public final String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("ArrayBasedList<?> (%d) { ", count));
-        switch (count)
-        {
-            case 0:
-                sb.append("<EMPTY>");
-                break;
-            case 1:
-                sb.append(elements[0]);
-                break;
-            default:
-                int bound = count - 1;
-                for (int I = 0; I < bound; I++) {
-                    sb.append(elements[I]);
-                    sb.append(", ");
-                }
-                sb.append(elements[bound]);
-                break;
-        }
-        sb.append(" }");
-        return sb.toString();
+        return StringUtils.Concat(
+                "ArrayBasedList<?> (",
+                CollectionHelpers.GetStringSafe(count),
+                ") ",
+                CollectionHelpers.PutArrayContentsToString(elements, 0, count)
+        );
     }
 }

@@ -6,11 +6,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
  * Provides the base interface for primitive {@code short} integer enumerables. <br />
  * Extends from the {@link IEnumerable} interface.
  */
+@SuppressWarnings("SpellCheckingInspection")
 public interface IShortEnumerable
     extends IEnumerable<Short>
 {
     /**
      * {@inheritDoc}
      */
+    @Override
     IShortEnumerator GetEnumerator();
 }

@@ -1,21 +1,17 @@
-### Now releasing 1.0.37:
+### Now releasing 1.0.38:
 
--> Expanded the I/O package (Again!)
+-> Fix copy-paste docs in ByteArray classes in the I/O package.
 
--> Collections package: Added several API's:
-    - `FixedArrayBasedList`: An non-expandable list, based by the `ArrayBasedList` class.
-    - Added better empty collection handling
-    - `ArrayBasedList`: Several code cleanups
-    - Added sorting algorithms, plus checker whether an enumerable is sorted.
-    - Added common comparer implementations, accessible under the `comparers` sub-package.
+-> Reworked random support and a new `random` package was added.
+Note: several API's using the old Minecraft logic are now deprecated, as
+well as the `weight` utility package, which was also reworked as `random.weighted`. 
 
--> .NET Layer additions:
-  - Most notable: Added the `Dictionary` implementation
-  - Completed the exception classes
-  - Added the non-generic `ArrayList` implementation
-  - Updated annotation processor to better handle the `ClassIsDotNetStruct` annotation
+-> Collections package: Added:
+    - HeapSort sorting algorithm
+    - Support for wrapping Java maps to `IDictionary` instances.
+    - The `ICountableCollection` interface.
+    - Reversed primitive array enumerators
+    - Mojang `Codec` support
 
--> Further cleanups on `BaseModsLib` and `BaseModsLibClient` classes,
-and they now use a `Dictionary` instance to store the mod instances.
-
--> Function package: Added Provides* function signatures
+-> Function package: Added primitive transformation function signatures,
+that is, given an input number, it provides the same number type but might of a different value.

@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.utils.function;
 
 import com.github.mdcdi1315.DotNetLayer.System.Predicate;
 
+@SuppressWarnings("NullableProblems")
 record CharSeq_TrueForAll_CharPredicate(CharPredicate char_predicate)
     implements Predicate<CharSequence>
 {
@@ -22,4 +23,10 @@ record CharSeq_TrueForAll_CharPredicate(CharPredicate char_predicate)
 
     @Override
     public Predicate<CharSequence> negate() { return new NegatedPredicate<>(this); }
+
+    @Override
+    public Predicate<CharSequence> or(java.util.function.Predicate<? super CharSequence> other) { return new CompatibleOrPredicateImpl<>(this, other); }
+
+    @Override
+    public Predicate<CharSequence> and(java.util.function.Predicate<? super CharSequence> other) { return new CompatibleAndPredicateImpl<>(this, other); }
 }

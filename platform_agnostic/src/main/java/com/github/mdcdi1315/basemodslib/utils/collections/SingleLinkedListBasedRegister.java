@@ -54,13 +54,7 @@ public class SingleLinkedListBasedRegister<T>
             NodeWithNextPointer<T> current = reg.root;
             while (current != null)
             {
-                NodeWithNextPointer<T> n = new NodeWithNextPointer<>(current.Value);
-                if (root == null) {
-                    root = this.current = n;
-                } else {
-                    this.current.Next = n;
-                    this.current = n;
-                }
+                Register(current.Value);
                 current = current.Next;
             }
         } else {

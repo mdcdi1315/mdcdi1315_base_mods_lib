@@ -128,9 +128,8 @@ public class TraversableCollectionSlice<T>
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else if (count == 0) {
             return new Empty<>();
-        } else if (((long)index + count - 1L) >= this.count) {
-            throw new ArgumentException("The specified combination of the index and count parameters are outside of the collections's bounds.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, this.count);
             return new TraversableCollectionSlice<>(this, index, count);
         }
     }

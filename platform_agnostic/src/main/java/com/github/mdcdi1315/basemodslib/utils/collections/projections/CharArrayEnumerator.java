@@ -6,9 +6,10 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
- * Provides an {@link ICharEnumerator} implementation for concrete byte arrays. <br />
+ * Provides an {@link ICharEnumerator} implementation for concrete character arrays. <br />
  * For arrays that are of the {@link Character} boxed type, use the {@link com.github.mdcdi1315.basemodslib.utils.collections.ArrayEnumerator} class instead.
  */
 public final class CharArrayEnumerator
@@ -49,12 +50,10 @@ public final class CharArrayEnumerator
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if (((long)index + count) > array.length) {
-            throw new ArgumentException("Specified index and count parameters are out of the given array bounds.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, array.length);
             this.array = array;
-            this.bound = index + count;
-            this.start = this.index = index - 1;
+            this.bound = (this.start = this.index = index - 1) + count;
         }
     }
 

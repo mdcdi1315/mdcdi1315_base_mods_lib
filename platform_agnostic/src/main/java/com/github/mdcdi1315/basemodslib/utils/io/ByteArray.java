@@ -117,7 +117,8 @@ public final class ByteArray
      *                                   the range [0, array.length - 4]
      * @see #SetFloat(byte[], int, float)
      */
-    public static float GetFloat(byte[] array, int offset) {
+    public static float GetFloat(byte[] array, int offset)
+    {
         // Using Float.intBitsToFloat collapses NaN values to a single
         // "canonical" NaN value
         return Float.intBitsToFloat((int) INT.get(array, offset));
@@ -138,7 +139,8 @@ public final class ByteArray
      *                                   the range [0, array.length - 4]
      * @see #SetFloatRaw(byte[], int, float)
      */
-    public static float GetFloatRaw(byte[] array, int offset) {
+    public static float GetFloatRaw(byte[] array, int offset)
+    {
         // Just gets the bits as they are
         return (float) FLOAT.get(array, offset);
     }
@@ -171,7 +173,8 @@ public final class ByteArray
      *                                   the range [0, array.length - 8]
      * @see #SetDouble(byte[], int, double)
      */
-    public static double GetDouble(byte[] array, int offset) {
+    public static double GetDouble(byte[] array, int offset)
+    {
         // Using Double.longBitsToDouble collapses NaN values to a single
         // "canonical" NaN value
         return Double.longBitsToDouble((long) LONG.get(array, offset));
@@ -192,7 +195,8 @@ public final class ByteArray
      *                                   the range [0, array.length - 8]
      * @see #SetDoubleRaw(byte[], int, double)
      */
-    public static double GetDoubleRaw(byte[] array, int offset) {
+    public static double GetDoubleRaw(byte[] array, int offset)
+    {
         // Just gets the bits as they are
         return (double) DOUBLE.get(array, offset);
     }
@@ -210,7 +214,7 @@ public final class ByteArray
      * @param offset where setting (writing) in the array should begin
      * @param value  value to set in the array
      * @throws IndexOutOfBoundsException if the provided {@code offset} is outside
-     *                                   the range [0, array.length]
+     *                                   the range [0, array.length - 1]
      * @see #GetBoolean(byte[], int)
      */
     public static void SetBoolean(byte[] array, int offset, boolean value) { array[offset] = (byte) (value ? 1 : 0); }
@@ -287,10 +291,11 @@ public final class ByteArray
      * @param offset where setting (writing) in the array should begin
      * @param value  value to set in the array
      * @throws IndexOutOfBoundsException if the provided {@code offset} is outside
-     *                                   the range [0, array.length - 2]
+     *                                   the range [0, array.length - 4]
      * @see #GetFloat(byte[], int)
      */
-    public static void SetFloat(byte[] array, int offset, float value) {
+    public static void SetFloat(byte[] array, int offset, float value)
+    {
         // Using Float.floatToIntBits collapses NaN values to a single
         // "canonical" NaN value
         INT.set(array, offset, Float.floatToIntBits(value));
@@ -309,10 +314,11 @@ public final class ByteArray
      * @param offset where setting (writing) in the array should begin
      * @param value  value to set in the array
      * @throws IndexOutOfBoundsException if the provided {@code offset} is outside
-     *                                   the range [0, array.length - 2]
+     *                                   the range [0, array.length - 4]
      * @see #GetFloatRaw(byte[], int)
      */
-    public static void SetFloatRaw(byte[] array, int offset, float value) {
+    public static void SetFloatRaw(byte[] array, int offset, float value)
+    {
         // Just sets the bits as they are
         FLOAT.set(array, offset, value);
     }
@@ -327,7 +333,7 @@ public final class ByteArray
      * @param offset where setting (writing) in the array should begin
      * @param value  value to set in the array
      * @throws IndexOutOfBoundsException if the provided {@code offset} is outside
-     *                                   the range [0, array.length - 4]
+     *                                   the range [0, array.length - 8]
      * @see #GetLong(byte[], int)
      */
     public static void SetLong(byte[] array, int offset, long value) { LONG.set(array, offset, value); }
@@ -344,10 +350,11 @@ public final class ByteArray
      * @param offset where setting (writing) in the array should begin
      * @param value  value to set in the array
      * @throws IndexOutOfBoundsException if the provided {@code offset} is outside
-     *                                   the range [0, array.length - 2]
+     *                                   the range [0, array.length - 8]
      * @see #GetDouble(byte[], int)
      */
-    public static void SetDouble(byte[] array, int offset, double value) {
+    public static void SetDouble(byte[] array, int offset, double value)
+    {
         // Using Double.doubleToLongBits collapses NaN values to a single
         // "canonical" NaN value
         LONG.set(array, offset, Double.doubleToLongBits(value));
@@ -366,10 +373,11 @@ public final class ByteArray
      * @param offset where setting (writing) in the array should begin
      * @param value  value to set in the array
      * @throws IndexOutOfBoundsException if the provided {@code offset} is outside
-     *                                   the range [0, array.length - 2]
+     *                                   the range [0, array.length - 8]
      * @see #GetDoubleRaw(byte[], int)
      */
-    public static void SetDoubleRaw(byte[] array, int offset, double value) {
+    public static void SetDoubleRaw(byte[] array, int offset, double value)
+    {
         // Just sets the bits as they are
         DOUBLE.set(array, offset, value);
     }

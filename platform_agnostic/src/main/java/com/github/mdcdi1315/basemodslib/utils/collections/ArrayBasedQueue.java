@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
-import com.github.mdcdi1315.DotNetLayer.System.Array;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.OverflowException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IList;
@@ -9,7 +8,10 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.ICollection;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
  * An {@link ITraversableQueue} implementation by using an array as the backing storage.
@@ -74,6 +76,7 @@ public class ArrayBasedQueue<T>
         public void EnqueueAll(IEnumerable<T> items) throws OverflowException, ArgumentNullException { synchronized(lock) { super.EnqueueAll(items); } }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void EnqueueAll(T... items) throws OverflowException, ArgumentNullException { synchronized(lock) { super.EnqueueAll(items); } }
     }
 
@@ -120,6 +123,7 @@ public class ArrayBasedQueue<T>
     public static <T> ArrayBasedQueue<T> CreateSynchronized(int capacity) { return new Synchronized<>(capacity); }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T TryDequeue()
     {
         if (count < 1) {
@@ -131,6 +135,7 @@ public class ArrayBasedQueue<T>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T TryPeek() { return (count < 1) ? null : (T) elements[head]; }
 
     @Override
@@ -170,6 +175,7 @@ public class ArrayBasedQueue<T>
     public void Clear() { head = tail = -1; count = 0; }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T GetItem(int index)
             throws ArgumentOutOfRangeException
     {
@@ -184,6 +190,7 @@ public class ArrayBasedQueue<T>
 
     // This is just primitive instructions, we can replace this method call with it's body.
     // It is just defined for convenience, nothing else.
+    @SuppressWarnings("GrazieInspection")
     private void PutAtTail(T item) { elements[++tail] = item; }
 
     // Shifts ALL the queue's elements at the beginning.
@@ -191,10 +198,7 @@ public class ArrayBasedQueue<T>
     private void ShiftElements()
     {
         if (count == 0) { return; } // No meaning to execute if we do not have any items to process
-        for (int I = head, J = 0; I <= tail; I++)
-        {
-            elements[J++] = elements[I];
-        }
+        for (int I = head, J = 0; I <= tail; I++, J++) { elements[J] = elements[I]; }
         head = 0;
         tail = count - 1;
     }
@@ -211,7 +215,7 @@ public class ArrayBasedQueue<T>
             Object[] copy = new Object[new_count];
             if (count > 0)
             {
-                Array.Copy(elements, head, copy, 0, count);
+                System.arraycopy(elements, head, copy, 0, count);
                 head = 0;
                 tail = count - 1;
             }
@@ -255,11 +259,9 @@ public class ArrayBasedQueue<T>
         } else if (items instanceof ICollection<T> collection) {
             EnqueueCollection(collection);
         } else {
-            IEnumerator<T> enumerator = items.GetEnumerator();
-            try {
+            try (IEnumerator<T> enumerator = items.GetEnumerator())
+            {
                 while (enumerator.MoveNext()) { Enqueue(enumerator.getCurrent()); }
-            } finally {
-                enumerator.Dispose();
             }
         }
         // If it happens that the first enqueue happened through this method, the head might not be appropriately updated.
@@ -273,6 +275,7 @@ public class ArrayBasedQueue<T>
      * @throws OverflowException Adding the specified items would cause the collection to overflow.
      * @throws ArgumentNullException {@code items} is {@code null}.
      */
+    @SuppressWarnings("unchecked")
     public void EnqueueAll(T... items)
             throws OverflowException, ArgumentNullException
     {
@@ -292,7 +295,7 @@ public class ArrayBasedQueue<T>
         EnlargeAndShift(array_len);
         // Now copy our elements and we are then done...
         // Special handling is required for tail == -1.
-        Array.Copy(array, 0, elements, tail == -1 ? 0 : tail + 1, array_len);
+        System.arraycopy(array, 0, elements, tail == -1 ? 0 : tail + 1, array_len);
         // Update tail...
         tail += array_len;
         // Update count...
@@ -327,11 +330,9 @@ public class ArrayBasedQueue<T>
         // Now copy our elements and we are then done...
         // Special handling is required for tail == -1.
         int I = (tail == -1) ? 0 : tail + 1;
-        IEnumerator<T> e = collection.GetEnumerator();
-        try {
+        try (IEnumerator<T> e = collection.GetEnumerator())
+        {
             while (e.MoveNext()) { elements[I++] = e.getCurrent(); }
-        } finally {
-            e.Dispose();
         }
         // Update tail...
         tail += ct;
@@ -348,26 +349,11 @@ public class ArrayBasedQueue<T>
     @Override
     public final String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("ArrayBasedQueue<?> (%d) { ", count));
-        switch (count)
-        {
-            case 0:
-                sb.append("<EMPTY>");
-                break;
-            case 1:
-                sb.append(elements[head]);
-                break;
-            default:
-                int bound = count - 1;
-                for (int I = head; I < bound; I++) {
-                    sb.append(elements[I]);
-                    sb.append(", ");
-                }
-                sb.append(elements[bound]);
-                break;
-        }
-        sb.append(" }");
-        return sb.toString();
+        return StringUtils.Concat(
+                "ArrayBasedQueue<?> (",
+                CollectionHelpers.GetStringSafe(count),
+                ") ",
+                CollectionHelpers.PutArrayContentsToString(elements, head, count)
+        );
     }
 }

@@ -28,14 +28,16 @@ public class WrappedJavaCollectionFromICollection<T, TC extends ICollection<T>>
     public boolean contains(Object o) { return collection.Contains((T)o); }
 
     @Override
+    @SuppressWarnings("NullableProblems")
     public Iterator<T> iterator() { return DisposableIterator.FromEnumerator(collection.GetEnumerator()); }
 
     @Override
-    public Object[] toArray() { return CollectionBridgingHelpers.ToArray(collection, ICollection::getCount); }
+    @SuppressWarnings("NullableProblems")
+    public Object[] toArray() { return CollectionHelpers.ToArray(collection, ICollection::getCount); }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T1> T1[] toArray(T1[] a) { return CollectionBridgingHelpers.ToArray(collection, ICollection::getCount, a); }
+    @SuppressWarnings("NullableProblems")
+    public <T1> T1[] toArray(T1[] a) { return CollectionHelpers.ToArray(collection, ICollection::getCount, a); }
 
     @Override
     public boolean add(T t)
@@ -59,8 +61,8 @@ public class WrappedJavaCollectionFromICollection<T, TC extends ICollection<T>>
     }
 
     @Override
-    @SuppressWarnings("SizeReplaceableByIsEmpty")
-    public boolean addAll(Collection<? extends T> c) { return CollectionBridgingHelpers.AddAll(collection, c, collection::Add); }
+    @SuppressWarnings("NullableProblems")
+    public boolean addAll(Collection<? extends T> c) { return CollectionHelpers.AddAll(collection, c, collection::Add); }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -73,6 +75,7 @@ public class WrappedJavaCollectionFromICollection<T, TC extends ICollection<T>>
     }
 
     @Override
+    @SuppressWarnings("NullableProblems")
     public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException("Retain all cannot be supported"); }
 
     @Override

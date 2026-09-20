@@ -8,6 +8,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
  * Provides an {@link IList} implementation based on an array that it's size cannot be changed.
@@ -206,14 +207,6 @@ public class FixedArrayBasedList<T>
         }
     }
 
-    private record IndexOfPredicate<T>(IEqualityComparer<T> eqc, T item)
-            implements Predicate<Object>
-    {
-        @Override
-        @SuppressWarnings("unchecked")
-        public boolean predicate(Object obj) { return eqc.Equals(item, (T)obj); }
-    }
-
     @Override
     public void Clear() { count = 0; }
 
@@ -236,7 +229,7 @@ public class FixedArrayBasedList<T>
     public IEnumerator<T> GetEnumerator() { return ArrayEnumerator.ByBoundsCasted(array, index, count); }
 
     @Override
-    public int IndexOf(T item) { return Array.FindIndex(array, index, count, new IndexOfPredicate<>(comparer, item)); }
+    public int IndexOf(T item) { return CollectionHelpers.IndexOfArray(array, index, count, item, comparer); }
 
     @Override
     @MaybeNull
@@ -363,17 +356,13 @@ public class FixedArrayBasedList<T>
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else {
-            int total = index + count;
-            if (total > this.count || total < 0) {
-                throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
-            } else {
-                return new FixedArrayBasedList<>(
-                        this.array,
-                        this.index + index,
-                        count,
-                        this.comparer
-                );
-            }
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, this.count);
+            return new FixedArrayBasedList<>(
+                this.array,
+                this.index + index,
+                count,
+                this.comparer
+            );
         }
     }
 
@@ -438,23 +427,13 @@ public class FixedArrayBasedList<T>
     @Override
     public final String toString()
     {
-        StringBuilder sb = new StringBuilder(
-                String.format("FixedArrayBasedList<?> (%d, %d) { ", array.length, count)
+        return StringUtils.Concat(
+                "FixedArrayBasedList<?> (",
+                CollectionHelpers.GetStringSafe(array.length - index),
+                ", ",
+                CollectionHelpers.GetStringSafe(count),
+                ") ",
+                CollectionHelpers.PutArrayContentsToString(array, index, count)
         );
-        switch (count)
-        {
-            case 0:
-                sb.append("<EMPTY>");
-                break;
-            case 1:
-                sb.append(array[this.index]);
-                break;
-            default:
-                int bound = (this.index + this.count) - 1;
-                for (int I = this.index; I < bound; I++) { sb.append(array[I]).append(", "); }
-                sb.append(array[bound]);
-                break;
-        }
-        return sb.append(" }").toString();
     }
 }
