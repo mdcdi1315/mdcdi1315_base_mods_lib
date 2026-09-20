@@ -241,15 +241,10 @@ public final class Area3DEnumerator
 
         // There is the possibility that any of the three X,Y,Z components are zero.
         // So, appropriately handle them with the below code.
-        if (height == 0L) {
-            return (depth == 0L) ? width : (((width == 0L) ? 1L : width) * depth);
-        } else if (width == 0L) {
-            return (depth == 0L) ? height : height * depth;
-        } else if (depth == 0L) {
-            return height * width;
-        } else {
-            return width * height * depth;
-        }
+        if (height == 0L) { height = 1L; }
+        if (width == 0L) { width = 1L; }
+        if (depth == 0L) { depth = 1L; }
+        return width * height * depth;
     }
 
     /**

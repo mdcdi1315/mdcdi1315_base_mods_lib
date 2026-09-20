@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib.utils.function;
 
 import com.github.mdcdi1315.DotNetLayer.System.Predicate;
 
+@SuppressWarnings("NullableProblems")
 record CompatibleOrPredicateImpl<T>(Predicate<T> predicate, java.util.function.Predicate<? super T> other)
     implements Predicate<T>
 {

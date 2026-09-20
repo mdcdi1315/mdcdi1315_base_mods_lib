@@ -6,8 +6,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 
-import java.util.function.Function;
-
 /**
  * A class implementation used as the base for primitive-related codecs. <br />
  * Note that there is already an interface of a primitive codec declared in DFU
@@ -18,13 +16,6 @@ import java.util.function.Function;
 public abstract class PrimitiveCodec<TP>
         implements Codec<TP>
 {
-    private record DecodeMapper<TP , T>(T empty)
-        implements Function<TP , Pair<TP, T>>
-    {
-        @Override
-        public Pair<TP , T> apply(TP tp) { return Pair.of(tp , empty); }
-    }
-
     /**
      * Reads a primitive from the specified dynamic ops and input data.
      * @param ops The dynamic ops object to decode the specified value.
@@ -51,8 +42,18 @@ public abstract class PrimitiveCodec<TP>
      * @param <T> The type of the input to decode the primitive from.
      */
     @Override
-    public final <T> DataResult<Pair<TP, T>> decode(DynamicOps<T> ops, T input) {
-        return Read(ops, input).map(new DecodeMapper<>(ops.empty()));
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public final <T> DataResult<Pair<TP, T>> decode(DynamicOps<T> ops, T input)
+    {
+        DataResult<TP> result = Read(ops, input);
+        if (result.isSuccess()) {
+            return DataResult.success(new Pair<>(
+                    result.result().get(),
+                    ops.empty()
+            ));
+        } else {
+            return DataResult.error(result.error().get().messageSupplier());
+        }
     }
 
     /**

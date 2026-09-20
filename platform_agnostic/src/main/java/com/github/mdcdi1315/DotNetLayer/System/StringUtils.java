@@ -204,6 +204,7 @@ public final class StringUtils
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(values, "values");
+        if (values.length == 0) { return Empty; }
         StringBuilder builder = new StringBuilder();
         for (String value : values) {
             builder.append(value);
@@ -222,6 +223,7 @@ public final class StringUtils
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(values, "values");
+        if (values.length == 0) { return Empty; }
         StringBuilder builder = new StringBuilder();
         for (Object value : values) {
             builder.append(value);
@@ -330,6 +332,7 @@ public final class StringUtils
         return format.charAt(pos.Value);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static int IndexOfAnyHelper(String s, char... chars)
     {
         int pos = -1;
@@ -585,9 +588,9 @@ public final class StringUtils
                 builder.append(s);
             } else if (leftJustify) {
                 builder.append(s);
-                builder.append(" ".repeat(width - s.length()));
+                builder.repeat(" ", width - s.length());
             } else {
-                builder.append(" ".repeat(width - s.length()));
+                builder.repeat(" ", width - s.length());
                 builder.append(s);
             }
         }

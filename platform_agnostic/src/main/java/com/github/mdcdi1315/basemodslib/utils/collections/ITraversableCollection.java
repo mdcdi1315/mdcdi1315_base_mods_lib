@@ -10,12 +10,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
  * @since 1.0.18
  */
 public interface ITraversableCollection<T>
-    extends IEnumerable<T>
+    extends IEnumerable<T>, ICountableCollection<T>
 {
     /**
      * Gets the number of elements contained in the current traversable collection.
      * @return The number of elements contained in the current traversable collection.
      */
+    @Override
     int GetCount();
 
     /**

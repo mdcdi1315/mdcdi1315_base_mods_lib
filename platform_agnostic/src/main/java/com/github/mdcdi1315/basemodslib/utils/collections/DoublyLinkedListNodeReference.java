@@ -1,9 +1,12 @@
 package com.github.mdcdi1315.basemodslib.utils.collections;
 
+import com.github.mdcdi1315.DotNetLayer.System.StringUtils;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
  * Provides the reference to a node in a {@link IDoubleLinkedList} object. <br />
@@ -144,5 +147,22 @@ public class DoublyLinkedListNodeReference<T>
         synchronized (this) {
             modification_flags |= MOD_FLAG_REMOVE_CURRENT;
         }
+    }
+
+    @NotNull
+    @Override
+    public String toString()
+    {
+        return StringUtils.Concat(
+                "DoublyLinkedListNodeReference<?> { CurrentValue = ",
+                CollectionHelpers.GetStringSafe(current_value),
+                ", NextValue = ",
+                CollectionHelpers.GetStringSafe(next_value),
+                ", PreviousValue = ",
+                CollectionHelpers.GetStringSafe(prev_value),
+                ", List = ",
+                CollectionHelpers.GetStringSafe(list),
+                "}"
+        );
     }
 }

@@ -12,6 +12,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 import java.util.Arrays;
 
@@ -183,9 +184,8 @@ public class BTreeDictionary<TKey, TValue>
             ArgumentNullException.ThrowIfNull(array, "array");
             if (arrayIndex < 0) {
                 throw new ArgumentOutOfRangeException("arrayIndex", "Array index cannot be a negative value.");
-            } else if (arrayIndex + getCount() > array.length) {
-                throw new ArgumentException("The array does not have enough space to place all the elements of the current BTreeDictionary object.", "array");
             } else {
+                CollectionHelpers.CheckCopyToArguments(arrayIndex, array.length, dictionary.getCount());
                 try (IEnumerator<TKey> e = GetEnumerator())
                 {
                     for (int I = arrayIndex; e.MoveNext(); I++) { array[I] = e.getCurrent(); }
@@ -224,9 +224,8 @@ public class BTreeDictionary<TKey, TValue>
             ArgumentNullException.ThrowIfNull(array, "array");
             if (arrayIndex < 0) {
                 throw new ArgumentOutOfRangeException("arrayIndex", "Array index cannot be a negative value.");
-            } else if (arrayIndex + getCount() > array.length) {
-                throw new ArgumentException("The array does not have enough space to place all the elements of the current BTreeDictionary object.", "array");
             } else {
+                CollectionHelpers.CheckCopyToArguments(arrayIndex, array.length, dictionary.getCount());
                 try (IEnumerator<TValue> e = GetEnumerator())
                 {
                     for (int I = arrayIndex; e.MoveNext(); I++) { array[I] = e.getCurrent(); }
@@ -637,9 +636,8 @@ public class BTreeDictionary<TKey, TValue>
         ArgumentNullException.ThrowIfNull(array, "array");
         if (arrayIndex < 0) {
             throw new ArgumentOutOfRangeException("arrayIndex", "Array index cannot be a negative value.");
-        } else if (arrayIndex + count > array.length) {
-            throw new ArgumentException("The array does not have enough space to place all the elements of the current BTreeDictionary object.", "array");
         } else {
+            CollectionHelpers.CheckCopyToArguments(arrayIndex, array.length, count);
             try (Enumerator<TKey, TValue> e = new Enumerator<>(HashTable))
             {
                 for (int I = arrayIndex; e.MoveNext(); I++) { array[I] = e.getCurrent(); }

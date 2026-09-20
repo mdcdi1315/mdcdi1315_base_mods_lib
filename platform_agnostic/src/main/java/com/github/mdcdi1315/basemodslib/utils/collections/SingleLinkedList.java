@@ -3,11 +3,13 @@ package com.github.mdcdi1315.basemodslib.utils.collections;
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 import com.github.mdcdi1315.basemodslib.utils.Extensions;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextPointer;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextPointerEnumerator;
 
@@ -133,11 +135,9 @@ public class SingleLinkedList<T>
     {
         this(comparer);
         ArgumentNullException.ThrowIfNull(items, "items");
-        IEnumerator<T> enumerator = items.GetEnumerator();
-        try {
+        try (IEnumerator<T> enumerator = items.GetEnumerator())
+        {
             while (enumerator.MoveNext()) { Add(enumerator.getCurrent()); }
-        } finally {
-            enumerator.Dispose();
         }
     }
 
@@ -146,6 +146,7 @@ public class SingleLinkedList<T>
      * @return A new instance of the {@link SingleLinkedList} class that is thread-safe.
      * @since 1.0.19
      */
+    @NotNull
     public static <T> SingleLinkedList<T> CreateSynchronized() { return new Synchronized<>(); }
 
     /**
@@ -154,6 +155,7 @@ public class SingleLinkedList<T>
      * @return A new instance of the {@link SingleLinkedList} class that is thread-safe.
      * @since 1.0.19
      */
+    @NotNull
     public static <T> SingleLinkedList<T> CreateSynchronized(@AllowNull IEqualityComparer<T> comparer) { return new Synchronized<>(comparer); }
 
     /**
@@ -163,6 +165,7 @@ public class SingleLinkedList<T>
      * @throws ArgumentNullException {@code items} is {@code null}.
      * @since 1.0.26
      */
+    @NotNull
     public static <T> SingleLinkedList<T> CreateSynchronized(IEnumerable<T> items) throws ArgumentNullException { return new Synchronized<>(items); }
 
     /**
@@ -172,9 +175,11 @@ public class SingleLinkedList<T>
      * @return An object extending the <see cref="ArrayBasedList{T}"/> class and is thread-safe.
      * @throws ArgumentNullException {@code items} is {@code null}.
      */
+    @NotNull
     public static <T> SingleLinkedList<T> CreateSynchronized(IEnumerable<T> items, IEqualityComparer<T> comparer) { return new Synchronized<>(items, comparer); }
 
     @Override
+    @MaybeNull
     public T getItem(int index)
     {
         if (index < 0) {
@@ -190,7 +195,7 @@ public class SingleLinkedList<T>
     }
 
     @Override
-    public void setItem(int index, T value)
+    public void setItem(int index, @AllowNull T value)
     {
         if (index < 0) {
             throw new ArgumentOutOfRangeException("index", "The specified index was negative.");
@@ -223,7 +228,7 @@ public class SingleLinkedList<T>
     }
 
     @Override
-    public int IndexOf(T item)
+    public int IndexOf(@AllowNull T item)
     {
         int index = 0;
         NodeWithNextPointer<T> p = root;
@@ -237,7 +242,7 @@ public class SingleLinkedList<T>
     }
 
     @Override
-    public void Insert(int index, T item)
+    public void Insert(int index, @AllowNull T item)
     {
         if (index < 0) {
             throw new ArgumentOutOfRangeException("index", "The specified index was negative.");
@@ -336,9 +341,8 @@ public class SingleLinkedList<T>
         ArgumentNullException.ThrowIfNull(array, "array");
         if (arrayIndex < 0) {
             throw new ArgumentOutOfRangeException("arrayIndex", "Array index cannot be a negative value.");
-        } else if (arrayIndex + count > array.length) {
-            throw new ArgumentException("The array does not have enough space to place all the elements of the current SingleLinkedList object.", "array");
         } else {
+            CollectionHelpers.CheckCopyToArguments(arrayIndex, array.length, count);
             NodeWithNextPointer<T> p = root;
             for (int I = arrayIndex; p != null; p = p.Next) { array[I++] = p.Value; }
         }

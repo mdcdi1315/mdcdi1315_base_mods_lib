@@ -7,6 +7,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
  * Provides a default implementation of the {@link ITraversableRegister} interface. <br />
@@ -123,6 +124,7 @@ public class ArrayBasedRegister<T>
     private void RegisterUnchecked(@AllowNull T item) { elements[count++] = item; }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <TO> ArrayBasedRegister<TO> ConvertAll(Converter<T, TO> converter, IEqualityComparer<TO> comparer)
             throws ArgumentNullException
     {
@@ -167,15 +169,11 @@ public class ArrayBasedRegister<T>
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else {
-            int total = index + count;
-            if (total > this.count || total < 0) {
-                throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
-            } else {
-                ArrayBasedRegister<T> ret = new ArrayBasedRegister<>(count, comparer);
-                Array.Copy(elements, index, ret.elements, 0, count);
-                ret.count = count;
-                return ret;
-            }
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, this.count);
+            ArrayBasedRegister<T> ret = new ArrayBasedRegister<>(count, comparer);
+            System.arraycopy(elements, index, ret.elements, 0, count);
+            ret.count = count;
+            return ret;
         }
     }
 
@@ -197,7 +195,7 @@ public class ArrayBasedRegister<T>
             throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
         } else {
             ArrayBasedRegister<T> ret = new ArrayBasedRegister<>(count, comparer);
-            Array.Copy(elements, 0, ret.elements, 0, count);
+            System.arraycopy(elements, 0, ret.elements, 0, count);
             ret.count = count;
             return ret;
         }
@@ -213,27 +211,18 @@ public class ArrayBasedRegister<T>
         } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
             return new ArrayBasedRegister<>(comparer);
         } else {
-            IEnumerator<T> enumerator = GetEnumerator();
             ArrayBasedRegister<T> reg = new ArrayBasedRegister<>(count, comparer);
 
-            try {
+            try (IEnumerator<T> enumerator = GetEnumerator())
+            {
                 T item;
                 while (enumerator.MoveNext()) {
                     if (predicate.predicate(item = enumerator.getCurrent())) { reg.RegisterUnchecked(item); }
                 }
-            } finally {
-                enumerator.Dispose();
             }
 
             return reg;
         }
-    }
-
-    private record IndexOfPredicate<T>(IEqualityComparer<T> eqc, T item)
-            implements Predicate<Object>
-    {
-        @Override
-        public boolean predicate(Object obj) { return eqc.Equals((T)obj, item); }
     }
 
     private void RegisterRange_List(IList<T> list)
@@ -259,7 +248,7 @@ public class ArrayBasedRegister<T>
     public IEnumerator<T> GetEnumerator() { return ArrayEnumerator.ByBoundsCasted(elements, 0, count); }
 
     @Override
-    public int IndexOf(T item) { return Array.FindIndex(elements,0 , count, new IndexOfPredicate<>(comparer, item)); }
+    public int IndexOf(T item) { return CollectionHelpers.IndexOfArray(elements, 0, count, item, comparer); }
 
     @Override
     public void Register(T item)
@@ -282,25 +271,24 @@ public class ArrayBasedRegister<T>
             boolean has_fast_path = true;
             if (items instanceof ICollection<T> c) {
                 Grow(c.getCount());
-            } else if (items instanceof ITraversableCollection<T> c) {
+            } else if (items instanceof ICountableCollection<T> c) {
                 Grow(c.GetCount());
             } else {
                 has_fast_path = false;
             }
-            IEnumerator<T> enumerator = items.GetEnumerator();
-            try {
+            try (IEnumerator<T> enumerator = items.GetEnumerator())
+            {
                 if (has_fast_path) {
                     while (enumerator.MoveNext()) { RegisterUnchecked(enumerator.getCurrent()); }
                 } else {
                     while (enumerator.MoveNext()) { Register(enumerator.getCurrent()); }
                 }
-            } finally {
-                enumerator.Dispose();
             }
         }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T GetItem(int index)
             throws ArgumentOutOfRangeException
     {
@@ -346,26 +334,11 @@ public class ArrayBasedRegister<T>
     @Override
     public final String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("ArrayBasedRegister<?> (%d) { ", count));
-        switch (count)
-        {
-            case 0:
-                sb.append("<EMPTY>");
-                break;
-            case 1:
-                sb.append(elements[0]);
-                break;
-            default:
-                int bound = count - 1;
-                for (int I = 0; I < bound; I++) {
-                    sb.append(elements[I]);
-                    sb.append(", ");
-                }
-                sb.append(elements[bound]);
-                break;
-        }
-        sb.append(" }");
-        return sb.toString();
+        return StringUtils.Concat(
+                "ArrayBasedRegister<?> (",
+                CollectionHelpers.GetStringSafe(count),
+                ") ",
+                CollectionHelpers.PutArrayContentsToString(elements, 0, count)
+        );
     }
 }

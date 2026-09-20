@@ -73,12 +73,21 @@ public final class Extensions
      */
     public static final float HALF_PI = PI / 2f;
 
+    private static final float RAD_TO_DEG = 180f / PI;
+
+    private static final float DEG_TO_RAD = PI / 180f;
+
+    private static final double RAD_TO_DEG_DOUBLE = 180d / PI_DOUBLE;
+
+    private static final double DEG_TO_RAD_DOUBLE = PI_DOUBLE / 180d;
+
     /**
      * Produces a random {@link Direction} value, excluding the {@link Direction#UP} and {@link Direction#DOWN} constant values.
      * @param rs The {@link RandomSource} instance to produce the random direction from.
      * @return The produced random direction.
      */
     @Extension
+    @Deprecated(since = "1.0.38")
     public static Direction GetRandomDirectionExcludingUpDown(RandomSource rs)
     {
         Direction ret;
@@ -98,6 +107,7 @@ public final class Extensions
      * This is done to avoid the overhead that the validation methods do have.
      */
     @Extension
+    @Deprecated(since = "1.0.38")
     public static KeyValuePair<Direction , Direction> GetRandomDirectionPairNonUpDown(RandomSource rs)
     {
         return SelectRandomFromListUnsafe(List.of(
@@ -158,6 +168,7 @@ public final class Extensions
      * @return The interpolated value.
      */
     @Pure
+    @SuppressWarnings("SpellCheckingInspection")
     public static float Lerp(float delta, float start, float end)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
@@ -172,6 +183,7 @@ public final class Extensions
      * @return The interpolated value.
      */
     @Pure
+    @SuppressWarnings("SpellCheckingInspection")
     public static double Lerp(double delta, double start, double end)
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
@@ -388,7 +400,7 @@ public final class Extensions
      * @since 1.0.28
      */
     @Pure
-    public static float ToDegrees(float radians) { return radians * (180f / PI); }
+    public static float ToDegrees(float radians) { return radians * RAD_TO_DEG; }
 
     /**
      * From a radians value, it computes the equivalent value to degrees.
@@ -397,7 +409,7 @@ public final class Extensions
      * @since 1.0.28
      */
     @Pure
-    public static double ToDegrees(double radians) { return radians * (180d / PI_DOUBLE); }
+    public static double ToDegrees(double radians) { return radians * RAD_TO_DEG_DOUBLE; }
 
     /**
      * From a degrees value, it computes the equivalent value to radians.
@@ -406,7 +418,7 @@ public final class Extensions
      * @since 1.0.28
      */
     @Pure
-    public static float ToRadians(float degrees) { return degrees * (PI / 180f); }
+    public static float ToRadians(float degrees) { return degrees * DEG_TO_RAD; }
 
     /**
      * From a degrees value, it computes the equivalent value to radians.
@@ -415,7 +427,7 @@ public final class Extensions
      * @since 1.0.28
      */
     @Pure
-    public static double ToRadians(double degrees) { return degrees * (PI_DOUBLE / 180d); }
+    public static double ToRadians(double degrees) { return degrees * DEG_TO_RAD_DOUBLE; }
 
     /**
      * Computes the absolute value of {@code i}.
@@ -681,7 +693,7 @@ public final class Extensions
 
     /**
      * Computes the cube root of {@code value}.
-     * @param value The value to compute it's cube root.
+     * @param value The value to compute its cube root.
      * @return The cube root of {@code value}.
      * @since 1.0.21
      * @see Math#cbrt(double)
@@ -691,7 +703,7 @@ public final class Extensions
 
     /**
      * Computes the cube root of {@code value}.
-     * @param value The value to compute it's cube root.
+     * @param value The value to compute its cube root.
      * @return The cube root of {@code value}.
      * @since 1.0.21
      * @see Math#cbrt(double)
@@ -750,7 +762,10 @@ public final class Extensions
      * @return The random item.
      * @param <T> The type of the items to select from. An item of such type is returned.
      * @throws ArgumentNullException {@code elements} or {@code rs} were {@code null}.
+     * @deprecated This method forwards to {@link FunctionManipulations#ThenMap(Func2, Func2)} since 1.0.38.
+     *             There are no plans to remove this method, but newer consumers should use the mentioned method instead.
      */
+    @Deprecated(since = "1.0.38")
     public static <T> T SelectRandomFromList(List<T> elements, RandomSource rs)
             throws ArgumentNullException
     {
@@ -768,6 +783,7 @@ public final class Extensions
      * @return The random item, ensuring that is not the instance specified in {@code item_to_exclude}.
      * @param <T> The type of the items to select from. An item of such type is returned.
      */
+    @Deprecated(since = "1.0.38")
     public static <T> T SelectRandomFromListWithExclusion(List<T> list , @MaybeNull T item_to_exclude , RandomSource source)
         throws ArgumentNullException
     {
@@ -786,6 +802,7 @@ public final class Extensions
      * When you are unsure about the input arguments, use that method to validate them instead. <br />
      * Using this without ensuring that the objects passed to this method are valid, this call can cause unspecified issues.
      */
+    @Deprecated(since = "1.0.38")
     public static <T> T SelectRandomFromListUnsafe(List<T> elements, RandomSource rs) { return elements.get(RandomBetweenInclusiveUnsafe(rs, 0, elements.size() - 1)); }
 
     /**
@@ -801,6 +818,8 @@ public final class Extensions
      * When you are unsure about the input arguments, use that method to validate them instead. <br />
      * Using this without ensuring that the objects passed to this method are valid, this call can cause unspecified issues.
      */
+    @Deprecated(since = "1.0.38")
+    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
     public static <T> T SelectRandomFromListWithExclusionUnsafe(List<T> list , @MaybeNull T item_to_exclude , IEqualityComparer<T> comparer, RandomSource source)
     {
         T item;
@@ -825,6 +844,7 @@ public final class Extensions
      * @apiNote This method uses the {@link Object#equals(Object)} pattern to compare the objects.
      * Use {@link #SelectRandomFromListWithExclusionUnsafe(List, Object, IEqualityComparer, RandomSource)} if you want to control how comparison is done.
      */
+    @Deprecated(since = "1.0.38")
     public static <T> T SelectRandomFromListWithExclusionUnsafe(List<T> list , @MaybeNull T item_to_exclude , RandomSource source)
     {
         return SelectRandomFromListWithExclusionUnsafe(list, item_to_exclude, EqualityComparer.GetDefault(), source);
@@ -868,17 +888,16 @@ public final class Extensions
     {
         ArgumentNullException.ThrowIfNull(enumerable , "enumerable");
         var exceptions = new SingleLinkedList<com.github.mdcdi1315.DotNetLayer.System.Exception>();
-        var en = enumerable.GetEnumerator();
-        try {
-            while (en.MoveNext()) {
+        try (var en = enumerable.GetEnumerator())
+        {
+            while (en.MoveNext())
+            {
                 try {
                     en.getCurrent().Dispose();
                 } catch (com.github.mdcdi1315.DotNetLayer.System.Exception e) {
                     exceptions.Add(e);
                 }
             }
-        } finally {
-            en.Dispose();
         }
         if (exceptions.getCount() > 0) {
             throw new AggregateException("One or more elements failed to be disposed of.", exceptions);
@@ -899,13 +918,11 @@ public final class Extensions
     {
         ArgumentNullException.ThrowIfNull(action, "action");
         ArgumentNullException.ThrowIfNull(enumerable , "enumerable");
-        var en = enumerable.GetEnumerator();
-        try {
+        try (var en = enumerable.GetEnumerator())
+        {
             while (en.MoveNext()) { action.action(en.getCurrent()); }
         } catch (com.github.mdcdi1315.DotNetLayer.System.Exception e) {
             throw new AggregateException("An exception was occurred while iterating an enumerable.", e);
-        } finally {
-            en.Dispose();
         }
     }
 
@@ -950,17 +967,16 @@ public final class Extensions
         ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
         if (FunctionManipulations.IsAlwaysFalse(predicate)) { return; }
         else if (FunctionManipulations.IsAlwaysTrue(predicate)) { ForEachInEnumerable(enumerable, action); return; }
-        var en = enumerable.GetEnumerator();
-        try {
+        try (var en = enumerable.GetEnumerator())
+        {
             T current;
-            while (en.MoveNext()) {
+            while (en.MoveNext())
+            {
                 current = en.getCurrent();
                 if (predicate.predicate(current)) { action.action(current); }
             }
         } catch (com.github.mdcdi1315.DotNetLayer.System.Exception e) {
             throw new AggregateException("An exception was occurred while iterating an enumerable.", e);
-        } finally {
-            en.Dispose();
         }
     }
 
@@ -1002,8 +1018,12 @@ public final class Extensions
      * @param max_inclusive The maximum inclusive bound of the returned value.
      * @return A random integer value between {@code min_inclusive} and {@code max_inclusive} values.
      * @throws ArgumentNullException {@code rs} is {@code null}.
+     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextIntInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, int, int)} if possible.
+     *             Because this is a breaking change, this will not be removed for the
+     *             current versions of the library, but it won't make it to the 26.1 version of the library.
      */
-    public static int RandomBetweenInclusive(RandomSource rs , int min_inclusive , int max_inclusive)
+    @Deprecated(since = "1.0.38")
+    public static int RandomBetweenInclusive(RandomSource rs, int min_inclusive, int max_inclusive)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(rs , "rs");
@@ -1016,7 +1036,11 @@ public final class Extensions
      * @param min_inclusive The minimum inclusive bound of the returned value.
      * @param max_inclusive The maximum inclusive bound of the returned value.
      * @return A random integer value between {@code min_inclusive} and {@code max_inclusive} values.
+     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextIntInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, int, int)} if possible.
+     *             Because this is a breaking change, this will not be removed for the
+     *             current versions of the library, but it won't make it to the 26.1 version of the library.
      */
+    @Deprecated(since = "1.0.38")
     public static int RandomBetweenInclusiveUnsafe(RandomSource rs, int min_inclusive, int max_inclusive) { return rs.nextInt(max_inclusive - min_inclusive + 1) + min_inclusive; }
 
     /**
@@ -1027,7 +1051,11 @@ public final class Extensions
      * @param max_exclusive The maximum exclusive bound of the returned value.
      * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
      * @throws ArgumentNullException {@code rs} is {@code null}.
+     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextFloatInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, float, float)} if possible.
+     *             Because this is a breaking change, this will not be removed for the
+     *             current versions of the library, but it won't make it to the 26.1 version of the library.
      */
+    @Deprecated(since = "1.0.38")
     public static float RandomBetween(RandomSource rs, float min_inclusive, float max_exclusive)
         throws ArgumentNullException
     {
@@ -1043,7 +1071,11 @@ public final class Extensions
      * @param max_exclusive The maximum exclusive bound of the returned value.
      * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
      * @throws ArgumentNullException {@code rs} is {@code null}.
+     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextDoubleInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, double, double)} if possible.
+     *             Because this is a breaking change, this will not be removed for the
+     *             current versions of the library, but it won't make it to the 26.1 version of the library.
      */
+    @Deprecated(since = "1.0.38")
     public static double RandomBetween(RandomSource rs, double min_inclusive, double max_exclusive)
             throws ArgumentNullException
     {
@@ -1058,7 +1090,11 @@ public final class Extensions
      * @param min_inclusive The minimum inclusive bound of the returned value.
      * @param max_exclusive The maximum exclusive bound of the returned value.
      * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
+     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextFloatInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, float, float)} if possible.
+     *             Because this is a breaking change, this will not be removed for the
+     *             current versions of the library, but it won't make it to the 26.1 version of the library.
      */
+    @Deprecated(since = "1.0.38")
     public static float RandomBetweenUnsafe(RandomSource random, float min_inclusive, float max_exclusive) { return Lerp(random.nextFloat(), min_inclusive, max_exclusive); }
 
     /**
@@ -1068,21 +1104,27 @@ public final class Extensions
      * @param min_inclusive The minimum inclusive bound of the returned value.
      * @param max_exclusive The maximum exclusive bound of the returned value.
      * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
+     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextDoubleInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, double, double)} if possible.
+     *             Because this is a breaking change, this will not be removed for the
+     *             current versions of the library, but it won't make it to the 26.1 version of the library.
      */
+    @Deprecated(since = "1.0.38")
     public static double RandomBetweenUnsafe(RandomSource random, double min_inclusive, double max_exclusive) { return Lerp(random.nextDouble(), min_inclusive, max_exclusive); }
 
     /**
      * Initializes appropriately the given random number generator.
      * @param random The random source to initialize.
      * @throws ArgumentNullException {@code random} was {@code null}.
+     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#InitializeSource(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource)} if possible.
+     *             Because this is a breaking change, this will not be removed for the
+     *             current versions of the library, but it won't make it to the 26.1 version of the library.
      */
+    @Deprecated(since = "1.0.38")
     public static void InitializeRandomSource(RandomSource random)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(random);
-        for (byte I = 0; I < 10; I++) {
-            random.nextInt();
-        }
+        for (byte I = 0; I < 10; I++) { random.nextInt(); }
     }
 
     /**
@@ -1121,6 +1163,7 @@ public final class Extensions
      * @since 1.0.19
      */
     @Pure
+    @SuppressWarnings("unchecked")
     public static <TR> TR TypeCast(Object o) { try { return (TR) o; } catch (ClassCastException e) { return null; } }
 
     /**
@@ -1142,7 +1185,7 @@ public final class Extensions
      * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
      */
     @Pure
-    public static double Clamp(double value , double minimum , double maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
+    public static double Clamp(double value, double minimum, double maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
     /**
      * Clamps a value to the range specified by the {@code minimum} and {@code maximum} parameters.
@@ -1153,7 +1196,7 @@ public final class Extensions
      * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
      */
     @Pure
-    public static float Clamp(float value , float minimum , float maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
+    public static float Clamp(float value, float minimum, float maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
     /**
      * Clamps a value to the range specified by the {@code minimum} and {@code maximum} parameters.
@@ -1176,7 +1219,7 @@ public final class Extensions
      * Or, if {@code value} is greater than {@code maximum}, the value of {@code maximum}.
      */
     @Pure
-    public static int Clamp(int value , int minimum , int maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
+    public static int Clamp(int value, int minimum, int maximum) { return value < minimum ? minimum : Math.min(value, maximum); }
 
     /**
      * Normalizes the specified value to the range [0..1].
@@ -1258,62 +1301,62 @@ public final class Extensions
     /**
      * Linearly maps a number from the specified input range to the specified output range.
      * @param input The value to map.
-     * @param inputlowerbound The lower bound of acceptable values for the {@code input} parameter.
-     * @param inputupperbound The upper bound of acceptable values for the {@code input} parameter.
-     * @param outputlowerbound The lower bound of acceptable values for the return value.
-     * @param outputupperbound The upper bound of acceptable values for the return value.
-     * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}].
+     * @param input_lower_bound The lower bound of acceptable values for the {@code input} parameter.
+     * @param input_upper_bound The upper bound of acceptable values for the {@code input} parameter.
+     * @param output_lower_bound The lower bound of acceptable values for the return value.
+     * @param output_upper_bound The upper bound of acceptable values for the return value.
+     * @return The value of {@code input} parameter, linearly mapped to [{@code output_lower_bound}..{@code output_upper_bound}].
      * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
     @Pure
-    public static double MapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)
+    public static double MapToRange(double input, double input_lower_bound, double input_upper_bound, double output_lower_bound, double output_upper_bound)
     {
-        return Lerp(ToNormalRange(input, inputlowerbound, inputupperbound), outputlowerbound, outputupperbound);
+        return Lerp(ToNormalRange(input, input_lower_bound, input_upper_bound), output_lower_bound, output_upper_bound);
     }
 
     /**
      * Linearly maps a number from the specified input range to the specified output range.
      * @param input The value to map.
-     * @param inputlowerbound The lower bound of acceptable values for the {@code input} parameter.
-     * @param inputupperbound The upper bound of acceptable values for the {@code input} parameter.
-     * @param outputlowerbound The lower bound of acceptable values for the return value.
-     * @param outputupperbound The upper bound of acceptable values for the return value.
-     * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}].
+     * @param input_lower_bound The lower bound of acceptable values for the {@code input} parameter.
+     * @param input_upper_bound The upper bound of acceptable values for the {@code input} parameter.
+     * @param output_lower_bound The lower bound of acceptable values for the return value.
+     * @param output_upper_bound The upper bound of acceptable values for the return value.
+     * @return The value of {@code input} parameter, linearly mapped to [{@code output_lower_bound}..{@code output_upper_bound}].
      * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
     @Pure
-    public static float MapToRange(float input, float inputlowerbound, float inputupperbound, float outputlowerbound, float outputupperbound)
+    public static float MapToRange(float input, float input_lower_bound, float input_upper_bound, float output_lower_bound, float output_upper_bound)
     {
-        return Lerp(ToNormalRange(input, inputlowerbound, inputupperbound), outputlowerbound, outputupperbound);
+        return Lerp(ToNormalRange(input, input_lower_bound, input_upper_bound), output_lower_bound, output_upper_bound);
     }
 
     /**
      * Linearly maps a number from the specified input range to the specified output range. <br />
      * The {@code input} is clamped and restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range.
      * @param input The value to map.
-     * @param inputlowerbound The lower bound of acceptable values for the {@code input} parameter.
-     * @param inputupperbound The upper bound of acceptable values for the {@code input} parameter.
-     * @param outputlowerbound The lower bound of acceptable values for the return value.
-     * @param outputupperbound The upper bound of acceptable values for the return value.
-     * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}]. <br />
-     *         The {@code input} of this method is restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range before mapping it.
+     * @param input_lower_bound The lower bound of acceptable values for the {@code input} parameter.
+     * @param input_upper_bound The upper bound of acceptable values for the {@code input} parameter.
+     * @param output_lower_bound The lower bound of acceptable values for the return value.
+     * @param output_upper_bound The upper bound of acceptable values for the return value.
+     * @return The value of {@code input} parameter, linearly mapped to [{@code output_lower_bound}..{@code outputupperbound}]. <br />
+     *         The {@code input} of this method is restricted to the [{@code input_lower_bound}..{@code input_upper_bound}] range before mapping it.
      * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
     @Pure
-    public static double ClampedMapToRange(double input, double inputlowerbound, double inputupperbound, double outputlowerbound, double outputupperbound)
+    public static double ClampedMapToRange(double input, double input_lower_bound, double input_upper_bound, double output_lower_bound, double output_upper_bound)
     {
         return Lerp(
                 ToNormalRange(
                         Clamp(
                                 input,
-                                inputlowerbound,
-                                inputupperbound
+                                input_lower_bound,
+                                input_upper_bound
                         ),
-                        inputlowerbound,
-                        inputupperbound
+                        input_lower_bound,
+                        input_upper_bound
                 ),
-                outputlowerbound,
-                outputupperbound
+                output_lower_bound,
+                output_upper_bound
         );
     }
 
@@ -1321,29 +1364,29 @@ public final class Extensions
      * Linearly maps a number from the specified input range to the specified output range. <br />
      * The {@code input} is clamped and restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range.
      * @param input The value to map.
-     * @param inputlowerbound The lower bound of acceptable values for the {@code input} parameter.
-     * @param inputupperbound The upper bound of acceptable values for the {@code input} parameter.
-     * @param outputlowerbound The lower bound of acceptable values for the return value.
-     * @param outputupperbound The upper bound of acceptable values for the return value.
-     * @return The value of {@code input} parameter, linearly mapped to [{@code outputlowerbound}..{@code outputupperbound}]. <br />
-     *         The {@code input} of this method is restricted to the [{@code inputlowerbound}..{@code inputupperbound}] range before mapping it.
+     * @param input_lower_bound The lower bound of acceptable values for the {@code input} parameter.
+     * @param input_upper_bound The upper bound of acceptable values for the {@code input} parameter.
+     * @param output_lower_bound The lower bound of acceptable values for the return value.
+     * @param output_upper_bound The upper bound of acceptable values for the return value.
+     * @return The value of {@code input} parameter, linearly mapped to [{@code output_lower_bound}..{@code output_upper_bound}]. <br />
+     *         The {@code input} of this method is restricted to the [{@code input_lower_bound}..{@code input_upper_bound}] range before mapping it.
      * @implNote From 1.0.21, this method has been further optimized and reliably handles negative to positive ranges.
      */
     @Pure
-    public static float ClampedMapToRange(float input, float inputlowerbound, float inputupperbound, float outputlowerbound, float outputupperbound)
+    public static float ClampedMapToRange(float input, float input_lower_bound, float input_upper_bound, float output_lower_bound, float output_upper_bound)
     {
         return Lerp(
                 ToNormalRange(
                         Clamp(
                                 input,
-                                inputlowerbound,
-                                inputupperbound
+                                input_lower_bound,
+                                input_upper_bound
                         ),
-                        inputlowerbound,
-                        inputupperbound
+                        input_lower_bound,
+                        input_upper_bound
                 ),
-                outputlowerbound,
-                outputupperbound
+                output_lower_bound,
+                output_upper_bound
         );
     }
 

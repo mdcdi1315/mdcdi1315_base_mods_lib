@@ -18,22 +18,22 @@ public final class WrappedJavaQueueFromIQueue<T>
     public boolean isEmpty() { return queue.TryPeek() == null; }
 
     @Override
-    public boolean contains(Object o) { return CollectionBridgingHelpers.Contains(queue, o); }
+    public boolean contains(Object o) { return CollectionHelpers.Contains(queue, o); }
 
     @Override
     public Iterator<T> iterator() { return new DisposableIteratorImplFromEnumerator<>(queue.GetEnumerator()); }
 
     @Override
-    public Object[] toArray() { return CollectionBridgingHelpers.ToArray(queue, ITraversableQueue::GetCount); }
+    public Object[] toArray() { return CollectionHelpers.ToArray(queue, ITraversableQueue::GetCount); }
 
     @Override
-    public <T1> T1[] toArray(T1[] a) { return CollectionBridgingHelpers.ToArray(queue, ITraversableQueue::GetCount, a); }
+    public <T1> T1[] toArray(T1[] a) { return CollectionHelpers.ToArray(queue, ITraversableQueue::GetCount, a); }
 
     @Override
     public boolean remove(Object o) { throw new UnsupportedOperationException("Cannot remove from a ITraversableQueue"); }
 
     @Override
-    public boolean addAll(Collection<? extends T> c) { return CollectionBridgingHelpers.AddAll(queue, c, queue::Enqueue); }
+    public boolean addAll(Collection<? extends T> c) { return CollectionHelpers.AddAll(queue, c, queue::Enqueue); }
 
     @Override
     public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException("Cannot remove from a ITraversableQueue"); }
@@ -42,7 +42,7 @@ public final class WrappedJavaQueueFromIQueue<T>
     public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException("Cannot remove from a ITraversableQueue"); }
 
     @Override
-    public boolean containsAll(Collection<?> c) { return CollectionBridgingHelpers.ContainsAll(queue, c); }
+    public boolean containsAll(Collection<?> c) { return CollectionHelpers.ContainsAll(queue, c); }
 
     @Override
     public void clear() { queue.Clear(); }

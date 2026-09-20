@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
  * Provides an enumerator implementation for returning array elements in the reverse order <br />
@@ -269,9 +270,8 @@ public abstract class ReversedArrayEnumerator<T>
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if ((index + count) > array.length) {
-            throw new ArgumentException("Specified index and count parameters are out of the given array bounds.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, array.length);
             return new BoundedReversedArrayEnumerator<>(array, index, count);
         }
     }
@@ -298,9 +298,8 @@ public abstract class ReversedArrayEnumerator<T>
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if ((index + count) > array.length) {
-            throw new ArgumentException("Specified index and count parameters are out of the given array bounds.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, array.length);
             return new CastedBoundedReversedArrayEnumerator<>(array, index, count);
         }
     }
@@ -325,9 +324,8 @@ public abstract class ReversedArrayEnumerator<T>
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if ((index + count) > array.length) {
-            throw new ArgumentException("Specified index and count parameters are out of the given array bounds.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, array.length);
             return new BoundedReversedArrayEnumeratorThreadSafe<>(array, index, count);
         }
     }
@@ -354,9 +352,8 @@ public abstract class ReversedArrayEnumerator<T>
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if ((index + count) > array.length) {
-            throw new ArgumentException("Specified index and count parameters are out of the given array bounds.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, array.length);
             return new CastedBoundedReversedArrayEnumeratorThreadSafe<>(array, index, count);
         }
     }

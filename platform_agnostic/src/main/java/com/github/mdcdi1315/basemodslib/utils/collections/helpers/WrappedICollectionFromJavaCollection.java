@@ -1,6 +1,5 @@
 package com.github.mdcdi1315.basemodslib.utils.collections.helpers;
 
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 import com.github.mdcdi1315.DotNetLayer.System.NotSupportedException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
@@ -56,9 +55,8 @@ public class WrappedICollectionFromJavaCollection<T, TC extends java.util.Collec
         ArgumentNullException.ThrowIfNull(array, "array");
         if (arrayIndex < 0) {
             throw new ArgumentOutOfRangeException("arrayIndex", "Array index cannot be a negative value.");
-        } else if (arrayIndex + collection.size() > array.length) {
-            throw new ArgumentException("The array does not have enough space to place all the elements of the current SingleLinkedList object.", "array");
         } else {
+            CollectionHelpers.CheckCopyToArguments(arrayIndex, array.length, collection.size());
             for (T item : collection) { array[arrayIndex++] = item; }
         }
     }

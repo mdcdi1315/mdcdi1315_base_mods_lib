@@ -68,7 +68,7 @@ tasks.register('curseforge', TaskPublishCurseForge) {
     def mainFile = upload(curseforge_project_id, project.layout.buildDirectory.file("libs/${base.archivesName.get()}-${version}.jar").get().getAsFile())
     mainFile.changelog = rootProject.file('CHANGELOG.md').text
     project.minecraft_versions.split(',').toList().each { mainFile.addGameVersion(it) }
-    mainFile.releaseType = curseforge_release_type
+    mainFile.releaseType = rootProject.ConstructCurseForgeReleaseTypeString(release_cycle)
     mainFile.addModLoader("NeoForge");
     mainFile.addEnvironment("Client", "Server");
 }
@@ -76,7 +76,7 @@ tasks.register('curseforge', TaskPublishCurseForge) {
 modrinth {
     token = project.findProperty("modrinth.token") ?: System.getenv("MODRINTH_TOKEN") ?: "none"
     projectId = project.modrinth_project_id
-    versionType = project.modrinth_release_type
+    versionType = rootProject.ConstructModrinthReleaseTypeString(release_cycle)
     versionNumber = project.version + "+neoforge-" + project.minecraft_version
     uploadFile = jar
     changelog = rootProject.file("CHANGELOG.md").text

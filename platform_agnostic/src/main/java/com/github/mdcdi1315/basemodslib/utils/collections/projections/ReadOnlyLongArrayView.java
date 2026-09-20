@@ -1,15 +1,13 @@
 package com.github.mdcdi1315.basemodslib.utils.collections.projections;
 
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
-import com.github.mdcdi1315.DotNetLayer.System.IndexOutOfRangeException;
-import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
+import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.utils.collections.ISupportsCloning;
 import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
  * Provides a read-only view of a {@code int} array as an {@link ILongEnumerable} instance. <br />
@@ -57,11 +55,10 @@ public final class ReadOnlyLongArrayView
             throw new ArgumentOutOfRangeException("offset", "Offset cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if ((this.bound = offset + count) > array.length) {
-            throw new ArgumentException("Specified offset and count parameters are out of the given array bounds.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(offset, count, array.length);
             this.array = array;
-            this.start = offset;
+            this.bound = (this.start = offset) + count;
         }
     }
 
@@ -95,25 +92,6 @@ public final class ReadOnlyLongArrayView
         }
     }
 
-    @NotNull
-    @Override
-    public String toString()
-    {
-        int len = GetCount();
-
-        StringBuilder sb = new StringBuilder("ReadOnlyShortArrayView (")
-                .append(len)
-                .append(") { ");
-
-        for (int I = 0; I < len; I++)
-        {
-            sb.append(array[start + I]);
-            if ((I + 1) < len) { sb.append(", "); }
-        }
-
-        return sb.append(" }").toString();
-    }
-
     @Pure
     @Override
     public int GetCount() { return bound - start; }
@@ -131,7 +109,7 @@ public final class ReadOnlyLongArrayView
     @Pure
     @NotNull
     @Override
-    public LongArrayEnumerator GetEnumerator() { return new LongArrayEnumerator(this.array, start, bound - start); }
+    public LongArrayEnumerator GetEnumerator() { return new LongArrayEnumerator(this.array, start, GetCount()); }
 
     @NotNull
     @Override
@@ -140,4 +118,18 @@ public final class ReadOnlyLongArrayView
     @NotNull
     @Override
     public ReadOnlyLongArrayView Slice(int index, int count) throws ArgumentException { return new ReadOnlyLongArrayView(array, start + index, count); }
+
+    @NotNull
+    @Override
+    public String toString()
+    {
+        int len = GetCount();
+
+        return StringUtils.Concat(
+                "ReadOnlyLongArrayView (",
+                CollectionHelpers.GetStringSafe(len),
+                ") ",
+                CollectionHelpers.PutArrayContentsToString(array, start, len)
+        );
+    }
 }

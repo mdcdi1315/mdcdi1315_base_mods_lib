@@ -152,6 +152,23 @@ public final class CollectionManipulations
     }
 
     /**
+     * Efficiently converts a <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/doc-files/coll-index.html">Java Collections Framework</a>
+     * {@link java.util.Map} instance to an {@link IDictionary} instance.
+     * @param map The Java map collection instance to be converted.
+     * @return The converted instance represented as an {@link IDictionary} instance.
+     * @param <TKey>> The type of the keys of {@code map}.
+     * @param <TValue> The type of the values of {@code map}.
+     * @throws ArgumentNullException {@code map} is {@code null}.
+     * @since 1.0.38
+     */
+    @NotNull
+    public static <TKey, TValue> IDictionary<TKey, TValue> AsDictionary(java.util.Map<TKey, TValue> map)
+    {
+        ArgumentNullException.ThrowIfNull(map, "map");
+        return new WrappedIDictionaryFromJavaMap<>(map);
+    }
+
+    /**
      * Translates a given {@link KeyValuePair} instance to a read-only {@link java.util.Map.Entry} instance.
      * @param pair The {@link KeyValuePair} to translate.
      * @return The translated {@link java.util.Map.Entry} value of {@code pair}.
@@ -287,6 +304,7 @@ public final class CollectionManipulations
      */
     @NotNull
     @SafeVarargs
+    @SuppressWarnings("SpellCheckingInspection")
     public static <T> IEnumerable<T> Concat(IEnumerable<? extends T>... enumerables)
             throws ArgumentNullException
     {
@@ -354,6 +372,7 @@ public final class CollectionManipulations
      * @throws ArgumentNullException {@code enumerable} is {@code null}.
      */
     @NotNull
+    @SuppressWarnings("GrazieInspection")
     public static <T> IterableWithDisposableIterator<T> ToIterable(IEnumerable<T> enumerable)
             throws ArgumentNullException
     {
@@ -399,7 +418,7 @@ public final class CollectionManipulations
         if (!IsEmptyUnsafe(enumerable))
         {
             if (list_inst instanceof IArrayBasedCollection ac &&
-                    enumerable instanceof ITraversableCollection<T> t)
+                    enumerable instanceof ICountableCollection<T> t)
             {
                 ac.EnsureCapacity(t.GetCount());
             }
@@ -432,7 +451,7 @@ public final class CollectionManipulations
     {
         if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if (((long)start + count - 1L) > Integer.MAX_VALUE) {
+        } else if (((long)start + count) > Integer.MAX_VALUE) {
             throw new ArgumentOutOfRangeException("count", "count + start - 1 is larger than 2147483647.");
         } else {
             return new RangeEnumerable(start, count);
@@ -454,7 +473,7 @@ public final class CollectionManipulations
         if (count < 0L) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else if (start + count < 0L) {
-            throw new ArgumentOutOfRangeException("count", "count + start - 1 is larger than 2147483647.");
+            throw new ArgumentOutOfRangeException("count", "count + start - 1 is larger than 9223372036854775807.");
         } else {
             return new LongRangeEnumerable(start, count);
         }
@@ -508,12 +527,16 @@ public final class CollectionManipulations
         return !IsEmptyUnsafe(enumerable);
     }
 
-    @SuppressWarnings({"IfCanBeSwitch", "resource"})
+    @SuppressWarnings({
+            "IfCanBeSwitch",
+            "resource",
+            "SpellCheckingInspection"
+    })
     private static <T> boolean IsEmptyUnsafe(IEnumerable<T> enumerable)
     {
         if (enumerable instanceof IEmptyEnumerable) {
             return true;
-        } else if (enumerable instanceof ITraversableCollection<T> t) {
+        } else if (enumerable instanceof ICountableCollection<T> t) {
             return t.GetCount() == 0;
         } else if (enumerable instanceof ICollection<T> c) {
             return c.getCount() == 0;
@@ -623,6 +646,35 @@ public final class CollectionManipulations
             while (enumerator.MoveNext())
             {
                 action.action(enumerator.getCurrent());
+            }
+        }
+    }
+
+    /**
+     * Executes an action to all the {@link IEnumerable} elements that pass the predicate
+     * provided in {@code predicate}.
+     * @param enumerable The {@link IEnumerable} that contains the elements to execute the action to.
+     * @param predicate The predicate to execute for each element in the enumerable.
+     * @param action The {@link Action1} to execute, for the elements that pass the {@code predicate}.
+     * @param <T> The type of the elements of {@code enumerable}.
+     * @throws ArgumentNullException {@code enumerable} and/or {@code action} and/or {@code predicate} are {@code null}.
+     * @since 1.0.38
+     */
+    public static <T> void ForEachFiltered(IEnumerable<T> enumerable, Predicate<? super T> predicate, Action1<T> action)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(action, "action");
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
+        ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
+        if (IsEmptyUnsafe(enumerable) || FunctionManipulations.IsAlwaysFalse(predicate)) { return; }
+        else if (FunctionManipulations.IsAlwaysTrue(predicate)) { ForEach(enumerable, action); return; }
+        try (IEnumerator<T> enumerator = enumerable.GetEnumerator())
+        {
+            T current;
+            while (enumerator.MoveNext())
+            {
+                current = enumerator.getCurrent();
+                if (predicate.predicate(current)) { action.action(current); }
             }
         }
     }
@@ -796,11 +848,10 @@ public final class CollectionManipulations
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else if (count == 0) {
             return new TraversableCollectionSlice.Empty<>();
-        } else if (collection instanceof ISupportsSlicing<?> s) {
+        } else if ((IEnumerable<T>)collection instanceof ISupportsSlicing<T> s) {
             return (ITraversableCollection<T>) s.Slice(index, count);
-        } else if (((long)index + count - 1L) >= collection.GetCount()) {
-            throw new ArgumentException("The specified combination of the index and count parameters are outside of the collections's bounds.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, collection.GetCount());
             return new TraversableCollectionSlice<>(collection, index, count);
         }
     }
@@ -1013,9 +1064,8 @@ public final class CollectionManipulations
             throw new ArgumentOutOfRangeException("index", "Index cannot be less than 0.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be less than 0.");
-        } else if (Math.addExact(index, count) > list.getCount()) {
-            throw new ArgumentException("Index and Count parameter values are exceeding the bounds of the list.");
         } else {
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, list.getCount());
             QuickSort.Algorithm(
                     list,
                     index,
@@ -1046,6 +1096,29 @@ public final class CollectionManipulations
     {
         ArgumentNullException.ThrowIfNull(list, "list");
         QuickSort.Algorithm(
+                list,
+                SortOrdering.ConstructFromOrderAndComparer(order, comparer)
+        );
+    }
+
+    /**
+     * Sorts the given list.
+     * The list is sorted directly.
+     * @param list The list to sort its elements.
+     * @param order The sorting order to apply for this sort operation.
+     * @param comparer The {@link IComparer} instance that is able to compare the values and deduce a sort result.
+     * @param <T> The type of objects to be sorted.
+     * @throws ArgumentNullException {@code list} and/or {@code order} and/or {@code comparer} are {@code null}.
+     * @since 1.0.38
+     */
+    public static <T> void HeapSort(
+            IList<T> list,
+            SortingOrder order,
+            IComparer<? super T> comparer
+    ) throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(list, "list");
+        HeapSort.Algorithm(
                 list,
                 SortOrdering.ConstructFromOrderAndComparer(order, comparer)
         );

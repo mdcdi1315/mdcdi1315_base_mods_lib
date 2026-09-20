@@ -10,6 +10,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
+import com.github.mdcdi1315.basemodslib.utils.collections.helpers.CollectionHelpers;
 
 /**
  * An {@link ITraversableStack} implementation by using an array as the backing storage.
@@ -20,7 +21,7 @@ public class ArrayBasedStack<T>
     extends BaseEnumerable<T>
     implements ITraversableStack<T>,
         IArrayBasedCollection,
-        ICloneable
+        ICloneableEnumerable<T>
 {
     private int count;
     private Object[] elements;
@@ -241,7 +242,7 @@ public class ArrayBasedStack<T>
             elements = new Object[0];
         } else if (count != elements.length) {
             Object[] copy = new Object[count];
-            Array.Copy(elements, 0, copy, 0, count);
+            System.arraycopy(elements, 0, copy, 0, count);
             elements = copy;
         }
     }
@@ -267,7 +268,7 @@ public class ArrayBasedStack<T>
         } else {
             if (items instanceof ICollection<T> c) {
                 EnlargeArray(c.getCount());
-            } else if (items instanceof ITraversableCollection<T> t) {
+            } else if (items instanceof ICountableCollection<T> t) {
                 EnlargeArray(t.GetCount());
             }
             try (IEnumerator<T> enumerator = items.GetEnumerator())
@@ -331,26 +332,11 @@ public class ArrayBasedStack<T>
     @Override
     public final String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("ArrayBasedStack<?> (%d) { ", count));
-        switch (count)
-        {
-            case 0:
-                sb.append("<EMPTY>");
-                break;
-            case 1:
-                sb.append(elements[0]);
-                break;
-            default:
-                int bound = count - 1;
-                for (int I = 0; I < bound; I++) {
-                    sb.append(elements[I]);
-                    sb.append(", ");
-                }
-                sb.append(elements[bound]);
-                break;
-        }
-        sb.append(" }");
-        return sb.toString();
+        return StringUtils.Concat(
+                "ArrayBasedStack<?> (",
+                CollectionHelpers.GetStringSafe(count),
+                ") ",
+                CollectionHelpers.PutArrayContentsToString(elements, 0, count)
+        );
     }
 }

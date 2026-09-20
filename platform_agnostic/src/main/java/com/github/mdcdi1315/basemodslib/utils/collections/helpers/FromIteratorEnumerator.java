@@ -4,6 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.collections.DisposableIterator;
 
 import java.util.Iterator;
 
@@ -32,5 +33,12 @@ public final class FromIteratorEnumerator<T>
         boolean result = iterator.hasNext();
         if (result) { element = iterator.next(); }
         return result;
+    }
+
+    @Override
+    public void Dispose()
+    {
+        super.Dispose();
+        if (iterator instanceof DisposableIterator<T> di) { di.close(); }
     }
 }

@@ -27,9 +27,11 @@ public interface CharPredicate
     default boolean predicate(Character obj) { return predicate(obj.charValue()); }
 
     @Override
+    @SuppressWarnings("NullableProblems")
     default java.util.function.Predicate<Character> or(java.util.function.Predicate<? super Character> other) { return new CompatibleOrPredicateImpl<>(this, other); }
 
     @Override
+    @SuppressWarnings("NullableProblems")
     default java.util.function.Predicate<Character> and(java.util.function.Predicate<? super Character> other) { return new CompatibleAndPredicateImpl<>(this, other); }
 
     /**
@@ -40,7 +42,7 @@ public interface CharPredicate
      * @throws ArgumentNullException {@code predicate} is {@code null}.
      */
     @NotNull
-    public static Predicate<CharSequence> TrueForAll(CharPredicate predicate)
+    static Predicate<CharSequence> TrueForAll(CharPredicate predicate)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(predicate, "predicate");
@@ -54,13 +56,38 @@ public interface CharPredicate
     }
 
     /**
+     * From a given {@link CharPredicate}, it builds a {@link Predicate} of type {@link CharSequence}
+     * that can check whether any character in the {@link CharSequence} do pass the given {@code predicate}.
+     * @param predicate The {@link Predicate} of a single character to build the {@link CharSequence} predicate from.
+     * @return The built {@link CharSequence} predicate.
+     * @throws ArgumentNullException {@code predicate} is {@code null}.
+     * @since 1.0.38
+     */
+    @NotNull
+    static Predicate<CharSequence> AnyMatches(CharPredicate predicate)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(predicate, "predicate");
+        // Note: While we could return an always-true predicate
+        // for an always-true char predicate, it should not match
+        // against zero-length char sequences (because the predicate was not used), so we must use the implementation.
+        // However, an always-false predicate does not alter the semantics
+        // of the return value of the predicate, so we can use the optimization.
+        if (predicate instanceof CharAlwaysFalsePredicate) {
+            return FunctionManipulations.AlwaysFalse();
+        } else {
+            return new CharSeq_MatchAny_CharPredicate(predicate);
+        }
+    }
+
+    /**
      * Returns a {@link CharPredicate} that does return {@code true}, regardlessly of the input value.
      * @return A new {@link CharPredicate} that does always return {@code true}.
      * @apiNote The returned value has the same semantics, properties and guarantees as the {@link FunctionManipulations#AlwaysTrue()} method return value. <br />
      *          Additionally, the {@link FunctionManipulations#IsAlwaysTrue(java.util.function.Predicate)} method can be normally used for this return value.
      */
     @NotNull
-    public static CharPredicate AlwaysTrue() { return new CharAlwaysTruePredicate(); }
+    static CharPredicate AlwaysTrue() { return new CharAlwaysTruePredicate(); }
 
     /**
      * Returns a {@link CharPredicate} that does return {@code false}, regardlessly of the input value.
@@ -69,5 +96,5 @@ public interface CharPredicate
      *          Additionally, the {@link FunctionManipulations#IsAlwaysFalse(java.util.function.Predicate)} method can be normally used for this return value.
      */
     @NotNull
-    public static CharPredicate AlwaysFalse() { return new CharAlwaysFalsePredicate(); }
+    static CharPredicate AlwaysFalse() { return new CharAlwaysFalsePredicate(); }
 }

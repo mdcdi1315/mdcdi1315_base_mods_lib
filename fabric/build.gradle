@@ -83,7 +83,7 @@ task curseforge(type: TaskPublishCurseForge) {
     mainFile.changelog = rootProject.file('CHANGELOG.md').text
     mainFile.addRequirement("fabric-api");
     project.minecraft_versions.split(',').toList().each { mainFile.addGameVersion(it) }
-    mainFile.releaseType = curseforge_release_type
+    mainFile.releaseType = rootProject.ConstructCurseForgeReleaseTypeString(release_cycle)
     mainFile.addModLoader("Fabric");
     mainFile.addEnvironment("Client", "Server");
 }
@@ -91,7 +91,7 @@ task curseforge(type: TaskPublishCurseForge) {
 modrinth {
     token = project.findProperty("modrinth.token") ?: System.getenv("MODRINTH_TOKEN") ?: "none"
     projectId = project.modrinth_project_id
-    versionType = project.modrinth_release_type
+    versionType = rootProject.ConstructModrinthReleaseTypeString(release_cycle)
     versionNumber = project.version + "+fabric-" + project.minecraft_version
     uploadFile = remapJar
     changelog = rootProject.file("CHANGELOG.md").text

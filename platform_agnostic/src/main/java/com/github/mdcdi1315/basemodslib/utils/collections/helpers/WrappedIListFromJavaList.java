@@ -59,12 +59,8 @@ public final class WrappedIListFromJavaList<T>
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else {
             var c = GetCollection();
-            int total = index + count;
-            if (total > c.size() || total < 0) {
-                throw new ArgumentException("The specified combination of index and count parameters exceed the list's bounds.");
-            } else {
-                return new WrappedIListFromJavaList<>(c.subList(index, index + count));
-            }
+            CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, c.size());
+            return new WrappedIListFromJavaList<>(c.subList(index, index + count));
         }
     }
 

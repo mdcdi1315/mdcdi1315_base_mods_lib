@@ -5,7 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.ICollection;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 
-import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection;
+import com.github.mdcdi1315.basemodslib.utils.collections.ICountableCollection;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import net.minecraftforge.eventbus.api.Event;
@@ -39,7 +39,7 @@ public final class ForgeUtils
         boolean register = true;
         if (enumerable instanceof SingleLinkedListBasedRegister<T> reg) { register = reg.HasItems(); }
         else if (enumerable instanceof ICollection<T> c) { register = c.getCount() > 0; }
-        else if (enumerable instanceof ITraversableCollection<T> t) { register = t.GetCount() > 0; }
+        else if (enumerable instanceof ICountableCollection<T> t) { register = t.GetCount() > 0; }
         return register;
     }
 
