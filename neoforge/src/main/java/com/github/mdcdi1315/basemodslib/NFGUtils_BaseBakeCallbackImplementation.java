@@ -20,7 +20,7 @@ record NFGUtils_BaseBakeCallbackImplementation<T>(Func2<Registry<T>, RegistryFin
         // Check that we have not been reached to an erroring state so far
         // We might also reach to an erroring state when these events are dispatched.
         if (!(mod_loading_complete || ModLoader.hasErrors())) {
-            BaseModsLib.LOGGER.info("Dispatching registry finalized event for {}" , registry.key().location());
+            BaseModsLib.LOGGER.info("Dispatching registry finalized event for {}" , registry.key().identifier());
             EventManager.FireEventSafe(registry_event_to_invoke.function(registry));
         }
     }
