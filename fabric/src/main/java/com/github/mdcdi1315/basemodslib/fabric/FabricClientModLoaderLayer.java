@@ -72,6 +72,8 @@ public final class FabricClientModLoaderLayer
         instance.RegisterMenuScreens(registrar);
         instance.RegisterSpecialModelRenderers(registrar);
 
+        registrar.Finalize();
+
         instance.RegisterClientRegistryItems(new FabricClientRegistryRegistrar(instance.GetModId()));
     }
 

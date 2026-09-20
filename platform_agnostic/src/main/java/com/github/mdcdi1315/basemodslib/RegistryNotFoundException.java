@@ -3,7 +3,7 @@ package com.github.mdcdi1315.basemodslib;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Provides an exception for throwing it when a registry lookup to the root registry has been failed. <br />
@@ -13,14 +13,14 @@ public class RegistryNotFoundException
         extends BaseModsLibraryException
 {
     @NotNull
-    private final ResourceLocation requested_location;
+    private final Identifier requested_location;
 
     /**
      * Creates a new instance of the {@link RegistryNotFoundException} class, specifying the location of the registry that was not found.
      * @param registry_location The location of the registry that was not found.
      * @throws ArgumentNullException {@code registry_location} is {@code null}.
      */
-    public RegistryNotFoundException(ResourceLocation registry_location)
+    public RegistryNotFoundException(Identifier registry_location)
             throws ArgumentNullException
     {
         super();
@@ -35,7 +35,7 @@ public class RegistryNotFoundException
      * @return The location of the registry that was not found.
      */
     @NotNull
-    public ResourceLocation GetLocation() {
+    public Identifier GetLocation() {
         return requested_location;
     }
 

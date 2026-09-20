@@ -8,7 +8,7 @@ import com.github.mdcdi1315.basemodslib.utils.ElementSupplier;
 import com.github.mdcdi1315.basemodslib.world.internal.IBMLCustomDataStorage;
 
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.SavedDataStorage;
 
 /**
  * Provides a layering class for getting around the limitations of Minecraft saved data mechanism through {@link ISavedData} instances. <br />
@@ -25,11 +25,11 @@ public final class PerDimensionWorldDataManager
     private final IBMLCustomDataStorage storage;
 
     /**
-     * Creates a new instance of the {@link PerDimensionWorldDataManager} from the specified {@link DimensionDataStorage} object.
+     * Creates a new instance of the {@link PerDimensionWorldDataManager} from the specified {@link SavedDataStorage} object.
      * @param storage The underlying data storage manager to use.
      * @throws ArgumentNullException {@code storage} was null.
      */
-    public PerDimensionWorldDataManager(DimensionDataStorage storage)
+    public PerDimensionWorldDataManager(SavedDataStorage storage)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(storage , "storage");
@@ -57,6 +57,7 @@ public final class PerDimensionWorldDataManager
      * @param <T> The type of the saved data to retrieve or create.
      * @exception ArgumentNullException {@code creator} and/or {@code name} are {@code null}.
      */
+    @SuppressWarnings("unchecked")
     public <T extends ISavedData> T ComputeIfAbsent(String name , Func1<T> creator) {
         return (T) storage.MDCDI1315$BML$RegisterSavedData(name, creator);
     }
@@ -71,6 +72,7 @@ public final class PerDimensionWorldDataManager
      */
     // Note: Do not delete the 'creator' parameter!!! It is still defined for ABI compatibility.
     @MaybeNull
+    @SuppressWarnings("unchecked")
     public <T extends ISavedData> T Get(String name , @MaybeNull Func1<T> creator)
         throws ArgumentNullException
     {

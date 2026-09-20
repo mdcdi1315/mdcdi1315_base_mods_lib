@@ -7,12 +7,9 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import java.util.Set;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -37,12 +34,12 @@ public final class MinecraftWrappedModLoaderRegistry<T>
     }
 
     @Override
-    public boolean ContainsKey(ResourceLocation location) {
+    public boolean ContainsKey(Identifier location) {
         return reg.containsKey(location);
     }
 
     @Override
-    public void Register(ResourceLocation location, T value) throws ArgumentNullException {
+    public void Register(Identifier location, T value) throws ArgumentNullException {
         Registry.register(reg , location , value);
     }
 
@@ -52,12 +49,12 @@ public final class MinecraftWrappedModLoaderRegistry<T>
     }
 
     @Override
-    public Set<ResourceLocation> GetEntryKeys() {
+    public Set<Identifier> GetEntryKeys() {
         return reg.keySet();
     }
 
     @Override
-    public Optional<T> GetElementValue(ResourceLocation location) throws ArgumentNullException {
+    public Optional<T> GetElementValue(Identifier location) throws ArgumentNullException {
         return reg.getOptional(location);
     }
 
@@ -83,7 +80,7 @@ public final class MinecraftWrappedModLoaderRegistry<T>
         var t = reg.get(key);
         if (t.isEmpty()) {
             if (reg instanceof WritableRegistry<T> d) {
-                d.bindTag(key , new ArrayList<>(0));
+                d.bindTags(Map.of(key , new ArrayList<>(0)));
             }
             return new MinecraftWrappedITag<>(reg.getOrThrow(key));
         } else {

@@ -10,7 +10,7 @@ import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 
 import java.util.function.Function;
@@ -43,7 +43,7 @@ public interface IRegistryRegistrar
      * @throws ArgumentNullException {@code registry} and/or {@code name} and/or {@code supplier} are {@code null}.
      * @since 1.0.13
      */
-    default <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<ResourceLocation, T> supplier)
+    default <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<Identifier, T> supplier)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(supplier, "supplier");

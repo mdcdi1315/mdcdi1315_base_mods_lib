@@ -6,8 +6,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.basemodslib.registries.IModLoaderRegistry;
 
 import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 
 /**
  * Exception class relating to throwing exceptions when certain registry objects are required, but not found. <br />
@@ -40,7 +40,7 @@ public class RegistryObjectNotFoundException
      * @param location The location of the non-existent registry object.
      * @throws ArgumentNullException {@code registry} and/or {@code location} are {@code null}.
      */
-    public RegistryObjectNotFoundException(Registry<?> registry , ResourceLocation location)
+    public RegistryObjectNotFoundException(Registry<?> registry , Identifier location)
             throws ArgumentNullException
     {
         super();
@@ -59,7 +59,7 @@ public class RegistryObjectNotFoundException
      * @param location The location of the non-existent registry object.
      * @throws ArgumentNullException {@code registry} and/or {@code location} are {@code null}.
      */
-    public RegistryObjectNotFoundException(IModLoaderRegistry<?> registry , ResourceLocation location)
+    public RegistryObjectNotFoundException(IModLoaderRegistry<?> registry , Identifier location)
             throws ArgumentNullException
     {
         super();
@@ -92,7 +92,7 @@ The specified registry object was not found in the specified registry!
 Registry looked up: %s
 Registry object requested: %s""",
                 object.registry(),
-                object.location()
+                object.identifier()
         );
     }
 }

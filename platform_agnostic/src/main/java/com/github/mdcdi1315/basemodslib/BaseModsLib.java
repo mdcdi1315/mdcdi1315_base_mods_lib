@@ -391,10 +391,10 @@ public final class BaseModsLib
      * @return The Minecraft version.
      * @implNote Since BML 1.0.25, the mod loader layer call {@link IModLoaderLayer#GetMinecraftVersion()}
      * is deprecated and no longer used because a run-time way to retrieve the game version is available from the base game. <br />
-     * So, this will from now on point to the value of {@link net.minecraft.WorldVersion#getName()} method.
+     * So, this will from now on point to the value of {@link net.minecraft.WorldVersion#name()} method.
      */
     @NotNull
-    public static Version GetMinecraftVersion() { return Version.Parse(net.minecraft.SharedConstants.getCurrentVersion().getName()); }
+    public static Version GetMinecraftVersion() { return Version.Parse(net.minecraft.SharedConstants.getCurrentVersion().name()); }
 
     /**
      * Gets the directory path where all the mod configuration files are stored.

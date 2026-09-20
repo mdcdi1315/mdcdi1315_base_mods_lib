@@ -3,7 +3,6 @@ package com.github.mdcdi1315.basemodslib.mixin;
 import com.github.mdcdi1315.basemodslib.eventapi.gameplay.*;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 
-import net.minecraft.stats.Stat;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -19,9 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class PlayerMixin
 {
     @Inject(method = "killedEntity", at = @At("RETURN"))
-    private void OnEntityKilled(ServerLevel level, LivingEntity entity, CallbackInfoReturnable<Boolean> cir)
+    private void OnEntityKilled(ServerLevel level, LivingEntity entity, DamageSource source, CallbackInfoReturnable<Boolean> cir)
     {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             EventManager.FireEventSafe(new PlayerKilledEntityEvent((Player)((Object)this), entity));
         }
     }
@@ -30,18 +29,8 @@ public abstract class PlayerMixin
     private void OnKilled(DamageSource cause, CallbackInfo ci)
     {
         Player p = (Player)((Object)this);
-        if (!p.level().isClientSide) {
+        if (!p.level().isClientSide()) {
             EventManager.FireEventSafe(new PlayerWasKilledEvent(p, cause));
         }
-    }
-
-    @Inject(method = "respawn", at = @At("HEAD"))
-    private void OnRespawn(CallbackInfo ci) {
-        EventManager.FireEventSafe(new PlayerRequestedRespawnEvent((Player)((Object)this)));
-    }
-
-    @Inject(method = "awardStat(Lnet/minecraft/stats/Stat;I)V", at = @At("HEAD"))
-    private void OnAwardedStat(Stat<?> stat, int increment, CallbackInfo ci) {
-        EventManager.FireEventSafe(new PlayerWillBeRewardedWithStatEvent((Player)((Object)this), stat, increment));
     }
 }

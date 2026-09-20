@@ -55,7 +55,7 @@ public final class NeoForgeModLoaderLayer
         mod_loading_complete = false;
         Version fg_ver;
         try {
-            fg_ver = Version.Parse(FMLLoader.versionInfo().neoForgeVersion());
+            fg_ver = Version.Parse(FMLLoader.getCurrent().getVersionInfo().neoForgeVersion());
         } catch (Exception e) {
             BaseModsLib.LOGGER.warn("Cannot retrieve NeoForge version due to an exception. Setting version values to 0,0.", e);
             fg_ver = new Version(0 , 0);
@@ -108,7 +108,7 @@ public final class NeoForgeModLoaderLayer
         EventManager.FireEventSafe(new ServerStoppedEvent(e.getServer()));
         // In server env, we need to dispose the BML itself.
         // On servers however, it is pretty much OK to do that when the server stopped event is dispatched.
-        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { BaseModsLib.DestroySelf(); }
+        if (FMLEnvironment.getDist() == Dist.DEDICATED_SERVER) { BaseModsLib.DestroySelf(); }
     }
 
     private static void DestroyLayerData() { mod_loading_complete = true; }
@@ -136,7 +136,7 @@ public final class NeoForgeModLoaderLayer
     @Override
     public ModdingEnvironment GetEnvironment()
     {
-        return switch (FMLEnvironment.dist) {
+        return switch (FMLEnvironment.getDist()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case DEDICATED_SERVER -> ModdingEnvironment.SERVER;
         };
@@ -158,7 +158,7 @@ public final class NeoForgeModLoaderLayer
     public IModResourceLookup GetBMLResourceLookup() { return new BMLModSpecialRLP(); }
 
     @Override
-    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.production; }
+    public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.isProduction(); }
 
     @Override
     public List<String> GetLoadedMods() { return new DirectlyMappedList<>(ModList.get().getMods(), IModInfo::getModId); }

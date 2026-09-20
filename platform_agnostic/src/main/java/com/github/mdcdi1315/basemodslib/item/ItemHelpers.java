@@ -10,8 +10,8 @@ import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,20 +28,26 @@ public final class ItemHelpers
      * Gets a Minecraft creative mode tab for the specified name.
      * @param name The name of the creative mode tab to retrieve.
      * @return The creative mode tab object. Will return {@code null} if not found.
+     * @throws ArgumentNullException {@code name} is {@code null}.
      */
     @MaybeNull
-    public static CreativeModeTab GetMinecraftCreativeModeTab(@ConstantExpected String name) {
+    public static CreativeModeTab GetMinecraftCreativeModeTab(@ConstantExpected String name)
+        throws ArgumentNullException
+    {
         ArgumentNullException.ThrowIfNull(name, "name");
-        return BuiltInRegistries.CREATIVE_MODE_TAB.getValue(ResourceLocation.tryBuild(ResourceLocation.DEFAULT_NAMESPACE , name));
+        return BuiltInRegistries.CREATIVE_MODE_TAB.getValue(Identifier.tryBuild(Identifier.DEFAULT_NAMESPACE , name));
     }
 
     /**
      * Gets a Creative mode tab by the specified location that designates the tab ID.
      * @param tab_location The location identifying the tab.
      * @return The creative mode tab object. Will return {@code null} if not found.
+     * @throws ArgumentNullException {@code tab_location} is {@code null}.
      */
     @MaybeNull
-    public static CreativeModeTab GetCreativeModeTab(ResourceLocation tab_location) {
+    public static CreativeModeTab GetCreativeModeTab(Identifier tab_location)
+        throws ArgumentNullException
+    {
         ArgumentNullException.ThrowIfNull(tab_location, "tab_location");
         return BuiltInRegistries.CREATIVE_MODE_TAB.getValue(tab_location);
     }
@@ -57,7 +63,7 @@ public final class ItemHelpers
             throws ArgumentException, CreativeModeTabNotFoundException
     {
         ArgumentNullException.ThrowIfNull(name, "name");
-        ResourceLocation rl = ResourceLocation.tryBuild(ResourceLocation.DEFAULT_NAMESPACE, name);
+        Identifier rl = Identifier.tryBuild(Identifier.DEFAULT_NAMESPACE, name);
         if (rl == null) {
             throw new ArgumentException("The resource location could not be constructed.");
         } else {
@@ -77,7 +83,7 @@ public final class ItemHelpers
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws CreativeModeTabNotFoundException The constructed creative mode tab was not found.
      */
-    public static CreativeModeTab GetCreativeModeTabChecked(ResourceLocation location)
+    public static CreativeModeTab GetCreativeModeTabChecked(Identifier location)
             throws ArgumentNullException, CreativeModeTabNotFoundException
     {
         ArgumentNullException.ThrowIfNull(location, "location");
@@ -98,7 +104,8 @@ public final class ItemHelpers
      * @throws RegistryObjectNotFoundException {@code location} is not a valid item declaration registered in the items registry.
      * @since 1.0.3
      */
-    public static <T extends Item> T GetItem(ResourceLocation location)
+    @SuppressWarnings("unchecked")
+    public static <T extends Item> T GetItem(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (T) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.ITEM , location);
@@ -111,7 +118,7 @@ public final class ItemHelpers
      * @param location The location of the block in {@code b} parameter in the block registry.
      * @return The constructed item.
      */
-    public static Item GetItemForBlockSimple(Block b , ResourceLocation location) {
+    public static Item GetItemForBlockSimple(Block b , Identifier location) {
         return new BlockItem(b, new Item.Properties());
     }
 
@@ -124,7 +131,8 @@ public final class ItemHelpers
      * @throws RegistryObjectNotFoundException {@code location} is not a valid data component type declaration registered in the data component types registry.
      * @since 1.0.20
      */
-    public static <T> DataComponentType<T> GetDataComponentType(ResourceLocation location)
+    @SuppressWarnings("unchecked")
+    public static <T> DataComponentType<T> GetDataComponentType(Identifier location)
     {
         return (DataComponentType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.DATA_COMPONENT_TYPE, location);
     }

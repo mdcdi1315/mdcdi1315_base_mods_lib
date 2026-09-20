@@ -23,7 +23,7 @@ public final class FabricNetworkingHandler
     public FabricNetworkingHandler(Action3<FabricNetworkingHandler, ServerPlayer, ServerBoundModInfoPacket> on_packet_detected_action)
     {
         networking_versions_map = new HashMap<>();
-        PayloadTypeRegistry.playC2S().register(ServerBoundModInfoPacket.TYPE , new ServerBoundModInfoPacket.NetCodec());
+        PayloadTypeRegistry.serverboundPlay().register(ServerBoundModInfoPacket.TYPE , new ServerBoundModInfoPacket.NetCodec());
         ServerPlayNetworking.registerGlobalReceiver(
                 ServerBoundModInfoPacket.TYPE,
                 new ChannelHandler(on_packet_detected_action, this)

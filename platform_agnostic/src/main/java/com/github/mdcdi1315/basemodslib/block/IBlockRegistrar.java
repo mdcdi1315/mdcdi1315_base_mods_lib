@@ -7,8 +7,8 @@ import com.github.mdcdi1315.basemodslib.Contract;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
@@ -34,7 +34,7 @@ public interface IBlockRegistrar
      * @throws RegistryObjectNotFoundException {@code location} was not found in the block registry.
      * @since 1.0.3
      */
-    public static <T extends Block> T GetBlock(ResourceLocation location)
+    public static <T extends Block> T GetBlock(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (T) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.BLOCK, location);
@@ -48,7 +48,7 @@ public interface IBlockRegistrar
      * @throws ArgumentNullException {@code block_object} is {@code null}.
      * @since 1.0.3
      */
-    public static <T extends Block> ResourceLocation GetLocationForBlockOrDefault(T block_object)
+    public static <T extends Block> Identifier GetLocationForBlockOrDefault(T block_object)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(block_object, "block_object");

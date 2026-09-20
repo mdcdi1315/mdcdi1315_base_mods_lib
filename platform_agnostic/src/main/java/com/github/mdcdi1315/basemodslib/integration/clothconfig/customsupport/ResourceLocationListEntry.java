@@ -11,19 +11,19 @@ import com.github.mdcdi1315.basemodslib.integration.clothconfig.errorsuppliers.R
 import me.shedaniel.clothconfig2.gui.entries.TextFieldListEntry;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class ResourceLocationListEntry
-    extends TextFieldListEntry<ResourceLocation>
+    extends TextFieldListEntry<Identifier>
 {
     private final IModConfig config;
     private final ReflectedConfigFieldData data;
 
     @SuppressWarnings("deprecation")
-    public ResourceLocationListEntry(IModConfig config, ReflectedConfigFieldData field, Component fieldName, ResourceLocation original, Component resetButtonKey) {
+    public ResourceLocationListEntry(IModConfig config, ReflectedConfigFieldData field, Component fieldName, Identifier original, Component resetButtonKey) {
         super(fieldName, original, resetButtonKey, null);
 
         this.data = field;
@@ -31,12 +31,12 @@ public final class ResourceLocationListEntry
     }
 
     @SuppressWarnings("deprecation")
-    public ResourceLocationListEntry(IModConfig config, ReflectedConfigFieldData field, Component fieldName, ResourceLocation original, Component resetButtonKey, Optional<Component[]> tooltip) {
+    public ResourceLocationListEntry(IModConfig config, ReflectedConfigFieldData field, Component fieldName, Identifier original, Component resetButtonKey, Optional<Component[]> tooltip) {
         this(config, field, fieldName, original, resetButtonKey, new ElementSupplier<>(tooltip));
     }
 
     @SuppressWarnings("deprecation")
-    public ResourceLocationListEntry(IModConfig config, ReflectedConfigFieldData field, Component fieldName, ResourceLocation original, Component resetButtonKey, Supplier<Optional<Component[]>> tooltipSupplier)
+    public ResourceLocationListEntry(IModConfig config, ReflectedConfigFieldData field, Component fieldName, Identifier original, Component resetButtonKey, Supplier<Optional<Component[]>> tooltipSupplier)
     {
         super(fieldName, original, resetButtonKey, null, tooltipSupplier);
 
@@ -45,7 +45,7 @@ public final class ResourceLocationListEntry
     }
 
     @SuppressWarnings("deprecation")
-    public ResourceLocationListEntry(IModConfig config, ReflectedConfigFieldData field, Component fieldName, ResourceLocation original, Component resetButtonKey, Supplier<Optional<Component[]>> tooltipSupplier, boolean requiresRestart)
+    public ResourceLocationListEntry(IModConfig config, ReflectedConfigFieldData field, Component fieldName, Identifier original, Component resetButtonKey, Supplier<Optional<Component[]>> tooltipSupplier, boolean requiresRestart)
     {
         super(fieldName, original, resetButtonKey, null, tooltipSupplier, requiresRestart);
 
@@ -59,13 +59,13 @@ public final class ResourceLocationListEntry
     }
 
     @Override
-    public Optional<ResourceLocation> getDefaultValue() { return Optional.empty(); }
+    public Optional<Identifier> getDefaultValue() { return Optional.empty(); }
 
     @Override
-    public ResourceLocation getValue()
+    public Identifier getValue()
     {
         try {
-            return RegistryUtils.ParseResourceLocation(textFieldWidget.getValue());
+            return RegistryUtils.ParseIdentifier(textFieldWidget.getValue());
         } catch (ResourceLocationConstructionException e) {
             return null;
         }
@@ -75,7 +75,7 @@ public final class ResourceLocationListEntry
     public void save()
     {
         try {
-            data.SetValue(config, RegistryUtils.ParseResourceLocation(textFieldWidget.getValue()));
+            data.SetValue(config, RegistryUtils.ParseIdentifier(textFieldWidget.getValue()));
         } catch (Exception any) {
             BaseModsLib.LOGGER.warn("Cannot change the value of field {}: {}", data.GetFieldName(), any);
         }

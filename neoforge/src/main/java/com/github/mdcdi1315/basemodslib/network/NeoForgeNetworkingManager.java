@@ -19,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -60,31 +61,23 @@ public final class NeoForgeNetworkingManager
 
     @Override
     public <T extends CustomPacketPayload> void SendToTracking(ServerLevel world, BlockPos pos, T message) {
-        PacketDistributor.sendToPlayersTrackingChunk(world , new ChunkPos(pos), message);
+        PacketDistributor.sendToPlayersTrackingChunk(world , ChunkPos.containing(pos), message);
     }
 
     @Override
-    public <T extends CustomPacketPayload> void SendToTracking(Entity entity, T message) {
-        PacketDistributor.sendToPlayersTrackingEntity(entity,message);
-    }
+    public <T extends CustomPacketPayload> void SendToTracking(Entity entity, T message) { PacketDistributor.sendToPlayersTrackingEntity(entity,message); }
 
     @Override
-    public <T extends CustomPacketPayload> void SendToAllPlayers(MinecraftServer server, T message) {
-        PacketDistributor.sendToAllPlayers(message);
-    }
+    public <T extends CustomPacketPayload> void SendToAllPlayers(MinecraftServer server, T message) { PacketDistributor.sendToAllPlayers(message); }
 
     @Override
-    public <T extends CustomPacketPayload> void SendToServer(T message) {
-        PacketDistributor.sendToServer(message);
-    }
+    public <T extends CustomPacketPayload> void SendToServer(T message) { ClientPacketDistributor.sendToServer(message); }
 
     private record WriteScreenDataTranslater(ServerPlayer sp, MenuProviderEx mpx)
             implements Action1<RegistryFriendlyByteBuf>
     {
         @Override
-        public void action(RegistryFriendlyByteBuf obj) {
-            mpx.WriteScreenOpeningData(sp , obj);
-        }
+        public void action(RegistryFriendlyByteBuf obj) { mpx.WriteScreenOpeningData(sp , obj); }
     }
 
     @Override

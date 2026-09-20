@@ -93,7 +93,7 @@ public final class FabricNetworkBuilder
 
     private <T extends CustomPacketPayload> void RegisterServerBoundPacketInternal(ServerSideNetworkPacketRegistrationInfo<T> info, FabricBasedNetworkManager manager)
     {
-        PayloadTypeRegistry.playC2S().register(info.type() , info.codec());
+        PayloadTypeRegistry.serverboundPlay().register(info.type() , info.codec());
         ServerPlayNetworking.registerGlobalReceiver(info.type(), new ServerPlayChannelInfoHandling<>(manager, info.handler()));
     }
 
@@ -103,7 +103,7 @@ public final class FabricNetworkBuilder
         FabricNetworkBuilder_ClientUtils.RegisterClientBoundPacketInternal_ClientImpl(info);
     }
 
-    private <T extends CustomPacketPayload> void RegisterClientBoundPacketInternal_ServerImpl(ClientSideNetworkPacketRegistrationInfo<T> info) { PayloadTypeRegistry.playS2C().register(info.type() , info.codec()); }
+    private <T extends CustomPacketPayload> void RegisterClientBoundPacketInternal_ServerImpl(ClientSideNetworkPacketRegistrationInfo<T> info) { PayloadTypeRegistry.clientboundPlay().register(info.type() , info.codec()); }
 
     public void Build(FabricBasedNetworkManager manager)
     {

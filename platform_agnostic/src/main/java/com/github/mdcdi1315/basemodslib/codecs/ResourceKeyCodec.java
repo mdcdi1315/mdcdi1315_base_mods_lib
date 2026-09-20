@@ -61,7 +61,7 @@ public final class ResourceKeyCodec<T>
     public <TO> DataResult<TO> encode(ResourceKey<T> input, DynamicOps<TO> ops, TO prefix)
     {
         return DataResult.success(
-                ops.createString(input.location().toString())
+                ops.createString(input.identifier().toString())
         );
     }
 }

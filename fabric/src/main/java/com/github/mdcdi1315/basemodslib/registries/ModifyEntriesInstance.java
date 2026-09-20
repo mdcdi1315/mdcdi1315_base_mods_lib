@@ -1,33 +1,57 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
-import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
-import com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations;
+import com.github.mdcdi1315.DotNetLayer.ByRefParameter;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.Dictionary;
 
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
+
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTabOutput;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents.ModifyOutputAll;
 
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-
-import java.util.List;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStackTemplate;
 
 final class ModifyEntriesInstance
-        implements ItemGroupEvents.ModifyEntries
+        implements ModifyOutputAll
 {
+    private final ByRefParameter<SingleLinkedListBasedRegister<ItemStackTemplate>> temp_parameter;
     // We can make this final, since we create this class on demand when an item add request is performed.
-    private final SingleLinkedList<ItemStack> items;
+    private final Dictionary<CreativeModeTab, SingleLinkedListBasedRegister<ItemStackTemplate>> items;
 
-    public ModifyEntriesInstance() { items = new SingleLinkedList<>(); }
+    public ModifyEntriesInstance()
+    {
+        this.items = new Dictionary<>();
+        this.temp_parameter = new ByRefParameter<>();
+    }
 
-    public void AddItemStack(ItemStack stack) { items.Add(stack); }
+    private SingleLinkedListBasedRegister<ItemStackTemplate> GetRegister(CreativeModeTab tab)
+    {
+        if (!items.TryGetValue(tab, temp_parameter))
+        {
+            items.Add(tab, temp_parameter.Value = new SingleLinkedListBasedRegister<>());
+        }
+        return temp_parameter.Value;
+    }
 
-    public void AddItem(Item item) { items.Add(new ItemStack(item)); }
+    public boolean HasItemsToRegister() { return items.getCount() > 0; }
+
+    public void AddItemStack(CreativeModeTab tab, ItemStackTemplate stack) { GetRegister(tab).Register(stack); }
+
+    public void AddItem(CreativeModeTab tab, Item item) { GetRegister(tab).Register(new ItemStackTemplate(item, 1)); }
 
     @Override
-    public void modifyEntries(FabricItemGroupEntries entries)
+    public void modifyOutput(CreativeModeTab tab, FabricCreativeModeTabOutput output)
     {
-        List<ItemStack> mapped = CollectionManipulations.AsJavaList(items);
-        entries.getDisplayStacks().addAll(mapped);
-        entries.getSearchTabStacks().addAll(mapped);
+        if (items.TryGetValue(tab, temp_parameter))
+        {
+            try (var enumerator = temp_parameter.Value.GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
+                    output.accept(enumerator.getCurrent().create());
+                }
+            }
+        }
     }
 }

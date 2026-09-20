@@ -4,10 +4,10 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /**
  * Provides a dialog screen for informing the user about an event.
@@ -130,9 +130,9 @@ public final class InformationalDialogScreen
     }
 
     @Override
-    public void render(GuiGraphics gc, int mouseX, int mouseY, float partialTick)
+    public void extractRenderState(GuiGraphicsExtractor gc, int mouseX, int mouseY, float partialTick)
     {
-        renderBackground(gc, mouseX , mouseY , partialTick);
+        extractBackground(gc, mouseX , mouseY , partialTick);
 
         // Render title
 
@@ -140,7 +140,7 @@ public final class InformationalDialogScreen
         // If somehow our width overflown because the string is too large (or our screen became too small), set position to a reasonable value instead.
         if (string_x_pos < 0) { string_x_pos = 10; }
 
-        gc.drawString(font, title_component_string, string_x_pos, base_y , 0xFF00FF00); // Green text
+        gc.text(font, title_component_string, string_x_pos, base_y , 0xFF00FF00); // Green text
 
         base_y += (font.lineHeight * 2);
 
@@ -149,14 +149,14 @@ public final class InformationalDialogScreen
         for (int I = 0; I < text_lines.length; I++)
         {
             string_x_pos = (width / 2) - (line_widths[I] / 2);
-            gc.drawString(font, text_lines[I] , (string_x_pos < 0) ? 10 : string_x_pos, base_y, text_color);
+            gc.text(font, text_lines[I] , (string_x_pos < 0) ? 10 : string_x_pos, base_y, text_color);
             base_y += font.lineHeight;
         }
 
         ok_button.setY(base_y + (font.lineHeight * 2));
 
         // Now render our button...
-        ok_button.render(gc , mouseX , mouseY , partialTick);
+        ok_button.extractRenderState(gc , mouseX , mouseY , partialTick);
     }
 
     public static void CreateDialog(Component title, String text_lines , @MaybeNull Screen parent)

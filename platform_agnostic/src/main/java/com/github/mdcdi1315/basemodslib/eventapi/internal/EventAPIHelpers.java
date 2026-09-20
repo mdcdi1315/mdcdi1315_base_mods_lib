@@ -80,7 +80,6 @@ public final class EventAPIHelpers
         event_appender.action(PlayerWasKilledEvent.class);
         event_appender.action(PlayerKilledEntityEvent.class);
         event_appender.action(PlayerRequestedRespawnEvent.class);
-        event_appender.action(PlayerWillBeRewardedWithStatEvent.class);
     }
 
     public static void InitializeClientEvents(Action1<Class<? extends IEvent>> event_appender)

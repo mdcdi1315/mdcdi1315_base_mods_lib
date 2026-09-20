@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
+import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
@@ -18,17 +19,19 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
-import net.fabricmc.fabric.api.client.particle.v1.FabricSpriteProvider;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.SpecialBlockRendererRegistry;
+import net.fabricmc.fabric.api.client.particle.v1.FabricSpriteSet;
+import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltInBlockModelsCallback;
+
+import java.util.List;
 
 @ClientOnlyEnvironment
 public final class FabricClientArtifactsRegistrar
@@ -40,12 +43,19 @@ public final class FabricClientArtifactsRegistrar
         IMenuScreensRegistrar,
         ISpecialModelRendererRegistrar
 {
+    private SingleLinkedListBasedRegister<SpecialModelRendererRegistrationInfo> special_model_renderers;
+
+    public FabricClientArtifactsRegistrar()
+    {
+        special_model_renderers = new SingleLinkedListBasedRegister<>();
+    }
+
     @Override
     public <T extends Entity> void Register(EntityRendererRegistrationInfo<T> info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        EntityRendererRegistry.register(info.entity_type_provider().function(), info.renderer_provider());
+        EntityRenderers.register(info.entity_type_provider().function(), info.renderer_provider());
     }
 
     @Override
@@ -61,7 +71,7 @@ public final class FabricClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        ColorProviderRegistry.BLOCK.register(info.block_color(), info.blocks().function());
+        BlockColorRegistry.register(List.of(info.block_color()), info.blocks().function());
     }
 
     @Override
@@ -77,7 +87,7 @@ public final class FabricClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        EntityModelLayerRegistry.registerModelLayer(info.location(), new ModelLayerDefinitionFunction(info.definition()));
+        ModelLayerRegistry.registerModelLayer(info.location(), new ModelLayerDefinitionFunction(info.definition()));
     }
 
     @Override
@@ -85,7 +95,7 @@ public final class FabricClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        ParticleFactoryRegistry.getInstance().register(info.particle_type().function(), info.particle_provider());
+        ParticleProviderRegistry.getInstance().register(info.particle_type().function(), info.particle_provider());
     }
 
     @Override
@@ -93,7 +103,7 @@ public final class FabricClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        ParticleFactoryRegistry.getInstance().register(info.particle_type().function(), new ParticleFactoryRegistryAdvancedInfoTranslation<>(info.particle_provider_creater()));
+        ParticleProviderRegistry.getInstance().register(info.particle_type().function(), new ParticleFactoryRegistryAdvancedInfoTranslation<>(info.particle_provider_creater()));
     }
 
     @Override
@@ -109,7 +119,7 @@ public final class FabricClientArtifactsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        SpecialBlockRendererRegistry.register(info.block().function() , info.unbaked_renderer());
+        special_model_renderers.Register(info);
     }
 
     @Override
@@ -121,6 +131,16 @@ public final class FabricClientArtifactsRegistrar
         MenuScreens.register(type.function() , new MSCToMenuConstructor<>(constructor));
     }
 
+    public void Finalize()
+    {
+        if (special_model_renderers.HasItems())
+        {
+            BuiltInBlockModelsCallback.EVENT.register(new BuiltInBlockModelsCallbackHandler(special_model_renderers));
+        }
+        special_model_renderers = null;
+    }
+
+    @SuppressWarnings("NullableProblems")
     private record MSCToMenuConstructor<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(MenuScreenConstructor<M, U> constructor)
         implements MenuScreens.ScreenConstructor<M , U>
     {
@@ -130,17 +150,19 @@ public final class FabricClientArtifactsRegistrar
         }
     }
 
+    @SuppressWarnings("NullableProblems")
     private record ParticleFactoryRegistryAdvancedInfoTranslation<T extends ParticleOptions>(Func2<SpriteSet, ParticleProvider<T>> function)
-        implements ParticleFactoryRegistry.PendingParticleFactory<T>
+        implements ParticleProviderRegistry.PendingParticleProvider<T>
     {
         @Override
-        public ParticleProvider<T> create(FabricSpriteProvider provider) { return function.function(provider); }
+        public ParticleProvider<T> create(FabricSpriteSet spriteSet) { return function.function(spriteSet); }
     }
 
+    @SuppressWarnings("NullableProblems")
     private record ModelLayerDefinitionFunction(Func1<LayerDefinition> definition)
-        implements EntityModelLayerRegistry.TexturedModelDataProvider
+        implements ModelLayerRegistry.TexturedLayerDefinitionProvider
     {
         @Override
-        public LayerDefinition createModelData() { return definition.function(); }
+        public LayerDefinition createLayerDefinition() { return definition.function(); }
     }
 }

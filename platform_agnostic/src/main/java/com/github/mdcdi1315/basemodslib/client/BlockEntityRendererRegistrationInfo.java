@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 
 public record BlockEntityRendererRegistrationInfo<T extends BlockEntity>(
         Func1<BlockEntityType<T>> type,
-        BlockEntityRendererProvider<? super T> provider
+        BlockEntityRendererProvider<? super T, ?> provider
 )
 {
     public BlockEntityRendererRegistrationInfo {

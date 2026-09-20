@@ -13,8 +13,8 @@ import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedR
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 
 import net.neoforged.bus.api.IEventBus;
@@ -34,7 +34,7 @@ public final class NeoForgeRegistriesRegistrar
     private SingleLinkedListBasedRegister<DeferredRegister<?>> registers;
     private SingleLinkedListBasedRegister<RegistryEntry<?>> registries_to_create;
     private SingleLinkedListBasedRegister<DatapackRegistryEntry<?>> datapack_registries;
-    private SingleLinkedListBasedRegister<Pair<ResourceLocation, PreparableReloadListener>> data_reload_listeners;
+    private SingleLinkedListBasedRegister<Pair<Identifier, PreparableReloadListener>> data_reload_listeners;
 
     public NeoForgeRegistriesRegistrar(String mod_id)
     {
@@ -99,7 +99,7 @@ public final class NeoForgeRegistriesRegistrar
     }
 
     @Override
-    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<ResourceLocation, T> supplier)
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<Identifier, T> supplier)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(name, "name");
@@ -146,7 +146,7 @@ public final class NeoForgeRegistriesRegistrar
         event.dataPackRegistry(entry.resource_key , entry.element_codec);
     }
 
-    private static void AddResourceReloadListener(AddServerReloadListenersEvent event, Pair<ResourceLocation, PreparableReloadListener> entry) { event.addListener(entry.first(), entry.second()); }
+    private static void AddResourceReloadListener(AddServerReloadListenersEvent event, Pair<Identifier, PreparableReloadListener> entry) { event.addListener(entry.first(), entry.second()); }
 
     public void RegisterToEventBus(IEventBus bus)
     {

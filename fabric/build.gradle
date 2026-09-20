@@ -2,10 +2,10 @@ import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
     id 'idea'
-    id 'fabric-loom'
     id 'maven-publish'
     id 'multiloader-loader'
     id 'com.modrinth.minotaur'
+    id 'net.fabricmc.fabric-loom'
     id 'net.darkhax.curseforgegradle'
 }
 
@@ -16,13 +16,8 @@ base {
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
 
-    mappings loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
-    }
-
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 }
 
 apply from: rootProject.file('repositories.gradle')
@@ -43,21 +38,24 @@ loom {
     runs {
         client {
             client()
-            setConfigName("fabric Client")
+            setConfigName("Fabric Dist: Client")
+            // preferGradleTask(true)
             ideConfigGenerated(true)
             runDir("run")
             vmArg "-Dmixin.debug.export=true"
         }
         server {
             server()
-            setConfigName("fabric Server")
+            setConfigName("Fabric Dist: Server")
+            // preferGradleTask(true)
             ideConfigGenerated(true)
             runDir("run")
             vmArg "-Dmixin.debug.export=true"
         }
         data {
             inherit client
-            setConfigName("fabric Data")
+            setConfigName("Fabric Dist: Data")
+            // preferGradleTask(true)
             ideConfigGenerated(true)
             runDir("build/datagen")
 
@@ -73,7 +71,7 @@ loom {
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 task curseforge(type: TaskPublishCurseForge) {
-    dependsOn(remapJar)
+    dependsOn(jar)
     description = 'Publishes the Fabric build to CurseForge.'
     group = 'publishing'
 
@@ -93,7 +91,7 @@ modrinth {
     projectId = project.modrinth_project_id
     versionType = rootProject.ConstructModrinthReleaseTypeString(release_cycle)
     versionNumber = project.version + "+fabric-" + project.minecraft_version
-    uploadFile = remapJar
+    uploadFile = jar
     changelog = rootProject.file("CHANGELOG.md").text
     gameVersions = project.minecraft_versions.split(',').toList()
     syncBodyFrom = rootProject.file("modpage.md").text
@@ -111,4 +109,4 @@ publishing {
     }
 }
 
-tasks.modrinth.dependsOn(remapJar)
+tasks.modrinth.dependsOn(jar)

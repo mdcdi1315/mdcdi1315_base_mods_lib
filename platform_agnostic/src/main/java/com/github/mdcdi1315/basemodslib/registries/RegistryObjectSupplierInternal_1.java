@@ -1,17 +1,17 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
 import java.util.function.Function;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 final class RegistryObjectSupplierInternal_1<T>
     extends RegistryObjectSupplier<T>
 {
-    private final Function<ResourceLocation , T> function;
+    private final Function<Identifier , T> function;
 
-    public RegistryObjectSupplierInternal_1(Function<ResourceLocation, T> f) { function = f; }
+    public RegistryObjectSupplierInternal_1(Function<Identifier, T> f) { function = f; }
 
     @Override
-    protected T Get(ResourceLocation location) {
+    protected T Get(Identifier location) {
         return function.apply(location);
     }
 }

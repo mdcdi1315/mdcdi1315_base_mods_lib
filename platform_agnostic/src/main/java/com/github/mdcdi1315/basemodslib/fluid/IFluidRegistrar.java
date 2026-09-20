@@ -7,7 +7,7 @@ import com.github.mdcdi1315.basemodslib.Contract;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.core.registries.BuiltInRegistries;
 
@@ -35,7 +35,8 @@ public interface IFluidRegistrar
      * @throws RegistryObjectNotFoundException {@code location} was not found in the fluid registry.
      * @since 1.0.15
      */
-    public static <T extends Fluid> T GetFluid(ResourceLocation location)
+    @SuppressWarnings("unchecked")
+    public static <T extends Fluid> T GetFluid(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (T) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.FLUID, location);

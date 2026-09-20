@@ -8,8 +8,9 @@ import com.mojang.datafixers.util.Either;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.TagKey;
 import net.minecraft.core.HolderOwner;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.component.DataComponentMap;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -24,10 +25,12 @@ public final class OptionalDirectHolder<T>
     implements Holder<T>
 {
     private final T val;
+    private final DataComponentMap components;
 
     private OptionalDirectHolder(T value)
     {
         val = value;
+        components = DataComponentMap.EMPTY;
     }
 
     /**
@@ -45,48 +48,38 @@ public final class OptionalDirectHolder<T>
 
     @Override
     @MaybeNull
-    public T value() {
-        return val;
-    }
+    public T value() { return val; }
 
     @Override
-    public boolean isBound() {
-        return val != null;
-    }
+    public boolean isBound() { return val != null; }
 
     @Override
-    public boolean is(ResourceLocation resourceLocation) {
-        return false;
-    }
+    public boolean areComponentsBound() { return true; }
 
     @Override
-    public boolean is(ResourceKey<T> resourceKey) {
-        return false;
-    }
+    public boolean is(Identifier Identifier) { return false; }
 
     @Override
-    public boolean is(Predicate<ResourceKey<T>> predicate) {
-        return false;
-    }
+    public boolean is(ResourceKey<T> resourceKey) { return false; }
 
     @Override
-    public boolean is(TagKey<T> tagKey) {
-        return false;
-    }
+    public boolean is(Predicate<ResourceKey<T>> predicate) { return false; }
+
+    @Override
+    public boolean is(TagKey<T> tagKey) { return false; }
 
     @Override
     public boolean is(Holder<T> holder) { return holder == this; }
 
     @Override
-    public Stream<TagKey<T>> tags() {
-        return Stream.empty();
-    }
+    public Stream<TagKey<T>> tags() { return Stream.empty(); }
+
+    @Override
+    public DataComponentMap components() { return components; }
 
     @Override
     @MaybeNull
-    public Either<ResourceKey<T>, T> unwrap() {
-        return Either.right(val);
-    }
+    public Either<ResourceKey<T>, T> unwrap() { return Either.right(val); }
 
     @Override
     public Optional<ResourceKey<T>> unwrapKey() { return Optional.empty(); }
@@ -95,7 +88,5 @@ public final class OptionalDirectHolder<T>
     public Kind kind() { return Kind.DIRECT; }
 
     @Override
-    public boolean canSerializeIn(HolderOwner<T> holderOwner) {
-        return true;
-    }
+    public boolean canSerializeIn(HolderOwner<T> holderOwner) { return true; }
 }

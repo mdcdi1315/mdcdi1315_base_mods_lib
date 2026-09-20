@@ -4,7 +4,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Func2;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 
 /**
@@ -13,7 +13,7 @@ import net.minecraft.world.level.material.Fluid;
  * @since 1.0.5
  */
 public record FluidRegistrationInformation(
-        @NotNull Func2<ResourceLocation , Fluid> fluid_getter
+        @NotNull Func2<Identifier , Fluid> fluid_getter
 ) {
     /**
      * Constructs a new instance of the {@link FluidRegistrationInformation} class.

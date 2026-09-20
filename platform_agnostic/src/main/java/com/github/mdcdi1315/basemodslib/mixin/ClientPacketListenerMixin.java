@@ -1,18 +1,23 @@
 package com.github.mdcdi1315.basemodslib.mixin;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
+import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.gameplay.PlayerRequestedRespawnEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientDisconnectedFromServerEvent;
 
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundLoginPacket;
+import net.minecraft.network.protocol.game.ClientboundRespawnPacket;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+@ClientOnlyEnvironment
 @Mixin(ClientPacketListener.class)
 public final class ClientPacketListenerMixin
 {
@@ -41,5 +46,12 @@ public final class ClientPacketListenerMixin
                 manager.FireEvent(new ClientDisconnectedFromServerEvent(details.reason()));
             }
         }
+    }
+
+    @Inject(method = "handleRespawn", at = @At("TAIL"))
+    private void OnRespawn(ClientboundRespawnPacket packet, CallbackInfo ci)
+    {
+        BaseModsLib.LOGGER.debug("EVENTS_MANAGER: [Client] A player requested to respawn. Dispatching player respawn event.");
+        EventManager.FireEventSafe(new PlayerRequestedRespawnEvent(BaseModsLibClient.GetLoggedInPlayer()));
     }
 }

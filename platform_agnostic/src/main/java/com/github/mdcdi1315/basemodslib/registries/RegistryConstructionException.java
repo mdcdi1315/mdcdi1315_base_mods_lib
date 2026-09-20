@@ -8,7 +8,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 
 import com.github.mdcdi1315.basemodslib.BaseModsLibraryException;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Provides an exception class when any registry was failed to be constructed. <br />
@@ -18,7 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 public class RegistryConstructionException
         extends BaseModsLibraryException
 {
-    private final ResourceLocation registry;
+    private final Identifier registry;
 
     private static final String UNSPECIFIED_FAILURE_MSG = "Unspecified failure while constructing the registry.";
 
@@ -27,7 +27,7 @@ public class RegistryConstructionException
      * @param registry The registry that has a failure.
      * @throws ArgumentNullException {@code registry} is {@code null}.
      */
-    public RegistryConstructionException(ResourceLocation registry) { this(registry, null); }
+    public RegistryConstructionException(Identifier registry) { this(registry, null); }
 
     /**
      * Constructs a new instance of the {@link RegistryConstructionException} class, providing the
@@ -37,7 +37,7 @@ public class RegistryConstructionException
      * @param message The reason behind registry construction failure.
      * @throws ArgumentNullException {@code registry} is {@code null}.
      */
-    public RegistryConstructionException(ResourceLocation registry, @AllowNull String message) { this(registry, message, null); }
+    public RegistryConstructionException(Identifier registry, @AllowNull String message) { this(registry, message, null); }
 
     /**
      * Constructs a new instance of the {@link RegistryConstructionException} class, providing the
@@ -49,7 +49,7 @@ public class RegistryConstructionException
      * @param inner The {@link Exception} object that is the reason why this exception object was created.
      * @throws ArgumentNullException {@code registry} is {@code null}.
      */
-    public RegistryConstructionException(ResourceLocation registry, @AllowNull String message, @AllowNull Exception inner)
+    public RegistryConstructionException(Identifier registry, @AllowNull String message, @AllowNull Exception inner)
     {
         super(StringUtils.IsNullOrEmpty(message) ? UNSPECIFIED_FAILURE_MSG : message, inner);
         ArgumentNullException.ThrowIfNull(registry, "registry");
@@ -57,7 +57,7 @@ public class RegistryConstructionException
     }
 
     @NotNull
-    public final ResourceLocation GetLocation() { return registry; }
+    public final Identifier GetLocation() { return registry; }
 
     @Override
     public final String getMessage() { return super.getMessage() + "\nRegistry location: " + registry; }

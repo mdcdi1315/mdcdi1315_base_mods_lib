@@ -2,7 +2,6 @@ package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
 
-import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
 import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreater;
 import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
@@ -32,10 +31,10 @@ import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeReg
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
 
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 
 import net.minecraft.core.Registry;
@@ -43,15 +42,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.core.MappedRegistry;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.core.RegistrationInfo;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.core.particles.ParticleOptions;
@@ -80,12 +79,12 @@ public final class FabricCommonRegistryItemsRegistrar
         ISoundRegistrar
 {
     private final String mod_id;
-    private HashMap<CreativeModeTab, ModifyEntriesInstance> modify_entries_register;
+    private ModifyEntriesInstance modify_entries_register;
 
     public FabricCommonRegistryItemsRegistrar(String mod_id)
     {
         this.mod_id = mod_id;
-        modify_entries_register = new HashMap<>(2);
+        modify_entries_register = new ModifyEntriesInstance();
     }
 
     private record MenuCreaterToMenuSupplier<T extends AbstractContainerMenu>(MenuTypeCreater<T> crt)
@@ -96,19 +95,17 @@ public final class FabricCommonRegistryItemsRegistrar
         public T create(int i, Inventory inventory) { return crt.Create(i , inventory); }
     }
 
-    private static ModifyEntriesInstance ComputeIfAbsentWrapper(CreativeModeTab rk) { return new ModifyEntriesInstance(); }
-
     @Override
     public void Register(String name, BlockRegistrationInformation info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
 
-        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+        Identifier location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         Block blk = Registry.register(BuiltInRegistries.BLOCK, location, info.block_getter().function(location));
 
-        Func3<Block, ResourceLocation, Item> item_func_registration = info.item_for_block_getter();
+        Func3<Block, Identifier, Item> item_func_registration = info.item_for_block_getter();
 
         if (item_func_registration != null)
         {
@@ -116,7 +113,7 @@ public final class FabricCommonRegistryItemsRegistrar
 
             for (var i : info.creative_mode_tabs_for_item()) {
                 // Add the item to be registered to the creative mode tabs.
-                modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).AddItem(itm);
+                modify_entries_register.AddItem(i, itm);
             }
         }
     }
@@ -127,13 +124,11 @@ public final class FabricCommonRegistryItemsRegistrar
     {
         ArgumentNullException.ThrowIfNull(info, "info");
 
-        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+        Identifier location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         Item itm = Registry.register(BuiltInRegistries.ITEM, location, info.item_getter().function(location));
 
-        for (var i : info.tabs()) {
-            modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).AddItem(itm);
-        }
+        for (var i : info.tabs()) { modify_entries_register.AddItem(i, itm); }
     }
 
     @Override
@@ -153,12 +148,12 @@ public final class FabricCommonRegistryItemsRegistrar
     }
 
     @Override
-    public void RegisterCreativeModeTabStack(CreativeModeTab tab, Func1<ItemStack> stack)
+    public void RegisterCreativeModeTabStack(CreativeModeTab tab, Func1<ItemStackTemplate> stack)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(tab, "tab");
         ArgumentNullException.ThrowIfNull(stack, "stack");
-        modify_entries_register.computeIfAbsent(tab, FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).AddItemStack(stack.function());
+        modify_entries_register.AddItemStack(tab, stack.function());
     }
 
     @Override
@@ -209,9 +204,9 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(registry, "registry");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
 
-        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+        Identifier location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
-        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
+        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.identifier());
 
         if (rg.isEmpty()) {
             throw new NotSupportedException("Registering objects to a non-existent registry is not allowed!");
@@ -222,15 +217,15 @@ public final class FabricCommonRegistryItemsRegistrar
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<ResourceLocation, T> supplier)
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<Identifier, T> supplier)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(registry, "registry");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
 
-        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+        Identifier location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
-        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
+        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.identifier());
 
         if (rg.isEmpty()) {
             throw new NotSupportedException("Registering objects to a non-existent registry is not allowed!");
@@ -247,9 +242,9 @@ public final class FabricCommonRegistryItemsRegistrar
         ArgumentNullException.ThrowIfNull(registry, "registry");
         ArgumentNullException.ThrowIfNull(supplier, "supplier");
 
-        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+        Identifier location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
-        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
+        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.identifier());
 
         if (rg.isEmpty()) {
             throw new NotSupportedException("Registering objects to a non-existent registry is not allowed!");
@@ -293,10 +288,10 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricBridgedIdentifiableReloadListener(
+        ResourceLoader.get(PackType.SERVER_DATA).registerReloadListener(
                 RegistryUtils.ConstructResourceLocation(mod_id, name),
                 preparable_reload_listener
-        ));
+        );
     }
 
     @Override
@@ -344,7 +339,7 @@ public final class FabricCommonRegistryItemsRegistrar
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
-        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+        Identifier location = RegistryUtils.ConstructResourceLocation(mod_id, name);
         Registry.register(BuiltInRegistries.FLUID, location, info.fluid_getter().function(location));
     }
 
@@ -380,12 +375,12 @@ public final class FabricCommonRegistryItemsRegistrar
 
         // Precompute resource location ahead-of-time to not spend time creating
         // the menu type instance if not needed.
-        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+        Identifier location = RegistryUtils.ConstructResourceLocation(mod_id, name);
 
         MenuTypeCreater<T> crt = info.creater();
 
         MenuType<T> mt = (crt instanceof MenuTypeCreaterEx<T> t_ex) ?
-                new ExtendedScreenHandlerType<>(new MenuCreaterExToExtendedFactory<>(t_ex), MenuCreaterExStreamCodec.INSTANCE) :
+                new ExtendedMenuType<>(new MenuCreaterExToExtendedFactory<>(t_ex), MenuCreaterExStreamCodec.INSTANCE) :
                 new MenuType<>(new MenuCreaterToMenuSupplier<>(crt) , info.required_features());
 
         Registry.register(BuiltInRegistries.MENU, location, mt);
@@ -394,15 +389,9 @@ public final class FabricCommonRegistryItemsRegistrar
     // This is executed right after all the blocks, items, block entities and fluids have been registered.
     public void ApplyFabricModifyEntries()
     {
-        Optional<ResourceKey<CreativeModeTab>> rk;
-        for (var kvp : modify_entries_register.entrySet())
+        if (modify_entries_register.HasItemsToRegister())
         {
-            rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(kvp.getKey());
-            if (rk.isPresent()) {
-                ItemGroupEvents.modifyEntriesEvent(rk.get()).register(kvp.getValue());
-            } else {
-                BaseModsLib.LOGGER.warn("[FabricCommonRegistryItemsRegistrar] Cannot get the resource key for the specified creative mode tab! Lookup failed.\nAll the items specified for this creative mode tab will not be applied.");
-            }
+            CreativeModeTabEvents.MODIFY_OUTPUT_ALL.register(modify_entries_register);
         }
         modify_entries_register = null;
     }

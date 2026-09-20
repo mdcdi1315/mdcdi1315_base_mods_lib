@@ -5,10 +5,11 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -67,13 +68,9 @@ public final class ConfirmationDialogScreen
 
     public enum DialogResult { NO, YES }
 
-    public void SetDescriptionTextColor(int color) {
-        text_color = color;
-    }
+    public void SetDescriptionTextColor(int color) { text_color = color; }
 
-    public int GetDescriptionTextColor() {
-        return text_color;
-    }
+    public int GetDescriptionTextColor() { return text_color; }
 
     private void OnButtonPressedHandler(Button b)
     {
@@ -115,29 +112,29 @@ public final class ConfirmationDialogScreen
     }
 
     @Override
-    public boolean shouldCloseOnEsc() {
+    public boolean shouldCloseOnEsc()
+    {
         // We handle this event specially, see keyPressed method
         return false;
     }
 
-    @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers)
+    public boolean keyPressed(KeyEvent event)
     {
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+        if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
             on_complete.action(DialogResult.NO); // To indicate that no selection was performed.
             onClose();
             return true;
         } else {
             // For all other cases route to the default handler
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         }
     }
 
     @Override
-    public void render(GuiGraphics gc, int mouseX, int mouseY, float partialTick)
+    public void extractRenderState(GuiGraphicsExtractor gc, int mouseX, int mouseY, float partialTick)
     {
         // Render our background.
-        renderBackground(gc , mouseX, mouseY, partialTick);
+        extractBackground(gc , mouseX, mouseY, partialTick);
 
         // Render title
 
@@ -145,7 +142,7 @@ public final class ConfirmationDialogScreen
         // If somehow our width overflown because the string is too large (or our screen became too small), set position to a reasonable value instead.
         if (string_x_pos < 0) { string_x_pos = 10; }
 
-        gc.drawString(font, title_component_string, string_x_pos, base_y , 0xFF00FF00); // Green text
+        gc.text(font, title_component_string, string_x_pos, base_y , 0xFF00FF00); // Green text
 
         base_y += (font.lineHeight * 2); // we want to skip to two lines
 
@@ -154,7 +151,7 @@ public final class ConfirmationDialogScreen
         for (int I = 0; I < lines.length; I++)
         {
             string_x_pos = (width / 2) - (line_widths[I] / 2);
-            gc.drawString(font, lines[I] , (string_x_pos < 0) ? 10 : string_x_pos, base_y, text_color);
+            gc.text(font, lines[I] , (string_x_pos < 0) ? 10 : string_x_pos, base_y, text_color);
             base_y += font.lineHeight;
         }
 
@@ -164,8 +161,8 @@ public final class ConfirmationDialogScreen
         yes.setY(base_y);
 
         // Render our buttons.
-        no.render(gc , mouseX , mouseY , partialTick);
-        yes.render(gc, mouseX , mouseY , partialTick);
+        no.extractRenderState(gc , mouseX , mouseY , partialTick);
+        yes.extractRenderState(gc, mouseX , mouseY , partialTick);
     }
 
     public static void CreateDialog(Component title, String confirmation_text, @MaybeNull Screen parent, Action1<DialogResult> on_completed)

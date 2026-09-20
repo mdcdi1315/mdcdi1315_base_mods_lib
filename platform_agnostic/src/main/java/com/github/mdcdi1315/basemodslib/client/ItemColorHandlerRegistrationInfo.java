@@ -3,11 +3,11 @@ package com.github.mdcdi1315.basemodslib.client;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.client.color.item.ItemTintSource;
 
 public record ItemColorHandlerRegistrationInfo(
-        ResourceLocation location,
+        Identifier location,
         MapCodec<? extends ItemTintSource> tint_source
 ) {
     public ItemColorHandlerRegistrationInfo {

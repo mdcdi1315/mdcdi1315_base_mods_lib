@@ -8,24 +8,24 @@ import com.github.mdcdi1315.basemodslib.registries.ResourceLocationConstructionE
 
 import me.shedaniel.clothconfig2.gui.entries.TextFieldListEntry;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class ListOfResourceLocationEntry
-        extends TextFieldListEntry<ResourceLocation>
+        extends TextFieldListEntry<Identifier>
 {
     public ListOfResourceLocationEntry(Component fieldName, Component resetButtonKey, Optional<Component[]> tooltip) {
-        this(fieldName, ResourceLocation.tryBuild(ResourceLocation.DEFAULT_NAMESPACE, "value"), resetButtonKey, new ElementSupplier<>(tooltip), false);
+        this(fieldName, Identifier.tryBuild(Identifier.DEFAULT_NAMESPACE, "value"), resetButtonKey, new ElementSupplier<>(tooltip), false);
     }
 
-    public ListOfResourceLocationEntry(Component fieldName, ResourceLocation original, Component resetButtonKey, Optional<Component[]> tooltip) {
+    public ListOfResourceLocationEntry(Component fieldName, Identifier original, Component resetButtonKey, Optional<Component[]> tooltip) {
         this(fieldName, original, resetButtonKey, new ElementSupplier<>(tooltip), false);
     }
 
-    public ListOfResourceLocationEntry(Component fieldName, ResourceLocation original, Component resetButtonKey, Supplier<Optional<Component[]>> tooltipSupplier, boolean requiresRestart) {
+    public ListOfResourceLocationEntry(Component fieldName, Identifier original, Component resetButtonKey, Supplier<Optional<Component[]>> tooltipSupplier, boolean requiresRestart) {
         super(fieldName, original, resetButtonKey, null, tooltipSupplier, requiresRestart);
 
         textFieldWidget.setValue(original.toString());
@@ -33,13 +33,13 @@ public final class ListOfResourceLocationEntry
     }
 
     @Override
-    public Optional<ResourceLocation> getDefaultValue() { return Optional.ofNullable(ResourceLocation.tryBuild(ResourceLocation.DEFAULT_NAMESPACE, "value")); }
+    public Optional<Identifier> getDefaultValue() { return Optional.ofNullable(Identifier.tryBuild(Identifier.DEFAULT_NAMESPACE, "value")); }
 
     @Override
     public Optional<Component> getError()
     {
         try {
-            RegistryUtils.ParseResourceLocation(textFieldWidget.getValue());
+            RegistryUtils.ParseIdentifier(textFieldWidget.getValue());
             return Optional.empty();
         } catch (ResourceLocationConstructionException construction) {
             return Optional.of(
@@ -55,10 +55,10 @@ public final class ListOfResourceLocationEntry
     }
 
     @Override
-    public ResourceLocation getValue()
+    public Identifier getValue()
     {
         try {
-            return RegistryUtils.ParseResourceLocation(textFieldWidget.getValue());
+            return RegistryUtils.ParseIdentifier(textFieldWidget.getValue());
         } catch (ResourceLocationConstructionException e) {
             return null;
         }

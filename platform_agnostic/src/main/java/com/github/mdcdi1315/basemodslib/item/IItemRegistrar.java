@@ -7,8 +7,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.Constant
 import com.github.mdcdi1315.basemodslib.Contract;
 import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
 
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStackTemplate;
 
 /**
  * Defines methods for making known new Minecraft items to the mod loader. <br />
@@ -50,6 +50,6 @@ public interface IItemRegistrar
      * @throws ArgumentNullException {@code tab} and/or {@code stack} are {@code null}.
      * @since 1.0.12
      */
-    void RegisterCreativeModeTabStack(CreativeModeTab tab , Func1<ItemStack> stack) throws ArgumentNullException;
+    void RegisterCreativeModeTabStack(CreativeModeTab tab , Func1<ItemStackTemplate> stack) throws ArgumentNullException;
 }
 

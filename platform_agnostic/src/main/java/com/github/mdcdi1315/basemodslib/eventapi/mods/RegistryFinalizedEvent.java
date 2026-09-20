@@ -9,7 +9,7 @@ import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 import com.github.mdcdi1315.basemodslib.registries.MinecraftWrappedModLoaderRegistry;
 
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Optional;
 
@@ -57,7 +57,7 @@ public class RegistryFinalizedEvent<T>
     public IModLoaderRegistry<T> GetRegistry() { return registry; }
 
     /**
-     * Retrieves a registry object from the finalized registry. This works like {@link com.github.mdcdi1315.basemodslib.registries.RegistryUtils#GetRegistryObjectChecked(IModLoaderRegistry, ResourceLocation)}.
+     * Retrieves a registry object from the finalized registry. This works like {@link com.github.mdcdi1315.basemodslib.registries.RegistryUtils#GetRegistryObjectChecked(IModLoaderRegistry, Identifier)}.
      * @param location The location of the object inside this registry.
      * @return The registered registry object, if that was successfully found.
      * @param <TO> The more specific type of object you require.
@@ -66,7 +66,8 @@ public class RegistryFinalizedEvent<T>
      * @throws RegistryObjectNotFoundException {@code location} is not a valid registry object in the current registry.
      */
     @NotNull
-    public <TO extends T> TO GetRegistryObjectChecked(@NotNull ResourceLocation location)
+    @SuppressWarnings("unchecked")
+    public <TO extends T> TO GetRegistryObjectChecked(@NotNull Identifier location)
         throws ArgumentNullException, ClassCastException, RegistryObjectNotFoundException
     {
         ArgumentNullException.ThrowIfNull(location, "location");

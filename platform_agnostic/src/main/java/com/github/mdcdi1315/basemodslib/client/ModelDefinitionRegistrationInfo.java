@@ -3,7 +3,7 @@ package com.github.mdcdi1315.basemodslib.client;
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 
@@ -17,7 +17,7 @@ public record ModelDefinitionRegistrationInfo(
         ArgumentNullException.ThrowIfNull(definition, "definition");
     }
 
-    public static ModelDefinitionRegistrationInfo CreateTyped(ResourceLocation identifier, String layer, Func1<LayerDefinition> definition)
+    public static ModelDefinitionRegistrationInfo CreateTyped(Identifier identifier, String layer, Func1<LayerDefinition> definition)
     {
         ArgumentNullException.ThrowIfNull(layer, "layer");
         ArgumentNullException.ThrowIfNull(identifier, "identifier");

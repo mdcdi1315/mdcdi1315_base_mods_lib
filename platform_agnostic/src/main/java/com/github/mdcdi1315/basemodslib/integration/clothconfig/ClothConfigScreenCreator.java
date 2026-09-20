@@ -28,9 +28,9 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.gui.entries.NestedListListEntry;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.resources.ResourceLocation;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -176,13 +176,13 @@ public final class ClothConfigScreenCreator
                                     .setSaveConsumer(new FieldSaveConsumer<>(config, field))
                                     .build()
                     );
-                } else if (fc == ResourceLocation.class) {
+                } else if (fc == Identifier.class) {
                     ccr.addEntry(
                             new ResourceLocationListEntry(
                                     config,
                                     field,
                                     setting_name,
-                                    (ResourceLocation) field.GetValue(config),
+                                    (Identifier) field.GetValue(config),
                                     ceb.getResetButtonKey(),
                                     comment_lines
                             )
@@ -251,11 +251,11 @@ public final class ClothConfigScreenCreator
                                         .setSaveConsumer(new FieldSaveConsumer<>(config, field))
                                         .build()
                         );
-                    } else if (actual_field_class == ResourceLocation.class) {
+                    } else if (actual_field_class == Identifier.class) {
                         ccr.addEntry(
                                 new NestedListListEntry<>(
                                         setting_name,
-                                        (List<ResourceLocation>) field.GetValue(config),
+                                        (List<Identifier>) field.GetValue(config),
                                         false,
                                         new ElementSupplier<>(comment_lines),
                                         new FieldSaveConsumer<>(config, field),
@@ -263,7 +263,7 @@ public final class ClothConfigScreenCreator
                                         ceb.getResetButtonKey(),
                                         true,
                                         true,
-                                        new HandleResourceLocationListElementCreation(ceb.getResetButtonKey(), setting_name, comment_lines)
+                                        new HandleIdentifierListElementCreation(ceb.getResetButtonKey(), setting_name, comment_lines)
                                 )
                         );
                     } else {
@@ -298,11 +298,11 @@ public final class ClothConfigScreenCreator
         );
     }
 
-    private record HandleResourceLocationListElementCreation(Component reset_button_key, Component setting_name, Optional<Component[]> tooltip)
-        implements BiFunction<ResourceLocation, NestedListListEntry<ResourceLocation, ListOfResourceLocationEntry>, ListOfResourceLocationEntry>
+    private record HandleIdentifierListElementCreation(Component reset_button_key, Component setting_name, Optional<Component[]> tooltip)
+        implements BiFunction<Identifier, NestedListListEntry<Identifier, ListOfResourceLocationEntry>, ListOfResourceLocationEntry>
     {
         @Override
-        public ListOfResourceLocationEntry apply(ResourceLocation location, NestedListListEntry<ResourceLocation, ListOfResourceLocationEntry> resourceLocationListOfResourceLocationEntryNestedListListEntry)
+        public ListOfResourceLocationEntry apply(Identifier location, NestedListListEntry<Identifier, ListOfResourceLocationEntry> IdentifierListOfIdentifierEntryNestedListListEntry)
         {
             if (location == null) {
                 return new ListOfResourceLocationEntry(

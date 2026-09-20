@@ -5,7 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.mojang.serialization.MapCodec;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
 
 /**
@@ -16,8 +16,8 @@ import net.minecraft.client.renderer.special.SpecialModelRenderer;
  * @since 1.0.11
  */
 public record SpecialModelRendererCodecRegistrationInfo(
-        @NotNull ResourceLocation location,
-        @NotNull MapCodec<? extends SpecialModelRenderer.Unbaked> renderer_codec
+        @NotNull Identifier location,
+        @NotNull MapCodec<? extends SpecialModelRenderer.Unbaked<?>> renderer_codec
 ) {
     /**
      * Constructs a new instance of the {@link SpecialModelRendererCodecRegistrationInfo} class.

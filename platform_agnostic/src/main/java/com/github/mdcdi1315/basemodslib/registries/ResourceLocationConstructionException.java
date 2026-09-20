@@ -4,19 +4,19 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.github.mdcdi1315.basemodslib.BaseModsLibraryException;
 
-import net.minecraft.ResourceLocationException;
+import net.minecraft.IdentifierException;
 
 /**
- * Exception class thrown when a {@link net.minecraft.resources.ResourceLocation} cannot be constructed.
+ * Exception class thrown when a {@link net.minecraft.resources.Identifier} cannot be constructed.
  */
 public final class ResourceLocationConstructionException
         extends BaseModsLibraryException
 {
-    private final ResourceLocationException rle;
+    private final IdentifierException rle;
 
     /**
      * Initializes a new instance of the {@link ResourceLocationConstructionException} class, specifying why the resource location instance could not be constructed.
-     * @param message The reason why a {@link net.minecraft.resources.ResourceLocation} cannot be constructed.
+     * @param message The reason why a {@link net.minecraft.resources.Identifier} cannot be constructed.
      */
     public ResourceLocationConstructionException(String message)
     {
@@ -27,10 +27,10 @@ public final class ResourceLocationConstructionException
     /**
      * Initializes a new instance of the {@link ResourceLocationConstructionException} class, specifying why the resource location instance could not be constructed,
      * and the specific reason why that was not possible.
-     * @param message The reason why a {@link net.minecraft.resources.ResourceLocation} cannot be constructed.
-     * @param inner An {@link ResourceLocationException} instance that better describes why the resource location construction was failed.
+     * @param message The reason why a {@link net.minecraft.resources.Identifier} cannot be constructed.
+     * @param inner An {@link IdentifierException} instance that better describes why the resource location construction was failed.
      */
-    public ResourceLocationConstructionException(String message, ResourceLocationException inner)
+    public ResourceLocationConstructionException(String message, IdentifierException inner)
     {
         super(message);
         addSuppressed(rle = inner);
@@ -42,5 +42,5 @@ public final class ResourceLocationConstructionException
      * @return The cause of this exception. May be {@code null}.
      */
     @MaybeNull
-    public ResourceLocationException GetCause() { return rle; }
+    public IdentifierException GetCause() { return rle; }
 }

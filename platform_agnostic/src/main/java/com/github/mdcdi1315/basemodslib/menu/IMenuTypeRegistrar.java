@@ -7,8 +7,8 @@ import com.github.mdcdi1315.basemodslib.Contract;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
@@ -36,7 +36,8 @@ public interface IMenuTypeRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException {@code location} was not found in the menu type registry.
      */
-    public static <T extends AbstractContainerMenu> MenuType<T> GetRegisteredMenuType(ResourceLocation location)
+    @SuppressWarnings("unchecked")
+    public static <T extends AbstractContainerMenu> MenuType<T> GetRegisteredMenuType(Identifier location)
         throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (MenuType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.MENU, location);

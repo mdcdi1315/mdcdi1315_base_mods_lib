@@ -7,7 +7,7 @@ import com.github.mdcdi1315.basemodslib.Contract;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -36,7 +36,8 @@ public interface IBlockEntityRegistrar
      * @throws RegistryObjectNotFoundException The requested block entity type passed by {@code location} is non-existent.
      * @since 1.0.3
      */
-    public static <T extends BlockEntity> BlockEntityType<T> GetBlockEntityType(ResourceLocation location)
+    @SuppressWarnings("unchecked")
+    static <T extends BlockEntity> BlockEntityType<T> GetBlockEntityType(Identifier location)
         throws ArgumentNullException , RegistryObjectNotFoundException
     {
         return (BlockEntityType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.BLOCK_ENTITY_TYPE , location);

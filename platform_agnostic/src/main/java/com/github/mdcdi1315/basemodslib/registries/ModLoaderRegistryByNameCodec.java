@@ -10,8 +10,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 
@@ -47,7 +47,7 @@ public final class ModLoaderRegistryByNameCodec<TElement>
     @SuppressWarnings("all")
     public <T> DataResult<Pair<TElement, T>> decode(DynamicOps<T> ops, T input)
     {
-        DataResult<Pair<ResourceLocation , T>> ld = ResourceLocation.CODEC.decode(ops , input);
+        DataResult<Pair<Identifier , T>> ld = Identifier.CODEC.decode(ops , input);
 
         var err = ld.error();
 
@@ -71,6 +71,6 @@ public final class ModLoaderRegistryByNameCodec<TElement>
 
         return r.isEmpty() ?
                 DataResult.error(StringSupplier.FromFormatted("Cannot find the element in the registry %s. Element: %s Hash code: %d" , registry.GetRegistryKey() , input , input.hashCode())) :
-                ResourceLocation.CODEC.encode(r.get().location() , ops , prefix);
+                Identifier.CODEC.encode(r.get().identifier() , ops , prefix);
     }
 }

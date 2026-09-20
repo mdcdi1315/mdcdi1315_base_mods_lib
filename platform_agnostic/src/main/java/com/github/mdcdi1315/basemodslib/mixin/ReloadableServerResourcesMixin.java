@@ -8,6 +8,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.server.RegistryLayer;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.core.LayeredRegistryAccess;
+import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.packs.resources.ResourceManager;
 
@@ -27,13 +28,13 @@ public class ReloadableServerResourcesMixin
     @Inject(method = "loadResources", at = @At("RETURN"))
     private static void loadResources(
             ResourceManager resourceManager,
-            LayeredRegistryAccess<RegistryLayer> registryAccess,
-            List<Registry.PendingTags<?>> postponedTags,
+            LayeredRegistryAccess<RegistryLayer> contextLayers,
+            List<Registry.PendingTags<?>> updatedContextTags,
             FeatureFlagSet enabledFeatures,
             Commands.CommandSelection commandSelection,
-            int functionCompilationLevel,
+            PermissionSet functionCompilationPermissions,
             Executor backgroundExecutor,
-            Executor gameExecutor,
+            Executor mainThreadExecutor,
             CallbackInfoReturnable<CompletableFuture<ReloadableServerResources>> callback_info
     ) {
         callback_info

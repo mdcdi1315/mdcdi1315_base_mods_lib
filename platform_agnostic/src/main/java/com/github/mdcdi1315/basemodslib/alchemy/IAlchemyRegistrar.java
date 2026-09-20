@@ -7,8 +7,8 @@ import com.github.mdcdi1315.basemodslib.Contract;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -44,7 +44,7 @@ public interface IAlchemyRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException The requested particle type passed by {@code location} is non-existent.
      */
-    public static <T extends ParticleOptions> ParticleType<T> GetParticleType(ResourceLocation location)
+    public static <T extends ParticleOptions> ParticleType<T> GetParticleType(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (ParticleType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.PARTICLE_TYPE , location);
@@ -58,7 +58,7 @@ public interface IAlchemyRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException The requested potion type passed by {@code location} is non-existent.
      */
-    public static <T extends Potion> T GetPotion(ResourceLocation location)
+    public static <T extends Potion> T GetPotion(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (T) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.POTION , location);

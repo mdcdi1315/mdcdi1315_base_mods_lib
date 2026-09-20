@@ -7,10 +7,10 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.*;
@@ -103,7 +103,7 @@ public class ItemStackSet
      * <li>If the input parameter is of type {@link ItemStack}, comparison is done based on the item held by the given stack.</li>
      * <li>If the input parameter is of type {@link Item}, comparison is done based on that item's resource key.</li>
      * <li>If the input parameter is of type {@link ResourceKey}, comparison is done based by that key.</li>
-     * <li>If the input parameter is of type {@link ResourceLocation}, comparison is done based by the constructed item resource key.</li>
+     * <li>If the input parameter is of type {@link Identifier}, comparison is done based by the constructed item resource key.</li>
      * @param o The object whose presence in this set is to be tested
      * @return A value whether {@code o} is contained in this set.
      */
@@ -113,10 +113,10 @@ public class ItemStackSet
         boolean item_stack = false;
         Optional<ResourceKey<Item>> k;
         switch (o) {
-            case ItemStack i -> { item_stack = true; k = UnwrapResourceKey(i.getItemHolder()); }
+            case ItemStack i -> { item_stack = true; k = UnwrapResourceKey(i.typeHolder()); }
             case Item i -> k = BuiltInRegistries.ITEM.getResourceKey(i);
             case ResourceKey<?> rk -> k = (rk.isFor(Registries.ITEM)) ? Optional.of((ResourceKey<Item>) rk) : Optional.empty();
-            case ResourceLocation location -> k = Optional.of(ResourceKey.create(Registries.ITEM, location));
+            case Identifier location -> k = Optional.of(ResourceKey.create(Registries.ITEM, location));
             default -> k = Optional.empty();
         }
         if (k.isPresent()) {
@@ -144,7 +144,7 @@ public class ItemStackSet
         if (stack == null || stack == ItemStack.EMPTY) {
             return false;
         } else {
-            Optional<ResourceKey<Item>> rk = UnwrapResourceKey(stack.getItemHolder());
+            Optional<ResourceKey<Item>> rk = UnwrapResourceKey(stack.typeHolder());
             return rk.isPresent() && items.putIfAbsent(rk.get(), stack) == null;
         }
     }
@@ -197,7 +197,7 @@ public class ItemStackSet
      * </li>
      * <li>If the input parameter is of type {@link Item}, lookup for removal is done based on that item's resource key.</li>
      * <li>If the input parameter is of type {@link ResourceKey}, lookup for removal is done based by that key.</li>
-     * <li>If the input parameter is of type {@link ResourceLocation}, lookup for removal is done based by the constructed item resource key.</li>
+     * <li>If the input parameter is of type {@link Identifier}, lookup for removal is done based by the constructed item resource key.</li>
      * @param o The object which is the subject to be removed from the set
      * @param if_item_stack_remove_count_if_possible Value whether to try to reduce the number of copies instead of rather removing the item stack directly.
      * @return A value whether {@code o} is contained in this set, and it was removed according to the above rules.
@@ -208,7 +208,7 @@ public class ItemStackSet
         Optional<ResourceKey<Item>> k;
         if (o instanceof ItemStack i) {
             item_stack = if_item_stack_remove_count_if_possible;
-            k = UnwrapResourceKey(i.getItemHolder());
+            k = UnwrapResourceKey(i.typeHolder());
         } else if (o instanceof Item i) {
             k = BuiltInRegistries.ITEM.getResourceKey(i);
         } else if (o instanceof ResourceKey<?> rk) {
@@ -217,7 +217,7 @@ public class ItemStackSet
             } else {
                 k = Optional.empty();
             }
-        } else if (o instanceof ResourceLocation location) {
+        } else if (o instanceof Identifier location) {
             k = Optional.of(ResourceKey.create(Registries.ITEM, location));
         } else {
             k = Optional.empty();
@@ -259,7 +259,7 @@ public class ItemStackSet
         Optional<ResourceKey<Item>> rk;
         for (ItemStack stack : c) {
             // for each element, we need to unwrap its resource key
-            rk = UnwrapResourceKey(stack.getItemHolder());
+            rk = UnwrapResourceKey(stack.typeHolder());
             // then add it if present
             if (rk.isPresent() && items.putIfAbsent(rk.get(), stack) != null) { modified = true; }
         }

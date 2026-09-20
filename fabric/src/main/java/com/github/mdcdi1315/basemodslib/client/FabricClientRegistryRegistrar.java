@@ -5,9 +5,8 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.basemodslib.ClientOnlyEnvironment;
 import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.client.registries.IClientRegistryRegistrar;
-import com.github.mdcdi1315.basemodslib.registries.FabricBridgedIdentifiableReloadListener;
 
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -26,9 +25,9 @@ public final class FabricClientRegistryRegistrar
     {
         ArgumentNullException.ThrowIfNull(name, "name");
         ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
-        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new FabricBridgedIdentifiableReloadListener(
+        ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloadListener(
                 RegistryUtils.ConstructResourceLocation(mod_id, name),
                 preparable_reload_listener
-        ));
+        );
     }
 }

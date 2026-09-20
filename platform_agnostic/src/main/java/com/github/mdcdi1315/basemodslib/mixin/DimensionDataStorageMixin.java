@@ -8,6 +8,9 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.world.NBTUtils;
 import com.github.mdcdi1315.basemodslib.world.internal.*;
 import com.github.mdcdi1315.basemodslib.world.saveddata.*;
+import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
+
+import net.minecraft.resources.Identifier;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -15,9 +18,9 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.world.level.storage.DimensionDataStorage;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import net.minecraft.world.level.storage.SavedDataStorage;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -25,7 +28,7 @@ import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mixin(DimensionDataStorage.class)
+@Mixin(SavedDataStorage.class)
 public abstract class DimensionDataStorageMixin
     implements IBMLCustomDataStorage
 {
@@ -33,7 +36,13 @@ public abstract class DimensionDataStorageMixin
     private ConcurrentHashMap<String, ISavedData> BML$saved_data;
 
     @Invoker("getDataFile")
-    protected abstract Path GetDataFile(String name);
+    protected abstract Path GetDataFile(Identifier name);
+
+    @Unique
+    private Path MDCDI1315$BML$GetDataFile(String name)
+    {
+        return GetDataFile(RegistryUtils.ConstructResourceLocation(BaseModsLib.MOD_ID, name));
+    }
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void OnCreate(CallbackInfo ci)
@@ -64,7 +73,7 @@ public abstract class DimensionDataStorageMixin
     {
         if (!sd.ShouldSave()) { return; }
 
-        Path f = GetDataFile(name);
+        Path f = MDCDI1315$BML$GetDataFile(name);
 
         SavedDataCommonHeader header;
         try { header = sd.Save(); } catch (Exception ex) {
@@ -92,7 +101,7 @@ public abstract class DimensionDataStorageMixin
         ArgumentNullException.ThrowIfNullOrEmpty(name, "name");
         ArgumentNullException.ThrowIfNull(saved_data, "saved_data");
         if (BML$saved_data == null) { BML$saved_data = new ConcurrentHashMap<>(); }
-        return BML$saved_data.computeIfAbsent(name, new DDS_DataLoader<>(saved_data, GetDataFile(name), name.startsWith(IBMLCustomDataStorage.COMPAT_EXPECTED_SAVED_DATA_PREFIX)));
+        return BML$saved_data.computeIfAbsent(name, new DDS_DataLoader<>(saved_data, MDCDI1315$BML$GetDataFile(name), name.startsWith(IBMLCustomDataStorage.COMPAT_EXPECTED_SAVED_DATA_PREFIX)));
     }
 
     @Unique

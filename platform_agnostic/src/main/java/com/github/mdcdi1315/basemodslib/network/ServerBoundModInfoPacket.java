@@ -9,7 +9,7 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.network.codecs.VersionNetworkCodec;
 
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
@@ -23,11 +23,11 @@ public final class ServerBoundModInfoPacket
 {
     private static final byte ALLOW_FLAG_CLIENT = 1 << 0, ALLOW_FLAG_SERVER = 1 << 1;
 
-    public static final ResourceLocation LOCATION;
+    public static final Identifier LOCATION;
     public static final Type<ServerBoundModInfoPacket> TYPE;
 
     static {
-        LOCATION = ResourceLocation.tryBuild(BaseModsLib.MOD_ID, "mod_version_verifier");
+        LOCATION = Identifier.tryBuild(BaseModsLib.MOD_ID, "mod_version_verifier");
         if (LOCATION == null) {
             throw new ArgumentException(StringUtils.Format("Cannot initialize resource location because we tried to build {0}:mod_version_verifier" , BaseModsLib.MOD_ID));
         }

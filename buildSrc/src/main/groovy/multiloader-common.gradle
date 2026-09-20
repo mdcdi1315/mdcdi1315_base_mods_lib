@@ -13,35 +13,8 @@ java {
     withSourcesJar()
 }
 
-repositories {
-    mavenCentral()
-    // https://docs.gradle.org/current/userguide/declaring_repositories.html#declaring_content_exclusively_found_in_one_repository
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'Sponge'
-                url = 'https://repo.spongepowered.org/repository/maven-public'
-            }
-        }
-        filter { includeGroupAndSubgroups("org.spongepowered") }
-    }
-    exclusiveContent {
-        forRepositories(
-                maven {
-                    name = 'ParchmentMC'
-                    url = 'https://maven.parchmentmc.org/'
-                },
-                maven {
-                    name = "NeoForge"
-                    url = 'https://maven.neoforged.net/releases'
-                }
-        )
-        filter { includeGroup('org.parchmentmc.data') }
-    }
-}
-
 dependencies {
-    implementation 'org.jetbrains:annotations:24.1.0'
+    implementation 'org.jetbrains:annotations:26.0.2'
 }
 
 ['apiElements', 'runtimeElements', 'sourcesElements'].each { variant ->
@@ -96,9 +69,6 @@ processResources {
             'homepage'                     : homepage,
             'sources'                      : sources,
             'issues'                       : issues,
-            "forge_version"                : forge_version,
-            "forge_version_range"          : forge_version_range,
-            "forge_loader_version_range"   : forge_loader_version_range,
             "credits"                      : credits,
             "java_version"                 : java_version,
             "mixin_version"                : mixin_version,

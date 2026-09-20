@@ -1,6 +1,6 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Supplier;
 
@@ -12,5 +12,5 @@ final class RegistryObjectSupplierInternal_2<T>
     public RegistryObjectSupplierInternal_2(Supplier<T> s) { sup = s; }
 
     @Override
-    protected T Get(ResourceLocation location) { return sup.get(); }
+    protected T Get(Identifier location) { return sup.get(); }
 }

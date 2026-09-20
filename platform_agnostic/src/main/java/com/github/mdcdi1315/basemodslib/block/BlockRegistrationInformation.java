@@ -9,7 +9,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.item.CreativeModeTab;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Defines registration information on blocks. <br />
@@ -20,8 +20,8 @@ import net.minecraft.resources.ResourceLocation;
  * @param creative_mode_tabs_for_item Defines the creative mode tabs to register the newly created item. The item mapping function must be valid and be defined for this to work.
  */
 public record BlockRegistrationInformation(
-        Func2<ResourceLocation, Block> block_getter,
-        @MaybeNull Func3<Block, ResourceLocation , Item> item_for_block_getter,
+        Func2<Identifier, Block> block_getter,
+        @MaybeNull Func3<Block, Identifier , Item> item_for_block_getter,
         CreativeModeTab... creative_mode_tabs_for_item
 ) {
     public BlockRegistrationInformation {
@@ -33,7 +33,7 @@ public record BlockRegistrationInformation(
      * @param block_getter The function that upon invoking, it gets the block to be registered.
      * @throws ArgumentNullException {@code block_getter} was {@code null}.
      */
-    public BlockRegistrationInformation(Func2<ResourceLocation, Block> block_getter)
+    public BlockRegistrationInformation(Func2<Identifier, Block> block_getter)
         throws ArgumentNullException
     {
         this(block_getter, null, new CreativeModeTab[0]);

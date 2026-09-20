@@ -25,8 +25,9 @@ public final class NeoForgeModResourceLookup
     }
 
     @Override
-    public Path GetRootPath() {
-        return mod_info.getOwningFile().getFile().findResource("root").getParent();
+    public Path GetRootPath()
+    {
+        return mod_info.getOwningFile().getFile().getContents().getPrimaryPath();
     }
 
     @Override
@@ -34,7 +35,7 @@ public final class NeoForgeModResourceLookup
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull("path", path);
-        return mod_info.getOwningFile().getFile().findResource(path);
+        return mod_info.getOwningFile().getFile().getContents().getPrimaryPath().resolve(path);
     }
 
     @Override

@@ -12,8 +12,8 @@ import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationI
 import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -78,7 +78,8 @@ public interface IEntityTypeRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException The requested entity type passed by {@code location} is non-existent.
      */
-    public static <T extends Entity> EntityType<T> GetEntityType(ResourceLocation location)
+    @SuppressWarnings("unchecked")
+    public static <T extends Entity> EntityType<T> GetEntityType(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (EntityType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.ENTITY_TYPE , location);
@@ -92,7 +93,8 @@ public interface IEntityTypeRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException The requested entity type passed by {@code location} is non-existent.
      */
-    public static <T> MemoryModuleType<T> GetMemoryModuleType(ResourceLocation location)
+    @SuppressWarnings("unchecked")
+    public static <T> MemoryModuleType<T> GetMemoryModuleType(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (MemoryModuleType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.MEMORY_MODULE_TYPE, location);

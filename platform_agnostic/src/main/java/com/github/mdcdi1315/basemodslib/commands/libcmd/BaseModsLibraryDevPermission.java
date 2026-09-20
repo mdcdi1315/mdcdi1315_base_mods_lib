@@ -5,14 +5,21 @@ import com.github.mdcdi1315.basemodslib.commands.CommandPermission;
 import net.minecraft.commands.CommandSourceStack;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.players.NameAndId;
 
 public final class BaseModsLibraryDevPermission
     extends CommandPermission
 {
     @Override
-    protected boolean IsSatisfied(CommandSourceStack stack) {
+    @SuppressWarnings("ConstantValue")
+    protected boolean IsSatisfied(CommandSourceStack stack)
+    {
         MinecraftServer server = stack.getServer();
-        return !server.isDedicatedServer() || AllPlayersAreOPSAndCreative(server);
+        if (server == null) {
+            return false;
+        } else {
+            return !server.isDedicatedServer() || AllPlayersAreOPSAndCreative(server);
+        }
     }
 
     private boolean AllPlayersAreOPSAndCreative(MinecraftServer server)
@@ -20,7 +27,7 @@ public final class BaseModsLibraryDevPermission
         var pll = server.getPlayerList();
         for (var player : pll.getPlayers())
         {
-            if (!pll.isOp(player.getGameProfile()) || !player.isCreative()) {
+            if (!pll.isOp(new NameAndId(player.getGameProfile())) || !player.isCreative()) {
                 return false;
             }
         }

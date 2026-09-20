@@ -42,6 +42,7 @@ public final class ImmutableItemStackSet
                 item.unwrapKey();
     }
 
+    @SuppressWarnings("OptionalIsPresent")
     private static ImmutableMap<ResourceKey<Item>, ItemStack> ConstructItems(ImmutableSet<ItemStack> items)
     {
         if (items == null) {
@@ -52,7 +53,7 @@ public final class ImmutableItemStackSet
 
             for (ItemStack item : items)
             {
-                rk = UnwrapResourceKey(item.getItemHolder());
+                rk = UnwrapResourceKey(item.typeHolder());
                 if (rk.isPresent()) { builder.put(rk.get(), item); }
             }
 

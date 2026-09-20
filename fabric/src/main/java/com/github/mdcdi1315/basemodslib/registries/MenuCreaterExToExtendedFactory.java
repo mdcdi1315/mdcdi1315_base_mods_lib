@@ -2,14 +2,15 @@ package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreaterEx;
 
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
+@SuppressWarnings("NullableProblems")
 record MenuCreaterExToExtendedFactory<T extends AbstractContainerMenu>(MenuTypeCreaterEx<T> crt)
-            implements ExtendedScreenHandlerType.ExtendedFactory<T, FriendlyByteBuf>
+            implements ExtendedMenuType.ExtendedFactory<T, FriendlyByteBuf>
 {
     @Override
     public T create(int syncId, Inventory inventory, FriendlyByteBuf buf)

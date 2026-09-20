@@ -14,7 +14,10 @@ import net.minecraft.world.entity.player.Player;
  * @param stat The stat that will be updated.
  * @param incremented_by The value by the current stat will be updated by.
  * @since 1.0.11
+ * @deprecated This event is not longer defined by BML and is not dispatched.
+ * Consider injecting to the stat method with a Mixin for this.
  */
+@Deprecated(since = "1.0.38", forRemoval = true)
 public record PlayerWillBeRewardedWithStatEvent(@NotNull Player player, @NotNull Stat<?> stat, int incremented_by)
     implements IDestroyableIfUnusedEvent
 { }

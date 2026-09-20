@@ -10,7 +10,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.tags.TagKey;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Set;
 import java.util.Optional;
@@ -37,13 +37,13 @@ public interface IModLoaderRegistry<T>
      * @param location The location of the resource.
      * @return A value whether the specified entry is part of this registry object.
      */
-    boolean ContainsKey(ResourceLocation location);
+    boolean ContainsKey(Identifier location);
 
     default boolean ContainsKey(ResourceKey<T> key)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(key , "key");
-        return ContainsKey(key.location());
+        return ContainsKey(key.identifier());
     }
 
     /**
@@ -60,7 +60,7 @@ public interface IModLoaderRegistry<T>
      * @param location The location that this object should be referenced as. Must not be null.
      * @param value The value of the new object. Must not be null.
      */
-    void Register(@NotNull ResourceLocation location , @NotNull T value) throws ArgumentNullException;
+    void Register(@NotNull Identifier location , @NotNull T value) throws ArgumentNullException;
 
     /**
      * Gets a resource key that identifies this registry.
@@ -70,9 +70,9 @@ public interface IModLoaderRegistry<T>
 
     /**
      * Gets all the keys of the entries comprising this registry.
-     * @return A {@link Set} containing {@link ResourceLocation}s that is their identifiers for the actual entries.
+     * @return A {@link Set} containing {@link Identifier}s that is their identifiers for the actual entries.
      */
-    Set<ResourceLocation> GetEntryKeys();
+    Set<Identifier> GetEntryKeys();
 
     /**
      * Gets the number of entries contained in this registry object.
@@ -97,7 +97,7 @@ public interface IModLoaderRegistry<T>
      * @throws ArgumentNullException <em>location</em> was null.
      */
     @NotNull
-    Optional<T> GetElementValue(ResourceLocation location) throws ArgumentNullException;
+    Optional<T> GetElementValue(Identifier location) throws ArgumentNullException;
 
     /**
      * Gets the resource key of the specified element.

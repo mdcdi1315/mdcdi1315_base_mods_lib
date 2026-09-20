@@ -4,7 +4,7 @@ import com.github.mdcdi1315.basemodslib.menu.MenuProviderEx;
 
 import io.netty.buffer.Unpooled;
 
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 public record ExtendedScreenHandlerFactoryTranslation(MenuProviderEx mpx)
-        implements ExtendedScreenHandlerFactory<FriendlyByteBuf>
+        implements ExtendedMenuProvider<FriendlyByteBuf>
 {
     @Override
     public FriendlyByteBuf getScreenOpeningData(ServerPlayer player)

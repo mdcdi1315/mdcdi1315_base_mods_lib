@@ -9,7 +9,7 @@ import com.github.mdcdi1315.basemodslib.codecs.EnumCodecCompareIgnoreCase;
 
 import com.mojang.serialization.Codec;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * -&gt; {@link Enum} instances are implicitly handled by this class by creating a {@link EnumCodecCompareIgnoreCase} codec for it.
  *       While it is perfectly valid to register a codec for a derived {@link Enum} instance, the class won't use it.
  *       However, be noted that this might be subject to change in the future. <br />
- * -&gt; Default mappings for primitives, {@link String} and {@link ResourceLocation} are provided as well. <br />
+ * -&gt; Default mappings for primitives, {@link String} and {@link Identifier} are provided as well. <br />
  * -&gt; Once a new class has registered a configuration field mapping here, it does also implicitly get support for the Constraints subsystem.
  *      See {@link com.github.mdcdi1315.basemodslib.config.reflect.constraints} package for more information.
  */
@@ -72,7 +72,7 @@ public final class ConfigFieldCodecRegistry
         AddCodecReferenceDirect(Double.class, Codec.DOUBLE);
         AddCodecReferenceDirect(double.class, Codec.DOUBLE);
         AddCodecReferenceDirect(String.class, Codec.STRING);
-        AddCodecReferenceDirect(ResourceLocation.class, ResourceLocation.CODEC);
+        AddCodecReferenceDirect(Identifier.class, Identifier.CODEC);
     }
 
     private static <T> void AddCodecReferenceDirect(Class<T> codec_type, Codec<T> codec) { codec_references.put(codec_type, codec); }

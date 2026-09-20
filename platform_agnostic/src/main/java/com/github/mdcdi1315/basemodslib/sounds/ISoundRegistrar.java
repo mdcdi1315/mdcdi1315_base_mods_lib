@@ -8,7 +8,7 @@ import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
@@ -34,7 +34,7 @@ public interface ISoundRegistrar
      * @throws RegistryObjectNotFoundException The requested sound event passed by {@code location} is non-existent.
      */
     @NotNull
-    public static SoundEvent GetSoundEvent(ResourceLocation location)
+    public static SoundEvent GetSoundEvent(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.SOUND_EVENT, location);

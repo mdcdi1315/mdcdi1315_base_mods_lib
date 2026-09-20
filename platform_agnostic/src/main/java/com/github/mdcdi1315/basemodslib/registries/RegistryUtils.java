@@ -10,7 +10,7 @@ import com.github.mdcdi1315.basemodslib.RegistryObjectNotFoundException;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Optional;
@@ -34,7 +34,7 @@ public final class RegistryUtils
      * @throws RegistryObjectNotFoundException The passed {@code location} does not represent a valid registry item within the provided registry.
      */
     @NotNull
-    public static <T> T GetRegistryObjectChecked(Registry<T> registry, ResourceLocation location)
+    public static <T> T GetRegistryObjectChecked(Registry<T> registry, Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         ArgumentNullException.ThrowIfNull(registry,"registry");
@@ -57,7 +57,7 @@ public final class RegistryUtils
      * @throws RegistryObjectNotFoundException The passed {@code location} does not represent a valid registry item within the provided registry.
      */
     @NotNull
-    public static <T> T GetRegistryObjectChecked(IModLoaderRegistry<T> registry, ResourceLocation location)
+    public static <T> T GetRegistryObjectChecked(IModLoaderRegistry<T> registry, Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         ArgumentNullException.ThrowIfNull(registry,"registry");
@@ -78,14 +78,15 @@ public final class RegistryUtils
      * @throws RegistryObjectNotFoundException The requested registry object was not found.
      */
     @NotNull
+    @SuppressWarnings("unchecked")
     public static <T> T GetRegistryObjectFromResourceKey(ResourceKey<T> key)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         ArgumentNullException.ThrowIfNull(key, "key");
-        ResourceLocation registry_loc = key.registry();
+        Identifier registry_loc = key.registry();
         if (registry_loc.equals(Registries.ROOT_REGISTRY_NAME)) {
             // A registry was requested. We need to behave differently.
-            var ro = BuiltInRegistries.REGISTRY.getOptional(key.location());
+            var ro = BuiltInRegistries.REGISTRY.getOptional(key.identifier());
             if (ro.isPresent()) {
                 return (T) ro.get();
             } else {
@@ -95,7 +96,7 @@ public final class RegistryUtils
             // Typical case where there is a lookup of a specific object in a specific registry.
             var opt_registry = BuiltInRegistries.REGISTRY.getOptional(registry_loc);
             if (opt_registry.isPresent()) {
-                var ro = opt_registry.get().getOptional(key.location());
+                var ro = opt_registry.get().getOptional(key.identifier());
                 if (ro.isPresent()) {
                     return (T) ro.get();
                 } else {
@@ -118,16 +119,17 @@ public final class RegistryUtils
      * @throws RegistryNotFoundException {@code resource_key} does not point to a valid Minecraft registry.
      */
     @NotNull
+    @SuppressWarnings("unchecked")
     public static <T> Registry<T> GetRootRegistry(ResourceKey<? extends Registry<T>> resource_key)
         throws ArgumentNullException, RegistryNotFoundException
     {
         ArgumentNullException.ThrowIfNull(resource_key, "resource_key");
         if (resource_key.registry().equals(Registries.ROOT_REGISTRY_NAME)) {
-            var ro = BuiltInRegistries.REGISTRY.getOptional(resource_key.location());
+            var ro = BuiltInRegistries.REGISTRY.getOptional(resource_key.identifier());
             if (ro.isPresent()) {
                 return (Registry<T>) ro.get();
             } else {
-                throw new RegistryNotFoundException(resource_key.location());
+                throw new RegistryNotFoundException(resource_key.identifier());
             }
         } else {
             throw new InvalidOperationException("The specified resource key does not represent a root registry key: " + resource_key);
@@ -144,14 +146,14 @@ public final class RegistryUtils
      * @since 1.0.25
      */
     @NotNull
-    public static ResourceLocation ConstructResourceLocation(String namespace, String path)
+    public static Identifier ConstructResourceLocation(String namespace, String path)
             throws ResourceLocationConstructionException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(path, "path");
         ArgumentNullException.ThrowIfNull(namespace, "namespace");
         try {
-            return ResourceLocation.fromNamespaceAndPath(namespace, path);
-        } catch (net.minecraft.ResourceLocationException rle) {
+            return Identifier.fromNamespaceAndPath(namespace, path);
+        } catch (net.minecraft.IdentifierException rle) {
             throw new ResourceLocationConstructionException("Could not explicitly construct a resource location from a namespace and a path.", rle);
         }
     }
@@ -180,20 +182,20 @@ public final class RegistryUtils
     }
 
     /**
-     * Parses the given string as a {@link ResourceLocation} instance.
+     * Parses the given string as a {@link Identifier} instance.
      * @param location The string to parse. Must have a format like {@code namespace:path/sub_dir/goes_on}.
      * @return The parsed resource location.
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws ResourceLocationConstructionException The resource location could not be constructed.
      */
     @NotNull
-    public static ResourceLocation ParseResourceLocation(String location)
+    public static Identifier ParseIdentifier(String location)
             throws ResourceLocationConstructionException, ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(location, "location");
         try {
-            return ResourceLocation.parse(location);
-        } catch (net.minecraft.ResourceLocationException rle) {
+            return Identifier.parse(location);
+        } catch (net.minecraft.IdentifierException rle) {
             throw new ResourceLocationConstructionException("Could not explicitly parse a resource location from a given string.", rle);
         }
     }
@@ -215,7 +217,7 @@ public final class RegistryUtils
         ArgumentNullException.ThrowIfNull(registry, "registry");
         return ResourceKey.create(
                 registry,
-                ParseResourceLocation(location)
+                ParseIdentifier(location)
         );
     }
 }

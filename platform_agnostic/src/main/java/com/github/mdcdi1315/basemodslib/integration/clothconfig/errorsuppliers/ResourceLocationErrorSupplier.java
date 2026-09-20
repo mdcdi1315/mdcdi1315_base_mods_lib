@@ -7,7 +7,7 @@ import com.github.mdcdi1315.basemodslib.config.reflect.ReflectedConfigFieldData;
 import com.github.mdcdi1315.basemodslib.registries.ResourceLocationConstructionException;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Optional;
 
@@ -20,7 +20,7 @@ public class ResourceLocationErrorSupplier
     public Optional<Component> function(String input)
     {
         try {
-            ResourceLocation parsed = RegistryUtils.ParseResourceLocation(input);
+            Identifier parsed = RegistryUtils.ParseIdentifier(input);
             return VirtualizedFunctionImpl(parsed);
         } catch (ResourceLocationConstructionException construction) {
             return Optional.of(

@@ -18,12 +18,12 @@ import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
 import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
 
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -58,11 +58,11 @@ public final class BlocksAndItemsRegistrar
         creative_mode_tab_items_handler = new RegisterCreativeModeTabItemsHandler();
     }
 
-    private record BlockItemRegisterSupplier(Func3<Block , ResourceLocation, Item> item_func, DeferredBlock<?> block)
-            implements Func2<ResourceLocation , Item>
+    private record BlockItemRegisterSupplier(Func3<Block, Identifier, Item> item_func, DeferredBlock<?> block)
+            implements Func2<Identifier , Item>
     {
         @Override
-        public Item function(ResourceLocation location) { return item_func.apply(block.get() , location); }
+        public Item function(Identifier location) { return item_func.apply(block.get() , location); }
     }
 
     private record BlockEntityRegistrySupplier<T extends BlockEntity>(IBlockEntityFactory<T> factory)
@@ -146,7 +146,7 @@ public final class BlocksAndItemsRegistrar
     }
 
     @Override
-    public void RegisterCreativeModeTabStack(CreativeModeTab tab, Func1<ItemStack> stack)
+    public void RegisterCreativeModeTabStack(CreativeModeTab tab, Func1<ItemStackTemplate> stack)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(tab, "tab");

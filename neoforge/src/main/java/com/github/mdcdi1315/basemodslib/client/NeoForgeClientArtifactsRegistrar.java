@@ -14,15 +14,21 @@ import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.ParticleResources;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.client.renderer.block.BuiltInBlockModels;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.*;
+
+import java.util.List;
 
 public final class NeoForgeClientArtifactsRegistrar
     implements IBlockEntityRendererRegistrar,
@@ -149,7 +155,7 @@ public final class NeoForgeClientArtifactsRegistrar
 
     private static <T extends ParticleOptions> void RegisterSimpleParticleProvider(RegisterParticleProvidersEvent event, SimpleParticleProviderRegistrationInfo<T> info)
     {
-        event.registerSpriteSet(info.particle_type().function() , new SimpleParticleRegistration<>(info.particle_provider()));
+        event.registerSpecial(info.particle_type().function(), info.particle_provider());
     }
 
     private static <T extends ParticleOptions> void RegisterAdvancedParticleProvider(RegisterParticleProvidersEvent event, AdvancedParticleProviderRegistrationInfo<T> info)
@@ -163,12 +169,13 @@ public final class NeoForgeClientArtifactsRegistrar
 
     private static void RegisterItemColorHandler(RegisterColorHandlersEvent.ItemTintSources event, ItemColorHandlerRegistrationInfo info) { event.register(info.location(), info.tint_source()); }
 
-    private static void RegisterBlockColorHandler(RegisterColorHandlersEvent.Block event, BlockColorHandlerRegistrationInfo info) { event.register(info.block_color(), info.blocks().function()); }
+    private static void RegisterBlockColorHandler(RegisterColorHandlersEvent.BlockTintSources event, BlockColorHandlerRegistrationInfo info) { event.register(List.of(info.block_color()), info.blocks().function()); }
 
-    private static void RegisterSpecialModelRenderer(RegisterSpecialBlockModelRendererEvent event, SpecialModelRendererRegistrationInfo info) { event.register(info.block().function(), info.unbaked_renderer()); }
+    private static void RegisterSpecialModelRenderer(RegisterBlockModelsEvent event, SpecialModelRendererRegistrationInfo info) { event.register(new RendererModelFactoryToMC(info.unbaked_model_factory()), info.block().function()); }
 
     private static void RegisterSpecialModelRendererCodec(RegisterSpecialModelRendererEvent event, SpecialModelRendererCodecRegistrationInfo info) { event.register(info.location(), info.renderer_codec()); }
 
+    @SuppressWarnings("NullableProblems")
     private record MenuScreenRegInfo<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(Func1<MenuType<? extends M>> type, MenuScreenConstructor<M, U> constructor)
     {
         private record MSCToMenuConstructor<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>>(MenuScreenConstructor<M, U> constructor)
@@ -185,15 +192,17 @@ public final class NeoForgeClientArtifactsRegistrar
         }
     }
 
-    private record SimpleParticleRegistration<T extends ParticleOptions>(ParticleProvider<T> provider)
-        implements ParticleEngine.SpriteParticleRegistration<T>
+    @SuppressWarnings("NullableProblems")
+    private record RendererModelFactoryToMC(RendererModelFactory factory)
+        implements BuiltInBlockModels.ModelFactory
     {
         @Override
-        public ParticleProvider<T> create(SpriteSet spriteSet) { return provider; }
+        public BlockModel.Unbaked create(BlockColors blockColors, BlockState blockState) { return factory.Create(blockColors, blockState); }
     }
 
+    @SuppressWarnings("NullableProblems")
     private record Func2ToSpriteParticleRegistration<T extends ParticleOptions>(Func2<SpriteSet, ParticleProvider<T>> function)
-        implements ParticleEngine.SpriteParticleRegistration<T>
+        implements ParticleResources.SpriteParticleRegistration<T>
     {
         @Override
         public ParticleProvider<T> create(SpriteSet spriteSet) { return function.function(spriteSet); }
@@ -211,7 +220,7 @@ public final class NeoForgeClientArtifactsRegistrar
         block_entities = null;
         NeoForgeUtils.AddEnumerableListener_DispatchOnce(bus, RegisterColorHandlersEvent.ItemTintSources.class, item_colors, NeoForgeClientArtifactsRegistrar::RegisterItemColorHandler);
         item_colors = null;
-        NeoForgeUtils.AddEnumerableListener_DispatchOnce(bus, RegisterColorHandlersEvent.Block.class, block_colors, NeoForgeClientArtifactsRegistrar::RegisterBlockColorHandler);
+        NeoForgeUtils.AddEnumerableListener_DispatchOnce(bus, RegisterColorHandlersEvent.BlockTintSources.class, block_colors, NeoForgeClientArtifactsRegistrar::RegisterBlockColorHandler);
         block_colors = null;
         NeoForgeUtils.AddEnumerableListener_DispatchOnce(bus, RegisterParticleProvidersEvent.class, particles_simple, NeoForgeClientArtifactsRegistrar::RegisterSimpleParticleProvider);
         particles_simple = null;
@@ -221,7 +230,7 @@ public final class NeoForgeClientArtifactsRegistrar
         model_renderer_codec_registrations = null;
         // We can't delete the below, because Minecraft can reload these renderers at some time.
         // We are cooked if we destroy the below object.
-        NeoForgeUtils.AddEnumerableListener(bus, RegisterSpecialBlockModelRendererEvent.class, model_renderer_registrations, NeoForgeClientArtifactsRegistrar::RegisterSpecialModelRenderer);
+        NeoForgeUtils.AddEnumerableListener(bus, RegisterBlockModelsEvent.class, model_renderer_registrations, NeoForgeClientArtifactsRegistrar::RegisterSpecialModelRenderer);
         model_renderer_registrations = null;
     }
 }

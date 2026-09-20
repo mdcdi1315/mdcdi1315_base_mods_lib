@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableMap;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStackTemplate;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -33,7 +34,7 @@ public final class RegisterCreativeModeTabItemsHandler
 {
     private RegisterCreator creator_reference;
     private ImmutableMap<CreativeModeTab, SingleLinkedListBasedRegister<ItemStack>> compiled_item_stacks;
-    private Map<CreativeModeTab, SingleLinkedListBasedRegister<Func1<ItemStack>>> creative_mode_tab_stacks;
+    private Map<CreativeModeTab, SingleLinkedListBasedRegister<Func1<ItemStackTemplate>>> creative_mode_tab_stacks;
 
     public RegisterCreativeModeTabItemsHandler()
     {
@@ -43,17 +44,17 @@ public final class RegisterCreativeModeTabItemsHandler
     }
 
     private record DeferredItemRegisterSupplier(DeferredItem<?> item)
-            implements Func1<ItemStack>
+            implements Func1<ItemStackTemplate>
     {
         @Override
-        public ItemStack function() { return new ItemStack(item.get(), 1); }
+        public ItemStackTemplate function() { return new ItemStackTemplate(item, 1); }
     }
 
     private record RegisterCreator()
-        implements Func2<CreativeModeTab, SingleLinkedListBasedRegister<Func1<ItemStack>>>
+        implements Func2<CreativeModeTab, SingleLinkedListBasedRegister<Func1<ItemStackTemplate>>>
     {
         @Override
-        public SingleLinkedListBasedRegister<Func1<ItemStack>> function(CreativeModeTab input) {
+        public SingleLinkedListBasedRegister<Func1<ItemStackTemplate>> function(CreativeModeTab input) {
             return new SingleLinkedListBasedRegister<>();
         }
     }
@@ -70,7 +71,7 @@ public final class RegisterCreativeModeTabItemsHandler
         }
     }
 
-    public void RegisterItemStack(CreativeModeTab tab, Func1<ItemStack> stack_function)
+    public void RegisterItemStack(CreativeModeTab tab, Func1<ItemStackTemplate> stack_function)
     {
         creative_mode_tab_stacks.computeIfAbsent(tab, creator_reference).Register(stack_function);
     }
@@ -96,13 +97,13 @@ public final class RegisterCreativeModeTabItemsHandler
             for (var kvp : creative_mode_tab_stacks.entrySet())
             {
                 building_register = new SingleLinkedListBasedRegister<>();
-                try (IEnumerator<Func1<ItemStack>> enumerator = kvp.getValue().GetEnumerator())
+                try (IEnumerator<Func1<ItemStackTemplate>> enumerator = kvp.getValue().GetEnumerator())
                 {
                     if (kvp.getKey() == tab) {
                         ItemStack stack;
                         while (enumerator.MoveNext())
                         {
-                            stack = enumerator.getCurrent().function();
+                            stack = enumerator.getCurrent().function().create();
                             event.accept(stack);
                             building_register.Register(stack);
                         }
@@ -110,7 +111,7 @@ public final class RegisterCreativeModeTabItemsHandler
                         while (enumerator.MoveNext())
                         {
                             building_register.Register(
-                                    enumerator.getCurrent().function()
+                                    enumerator.getCurrent().function().create()
                             );
                         }
                     }

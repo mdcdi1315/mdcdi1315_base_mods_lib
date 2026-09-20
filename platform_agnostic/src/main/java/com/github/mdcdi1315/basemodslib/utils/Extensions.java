@@ -2,22 +2,14 @@ package com.github.mdcdi1315.basemodslib.utils;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.KeyValuePair;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.Extension;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.EqualityComparer;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
 
 import net.minecraft.util.Mth;
-import net.minecraft.core.Direction;
-import net.minecraft.util.RandomSource;
-
-import java.util.List;
 
 /**
  * I like better this term here than 'Utilities'.
@@ -80,43 +72,6 @@ public final class Extensions
     private static final double RAD_TO_DEG_DOUBLE = 180d / PI_DOUBLE;
 
     private static final double DEG_TO_RAD_DOUBLE = PI_DOUBLE / 180d;
-
-    /**
-     * Produces a random {@link Direction} value, excluding the {@link Direction#UP} and {@link Direction#DOWN} constant values.
-     * @param rs The {@link RandomSource} instance to produce the random direction from.
-     * @return The produced random direction.
-     */
-    @Extension
-    @Deprecated(since = "1.0.38")
-    public static Direction GetRandomDirectionExcludingUpDown(RandomSource rs)
-    {
-        Direction ret;
-        Direction[] values = Direction.values();
-        int len = values.length - 1;
-        do {
-            ret = values[RandomBetweenInclusiveUnsafe(rs, 0 , len)];
-        } while (ret == Direction.UP || ret == Direction.DOWN);
-        return ret;
-    }
-
-    /**
-     * Gets a random direction pair, excluding {@link Direction#UP} and {@link Direction#DOWN} constant values.
-     * @param rs The {@link RandomSource} instance to use for selecting the direction pair.
-     * @return A {@link KeyValuePair} instance containing two randomly-selected {@link Direction} values.
-     * @apiNote Note that the API does not validate input arguments at all. <br />
-     * This is done to avoid the overhead that the validation methods do have.
-     */
-    @Extension
-    @Deprecated(since = "1.0.38")
-    public static KeyValuePair<Direction , Direction> GetRandomDirectionPairNonUpDown(RandomSource rs)
-    {
-        return SelectRandomFromListUnsafe(List.of(
-                new KeyValuePair<>(Direction.EAST , Direction.NORTH),
-                new KeyValuePair<>(Direction.WEST , Direction.NORTH),
-                new KeyValuePair<>(Direction.EAST , Direction.SOUTH),
-                new KeyValuePair<>(Direction.WEST , Direction.SOUTH)
-        ) , rs);
-    }
 
     /**
      * Computes the trigonometric sine of the specified angle. <br />
@@ -756,101 +711,6 @@ public final class Extensions
     public static short ConvertToShortSafe(int value) { return (short) Clamp(value, Short.MIN_VALUE, Short.MAX_VALUE); }
 
     /**
-     * Gets a random item from the specified list, and returns that item.
-     * @param elements The list of items to get a random item from.
-     * @param rs The random source to use for getting the random item.
-     * @return The random item.
-     * @param <T> The type of the items to select from. An item of such type is returned.
-     * @throws ArgumentNullException {@code elements} or {@code rs} were {@code null}.
-     * @deprecated This method forwards to {@link FunctionManipulations#ThenMap(Func2, Func2)} since 1.0.38.
-     *             There are no plans to remove this method, but newer consumers should use the mentioned method instead.
-     */
-    @Deprecated(since = "1.0.38")
-    public static <T> T SelectRandomFromList(List<T> elements, RandomSource rs)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(elements , "elements");
-        ArgumentNullException.ThrowIfNull(rs , "rs");
-        return SelectRandomFromListUnsafe(elements , rs);
-    }
-
-    /**
-     * Gets a random item from the specified list, and returns that item.
-     * Additionally, it ensures that the specified item is not selected in any way.
-     * @param list The list of items to get a random item from.
-     * @param item_to_exclude The item instance to exclude from the possible outcomes.
-     * @param source The random source to use for getting the random item.
-     * @return The random item, ensuring that is not the instance specified in {@code item_to_exclude}.
-     * @param <T> The type of the items to select from. An item of such type is returned.
-     */
-    @Deprecated(since = "1.0.38")
-    public static <T> T SelectRandomFromListWithExclusion(List<T> list , @MaybeNull T item_to_exclude , RandomSource source)
-        throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(list , "list");
-        ArgumentNullException.ThrowIfNull(source , "random");
-        return SelectRandomFromListWithExclusionUnsafe(list , item_to_exclude , source);
-    }
-
-    /**
-     * Gets a random item from the specified list, and returns that item.
-     * @param elements The list of items to get a random item from.
-     * @param rs The random source to use for getting the random item.
-     * @return The random item.
-     * @param <T> The type of the items to select from. An item of such type is returned.
-     * @apiNote This is the unsafe variant of {@link #SelectRandomFromList(List, RandomSource)}. 
-     * When you are unsure about the input arguments, use that method to validate them instead. <br />
-     * Using this without ensuring that the objects passed to this method are valid, this call can cause unspecified issues.
-     */
-    @Deprecated(since = "1.0.38")
-    public static <T> T SelectRandomFromListUnsafe(List<T> elements, RandomSource rs) { return elements.get(RandomBetweenInclusiveUnsafe(rs, 0, elements.size() - 1)); }
-
-    /**
-     * Unsafely gets a random item from the specified list, and returns that item.
-     * Additionally, it ensures that the specified item is not selected in any way.
-     * @param list The list of items to get a random item from.
-     * @param item_to_exclude The item instance to exclude from the possible outcomes.
-     * @param source The random source to use for getting the random item.
-     * @param comparer The equality comparer to use for testing the objects for equality.
-     * @return The random item, ensuring that is not the instance specified in {@code item_to_exclude}.
-     * @param <T> The type of the items to select from. An item of such type is returned.
-     * @apiNote This is the unsafe variant of {@link #SelectRandomFromListWithExclusion(List, Object, RandomSource)}. 
-     * When you are unsure about the input arguments, use that method to validate them instead. <br />
-     * Using this without ensuring that the objects passed to this method are valid, this call can cause unspecified issues.
-     */
-    @Deprecated(since = "1.0.38")
-    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
-    public static <T> T SelectRandomFromListWithExclusionUnsafe(List<T> list , @MaybeNull T item_to_exclude , IEqualityComparer<T> comparer, RandomSource source)
-    {
-        T item;
-        int size = list.size() - 1;
-        if (size == 0) {
-            return list.get(0);
-        }
-        do {
-            item = list.get(RandomBetweenInclusiveUnsafe(source ,0, size));
-        } while (comparer.Equals(item_to_exclude , item));
-        return item;
-    }
-
-    /**
-     * Gets a random item from the specified list, and returns that item.
-     * Additionally, it ensures that the specified item is not selected in any way.
-     * @param list The list of items to get a random item from.
-     * @param item_to_exclude The item instance to exclude from the possible outcomes.
-     * @param source The random source to use for getting the random item.
-     * @return The random item, ensuring that is not the instance specified in {@code item_to_exclude}.
-     * @param <T> The type of the items to select from. An item of such type is returned.
-     * @apiNote This method uses the {@link Object#equals(Object)} pattern to compare the objects.
-     * Use {@link #SelectRandomFromListWithExclusionUnsafe(List, Object, IEqualityComparer, RandomSource)} if you want to control how comparison is done.
-     */
-    @Deprecated(since = "1.0.38")
-    public static <T> T SelectRandomFromListWithExclusionUnsafe(List<T> list , @MaybeNull T item_to_exclude , RandomSource source)
-    {
-        return SelectRandomFromListWithExclusionUnsafe(list, item_to_exclude, EqualityComparer.GetDefault(), source);
-    }
-
-    /**
      * Attempts to dispose all the elements defined in an iterable.
      * @param iterable The iterable to dispose all it's elements.
      * @param <T> The type of the elements contained in the iterable and are to be disposed of.
@@ -1009,122 +869,6 @@ public final class Extensions
         } catch (com.github.mdcdi1315.DotNetLayer.System.Exception e) {
             throw new AggregateException("An exception was occurred while iterating an enumerable.", e);
         }
-    }
-
-    /**
-     * Computes a random integer between {@code min_inclusive} and {@code max_inclusive} values.
-     * @param rs The {@link RandomSource} to compute the random integer from.
-     * @param min_inclusive The minimum inclusive bound of the returned value.
-     * @param max_inclusive The maximum inclusive bound of the returned value.
-     * @return A random integer value between {@code min_inclusive} and {@code max_inclusive} values.
-     * @throws ArgumentNullException {@code rs} is {@code null}.
-     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextIntInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, int, int)} if possible.
-     *             Because this is a breaking change, this will not be removed for the
-     *             current versions of the library, but it won't make it to the 26.1 version of the library.
-     */
-    @Deprecated(since = "1.0.38")
-    public static int RandomBetweenInclusive(RandomSource rs, int min_inclusive, int max_inclusive)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(rs , "rs");
-        return RandomBetweenInclusiveUnsafe(rs , min_inclusive , max_inclusive);
-    }
-
-    /**
-     * Unsafely computes a random integer between {@code min_inclusive} and {@code max_inclusive} values.
-     * @param rs The {@link RandomSource} to compute the random integer from.
-     * @param min_inclusive The minimum inclusive bound of the returned value.
-     * @param max_inclusive The maximum inclusive bound of the returned value.
-     * @return A random integer value between {@code min_inclusive} and {@code max_inclusive} values.
-     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextIntInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, int, int)} if possible.
-     *             Because this is a breaking change, this will not be removed for the
-     *             current versions of the library, but it won't make it to the 26.1 version of the library.
-     */
-    @Deprecated(since = "1.0.38")
-    public static int RandomBetweenInclusiveUnsafe(RandomSource rs, int min_inclusive, int max_inclusive) { return rs.nextInt(max_inclusive - min_inclusive + 1) + min_inclusive; }
-
-    /**
-     * Computes a random value between {@code min_inclusive} and {@code max_exclusive} values.
-     * @implNote From 1.0.18, this method forwards to {@link #Lerp(float, float, float)} passing as the 'delta' parameter the value computed by {@link RandomSource#nextFloat()} method.
-     * @param rs The {@link RandomSource} to compute the random value from.
-     * @param min_inclusive The minimum inclusive bound of the returned value.
-     * @param max_exclusive The maximum exclusive bound of the returned value.
-     * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
-     * @throws ArgumentNullException {@code rs} is {@code null}.
-     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextFloatInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, float, float)} if possible.
-     *             Because this is a breaking change, this will not be removed for the
-     *             current versions of the library, but it won't make it to the 26.1 version of the library.
-     */
-    @Deprecated(since = "1.0.38")
-    public static float RandomBetween(RandomSource rs, float min_inclusive, float max_exclusive)
-        throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(rs , "rs");
-        return RandomBetweenUnsafe(rs , min_inclusive , max_exclusive);
-    }
-
-    /**
-     * Computes a random value between {@code min_inclusive} and {@code max_exclusive} values.
-     * @implNote From 1.0.18, this method forwards to {@link #Lerp(double, double, double)} passing as the 'delta' parameter the value computed by {@link RandomSource#nextDouble()} method.
-     * @param rs The {@link RandomSource} to compute the random value from.
-     * @param min_inclusive The minimum inclusive bound of the returned value.
-     * @param max_exclusive The maximum exclusive bound of the returned value.
-     * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
-     * @throws ArgumentNullException {@code rs} is {@code null}.
-     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextDoubleInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, double, double)} if possible.
-     *             Because this is a breaking change, this will not be removed for the
-     *             current versions of the library, but it won't make it to the 26.1 version of the library.
-     */
-    @Deprecated(since = "1.0.38")
-    public static double RandomBetween(RandomSource rs, double min_inclusive, double max_exclusive)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(rs , "rs");
-        return RandomBetweenUnsafe(rs , min_inclusive , max_exclusive);
-    }
-
-    /**
-     * Unsafely computes a random value between {@code min_inclusive} and {@code max_exclusive} values.
-     * @implNote From 1.0.18, this method forwards to {@link #Lerp(float, float, float)} passing as the 'delta' parameter the value computed by {@link RandomSource#nextFloat()} method.
-     * @param random The {@link RandomSource} to compute the random value from.
-     * @param min_inclusive The minimum inclusive bound of the returned value.
-     * @param max_exclusive The maximum exclusive bound of the returned value.
-     * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
-     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextFloatInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, float, float)} if possible.
-     *             Because this is a breaking change, this will not be removed for the
-     *             current versions of the library, but it won't make it to the 26.1 version of the library.
-     */
-    @Deprecated(since = "1.0.38")
-    public static float RandomBetweenUnsafe(RandomSource random, float min_inclusive, float max_exclusive) { return Lerp(random.nextFloat(), min_inclusive, max_exclusive); }
-
-    /**
-     * Unsafely computes a random value between {@code min_inclusive} and {@code max_exclusive} values.
-     * @implNote From 1.0.18, this method forwards to {@link #Lerp(double, double, double)} passing as the 'delta' parameter the value computed by {@link RandomSource#nextDouble()} method.
-     * @param random The {@link RandomSource} to compute the random value from.
-     * @param min_inclusive The minimum inclusive bound of the returned value.
-     * @param max_exclusive The maximum exclusive bound of the returned value.
-     * @return A random value between {@code min_inclusive} and {@code max_exclusive} values.
-     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#NextDoubleInRange(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource, double, double)} if possible.
-     *             Because this is a breaking change, this will not be removed for the
-     *             current versions of the library, but it won't make it to the 26.1 version of the library.
-     */
-    @Deprecated(since = "1.0.38")
-    public static double RandomBetweenUnsafe(RandomSource random, double min_inclusive, double max_exclusive) { return Lerp(random.nextDouble(), min_inclusive, max_exclusive); }
-
-    /**
-     * Initializes appropriately the given random number generator.
-     * @param random The random source to initialize.
-     * @throws ArgumentNullException {@code random} was {@code null}.
-     * @deprecated Use {@link com.github.mdcdi1315.basemodslib.utils.random.RandomUtils#InitializeSource(com.github.mdcdi1315.basemodslib.utils.random.IRandomSource)} if possible.
-     *             Because this is a breaking change, this will not be removed for the
-     *             current versions of the library, but it won't make it to the 26.1 version of the library.
-     */
-    @Deprecated(since = "1.0.38")
-    public static void InitializeRandomSource(RandomSource random)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(random);
-        for (byte I = 0; I < 10; I++) { random.nextInt(); }
     }
 
     /**

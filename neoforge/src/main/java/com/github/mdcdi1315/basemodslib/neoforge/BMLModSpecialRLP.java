@@ -26,7 +26,7 @@ public final class BMLModSpecialRLP
     @Override
     public Path GetRootPath()
     {
-        return mod_info.getFile().findResource("root").getParent();
+        return mod_info.getFile().getContents().getPrimaryPath();
     }
 
     @Override
@@ -34,7 +34,7 @@ public final class BMLModSpecialRLP
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull("path", path);
-        return mod_info.getFile().findResource(path);
+        return mod_info.getFile().getContents().getPrimaryPath().resolve(path);
     }
 
     @Override
