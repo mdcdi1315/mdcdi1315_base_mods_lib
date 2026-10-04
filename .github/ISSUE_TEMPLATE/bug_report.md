@@ -1,3 +1,8 @@
+name: bug_report
+about: Something is wrong with the mod.
+title: "[BUG]: "
+labels: "bug"
+assignees: mdcdi1315
 
 ### NOTE: Here are only issues posted about the Base Mods Library itself, and it should look like it is originating from it. If it is a mod issue depending on this, report the issue to that mod instead. If you are unsure just post the issue to that mod.
 
