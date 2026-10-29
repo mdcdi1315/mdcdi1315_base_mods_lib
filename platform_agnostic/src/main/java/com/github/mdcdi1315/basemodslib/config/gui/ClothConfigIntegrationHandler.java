@@ -6,10 +6,9 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.CommonModLoaderBranding;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 
-import org.jetbrains.annotations.ApiStatus;
-
-@ApiStatus.Internal
+@APIStatus(Status = APIStatus.Status.INTERNAL)
 public final class ClothConfigIntegrationHandler
 {
     private static Object instantiated_object_or_failure;

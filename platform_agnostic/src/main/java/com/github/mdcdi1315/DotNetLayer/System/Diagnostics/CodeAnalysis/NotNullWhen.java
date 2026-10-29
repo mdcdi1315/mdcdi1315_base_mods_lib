@@ -4,8 +4,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Attribute;
 import com.github.mdcdi1315.DotNetLayer.System.AttributeUsage;
 import com.github.mdcdi1315.DotNetLayer.System.AttributeTargets;
 
-import javax.annotation.Nonnull;
-import javax.annotation.meta.When;
 import java.lang.annotation.Documented;
 
 /**
@@ -13,14 +11,12 @@ import java.lang.annotation.Documented;
  */
 @Attribute
 @Documented
-@Nonnull(when = When.MAYBE)
 @AttributeUsage({AttributeTargets.Parameter})
-public @interface NotNullWhen {
-
+public @interface NotNullWhen
+{
     /**
      * Gets the return value condition.
      * @return The return value condition. If the method returns this value, the associated parameter will not be {@code null}.
      */
     boolean ReturnValue();
-
 }

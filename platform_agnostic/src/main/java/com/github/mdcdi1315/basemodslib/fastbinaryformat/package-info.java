@@ -4,4 +4,9 @@
  * The goal is to make it fast and compact enough in order to send serialized objects over the network in a concise and compact manner.
  * @since 1.0.21
  */
+@MinecraftIndependentFeature
+@APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.21")
 package com.github.mdcdi1315.basemodslib.fastbinaryformat;
+
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MinecraftIndependentFeature;

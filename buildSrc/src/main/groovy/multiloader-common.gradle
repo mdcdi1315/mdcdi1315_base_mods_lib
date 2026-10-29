@@ -40,10 +40,6 @@ repositories {
     }
 }
 
-dependencies {
-    implementation 'org.jetbrains:annotations:24.1.0'
-}
-
 ['apiElements', 'runtimeElements', 'sourcesElements'].each { variant ->
     publishing.publications.configureEach {
         suppressPomMetadataWarningsFor(variant)

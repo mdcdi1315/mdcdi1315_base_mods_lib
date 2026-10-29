@@ -1,17 +1,7 @@
-### Now releasing 1.0.38:
+### Now releasing 1.0.39:
 
--> Fix copy-paste docs in ByteArray classes in the I/O package.
+-> Added more .NET layer APIs
 
--> Reworked random support and a new `random` package was added.
-Note: several API's using the old Minecraft logic are now deprecated, as
-well as the `weight` utility package, which was also reworked as `random.weighted`. 
+-> Removed `jetbrains.annotations` dependency - new replacement annotations were added
 
--> Collections package: Added:
-    - HeapSort sorting algorithm
-    - Support for wrapping Java maps to `IDictionary` instances.
-    - The `ICountableCollection` interface.
-    - Reversed primitive array enumerators
-    - Mojang `Codec` support
-
--> Function package: Added primitive transformation function signatures,
-that is, given an input number, it provides the same number type but might of a different value.
+-> Code cleanups

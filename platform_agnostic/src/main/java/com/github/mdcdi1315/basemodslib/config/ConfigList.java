@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Iterator;
@@ -20,6 +21,7 @@ import java.util.Iterator;
  * @since 1.0.15
  */
 @Deprecated(since = "1.0.26") // Directly use the List<> class instead.
+@APIStatus(Status = APIStatus.Status.DEPRECATED, Since = "1.0.26")
 public final class ConfigList
     implements Iterable<Object>
 {

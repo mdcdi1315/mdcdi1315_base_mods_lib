@@ -16,6 +16,7 @@ import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.ThreadSafeObject;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 import com.github.mdcdi1315.basemodslib.utils.annotations.MixinUnsafe;
 import com.github.mdcdi1315.basemodslib.mods.ClientModInstanceCollection;
 import com.github.mdcdi1315.basemodslib.utils.annotations.MaybeNullInMixin;
@@ -26,8 +27,6 @@ import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedR
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
-
-import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Provides services for initializing client-side mods with the Base Mods Library.
@@ -68,8 +67,8 @@ public final class BaseModsLibClient
      * @throws InvalidOperationException The library has been successfully initialized before.
      * @throws CriticalLibraryInitializationException A critical initialization error has been realized by the library. Execution cannot continue.
      */
-    @ApiStatus.Internal
     @SuppressWarnings("resource")
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
     public static void InitializeBaseModsLibClient(Func1<IClientModLoaderLayer> client_layer_constructor)
             throws ArgumentNullException, InvalidOperationException, CriticalLibraryInitializationException
     {
@@ -249,7 +248,7 @@ public final class BaseModsLibClient
     /**
      * Called by Minecraft when it shuts down, do not call this by your code!!
      */
-    @ApiStatus.Internal
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
     public static void DestroySelf()
     {
         // Sync on the BML class object, so that disposal timing in both BML server/client instances is serialized.

@@ -9,8 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
 import com.github.mdcdi1315.basemodslib.CommonModLoaderBranding;
-
-import org.jetbrains.annotations.ApiStatus;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 
 import java.util.*;
 import java.lang.reflect.Constructor;
@@ -178,15 +177,13 @@ public final class ProxyManager
      * This is called by the Base Mods Library!!!
      * @return A value whether it is useful to keep this proxy manager allocated.
      */
-    @ApiStatus.Internal
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
     public boolean Lock() { finalized = true; return !registrations.isEmpty(); }
 
     /**
      * Disposes this proxy manager. This is called by the Base Mods Library!!!
      */
     @Override
-    @ApiStatus.Internal
-    public void Dispose() {
-        registrations = null;
-    }
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
+    public void Dispose() { registrations = null; }
 }

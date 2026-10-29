@@ -1,6 +1,6 @@
 package com.github.mdcdi1315.basemodslib.utils;
 
-import org.jetbrains.annotations.NotNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import java.util.Iterator;
 
@@ -12,6 +12,8 @@ import java.util.Iterator;
 public record EmptyIterable<T>()
     implements Iterable<T>, ISynchronized
 {
+    @NotNull
     @Override
-    public @NotNull Iterator<T> iterator() { return new EmptyIterator<>(); }
+    @SuppressWarnings("NullableProblems")
+    public Iterator<T> iterator() { return new EmptyIterator<>(); }
 }

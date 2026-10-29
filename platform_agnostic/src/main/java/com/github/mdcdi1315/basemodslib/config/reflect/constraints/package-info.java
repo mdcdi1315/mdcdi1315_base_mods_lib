@@ -23,4 +23,9 @@
  * at the {@link com.github.mdcdi1315.basemodslib.config.reflect.constraints.lib_provided} package.
  * @since 1.0.26
  */
+@MinecraftIndependentFeature
+@APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.26")
 package com.github.mdcdi1315.basemodslib.config.reflect.constraints;
+
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MinecraftIndependentFeature;

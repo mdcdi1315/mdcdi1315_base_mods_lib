@@ -14,15 +14,12 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Provides base stuff used by all the deriving event managers. Not to be used by your code.
  */
-@ApiStatus.Internal
 abstract class EventManagerBase
     extends EventManager
 {

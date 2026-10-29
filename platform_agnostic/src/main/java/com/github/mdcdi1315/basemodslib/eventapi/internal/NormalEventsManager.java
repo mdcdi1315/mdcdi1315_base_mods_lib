@@ -10,13 +10,10 @@ import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
-import org.jetbrains.annotations.ApiStatus;
-
 /**
  * The actual events manager instance, used while the game is running. <br />
  * This manager is used by the mods, in fact.
  */
-@ApiStatus.Internal
 class NormalEventsManager
     extends EventManagerBase
 {
@@ -34,7 +31,6 @@ class NormalEventsManager
      * Removes events from the event manager that can be destroyed. This helps to better manage the game's memory footprint. <br />
      * This will be called by the mod loader; it is not to be called by your code.
      */
-    @ApiStatus.Internal
     public void DestroyDestroyableEvents()
     {
         SetFinalized();

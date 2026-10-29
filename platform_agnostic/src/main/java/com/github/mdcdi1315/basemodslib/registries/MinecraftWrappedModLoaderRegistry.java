@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import net.minecraft.tags.TagKey;
 import net.minecraft.core.Registry;
@@ -37,44 +38,51 @@ public final class MinecraftWrappedModLoaderRegistry<T>
     }
 
     @Override
-    public boolean ContainsKey(ResourceLocation location) {
-        return reg.containsKey(location);
-    }
+    public Iterator<T> iterator() { return reg.iterator(); }
 
     @Override
-    public void Register(ResourceLocation location, T value) throws ArgumentNullException {
+    public Set<ResourceLocation> GetEntryKeys() { return reg.keySet(); }
+
+    @Override
+    public boolean ContainsKey(ResourceLocation location) { return reg.containsKey(location); }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public ResourceKey<Registry<T>> GetRegistryKey() { return (ResourceKey<Registry<T>>) reg.key(); }
+
+    @Override
+    public Stream<ITag<T>> GetTags() { return reg.getTags().map(MinecraftWrappedModLoaderRegistry::TagMapper); }
+
+    private static <T> MinecraftWrappedITag<T> TagMapper(HolderSet.Named<T> set) { return new MinecraftWrappedITag<>(set); }
+
+    @Override
+    public void Register(ResourceLocation location, T value)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(value, "value");
+        ArgumentNullException.ThrowIfNull(location, "location");
         Registry.register(reg , location , value);
     }
 
+    @NotNull
     @Override
-    public ResourceKey<Registry<T>> GetRegistryKey() {
-        return (ResourceKey<Registry<T>>) reg.key();
-    }
-
-    @Override
-    public Set<ResourceLocation> GetEntryKeys() {
-        return reg.keySet();
-    }
-
-    @Override
-    public Optional<T> GetElementValue(ResourceLocation location) throws ArgumentNullException {
+    public Optional<T> GetElementValue(ResourceLocation location)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(location, "location");
         return reg.getOptional(location);
     }
 
+    @NotNull
     @Override
-    public Optional<ResourceKey<T>> GetResourceKey(T element) throws ArgumentNullException {
+    public Optional<ResourceKey<T>> GetResourceKey(T element)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(element, "element");
         return reg.getResourceKey(element);
     }
 
-    private static <T> MinecraftWrappedITag<T> TagMapper(HolderSet.Named<T> set) {
-        return new MinecraftWrappedITag<>(set);
-    }
-
-    @Override
-    public Stream<ITag<T>> GetTags() {
-        return reg.getTags().map(MinecraftWrappedModLoaderRegistry::TagMapper);
-    }
-
+    @NotNull
     @Override
     public ITag<T> GetOrBindTag(TagKey<T> key)
             throws ArgumentNullException
@@ -89,10 +97,5 @@ public final class MinecraftWrappedModLoaderRegistry<T>
         } else {
             return new MinecraftWrappedITag<>(t.get());
         }
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return reg.iterator();
     }
 }

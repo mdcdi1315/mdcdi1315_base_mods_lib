@@ -14,13 +14,12 @@ import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 import com.github.mdcdi1315.basemodslib.utils.annotations.MixinUnsafe;
 import com.github.mdcdi1315.basemodslib.mods.ServerModInstanceCollection;
 import com.github.mdcdi1315.basemodslib.eventapi.internal.EventAPIHelpers;
 import com.github.mdcdi1315.basemodslib.utils.annotations.MaybeNullInMixin;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
-
-import org.jetbrains.annotations.ApiStatus;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +76,7 @@ public final class BaseModsLib
      * @throws InvalidOperationException The library has been successfully initialized before.
      * @throws CriticalLibraryInitializationException A critical initialization error has been realized by the library. Execution cannot continue.
      */
-    @ApiStatus.Internal
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
     public static void InitializeBaseModsLibrary(Func1<IModLoaderLayer> mod_loader_layer_constructor)
             throws ArgumentNullException, InvalidOperationException, CriticalLibraryInitializationException
     {
@@ -441,7 +440,7 @@ public final class BaseModsLib
      * Called by the mod loader when mod loading is complete. <br />
      * Destroys data structures used by the library.
      */
-    @ApiStatus.Internal
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
     public static void Destroy()
     {
         LOGGER.info("Mod loading complete. Freezing mod instance collection.");
@@ -475,7 +474,7 @@ public final class BaseModsLib
     /**
      * Called by Minecraft when it shuts down, do not call this by your code!!
      */
-    @ApiStatus.Internal
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
     public static void DestroySelf()
     {
         synchronized (BaseModsLib.class)

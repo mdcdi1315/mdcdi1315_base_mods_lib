@@ -7,11 +7,10 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.Disallow
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.RequiresDynamicCode;
 
 import com.github.mdcdi1315.basemodslib.config.IModConfig;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 import com.github.mdcdi1315.basemodslib.integration.clothconfig.ClothConfigScreenCreator;
 
 import net.minecraft.client.gui.screens.Screen;
-
-import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Provides an interface to instantiate a Cloth Config API screen. <br />
@@ -21,7 +20,7 @@ import org.jetbrains.annotations.ApiStatus;
  * This is only implicitly implemented internally and mods should not depend on this. <br />
  * For a stable communication interface, see the {@link DefaultConfigurationScreenFactory} class.
  */
-@ApiStatus.Internal
+@APIStatus(Status = APIStatus.Status.INTERNAL, Since = "1.0.18")
 public interface IClothConfigScreenCreator
 {
     /**

@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.menu;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
 import com.github.mdcdi1315.basemodslib.Contract;
@@ -36,7 +37,9 @@ public interface IMenuTypeRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException {@code location} was not found in the menu type registry.
      */
-    public static <T extends AbstractContainerMenu> MenuType<T> GetRegisteredMenuType(ResourceLocation location)
+    @NotNull
+    @SuppressWarnings("unchecked")
+    static <T extends AbstractContainerMenu> MenuType<T> GetRegisteredMenuType(ResourceLocation location)
         throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (MenuType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.MENU, location);

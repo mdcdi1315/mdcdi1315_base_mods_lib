@@ -103,7 +103,7 @@ public final class ConfigFieldCodecRegistry
         }
     }
 
-    private static <T extends Enum<T>> Codec<?> ConstructEnumCodec(Class<?> unchecked_class) {
+    private static <T extends Enum<T>> Codec<T> ConstructEnumCodec(Class<?> unchecked_class) {
         return new EnumCodecCompareIgnoreCase<>((Class<T>) unchecked_class);
     }
 
