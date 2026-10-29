@@ -1,14 +1,13 @@
 package com.github.mdcdi1315.basemodslib.network.codecs;
 
-import io.netty.buffer.ByteBuf;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 
-import net.minecraft.network.codec.StreamCodec;
+import io.netty.buffer.ByteBuf;
 
 import net.minecraft.world.level.Level;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.core.registries.Registries;
-
-import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Provides the base scaffolding for the {@link GlobalPositionNetworkCodec} and {@link GlobalPrecisePositionNetworkCodec} classes.
@@ -16,7 +15,7 @@ import org.jetbrains.annotations.ApiStatus;
  * @since 1.0.18
  * @apiNote mdcdi1315 reserves the right to modify this class as deem appropriate. Do not use it by your own code.
  */
-@ApiStatus.Internal
+@APIStatus(Status = APIStatus.Status.INTERNAL, Since = "1.0.18")
 public abstract class GlobalPositionBaseNetworkCodec<T>
     implements StreamCodec<ByteBuf, T>
 {

@@ -11,8 +11,6 @@ import com.github.mdcdi1315.basemodslib.world.saveddata.IncorrectSavedDataFormat
 
 import net.minecraft.nbt.CompoundTag;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.function.Function;
@@ -20,7 +18,6 @@ import java.util.function.Function;
 /**
  * Internal record class for loading saved data. Do not use by your code.
  */
-@ApiStatus.Internal
 public record DDS_DataLoader<T extends ISavedData>(Func1<T> sd, File location, boolean old)
     implements Function<String, T>
 {

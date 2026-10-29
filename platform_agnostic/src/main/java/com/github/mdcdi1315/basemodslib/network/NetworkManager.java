@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-import org.jetbrains.annotations.ApiStatus;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 
 /**
  * Provides to mod instances networking services. <br />
@@ -31,7 +31,8 @@ public abstract class NetworkManager
     private INetworkBuilder builder;
     private boolean build_phase_completed;
 
-    public NetworkManager() {
+    public NetworkManager()
+    {
         build_phase_completed = false;
         builder = null;
     }
@@ -71,7 +72,7 @@ public abstract class NetworkManager
      * @return The network builder instance.
      */
     @MaybeNull
-    @ApiStatus.Internal
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
     public final INetworkBuilder GetBuilderAndDestroy() {
         INetworkBuilder nb = builder;
         builder = null;

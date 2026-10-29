@@ -9,10 +9,10 @@ import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
-import com.github.mdcdi1315.basemodslib.commands.FabricCommandsRegistrar;
-import com.github.mdcdi1315.basemodslib.network.FabricBasedNetworkManager;
+import com.github.mdcdi1315.basemodslib.fabric.commands.FabricCommandsRegistrar;
+import com.github.mdcdi1315.basemodslib.fabric.network.FabricBasedNetworkManager;
 import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
-import com.github.mdcdi1315.basemodslib.registries.FabricCommonRegistryItemsRegistrar;
+import com.github.mdcdi1315.basemodslib.fabric.registries.FabricCommonRegistryItemsRegistrar;
 
 import com.google.common.collect.ImmutableList;
 

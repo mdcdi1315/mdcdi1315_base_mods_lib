@@ -8,15 +8,12 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 
 import com.github.mdcdi1315.basemodslib.world.saveddata.ISavedData;
 
-import org.jetbrains.annotations.ApiStatus;
-
 /**
  * A more modern solution to saved data. <br />
  * This interface is implemented through Mixin, and as such, is subject to change without notice from mdcdi1315. <br />
  * For a public API, use the {@link com.github.mdcdi1315.basemodslib.world.saveddata.PerDimensionWorldDataManager} class.
  * @since 1.0.15
  */
-@ApiStatus.Internal
 public interface IBMLCustomDataStorage
 {
     /**

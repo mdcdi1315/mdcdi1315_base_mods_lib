@@ -1,20 +1,21 @@
 package com.github.mdcdi1315.basemodslib.registries;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
 import net.minecraft.tags.TagKey;
+import net.minecraft.core.HolderSet;
 import net.minecraft.util.RandomSource;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+@SuppressWarnings("NullableProblems")
 public final class MinecraftWrappedITag<T>
     implements ITag<T>
 {
-    private HolderSet.Named<T> hs;
+    private final HolderSet.Named<T> hs;
 
     public MinecraftWrappedITag(HolderSet.Named<T> holderset)
     {
@@ -25,16 +26,14 @@ public final class MinecraftWrappedITag<T>
     private static class IteratorOfTInternal<T>
         implements Iterator<T>
     {
-        private Iterator<Holder<T>> iterator;
+        private final Iterator<Holder<T>> iterator;
         private T nextvalue;
 
-        public IteratorOfTInternal(Iterator<Holder<T>> it)
-        {
-            iterator = it;
-        }
+        public IteratorOfTInternal(Iterator<Holder<T>> it)  { iterator = it; }
 
         @Override
-        public boolean hasNext() {
+        public boolean hasNext()
+        {
             Holder<T> holder;
             while (iterator.hasNext())
             {
@@ -48,44 +47,33 @@ public final class MinecraftWrappedITag<T>
         }
 
         @Override
-        public T next() {
-            return nextvalue;
-        }
+        public T next() { return nextvalue; }
     }
 
     @Override
-    public TagKey<T> getKey() {
-        return hs.key();
-    }
+    public boolean IsBound() { return true; }
 
     @Override
-    public Stream<T> stream() {
-        return hs.stream().map(Holder::value);
-    }
+    public int getSize() { return hs.size(); }
 
     @Override
-    public int getSize() {
-        return hs.size();
-    }
+    public TagKey<T> getKey() { return hs.key(); }
 
     @Override
-    public boolean Contains(T element) {
-        return hs.contains(Holder.direct(element));
-    }
+    public Stream<T> stream() { return hs.stream().map(Holder::value); }
 
     @Override
-    public Optional<T> GetRandomElement(RandomSource source) throws ArgumentNullException {
+    public boolean Contains(T element) { return hs.contains(Holder.direct(element)); }
+
+    @Override
+    public Optional<T> GetRandomElement(RandomSource source)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(source, "source");
         var opt = hs.getRandomElement(source);
         return opt.map(Holder::value);
     }
 
     @Override
-    public boolean IsBound() {
-        return true;
-    }
-
-    @Override
-    public @NotNull Iterator<T> iterator() {
-        return new IteratorOfTInternal<>(hs.iterator());
-    }
+    public Iterator<T> iterator() { return new IteratorOfTInternal<>(hs.iterator()); }
 }

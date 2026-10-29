@@ -1,0 +1,419 @@
+package com.github.mdcdi1315.basemodslib.fabric.registries;
+
+import com.github.mdcdi1315.DotNetLayer.System.*;
+
+import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.registries.*;
+import com.github.mdcdi1315.basemodslib.ModdingEnvironment;
+import com.github.mdcdi1315.basemodslib.item.IItemRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreater;
+import com.github.mdcdi1315.basemodslib.block.IBlockRegistrar;
+import com.github.mdcdi1315.basemodslib.fluid.IFluidRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.MenuTypeCreaterEx;
+import com.github.mdcdi1315.basemodslib.sounds.ISoundRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.IMenuTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.world.IWorldGenRegistrar;
+import com.github.mdcdi1315.basemodslib.RegistryNotFoundException;
+import com.github.mdcdi1315.basemodslib.alchemy.IAlchemyRegistrar;
+import com.github.mdcdi1315.basemodslib.entity.IEntityTypeRegistrar;
+import com.github.mdcdi1315.basemodslib.menu.MenuTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.alchemy.PotionRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.item.ItemRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityFactory;
+import com.github.mdcdi1315.basemodslib.entity.EntityTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.block.entity.IBlockEntityRegistrar;
+import com.github.mdcdi1315.basemodslib.fluid.FluidRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.block.BlockRegistrationInformation;
+import com.github.mdcdi1315.basemodslib.alchemy.ParticleTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.effect.MobEffectRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.sensing.SensorTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.attributes.AttributeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.entity.memory.MemoryModuleTypeRegistrationInfo;
+import com.github.mdcdi1315.basemodslib.item.datacomponents.DataComponentTypeRegistrationInformation;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.Lifecycle;
+
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+
+import net.minecraft.core.Registry;
+import net.minecraft.world.item.Item;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.WritableRegistry;
+import net.minecraft.core.RegistrationInfo;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
+
+import java.util.*;
+import java.util.function.*;
+
+public final class FabricCommonRegistryItemsRegistrar
+    implements IItemRegistrar,
+        IBlockRegistrar,
+        IBlockEntityRegistrar,
+        IWorldGenRegistrar,
+        IRegistryRegistrar,
+        IEntityTypeRegistrar,
+        IFluidRegistrar,
+        IMenuTypeRegistrar,
+        IAlchemyRegistrar,
+        ISoundRegistrar
+{
+    private final String mod_id;
+    private final boolean on_client;
+    private HashMap<CreativeModeTab, ModifyEntriesInstance> modify_entries_register;
+
+    public FabricCommonRegistryItemsRegistrar(String mod_id)
+    {
+        this.mod_id = mod_id;
+        on_client = BaseModsLib.GetEnvironment() == ModdingEnvironment.CLIENT;
+        modify_entries_register = new HashMap<>(2);
+    }
+
+    private record MenuCreaterToMenuSupplier<T extends AbstractContainerMenu>(MenuTypeCreater<T> crt)
+            implements MenuType.MenuSupplier<T>
+    {
+        @Override
+        @SuppressWarnings("NullableProblems")
+        public T create(int i, Inventory inventory) { return crt.Create(i , inventory); }
+    }
+
+    private static ModifyEntriesInstance ComputeIfAbsentWrapper(CreativeModeTab rk) { return new ModifyEntriesInstance(); }
+
+    @Override
+    public void Register(String name, BlockRegistrationInformation info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+
+        Block blk = Registry.register(BuiltInRegistries.BLOCK, location, info.block_getter().function(location));
+
+        Func3<Block, ResourceLocation, Item> item_func_registration = info.item_for_block_getter();
+
+        if (item_func_registration != null)
+        {
+            Item itm = Registry.register(BuiltInRegistries.ITEM, location, item_func_registration.function(blk, location));
+
+            if (on_client) { RegisterItemRenderer(itm); }
+
+            for (var i : info.creative_mode_tabs_for_item()) {
+                // Add the item to be registered to the creative mode tabs.
+                modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).AddItem(itm);
+            }
+        }
+    }
+
+    @Override
+    public void Register(String name, ItemRegistrationInformation info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+
+        Item itm = Registry.register(BuiltInRegistries.ITEM, location, info.item_getter().function(location));
+
+        if (on_client) { RegisterItemRenderer(itm); }
+
+        for (var i : info.tabs()) {
+            modify_entries_register.computeIfAbsent(i , FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).AddItem(itm);
+        }
+    }
+
+    @Override
+    public <T> void RegisterDataComponentType(String name, DataComponentTypeRegistrationInformation<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), info.component_type_provider().function());
+    }
+
+    private static void RegisterItemRenderer(Item item) { IBlockEntityItemWrapper.RegisterItem(item); }
+
+    @Override
+    public void RegisterCreativeModeTab(String name, CreativeModeTab tab)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(tab, "tab");
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, RegistryUtils.ConstructResourceLocation(mod_id, name), tab);
+    }
+
+    @Override
+    public void RegisterCreativeModeTabStack(CreativeModeTab tab, Func1<ItemStack> stack)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(tab, "tab");
+        ArgumentNullException.ThrowIfNull(stack, "stack");
+        modify_entries_register.computeIfAbsent(tab, FabricCommonRegistryItemsRegistrar::ComputeIfAbsentWrapper).AddItemStack(stack.function());
+    }
+
+    @Override
+    public <T extends BlockEntity> void Register(String name, IBlockEntityFactory<T> factory)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(factory, "factory");
+
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), new BlockEntityType<>(
+                factory::Create,
+                Set.of(factory.GetBlocks()),
+                null
+        ));
+    }
+
+    @Override
+    public <TF extends Feature<?>> void RegisterFeatureType(String name, Func1<TF> feature_type_creator)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(feature_type_creator, "feature_type_creator");
+
+        Registry.register(BuiltInRegistries.FEATURE, RegistryUtils.ConstructResourceLocation(mod_id, name), feature_type_creator.function());
+    }
+
+    @Override
+    public <TPM extends PlacementModifierType<?>> void RegisterPlacementModifierType(String name, Func1<TPM> placement_modifier_type_creator)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(placement_modifier_type_creator, "placement_modifier_type_creator");
+
+        Registry.register(BuiltInRegistries.PLACEMENT_MODIFIER_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), placement_modifier_type_creator.function());
+    }
+
+    @Override
+    public <T extends PoiType> void RegisterPoiType(String name, Func1<T> poi_type_creator)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(poi_type_creator, "poi_type_creator");
+
+        Registry.register(BuiltInRegistries.POINT_OF_INTEREST_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), poi_type_creator.function());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, RegistryObjectSupplier<T> supplier)
+            throws ArgumentNullException, NotSupportedException
+    {
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+
+        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
+
+        if (rg.isEmpty()) {
+            throw new NotSupportedException("Registering objects to a non-existent registry is not allowed!");
+        } else {
+            Registry.register((Registry<T>) rg.get(), location, supplier.function(location));
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Function<ResourceLocation, T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+
+        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
+
+        if (rg.isEmpty()) {
+            throw new NotSupportedException("Registering objects to a non-existent registry is not allowed!");
+        } else {
+            Registry.register((Registry<T>) rg.get(), location, supplier.apply(location));
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> void RegisterObject(ResourceKey<Registry<T>> registry, String name, Supplier<T> supplier)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(registry, "registry");
+        ArgumentNullException.ThrowIfNull(supplier, "supplier");
+
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+
+        var rg = BuiltInRegistries.REGISTRY.getOptional(registry.location());
+
+        if (rg.isEmpty()) {
+            throw new NotSupportedException("Registering objects to a non-existent registry is not allowed!");
+        } else {
+            Registry.register((Registry<T>) rg.get(), location, supplier.get());
+        }
+    }
+
+    @Override
+    public <T> IBulkRegistryObjectRegister<T> GetBulkRegister(ResourceKey<? extends Registry<T>> registry_resource_key)
+            throws ArgumentNullException, RegistryNotFoundException
+    {
+        return new FabricBridgedBulkRegister<>(mod_id, RegistryUtils.GetRootRegistry(registry_resource_key));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> void RegisterRegistry(ResourceKey<Registry<T>> registryResourceKey, Action1<IModLoaderRegistry<T>> on_registry_ready)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(on_registry_ready, "on_registry_ready");
+        ArgumentNullException.ThrowIfNull(registryResourceKey, "registryResourceKey");
+
+        Lifecycle lc = Lifecycle.stable();
+        MappedRegistry<T> mr = new MappedRegistry<>(registryResourceKey, lc);
+        ((WritableRegistry<Registry<T>>)BuiltInRegistries.REGISTRY).register(registryResourceKey, mr, new RegistrationInfo(Optional.empty() , lc));
+        on_registry_ready.action(new MinecraftWrappedModLoaderRegistry<>(mr));
+    }
+
+    @Override
+    public <T> void RegisterDatapackRegistry(ResourceKey<Registry<T>> registry_name, Codec<T> element_codec)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(registry_name, "registry_name");
+        ArgumentNullException.ThrowIfNull(element_codec, "element_codec");
+        DynamicRegistries.register(registry_name, element_codec);
+    }
+
+    @Override
+    public void RegisterResourceReloadListener(String name, PreparableReloadListener preparable_reload_listener)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(preparable_reload_listener, "preparable_reload_listener");
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricBridgedIdentifiableReloadListener(
+                RegistryUtils.ConstructResourceLocation(mod_id, name),
+                preparable_reload_listener
+        ));
+    }
+
+    @Override
+    public void RegisterSoundEvent(SoundEvent event, String name)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(event, "event");
+        Registry.register(BuiltInRegistries.SOUND_EVENT, RegistryUtils.ConstructResourceLocation(mod_id, name), event);
+    }
+
+    @Override
+    public <T extends Entity> void RegisterEntity(String name, EntityTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.ENTITY_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), info.entity_provider().function());
+    }
+
+    @Override
+    public <T> void RegisterMemoryModuleType(String name, MemoryModuleTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.MEMORY_MODULE_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), new MemoryModuleType<>(info.optional_codec()));
+    }
+
+    @Override
+    public void RegisterEntityAttribute(String name, AttributeRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.ATTRIBUTE, RegistryUtils.ConstructResourceLocation(mod_id, name), info.attribute_getter().function());
+    }
+
+    @Override
+    public <T extends Sensor<?>> void RegisterSensorType(String name, SensorTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.SENSOR_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), info.sensor_type_getter().function());
+    }
+
+    @Override
+    public void Register(String name, FluidRegistrationInformation info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+        Registry.register(BuiltInRegistries.FLUID, location, info.fluid_getter().function(location));
+    }
+
+    @Override
+    public void RegisterMobEffect(String name, MobEffectRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.MOB_EFFECT, RegistryUtils.ConstructResourceLocation(mod_id, name), info.effect_getter().function());
+    }
+
+    @Override
+    public <T extends ParticleOptions> void RegisterParticleType(String name, ParticleTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, RegistryUtils.ConstructResourceLocation(mod_id, name), info.particle_type_getter().function());
+    }
+
+    @Override
+    public void RegisterPotion(String name, PotionRegistrationInfo info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+        Registry.register(BuiltInRegistries.POTION, RegistryUtils.ConstructResourceLocation(mod_id, name), info.potion_getter().function());
+    }
+
+    @Override
+    public <T extends AbstractContainerMenu> void Register(String name, MenuTypeRegistrationInfo<T> info)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(info, "info");
+
+        // Precompute resource location ahead-of-time to not spend time creating
+        // the menu type instance if not needed.
+        ResourceLocation location = RegistryUtils.ConstructResourceLocation(mod_id, name);
+
+        MenuTypeCreater<T> crt = info.creater();
+
+        MenuType<T> mt = (crt instanceof MenuTypeCreaterEx<T> t_ex) ?
+                new ExtendedScreenHandlerType<>(new MenuCreaterExToExtendedFactory<>(t_ex), MenuCreaterExStreamCodec.INSTANCE) :
+                new MenuType<>(new MenuCreaterToMenuSupplier<>(crt) , info.required_features());
+
+        Registry.register(BuiltInRegistries.MENU, location, mt);
+    }
+
+    // This is executed right after all the blocks, items, block entities and fluids have been registered.
+    public void ApplyFabricModifyEntries()
+    {
+        Optional<ResourceKey<CreativeModeTab>> rk;
+        for (var kvp : modify_entries_register.entrySet())
+        {
+            rk = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(kvp.getKey());
+            if (rk.isPresent()) {
+                ItemGroupEvents.modifyEntriesEvent(rk.get()).register(kvp.getValue());
+            } else {
+                BaseModsLib.LOGGER.warn("[FabricCommonRegistryItemsRegistrar] Cannot get the resource key for the specified creative mode tab! Lookup failed.\nAll the items specified for this creative mode tab will not be applied.");
+            }
+        }
+        modify_entries_register = null;
+    }
+}

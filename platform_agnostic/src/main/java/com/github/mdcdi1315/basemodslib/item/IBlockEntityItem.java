@@ -3,6 +3,9 @@ package com.github.mdcdi1315.basemodslib.item;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
 
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MinecraftDependentFeature;
+
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -14,6 +17,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  * Although that this interface is useful only in client environments, it is not defined as client-only so that you can define it in server distributions (thus, everywhere).
  * @since 1.0.8
  */
+@MinecraftDependentFeature(SupportedVersions = "1.21.1")
+@APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.8")
 public interface IBlockEntityItem
 {
     /**
@@ -25,6 +30,8 @@ public interface IBlockEntityItem
      */
     @NotNull
     @Deprecated(since = "1.0.13")
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @APIStatus(Status = APIStatus.Status.DEPRECATED_UNUSABLE, Since = "1.0.13")
     default BlockEntity GetBlockEntity() { return null; }
 
     /**
