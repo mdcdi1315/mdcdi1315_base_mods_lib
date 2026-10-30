@@ -67,13 +67,33 @@ public final class CollectionManipulations
      * @param queue The {@link ITraversableQueue} instance to convert.
      * @return The converted instance represented as a {@link java.util.Queue} instance.
      * @param <T> The type of the elements of {@code queue}.
-     * @throws ArgumentNullException {@code collection} is {@code null}.
+     * @throws ArgumentNullException {@code queue} is {@code null}.
      */
     @NotNull
     public static <T> java.util.Queue<T> AsJavaQueue(ITraversableQueue<T> queue)
+        throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(queue, "queue");
         return new WrappedJavaQueueFromIQueue<>(queue);
+    }
+
+    /**
+     * Efficiently converts an {@link IDictionary} instance to a
+     * <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/doc-files/coll-index.html">Java Collections Framework</a>
+     * {@link java.util.Map} instance.
+     * @param dictionary The {@link IDictionary} instance to convert.
+     * @return The converted instance represented as a {@link java.util.Map} instance.
+     * @param <TKey> The type of the keys of {@code dictionary}.
+     * @param <TValue> The type of the values of {@code dictionary}.
+     * @throws ArgumentNullException {@code dictionary} is {@code null}.
+     * @since 1.0.39
+     */
+    @NotNull
+    public static <TKey, TValue> java.util.Map<TKey, TValue> AsJavaMap(IDictionary<TKey, TValue> dictionary)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(dictionary, "dictionary");
+        return new WrappedJavaMapFromIDictionary<>(dictionary);
     }
 
     /**

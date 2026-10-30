@@ -32,15 +32,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.screens.Screen;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-@ApiStatus.Internal
 @ClientOnlyEnvironment
 public final class ClothConfigScreenCreator
     implements IClothConfigScreenCreator

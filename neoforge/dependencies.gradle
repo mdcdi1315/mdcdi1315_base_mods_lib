@@ -1,5 +1,9 @@
 dependencies {
-    jarJar(project(":neoforge_bml_lang_provider"))
+    jarJar project(":neoforge_bml_lang_provider")
+
+    // Pulls in the BML language provider so that mods testing the library
+    // do not need to manually copy the provider jar to 'mods' folder.
+    runtimeOnly project(":neoforge_bml_lang_provider")
 
     api("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_api_version}")
 }

@@ -2,12 +2,9 @@ package com.github.mdcdi1315.DotNetLayer.System.Collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentException;
 
-import org.jetbrains.annotations.ApiStatus;
-
 /**
  * This is not exposed in normal .NET - do not use!!!
  */
-@ApiStatus.Internal
 public final class HashHelpers
 {
     private HashHelpers() {}

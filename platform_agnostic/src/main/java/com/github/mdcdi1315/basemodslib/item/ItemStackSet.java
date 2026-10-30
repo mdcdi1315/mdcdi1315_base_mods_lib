@@ -5,6 +5,9 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MinecraftDependentFeature;
+
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
 import net.minecraft.resources.Identifier;
@@ -23,6 +26,8 @@ import java.util.function.IntFunction;
  * The set is implemented through a map mapping as keys the resource key of the item and as values their item stack.
  * @since 1.0.21
  */
+@APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.21")
+@MinecraftDependentFeature(SupportedVersions = {"1.21.1", "1.21.5"}) // Broken after 26.1: ItemStackTemplate changes.
 public class ItemStackSet
     implements Set<ItemStack>
 {

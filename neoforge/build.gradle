@@ -19,19 +19,23 @@ neoForge {
         accessTransformers.add(at.absolutePath)
     }
 
+    // Learn more about how runs can be configured in https://docs.neoforged.net/toolchain/docs/plugins/mdg/#runs .
     runs {
         configureEach {
             systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
             systemProperty("mixin.debug.export", "true")
-            ideName = "NeoForge ${it.name.capitalize()} (${project.path})"
+            ideName = "NeoForge ${it.name.capitalize()} (${this.path})"
         }
 
         client {
             client()
+            gameDirectory = project.file("runs/client")
+
         }
 
         server {
             server()
+            gameDirectory = project.file("runs/server")
         }
     }
 
@@ -41,8 +45,6 @@ neoForge {
         }
     }
 }
-
-// sourceSets.main.java.srcDir '../sources-clothconfig'
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 

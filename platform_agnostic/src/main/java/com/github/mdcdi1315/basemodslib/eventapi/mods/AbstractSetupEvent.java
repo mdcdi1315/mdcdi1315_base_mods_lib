@@ -4,9 +4,8 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableEvent;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedQueue;
-
-import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Provides the base implementation class for setup events. <br />
@@ -27,7 +26,7 @@ public abstract class AbstractSetupEvent
      * Executes all the {@link Runnable}s provided in the event. <br />
      * This is intended to be called by the mod loader and should not be called by your code.
      */
-    @ApiStatus.Internal
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
     public void Run()
     {
         Runnable r;

@@ -1,9 +1,9 @@
 
 // Update the below as needed.
-def log_4j_version = "2.22.1"
+def log_4j_version = "2.25.2"
 def event_bus_version = "8.0.5"
-def merge_tool_version = "2.0.3"
-def fancy_mod_loader_version = "7.0.13"
+def merge_tool_version = "2.0.7"
+def fancy_mod_loader_version = "11.0.15"
 
 repositories {
     gradlePluginPortal()

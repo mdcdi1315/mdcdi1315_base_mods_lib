@@ -13,15 +13,12 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.ReflectionUtils;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import java.util.Iterator;
 import java.util.stream.Stream;
 
 /**
  * This is a variant of the normal events manager that is used only in development environments.
  */
-@ApiStatus.Internal
 class DebugEventsManager
     extends NormalEventsManager
 {

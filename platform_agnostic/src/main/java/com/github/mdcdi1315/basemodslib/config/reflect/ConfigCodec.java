@@ -37,20 +37,19 @@ public final class ConfigCodec<TCFG extends IModConfig>
         ArgumentNullException.ThrowIfNull(this.cfg_creator = cfg_creator, "cfg_creator");
         ITraversableCollection<ReflectedConfigFieldData> c = ConfigurationClassesOperations.GetConfigFields(config_class);
         data = new HashMap<>(c.GetCount());
-        IEnumerator<ReflectedConfigFieldData> d = c.GetEnumerator();
-        try {
+        try (IEnumerator<ReflectedConfigFieldData> d = c.GetEnumerator())
+        {
             ReflectedConfigFieldData c_d;
             while (d.MoveNext())
             {
                 c_d = d.getCurrent();
                 data.put(c_d.GetSerializedFieldName(), c_d);
             }
-        } finally {
-            d.Dispose();
         }
     }
 
     @Override
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public <T> DataResult<Pair<TCFG, T>> decode(DynamicOps<T> ops, T input)
     {
         DataResult<T> field_entry = ops.get(input, "values");
@@ -109,7 +108,7 @@ public final class ConfigCodec<TCFG extends IModConfig>
         }
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "OptionalGetWithoutIsPresent"})
     private static <T, TCFG extends IModConfig> DataResult<String> AssignField(TCFG cfg, DynamicOps<T> ops, ReflectedConfigFieldData data, T input)
     {
         Class<?> list_cls = data.GetListFieldClass();
@@ -158,7 +157,7 @@ public final class ConfigCodec<TCFG extends IModConfig>
         return GetField_Codec(cfg, resolved_codec, ops, data, list_cls);
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "unchecked"})
     private static <TENC, TV, TCFG extends IModConfig> DataResult<TENC> GetField_Codec(TCFG cfg, Codec<TV> codec, DynamicOps<TENC> ops, ReflectedConfigFieldData data, Class<?> config_list_class)
     {
         try {
@@ -170,8 +169,8 @@ public final class ConfigCodec<TCFG extends IModConfig>
                 value = ((ConfigList)value).AsImmutableList(config_list_class);
             }
             // Verify constraints on the target.
-            IEnumerator<IConfigFieldConstraint> constraints = data.GetConstraints().GetEnumerator();
-            try {
+            try (IEnumerator<IConfigFieldConstraint> constraints = data.GetConstraints().GetEnumerator())
+            {
                 boolean is_valid = true;
                 IConfigFieldConstraint current = null;
                 while (constraints.MoveNext())
@@ -188,8 +187,6 @@ public final class ConfigCodec<TCFG extends IModConfig>
                             value
                     );
                 }
-            } finally {
-                constraints.Dispose();
             }
             return codec.encode((TV)value, ops, ops.empty());
         } catch (UnauthorizedAccessException uae) {

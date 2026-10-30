@@ -9,8 +9,8 @@ import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientEventHooks;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
-import com.github.mdcdi1315.basemodslib.client.FabricClientRegistryRegistrar;
-import com.github.mdcdi1315.basemodslib.client.FabricClientArtifactsRegistrar;
+import com.github.mdcdi1315.basemodslib.fabric.client.FabricClientRegistryRegistrar;
+import com.github.mdcdi1315.basemodslib.fabric.client.FabricClientArtifactsRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.client.ClientConnectedToServerEvent;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 

@@ -9,18 +9,14 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
-import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
-import com.github.mdcdi1315.basemodslib.utils.annotations.MixinSafe;
-import com.github.mdcdi1315.basemodslib.utils.annotations.MixinUnsafe;
+import com.github.mdcdi1315.basemodslib.utils.annotations.*;
 import com.github.mdcdi1315.basemodslib.eventapi.internal.EventAPIHelpers;
-
-import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Provides the base API for managing events, that are reusable classes that hold actions to be executed when the instance is fired. <br />
  * The class has now became abstract in order to avoid loading issues with the layer itself.
  */
-@ApiStatus.NonExtendable
+@NonExtendable
 public abstract class EventManager
     implements ISynchronized, IDisposable
 {
@@ -102,7 +98,7 @@ public abstract class EventManager
      * Removes events from the event manager that can be destroyed. This helps to better manage the game's memory footprint. <br />
      * This will be called by the mod loader; it is not to be called by your code.
      */
-    @ApiStatus.Internal
+    @APIStatus(Status = APIStatus.Status.INTERNAL)
     public abstract void DestroyDestroyableEvents();
 
     /**

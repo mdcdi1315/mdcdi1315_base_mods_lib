@@ -11,13 +11,10 @@ import com.github.mdcdi1315.basemodslib.eventapi.gameplay.*;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 
-import org.jetbrains.annotations.ApiStatus;
-
 /**
  * Provides internal helpers around the Event API.
  * These are mostly internal helpers; do not use them by your code.
  */
-@ApiStatus.Internal
 public final class EventAPIHelpers
 {
     private EventAPIHelpers() {}

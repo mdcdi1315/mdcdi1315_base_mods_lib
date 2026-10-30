@@ -5,9 +5,9 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import net.minecraft.tags.TagKey;
 import net.minecraft.core.Registry;
 import net.minecraft.core.HolderSet;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.Identifier;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -34,43 +34,31 @@ public final class MinecraftWrappedModLoaderRegistry<T>
     }
 
     @Override
-    public boolean ContainsKey(Identifier location) {
-        return reg.containsKey(location);
-    }
+    public Iterator<T> iterator() { return reg.iterator(); }
 
     @Override
-    public void Register(Identifier location, T value) throws ArgumentNullException {
-        Registry.register(reg , location , value);
-    }
+    public Set<Identifier> GetEntryKeys() { return reg.keySet(); }
 
     @Override
-    public ResourceKey<Registry<T>> GetRegistryKey() {
-        return (ResourceKey<Registry<T>>) reg.key();
-    }
+    public boolean ContainsKey(Identifier location) { return reg.containsKey(location); }
 
     @Override
-    public Set<Identifier> GetEntryKeys() {
-        return reg.keySet();
-    }
+    @SuppressWarnings("unchecked")
+    public ResourceKey<Registry<T>> GetRegistryKey() { return (ResourceKey<Registry<T>>) reg.key(); }
 
     @Override
-    public Optional<T> GetElementValue(Identifier location) throws ArgumentNullException {
-        return reg.getOptional(location);
-    }
+    public Stream<ITag<T>> GetTags() { return reg.getTags().map(MinecraftWrappedModLoaderRegistry::TagMapper); }
+
+    private static <T> MinecraftWrappedITag<T> TagMapper(HolderSet.Named<T> set) { return new MinecraftWrappedITag<>(set); }
 
     @Override
-    public Optional<ResourceKey<T>> GetResourceKey(T element) throws ArgumentNullException {
-        return reg.getResourceKey(element);
-    }
-
-    private static <T> MinecraftWrappedITag<T> TagMapper(HolderSet.Named<T> set) {
-        return new MinecraftWrappedITag<>(set);
-    }
+    public Optional<T> GetElementValue(Identifier location) throws ArgumentNullException { return reg.getOptional(location); }
 
     @Override
-    public Stream<ITag<T>> GetTags() {
-        return reg.getTags().map(MinecraftWrappedModLoaderRegistry::TagMapper);
-    }
+    public void Register(Identifier location, T value) throws ArgumentNullException { Registry.register(reg , location , value); }
+
+    @Override
+    public Optional<ResourceKey<T>> GetResourceKey(T element) throws ArgumentNullException { return reg.getResourceKey(element); }
 
     @Override
     public ITag<T> GetOrBindTag(TagKey<T> key)
@@ -86,10 +74,5 @@ public final class MinecraftWrappedModLoaderRegistry<T>
         } else {
             return new MinecraftWrappedITag<>(t.get());
         }
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return reg.iterator();
     }
 }

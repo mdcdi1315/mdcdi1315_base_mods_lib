@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.alchemy;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
 import com.github.mdcdi1315.basemodslib.Contract;
@@ -44,7 +45,9 @@ public interface IAlchemyRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException The requested particle type passed by {@code location} is non-existent.
      */
-    public static <T extends ParticleOptions> ParticleType<T> GetParticleType(Identifier location)
+    @NotNull
+    @SuppressWarnings("unchecked")
+    static <T extends ParticleOptions> ParticleType<T> GetParticleType(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (ParticleType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.PARTICLE_TYPE , location);
@@ -58,7 +61,9 @@ public interface IAlchemyRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException The requested potion type passed by {@code location} is non-existent.
      */
-    public static <T extends Potion> T GetPotion(Identifier location)
+    @NotNull
+    @SuppressWarnings("unchecked")
+    static <T extends Potion> T GetPotion(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (T) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.POTION , location);

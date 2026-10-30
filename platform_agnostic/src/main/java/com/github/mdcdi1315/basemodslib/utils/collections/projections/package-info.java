@@ -6,4 +6,9 @@
  * This package is called this way because we are projecting the boxed primitive type as an unboxed primitive type.
  * @since 1.0.35
  */
+@MinecraftIndependentFeature
+@APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.35")
 package com.github.mdcdi1315.basemodslib.utils.collections.projections;
+
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MinecraftIndependentFeature;

@@ -2,9 +2,9 @@ package com.github.mdcdi1315.bml_lang_loader;
 
 import net.neoforged.fml.*;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforgespi.language.*;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.fml.loading.LoadingModList;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -33,6 +33,7 @@ public final class FMLBMLLanguageProvider
     public String name() { return LANG_PROVIDER_NAME; }
 
     @Override
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ModContainer loadMod(IModInfo info, ModFileScanData modFileScanResults, ModuleLayer layer)
             throws ModLoadingException
     {
@@ -55,7 +56,7 @@ public final class FMLBMLLanguageProvider
             if (client == null) {
                 // No server or client, dispatch a warning message.
                 LOGGER.warn("FMLBMLLanguageProvider: Mod with ID {} did not registered any client or server instance. This may be invalid. Ignoring this entry.", id);
-            } else if (FMLEnvironment.dist == Dist.CLIENT) {
+            } else if (FMLEnvironment.getDist() == Dist.CLIENT) {
                 return new FMLBMLModContainer(info , null , client , layer , layer.findModule(bml_module_name).get());
             } else {
                 // Attempted to run a client-side mod on the server! This is of course invalid.
@@ -75,7 +76,7 @@ public final class FMLBMLLanguageProvider
     {
         String bml_mod_name = null;
         // We need to get into the loading mod list to get the Base Mods Library and return its module name.
-        for (IModFileInfo mi : LoadingModList.get().getModFiles())
+        for (IModFileInfo mi : FMLLoader.getCurrent().getLoadingModList().getModFiles())
         {
             IModInfo lib_mod_info = null;
             for (IModInfo inf : mi.getMods())
@@ -86,7 +87,7 @@ public final class FMLBMLLanguageProvider
                 }
             }
             if (lib_mod_info != null) {
-                bml_mod_name = mi.moduleName();
+                bml_mod_name = mi.getFile().getId();
                 break;
             }
         }

@@ -10,8 +10,8 @@ import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
-import com.github.mdcdi1315.basemodslib.client.NeoForgeClientArtifactsRegistrar;
-import com.github.mdcdi1315.basemodslib.client.NeoForgeClientRegistriesRegistrar;
+import com.github.mdcdi1315.basemodslib.neoforge.client.NeoForgeClientArtifactsRegistrar;
+import com.github.mdcdi1315.basemodslib.neoforge.client.NeoForgeClientRegistriesRegistrar;
 
 import net.minecraft.client.gui.screens.Screen;
 

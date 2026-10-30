@@ -4,17 +4,13 @@ import com.github.mdcdi1315.DotNetLayer.System.Attribute;
 import com.github.mdcdi1315.DotNetLayer.System.AttributeUsage;
 import com.github.mdcdi1315.DotNetLayer.System.AttributeTargets;
 
-import org.jspecify.annotations.NonNull;
-
 import java.lang.annotation.Documented;
 
 /**
  * Specifies that when a method returns {@link #ReturnValue}, the parameter will not be null even if the corresponding type allows it.
  */
-@NonNull
 @Attribute
 @Documented
-@SuppressWarnings("NullableProblems")
 @AttributeUsage({AttributeTargets.Parameter})
 public @interface NotNullWhen
 {

@@ -12,8 +12,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
- * Provides a way to register sound events to Minecraft. <br />
- * @since 1.0.15
+ * Provides a way to register sound events to Minecraft.
  */
 @Contract
 public interface ISoundRegistrar
@@ -34,7 +33,7 @@ public interface ISoundRegistrar
      * @throws RegistryObjectNotFoundException The requested sound event passed by {@code location} is non-existent.
      */
     @NotNull
-    public static SoundEvent GetSoundEvent(Identifier location)
+    static SoundEvent GetSoundEvent(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.SOUND_EVENT, location);

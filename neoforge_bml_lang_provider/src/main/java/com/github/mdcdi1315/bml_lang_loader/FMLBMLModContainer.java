@@ -40,7 +40,7 @@ public final class FMLBMLModContainer
         Module mod_layer;
         try {
             this.bml_mod_layer = bml_mod_layer;
-            mod_layer = gameLayer.findModule(info.getOwningFile().moduleName()).orElseThrow();
+            mod_layer = gameLayer.findModule(info.getOwningFile().getFile().getId()).orElseThrow();
         } catch (Throwable e) {
             throw new ModConstructionException(
                     info,
@@ -63,7 +63,7 @@ public final class FMLBMLModContainer
                 throw new ModLoadingException(ModLoadingIssue.error("fml.modloadingissue.failedtoloadmodclass").withCause(e).withAffectedMod(info));
             }
         }
-        if (class_name_client != null && FMLEnvironment.dist == Dist.CLIENT) { CreateClient(info, mod_layer, class_name_client); }
+        if (class_name_client != null && FMLEnvironment.getDist() == Dist.CLIENT) { CreateClient(info, mod_layer, class_name_client); }
     }
 
     private void CreateClient(IModInfo info, Module layer, String class_name_client)

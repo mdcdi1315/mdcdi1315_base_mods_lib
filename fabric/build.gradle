@@ -31,37 +31,35 @@ loom {
         accessWidenerPath.set(aw)
     }
 
-    mixin {
-        defaultRefmapName.set("${mod_id}.refmap.json")
-    }
-
     runs {
         client {
             client()
-            setConfigName("Fabric Dist: Client")
-            // preferGradleTask(true)
-            ideConfigGenerated(true)
-            runDir("run")
-            vmArg "-Dmixin.debug.export=true"
+
+            setGenerateRunConfig(true)
+            setRunDirectory(file("runs/client"))
+            setDisplayName("Fabric Dist: Client")
+
+            jvmArguments.add("-Dmixin.debug.export=true")
         }
         server {
             server()
-            setConfigName("Fabric Dist: Server")
-            // preferGradleTask(true)
-            ideConfigGenerated(true)
-            runDir("run")
-            vmArg "-Dmixin.debug.export=true"
+
+            setGenerateRunConfig(true)
+            setRunDirectory(file("runs/server"))
+            setDisplayName("Fabric Dist: Server")
+
+            jvmArguments.add("-Dmixin.debug.export=true")
         }
         data {
             inherit client
-            setConfigName("Fabric Dist: Data")
-            // preferGradleTask(true)
-            ideConfigGenerated(true)
-            runDir("build/datagen")
 
-            vmArg "-Dfabric-api.datagen"
-            vmArg "-Dfabric-api.datagen.modid=${mod_id}"
-            vmArg "-Dfabric-api.datagen.output-dir=${project(":platform_agnostic").file("src/main/generated")}"
+            setGenerateRunConfig(true)
+            setDisplayName("Fabric Dist: Data")
+            setRunDirectory(file("build/data_generation"))
+
+            jvmArguments.add("-Dfabric-api.datagen")
+            jvmArguments.add("-Dfabric-api.datagen.modid=${mod_id}")
+            jvmArguments.add("-Dfabric-api.datagen.output-dir=${project(":platform_agnostic").file("src/main/generated")}")
         }
     }
 }

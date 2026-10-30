@@ -2,6 +2,9 @@ package com.github.mdcdi1315.basemodslib.item;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
 
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
+import com.github.mdcdi1315.basemodslib.utils.annotations.MinecraftDependentFeature;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -20,6 +23,8 @@ import java.util.function.Predicate;
  * (That is, the entries can't be added or removed from the set)
  * @since 1.0.21
  */
+@APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.21")
+@MinecraftDependentFeature(SupportedVersions = {"1.21.1", "1.21.5"})
 public final class ImmutableItemStackSet
     extends ItemStackSet
 {

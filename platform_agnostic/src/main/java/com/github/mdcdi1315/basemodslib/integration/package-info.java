@@ -1,7 +1,7 @@
 /**
  * Internal BML mod integrations package. Do not access.
  */
-@ApiStatus.Internal
+@APIStatus(Status = APIStatus.Status.INTERNAL)
 package com.github.mdcdi1315.basemodslib.integration;
 
-import org.jetbrains.annotations.ApiStatus;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;

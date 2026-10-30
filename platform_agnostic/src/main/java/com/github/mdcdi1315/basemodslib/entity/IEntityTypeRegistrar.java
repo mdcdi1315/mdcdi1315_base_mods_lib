@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.entity;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
 import com.github.mdcdi1315.basemodslib.Contract;
@@ -67,6 +68,7 @@ public interface IEntityTypeRegistrar
      * @param name The name of the newly created mob effect type that will be registered.
      * @param info The mob effect information that is used to register the mob effect type.
      * @throws ArgumentNullException {@code info} is {@code null}.
+     * @since 1.0.12
      */
     void RegisterMobEffect(@ConstantExpected String name, MobEffectRegistrationInfo info) throws ArgumentNullException;
 
@@ -78,8 +80,9 @@ public interface IEntityTypeRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException The requested entity type passed by {@code location} is non-existent.
      */
+    @NotNull
     @SuppressWarnings("unchecked")
-    public static <T extends Entity> EntityType<T> GetEntityType(Identifier location)
+    static <T extends Entity> EntityType<T> GetEntityType(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (EntityType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.ENTITY_TYPE , location);
@@ -93,8 +96,9 @@ public interface IEntityTypeRegistrar
      * @throws ArgumentNullException {@code location} is {@code null}.
      * @throws RegistryObjectNotFoundException The requested entity type passed by {@code location} is non-existent.
      */
+    @NotNull
     @SuppressWarnings("unchecked")
-    public static <T> MemoryModuleType<T> GetMemoryModuleType(Identifier location)
+    static <T> MemoryModuleType<T> GetMemoryModuleType(Identifier location)
             throws ArgumentNullException, RegistryObjectNotFoundException
     {
         return (MemoryModuleType<T>) RegistryUtils.GetRegistryObjectChecked(BuiltInRegistries.MEMORY_MODULE_TYPE, location);
