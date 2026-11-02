@@ -10,7 +10,7 @@ plugins {
 }
 
 base {
-    archivesName = "${mod_id}-fabric-${minecraft_version}-${release_cycle}";
+    archivesName = "mdcdi1315_bml-fabric-${minecraft_version}-${release_cycle}";
 }
 
 dependencies {
@@ -43,23 +43,28 @@ loom {
     runs {
         client {
             client()
-            setConfigName("fabric Client")
+
+            runDir("runs/client")
             ideConfigGenerated(true)
-            runDir("run")
+            setConfigName("Fabric Dist: Client")
+
             vmArg "-Dmixin.debug.export=true"
         }
         server {
             server()
-            setConfigName("fabric Server")
+
+            runDir("runs/server")
             ideConfigGenerated(true)
-            runDir("run")
+            setConfigName("Fabric Dist: Server")
+
             vmArg "-Dmixin.debug.export=true"
         }
         data {
             inherit client
-            setConfigName("fabric Data")
+
             ideConfigGenerated(true)
-            runDir("build/datagen")
+            runDir("runs/data_generation")
+            setConfigName("Fabric Dist: Data")
 
             vmArg "-Dfabric-api.datagen"
             vmArg "-Dfabric-api.datagen.modid=${mod_id}"
@@ -67,8 +72,6 @@ loom {
         }
     }
 }
-
-// sourceSets.main.java.srcDir '../sources-clothconfig'
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 

@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.ByRefParameter;
+import com.github.mdcdi1315.DotNetLayer.ExceptionTranslator;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.Stopwatch;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
@@ -59,7 +60,7 @@ public final class BaseModsLib
         proxy_manager = null; // Initialized once the layer is ready.
         mod_instances = null;
         events_manager = EventAPIHelpers.CreateEarly();
-        LOGGER = LoggerFactory.getLogger("mdcdi1315's Base Mods Lib logger");
+        LOGGER = LoggerFactory.getLogger("mdcdi1315's BML logger");
         LOGGER.info("BML Library is statically initialized - initialization will start in a bit.");
     }
 
@@ -82,9 +83,9 @@ public final class BaseModsLib
     {
         ArgumentNullException.ThrowIfNull(mod_loader_layer_constructor, "mod_loader_layer_constructor");
         if (layer != null) {
-            throw new InvalidOperationException("The base mods library has already been initialized successfully.");
+            throw new InvalidOperationException("The BML has already been initialized successfully.");
         }
-        LOGGER.info("Initializing mdcdi1315's Base Mods Library...");
+        LOGGER.info("Initializing mdcdi1315's BML...");
         Stopwatch sw = Stopwatch.StartNew();
         try {
             layer = mod_loader_layer_constructor.function();
@@ -93,10 +94,10 @@ public final class BaseModsLib
             }
             boolean dev_env = layer.IsDevelopmentEnvironmentBuild();
             if (dev_env) {
-                LOGGER.info("Detected a development environment instance. Library will enter the dev env mode.");
+                LOGGER.info("[BML]: Detected a development environment instance. Library will enter the dev env mode.");
             }
             // OK. Now hand out everything defined from the early events manager to the normal events manager (Or to the debug one if running on dev env)
-            LOGGER.debug("Handing out registered events from early initialization to the normal events manager.");
+            LOGGER.debug("[BML]: Handing out registered events from early initialization to the normal events manager.");
             // -> Synchronize on the class object to access the events manager
             // This allows to avoid subtle registration issues on startup, if so the user requires it.
             synchronized (BaseModsLib.class) { events_manager = EventAPIHelpers.PerformEventHanding(events_manager); }
@@ -104,24 +105,27 @@ public final class BaseModsLib
             mod_instances = new ServerModInstanceCollection();
             proxy_manager = new ProxyManager();
             ConstructShutdownHook();
-            LOGGER.info("mdcdi1315's Base Mods Library initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion(), GetMinecraftVersion(), layer.GetEnvironment());
+            LOGGER.info("mdcdi1315's BML initialized on {} mod loader of version {}, with Minecraft version {} and distribution type {}.", layer.GetModLoaderBranding(), layer.GetModLoaderVersion(), GetMinecraftVersion(), layer.GetEnvironment());
             sw.Stop();
         } catch (Throwable th) {
             layer = null;
             initialized = true;
             sw.Stop();
-            LOGGER.error("Library failed to be initialized after {} seconds! Inspecting exception and throwing back." , sw.GetElapsed().GetTotalSeconds());
-            Exception e = TranslateException(th);
+            LOGGER.error("[BML]: Library failed to be initialized after {} seconds!", sw.GetElapsed().GetTotalSeconds());
+            LOGGER.error("[DotNetLayer]: Attempting translation of throwable {}", th.getClass().getName());
+            Exception e = ExceptionTranslator.TranslateException(th);
             if (e == null) {
+                LOGGER.error("[DotNetLayer]: Translation of throwable {} unsuccessful.", th.getClass().getName());
                 throw th;
             } else {
+                LOGGER.error("[DotNetLayer]: Translation of throwable {} successful: {}", th.getClass().getName(), e.getClass().getName());
                 throw new CriticalLibraryInitializationException(e);
             }
         }
-        LOGGER.info("The library took {} seconds to initialize.", sw.GetElapsed().GetTotalSeconds());
+        LOGGER.info("[BML]: The library took {} seconds to initialize.", sw.GetElapsed().GetTotalSeconds());
         IModResourceLookup bml_lookup = layer.GetBMLResourceLookup();
         if (bml_lookup == null) {
-            LOGGER.info("Cannot get the BML resource lookup! Versioning data won't be loaded.");
+            LOGGER.info("[BML]: Cannot get the BML resource lookup! Versioning data won't be loaded.");
         } else {
             try {
                 VersionInfo.LoadProjectInfo(bml_lookup.GetResource("project.mdcdi1315_info"));
@@ -130,50 +134,22 @@ public final class BaseModsLib
                 bml_lookup.Dispose();
             }
         }
-        LOGGER.info("Now marking the library as initialized.");
+        LOGGER.info("[BML]: Now marking the library as initialized.");
         initialized = true;
         String ver = VersionInfo.GetProperty(VersionInfo.PROPERTY_VERSION);
-        if (ver != null) { BaseModsLib.LOGGER.info("Successfully identified BML version: {}", ver); }
+        if (ver != null) { BaseModsLib.LOGGER.info("[BML]: Successfully identified BML version: {}", ver); }
         ver = AppContext.GetTargetFrameworkName();
-        if (ver != null) { BaseModsLib.LOGGER.info("Successfully identified .NET Layer info: {}", ver); }
+        if (ver != null) { BaseModsLib.LOGGER.info("[BML]: Successfully identified .NET Layer info: {}", ver); }
     }
 
     private static void LoadDotNetLayerConfig(Path config_file)
     {
         try (InputStream stream = Files.newInputStream(config_file)) {
             AppConfigXMLReader.ApplyToApplicationContext(AppConfigXMLReader.ReadFromStream(stream));
-            BaseModsLib.LOGGER.info("[DotNetLayer] Loaded .NET layer configuration.");
+            BaseModsLib.LOGGER.info("[DotNetLayer]: Loaded .NET layer configuration.");
         } catch (IOException ioex) {
-            BaseModsLib.LOGGER.error("[DotNetLayer] Error while reading .NET Layer config file {}", config_file, ioex);
+            BaseModsLib.LOGGER.error("[DotNetLayer]: Error while reading .NET Layer config file {}", config_file, ioex);
         }
-    }
-
-    /**
-     * Appropriately handles and transforms the input {@link Throwable} to an .NET Layer exception where appropriate.
-     * @param th The {@link Throwable} to translate.
-     * @return The {@link Exception} corresponding to {@link Throwable}. Can be {@code null} if the method cannot map the exception.
-     */
-    @SuppressWarnings("IfCanBeSwitch")
-    static Exception TranslateException(Throwable th)
-    {
-        Exception e;
-        if (th instanceof OutOfMemoryError) {
-            e = new OutOfMemoryException("Out of memory!");
-        } else if (th instanceof VirtualMachineError err) {
-            e = new ExecutionEngineException("A fatal error occurred.\n" + err.getMessage());
-        } else if (th instanceof Exception ef) {
-            if (ef instanceof ArrayStoreException ase) {
-                e = new ArrayTypeMismatchException("Array type mismatch error occurred!\n" + ase.getMessage());
-            } else if (ef instanceof IndexOutOfBoundsException ex) {
-                e = new IndexOutOfRangeException(ex.getMessage());
-            } else {
-                e = ef;
-            }
-        } else {
-            // For all the other cases, fall through.
-            return null;
-        }
-        return e;
     }
 
     /**
@@ -217,18 +193,21 @@ public final class BaseModsLib
 
             sw.Stop();
 
-            LOGGER.info("BASEMODSLIB: Server mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
+            LOGGER.info("[BML]: Server mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
             mod_instances.Add(instance);
         } catch (Throwable th) {
             var id = instance.GetModId();
             sw.Stop();
-            LOGGER.info("BASEMODSLIB: Mod instance with ID {} failed after {} seconds." , id, sw.GetElapsed().GetTotalSeconds());
-            LOGGER.error("BASEMODSLIB: Cannot initialize server-side mod id {}!\nRethrowing the exception to the underlying mod." , id);
-            Exception e = TranslateException(th);
+            LOGGER.info("[BML]: Mod instance with ID {} failed after {} seconds.", id, sw.GetElapsed().GetTotalSeconds());
+            LOGGER.error("[BML]: Cannot initialize server-side mod id {}!\nRethrowing the exception to the underlying mod.", id);
+            BaseModsLib.LOGGER.error("[DotNetLayer]: Attempting translation of throwable {}", th.getClass().getName());
+            Exception e = ExceptionTranslator.TranslateException(th);
             if (e == null) {
+                LOGGER.error("[DotNetLayer]: Translation of throwable {} unsuccessful.", th.getClass().getName());
                 throw th;
             } else {
+                LOGGER.error("[DotNetLayer]: Translation of throwable {} successful: {}", th.getClass().getName(), e.getClass().getName());
                 throw new ModInitializationException(id, e);
             }
         }
@@ -443,13 +422,13 @@ public final class BaseModsLib
     @APIStatus(Status = APIStatus.Status.INTERNAL)
     public static void Destroy()
     {
-        LOGGER.info("Mod loading complete. Freezing mod instance collection.");
+        LOGGER.info("[BML]: Mod loading complete. Freezing mod instance collection.");
         mod_instances.Freeze();
-        LOGGER.info("Mod instance collection has been frozen, dispatching mod loading complete event to implementing mods.");
+        LOGGER.info("[BML]: Mod instance collection has been frozen, dispatching mod loading complete event to implementing mods.");
         events_manager.FireEvent(new ModLoadingCompleteEvent());
         events_manager.DestroyDestroyableEvents();
         if (!proxy_manager.Lock()) {
-            BaseModsLib.LOGGER.info("BASEMODSLIB: Proxy manager is not used by any mods, deallocating it.");
+            BaseModsLib.LOGGER.info("[BML]: Proxy manager is not used by any mods, deallocating it.");
             proxy_manager.Dispose();
             proxy_manager = null;
         }
@@ -467,7 +446,7 @@ public final class BaseModsLib
     private static void ConstructShutdownHook()
     {
         Thread unstarted = new Thread(BaseModsLib::ShutdownHookInternal);
-        unstarted.setName("BaseModsLib Shutdown Hook");
+        unstarted.setName("mdcdi1315's BML Shutdown Hook");
         Runtime.getRuntime().addShutdownHook(unstarted);
     }
 
@@ -479,7 +458,7 @@ public final class BaseModsLib
     {
         synchronized (BaseModsLib.class)
         {
-            BaseModsLib.LOGGER.info("Destroying mdcdi1315's Base Mods Library.");
+            BaseModsLib.LOGGER.info("[BML]: Destroying mdcdi1315's BML.");
             if (layer != null)
             {
                 IServerModInstance mi;
@@ -492,11 +471,11 @@ public final class BaseModsLib
                             // Invoke to all mod instances the Dispose method.
                             mi.Dispose();
                         } catch (Exception e) {
-                            BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+                            BaseModsLib.LOGGER.error("[BML]: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
                         }
                     }
                 } catch (Exception e) {
-                    BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
+                    BaseModsLib.LOGGER.error("[BML]: Cannot run disposer due to an underlying exception." , e);
                 }
             }
             // Additional disposal code to be run.

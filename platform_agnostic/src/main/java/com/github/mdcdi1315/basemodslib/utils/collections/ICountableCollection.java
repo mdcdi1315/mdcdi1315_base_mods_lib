@@ -7,7 +7,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
  * @since 1.0.38
  */
 public interface ICountableCollection<T>
-    extends IEnumerable<T>
+    extends IEnumerable<T>, ICountableCollectionBase
 {
     /**
      * Gets the number of elements contained in the current countable collection.

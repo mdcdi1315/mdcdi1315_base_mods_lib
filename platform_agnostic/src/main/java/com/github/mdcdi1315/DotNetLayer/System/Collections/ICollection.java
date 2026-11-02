@@ -28,7 +28,7 @@ public interface ICollection
     Object getSyncRoot();
 
     /**
-     * Copies the elements of the ICollection to an {@link java.lang.reflect.Array}, starting at a particular {@link java.lang.reflect.Array} index.
+     * Copies the elements of the {@link ICollection} to an {@link java.lang.reflect.Array}, starting at a particular {@link java.lang.reflect.Array} index.
      * @param array The one-dimensional {@link java.lang.reflect.Array} that is the destination of the elements copied from {@link ICollection}. The {@link java.lang.reflect.Array} must have zero-based indexing.
      * @param index The zero-based index in {@code array} at which copying begins.
      * @throws ArgumentNullException {@code array} is {@code null}.

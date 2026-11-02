@@ -28,14 +28,10 @@ public class ModInitializationException
     }
 
     @NotNull
-    public Exception GetCausedException() {
-        return ex;
-    }
+    public Exception GetCausedException() { return ex; }
 
     @NotNull
-    public String GetOffendingMod() {
-        return offending_mod_id;
-    }
+    public String GetOffendingMod() { return offending_mod_id; }
 
     @Override
     public String getMessage() {
