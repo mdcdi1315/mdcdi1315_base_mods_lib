@@ -8,6 +8,8 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Provides members for setting and retrieving data about an application's context. <br />
  *
@@ -44,7 +46,6 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
  * The method returns {@code true} if the {@code switchName} argument is found, and its isEnabled argument indicates the value of the switch.
  * Otherwise, the method returns {@code false}.
  */
-@SuppressWarnings("SynchronizeOnNonFinalField")
 public final class AppContext
 {
     private AppContext() {}
@@ -58,11 +59,17 @@ public final class AppContext
     @AllowNull
     private static String s_definedTargetFramework;
 
+    private static final ReentrantLock stores_lock = new ReentrantLock();
+
+    /**
+     * Gets the file path of the base directory of the application.
+     * @return The file path of the base directory of the application.
+     */
     @NotNull
     public static String GetBaseDirectory()
     {
-        // The value of APP_CONTEXT_BASE_DIRECTORY key has to be a string and it is not allowed to be any other type.
-        // Otherwise the caller will get invalid cast exception
+        // The value of APP_CONTEXT_BASE_DIRECTORY key has to be a string, and it is not allowed to be any other type.
+        // Otherwise, the caller will get invalid cast exception
         var o = GetData("APP_CONTEXT_BASE_DIRECTORY");
         if (o instanceof String s) {
             return s;
@@ -74,6 +81,10 @@ public final class AppContext
         return s_defaultBaseDirectory;
     }
 
+    /**
+     * Gets the name of the framework version targeted by the current application.
+     * @return The name of the framework version targeted by the current application.
+     */
     @MaybeNull
     public static String GetTargetFrameworkName()
     {
@@ -84,6 +95,12 @@ public final class AppContext
         return s_definedTargetFramework;
     }
 
+    /**
+     * Returns the value of the named data element assigned to the current application domain.
+     * @param name The name of the data element.
+     * @return The value of {@code name}, if {@code name} identifies a named value; otherwise, {@code null}.
+     * @throws ArgumentNullException {@code name} is {@code null}.
+     */
     @MaybeNull
     public static Object GetData(String name)
             throws ArgumentNullException
@@ -93,12 +110,14 @@ public final class AppContext
         if (s_dataStore == null)
             return null;
 
-        ByRefParameter<Object> data = new ByRefParameter<>();
-        synchronized (s_dataStore)
-        {
+        stores_lock.lock();
+        try {
+            ByRefParameter<Object> data = new ByRefParameter<>();
             s_dataStore.TryGetValue(name, data);
+            return data.Value;
+        } finally {
+            stores_lock.unlock();
         }
-        return data.Value;
     }
 
     /**
@@ -112,18 +131,16 @@ public final class AppContext
     {
         ArgumentNullException.ThrowIfNull(name, "name");
 
-        synchronized (AppContext.class)
-        {
+        stores_lock.lock();
+        try {
             if (s_dataStore == null)
             {
                 // Interlocked.CompareExchange(ref s_dataStore, new Dictionary<string, object?>(), null);
                 s_dataStore = new Dictionary<>();
             }
-        }
-
-        synchronized (s_dataStore)
-        {
             s_dataStore.setItem(name, data);
+        } finally {
+            stores_lock.unlock();
         }
     }
 
@@ -132,23 +149,32 @@ public final class AppContext
      * @param switchName The name of the switch
      * @param isEnabled A variable where to place the value of the switch
      * @return A return value of {@code true} represents that the switch was set and {@code isEnable} contains the value of the switch
+     * @throws ArgumentNullException {@code switchName} is {@code null}.
+     * @throws ArgumentException {@code switchName} is {@link StringUtils#Empty}.
      */
     public static boolean TryGetSwitch(String switchName, @DotNetByRefParameter(ByRefParameterType.OUT) ByRefParameter<Boolean> isEnabled)
+        throws ArgumentNullException, ArgumentException
     {
         ByRefParameter.AssertEOut(isEnabled);
         ArgumentException.ThrowIfNullOrEmpty(switchName, "switchName");
 
         if (s_switches != null)
         {
-            synchronized (s_switches)
-            {
+            stores_lock.lock();
+            try {
                 if (s_switches.TryGetValue(switchName, isEnabled))
                     return true;
+            } finally {
+                stores_lock.unlock();
             }
         }
 
-        if (GetData(switchName) instanceof String value) {
+        var d = GetData(switchName);
+        if (d instanceof String value) {
             isEnabled.Value = Boolean.parseBoolean(value);
+            return true;
+        } else if (d instanceof Boolean b) {
+            isEnabled.Value = b;
             return true;
         } else {
             isEnabled.Value = false;
@@ -157,11 +183,14 @@ public final class AppContext
     }
 
     /**
-     * Assign a switch a value
-     * @param switchName The name of the switch
-     * @param isEnabled The value to assign
+     * Sets the value of a switch.
+     * @param switchName The name of the switch.
+     * @param isEnabled The value of the switch.
+     * @throws ArgumentNullException {@code switchName} is {@code null}.
+     * @throws ArgumentException {@code switchName} is {@link StringUtils#Empty}.
      */
     public static void SetSwitch(String switchName, boolean isEnabled)
+        throws ArgumentNullException, ArgumentException
     {
         ArgumentException.ThrowIfNullOrEmpty(switchName, "switchName");
 
@@ -169,15 +198,19 @@ public final class AppContext
         {
             // Compatibility switches are rarely used. Initialize the Dictionary lazily
             // Interlocked.CompareExchange(ref s_switches, new Dictionary<string, bool>(), null);
-            synchronized (AppContext.class)
-            {
+            stores_lock.lock();
+            try {
                 s_switches = new Dictionary<>();
+            } finally {
+                stores_lock.unlock();
             }
         }
 
-        synchronized (s_switches)
-        {
+        stores_lock.lock();
+        try {
             s_switches.setItem(switchName, isEnabled);
+        } finally {
+            stores_lock.unlock();
         }
     }
 }

@@ -133,20 +133,9 @@ public class SingleLinkedListBasedRegister<T>
     @Override
     public final String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append("SingleLinkedListBasedRegister<?> { ");
-        if (root == null) {
-            sb.append("<EMPTY>");
-        } else {
-            NodeWithNextPointer<T> p = root, next;
-            while (p != null)
-            {
-                sb.append(p.Value);
-                if ((next = p.Next) != null) { sb.append(", "); }
-                p = next;
-            }
-        }
-        sb.append(" }");
-        return sb.toString();
+        return CollectionManipulations.Stringify(
+                this,
+                "SingleLinkedListBasedRegister<?>"
+        );
     }
 }

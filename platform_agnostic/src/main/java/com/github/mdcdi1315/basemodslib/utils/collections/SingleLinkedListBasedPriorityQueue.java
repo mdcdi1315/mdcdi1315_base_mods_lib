@@ -2,14 +2,11 @@ package com.github.mdcdi1315.basemodslib.utils.collections;
 
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
-
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
-
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
-import com.github.mdcdi1315.basemodslib.utils.NextNextEnumerator;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.PriorityQueueBank;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.linkednodes.NodeWithNextPointer;
@@ -235,14 +232,7 @@ public class SingleLinkedListBasedPriorityQueue<T>
         while (current != null)
         {
             sb.append('{');
-            try (NextNextEnumerator<T> enumerator = new NextNextEnumerator<>(current.Value.GetEnumerator()))
-            {
-                while (enumerator.MoveNext())
-                {
-                    sb.append(enumerator.getCurrent());
-                    if (enumerator.HasNextNextElement()) { sb.append(", "); }
-                }
-            }
+            sb.append(CollectionManipulations.Stringify(current.Value));
             current = current.Next;
             if (current == null) {
                 sb.append('}');

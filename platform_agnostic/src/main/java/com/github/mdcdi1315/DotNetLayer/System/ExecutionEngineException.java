@@ -1,5 +1,7 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
+
 /**
  * The exception that is thrown when there is an internal error in the execution
  * engine of the common language runtime. This class cannot be inherited.
@@ -17,7 +19,7 @@ public final class ExecutionEngineException
      * Initializes a new instance of the {@link ExecutionEngineException} class with a specified error message.
      * @param message The message that describes the error.
      */
-    public ExecutionEngineException(String message) { super(message); }
+    public ExecutionEngineException(@AllowNull String message) { super(message); }
 
     /**
      * Initializes a new instance of the {@link ExecutionEngineException} class with
@@ -28,5 +30,5 @@ public final class ExecutionEngineException
      * parameter is not a null reference (Nothing in Visual Basic), the current exception
      * is raised in a catch block that handles the inner exception.
      */
-    public ExecutionEngineException(String message, Exception innerException) { super(message , innerException); }
+    public ExecutionEngineException(@AllowNull String message, @AllowNull Exception innerException) { super(message , innerException); }
 }

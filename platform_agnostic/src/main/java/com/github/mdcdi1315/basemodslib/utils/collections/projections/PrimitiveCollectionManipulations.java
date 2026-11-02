@@ -2,12 +2,11 @@ package com.github.mdcdi1315.basemodslib.utils.collections.projections;
 
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.ArithmeticException;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import com.github.mdcdi1315.basemodslib.utils.collections.ICountableCollection;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.projections.*;
 import com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations;
+import com.github.mdcdi1315.basemodslib.utils.collections.ICountableCollectionBase;
 
 /**
  * Complements the {@link com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations}
@@ -268,7 +267,7 @@ public final class PrimitiveCollectionManipulations
             return StringUtils.Empty;
         } else {
             StringBuilder builder;
-            if ((IEnumerable<Character>)enumerable instanceof ICountableCollection<Character> c) {
+            if (enumerable instanceof ICountableCollectionBase c) {
                 builder = new StringBuilder(c.GetCount());
             } else {
                 builder = new StringBuilder(500);

@@ -34,7 +34,8 @@ public final class CriticalLibraryInitializationException
      */
     public Exception getException() { return exception; }
 
-    private static void AppendTabCount(short tabs , StringBuilder builder) {
+    private static void AppendTabCount(short tabs , StringBuilder builder)
+    {
         for (short tc = 0; tc < tabs; tc++) { builder.append('\t'); }
     }
 
@@ -103,7 +104,7 @@ Exception is a .NET Layer exception: %s
 Exception has suppressed exceptions: %s
 Exception message: %s
 =============================================================================================
-A detailed stack trace of the exception that was failed, as well as it's suppressed exceptions as well:
+A detailed stack trace of the exception that was failed, as well as it's suppressed exceptions:
 %s
 """,
                 exception.getClass().getName(),

@@ -187,20 +187,9 @@ public class SingleLinkedListBasedQueue<T>
     @Override
     public final String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("SingleLinkedListBasedQueue<?> (%d) { ", count));
-        if (count == 0) {
-            sb.append("<EMPTY>");
-        } else {
-            NodeWithPreviousPointer<T> p = head, next;
-            while (p != null)
-            {
-                sb.append(p.Value);
-                if ((next = p.Previous) != null) { sb.append(", "); }
-                p = next;
-            }
-        }
-        sb.append(" }");
-        return sb.toString();
+        return CollectionManipulations.Stringify(
+                this,
+                String.format("SingleLinkedListBasedQueue<?> (%d)", count)
+        );
     }
 }

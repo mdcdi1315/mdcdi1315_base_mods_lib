@@ -380,11 +380,9 @@ public class SingleLinkedList<T>
 
         SingleLinkedList<TO> converted = new SingleLinkedList<>(comparer);
 
-        IEnumerator<T> enumerator = GetEnumerator();
-        try {
+        try (var enumerator = GetEnumerator())
+        {
             while (enumerator.MoveNext()) { converted.Add(converter.convert(enumerator.getCurrent())); }
-        } finally {
-            enumerator.Dispose();
         }
 
         return converted;
@@ -400,16 +398,15 @@ public class SingleLinkedList<T>
         } else if (FunctionManipulations.IsAlwaysFalse(predicate)) {
             return new SingleLinkedList<>(comparer);
         } else {
-            IEnumerator<T> enumerator = GetEnumerator();
             SingleLinkedList<T> result = new SingleLinkedList<>(comparer);
 
-            try {
+            try (var enumerator = GetEnumerator())
+            {
                 T item;
-                while (enumerator.MoveNext()) {
+                while (enumerator.MoveNext())
+                {
                     if (predicate.predicate(item = enumerator.getCurrent())) { result.Add(item); }
                 }
-            } finally {
-                enumerator.Dispose();
             }
 
             return result;
@@ -432,20 +429,9 @@ public class SingleLinkedList<T>
     @Override
     public final String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("SingleLinkedList<?> (%d) { ", count));
-        if (count == 0) {
-            sb.append("<EMPTY>");
-        } else {
-            NodeWithNextPointer<T> p = root, next;
-            while (p != null)
-            {
-                sb.append(p.Value);
-                if ((next = p.Next) != null) { sb.append(", "); }
-                p = next;
-            }
-        }
-        sb.append(" }");
-        return sb.toString();
+        return CollectionManipulations.Stringify(
+                this,
+                String.format("SingleLinkedList<?> (%d)", count)
+        );
     }
 }
