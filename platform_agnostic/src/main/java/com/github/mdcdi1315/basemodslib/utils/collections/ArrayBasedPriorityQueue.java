@@ -3,13 +3,10 @@ package com.github.mdcdi1315.basemodslib.utils.collections;
 import com.github.mdcdi1315.DotNetLayer.System.OverflowException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentOutOfRangeException;
-
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
-
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import com.github.mdcdi1315.basemodslib.utils.NextNextEnumerator;
 import com.github.mdcdi1315.basemodslib.utils.ISynchronizedByObject;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.PriorityQueueBank;
 
@@ -313,14 +310,7 @@ public class ArrayBasedPriorityQueue<T>
             if ((o = banks[I]) != null)
             {
                 sb.append('{');
-                try (NextNextEnumerator<T> enumerator = new NextNextEnumerator<>(((PriorityQueueBank<T>)o).GetEnumerator()))
-                {
-                    while (enumerator.MoveNext())
-                    {
-                        sb.append(enumerator.getCurrent());
-                        if (enumerator.HasNextNextElement()) { sb.append(", "); }
-                    }
-                }
+                sb.append(CollectionManipulations.Stringify((PriorityQueueBank<T>)o));
                 if ((B+1) < priority_bank_count) {
                     sb.append("}, ");
                 } else {

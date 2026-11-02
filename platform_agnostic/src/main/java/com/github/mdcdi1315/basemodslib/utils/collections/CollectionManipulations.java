@@ -438,7 +438,7 @@ public final class CollectionManipulations
         if (!IsEmptyUnsafe(enumerable))
         {
             if (list_inst instanceof IArrayBasedCollection ac &&
-                    enumerable instanceof ICountableCollection<T> t)
+                    enumerable instanceof ICountableCollectionBase t)
             {
                 ac.EnsureCapacity(t.GetCount());
             }
@@ -556,7 +556,7 @@ public final class CollectionManipulations
     {
         if (enumerable instanceof IEmptyEnumerable) {
             return true;
-        } else if (enumerable instanceof ICountableCollection<T> t) {
+        } else if (enumerable instanceof ICountableCollectionBase t) {
             return t.GetCount() == 0;
         } else if (enumerable instanceof ICollection<T> c) {
             return c.getCount() == 0;
@@ -1142,5 +1142,61 @@ public final class CollectionManipulations
                 list,
                 SortOrdering.ConstructFromOrderAndComparer(order, comparer)
         );
+    }
+
+    /**
+     * 'stringifies' the elements of the given enumerable.
+     * @param enumerable The enumerable to get the elements from and stringify them.
+     * @return A {@link String} containing the concatenated, stringified result of all the elements.
+     * @param <T> The type of the elements of the enumerable.
+     * @throws ArgumentNullException {@code enumerable} is {@code null}.
+     * @since 1.0.40
+     */
+    public static <T> String Stringify(IEnumerable<T> enumerable)
+            throws ArgumentNullException
+    { return Stringify(enumerable, null); }
+
+    /**
+     * 'stringifies' the elements of the given enumerable.
+     * @param enumerable The enumerable to get the elements from and stringify them.
+     * @param header The header to prepend.
+     * @return A {@link String} containing the concatenated, stringified result of all the elements.
+     * @param <T> The type of the elements of the enumerable.
+     * @throws ArgumentNullException {@code enumerable} is {@code null}.
+     * @since 1.0.40
+     */
+    @NotNull
+    public static <T> String Stringify(IEnumerable<T> enumerable, @AllowNull String header)
+        throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(enumerable, "enumerable");
+
+        boolean at_least_one = false;
+
+        StringBuilder builder;
+
+        if (header == null) {
+            builder = new StringBuilder(500);
+        } else {
+            builder = new StringBuilder(header.length() + 500);
+            builder.append(header);
+        }
+
+        try (var en = enumerable.GetEnumerator())
+        {
+            if (en.MoveNext())
+            {
+                at_least_one = true;
+                builder.append(" { ").append(CollectionHelpers.GetStringSafe(en.getCurrent()));
+                while (en.MoveNext())
+                {
+                    builder.append(", ").append(CollectionHelpers.GetStringSafe(en.getCurrent()));
+                }
+            }
+        }
+
+        builder.append(at_least_one ? " }" : " <EMPTY>");
+
+        return builder.toString();
     }
 }

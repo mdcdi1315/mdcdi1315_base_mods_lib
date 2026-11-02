@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.neoforge;
 
+import com.github.mdcdi1315.basemodslib.client.gui.AboutBMLScreen;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
@@ -44,6 +45,11 @@ public final class NeoForgeClientModLoaderLayer
         public Screen createScreen(ModContainer mc, Screen screen) { return factory.Create(screen); }
     }
 
+    private static Screen CreateBMLAboutScreen(ModContainer mc, Screen screen)
+    {
+        return new AboutBMLScreen(screen);
+    }
+
     private static void OnClientSetupEvent(FMLClientSetupEvent event)
     {
         BaseModsLib.LOGGER.info("Client setup event realized. Dispatching client setup to implementing mods.");
@@ -55,6 +61,12 @@ public final class NeoForgeClientModLoaderLayer
     private static void RegisterConfigScreensToMods(ModLoadingCompleteEvent completed)
     {
         var mod_list = ModList.get();
+        mod_list.getModContainerById(BaseModsLib.MOD_ID)
+                .get()
+                .registerExtensionPoint(
+                        IConfigScreenFactory.class,
+                        NeoForgeClientModLoaderLayer::CreateBMLAboutScreen
+                );
         try (var en = BaseModsLibClient.GetConfigurationScreens().GetEnumerator())
         {
             Optional<? extends ModContainer> container;

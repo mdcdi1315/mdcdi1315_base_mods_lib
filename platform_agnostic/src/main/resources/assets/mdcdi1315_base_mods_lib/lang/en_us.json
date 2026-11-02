@@ -7,6 +7,7 @@
 	"mdcdi1315_base_mods_lib.confirm_dialog_screen.no_button_text": "No",
 	"mdcdi1315_base_mods_lib.info_dialog_screen.default_title": "Information",
 	"mdcdi1315_base_mods_lib.info_dialog_screen.ok_button_text": "OK!",
+	"mdcdi1315_base_mods_lib.about_bml_screen.title": "About the BML Library",
 
 	"mdcdi1315_base_mods_lib.config.cfg_tweaker_screen.default_title": "Configuration tweaker for %s config file",
 	"mdcdi1315_base_mods_lib.config.no_cloth_config_api.line_1": "For editing the configuration values in GUI, Cloth Config API is required.",

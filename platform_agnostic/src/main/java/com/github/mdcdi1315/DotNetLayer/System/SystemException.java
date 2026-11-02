@@ -1,6 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 
 /**
  * Serves as the base class for system exceptions namespace.
@@ -11,19 +11,13 @@ public class SystemException
     /**
      * Initializes a new instance of the {@link SystemException} class.
      */
-    public SystemException()
-    {
-        super();
-    }
+    public SystemException() { super(); }
 
     /**
      * Initializes a new instance of the {@link SystemException} class with a specified error message.
      * @param message The message that describes the error.
      */
-    public SystemException(@MaybeNull String message)
-    {
-        super(message);
-    }
+    public SystemException(@AllowNull String message) { super(message); }
 
     /**
      * Initializes a new instance of the {@link SystemException} class with a specified
@@ -33,8 +27,5 @@ public class SystemException
      *  parameter is not a null reference (Nothing in Visual Basic), the current exception
      *  is raised in a catch block that handles the inner exception.
      */
-    public SystemException(@MaybeNull String message, @MaybeNull Exception innerException)
-    {
-        super(message , innerException);
-    }
+    public SystemException(@AllowNull String message, @AllowNull Exception innerException) { super(message , innerException); }
 }

@@ -2,6 +2,7 @@ package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.Func1;
 import com.github.mdcdi1315.DotNetLayer.ByRefParameter;
+import com.github.mdcdi1315.DotNetLayer.ExceptionTranslator;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.Stopwatch;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.*;
@@ -45,7 +46,7 @@ public final class BaseModsLibClient
         if (BaseModsLib.GetEnvironment() == ModdingEnvironment.SERVER) {
             // Perpetually crash Minecraft to avoid having weird crash reports due to class loading.
             // We will have a crash report anyway; just this will save some time finding bugs...
-            throw new InvalidOperationException("Base mods library client was touched but it should not!");
+            throw new InvalidOperationException("BML client was touched but it should not!");
         }
         // Note: when env returns UNKNOWN the lib cannot assume the environment, so I assume it is OK and init continues normally.
         layer = null;
@@ -74,9 +75,9 @@ public final class BaseModsLibClient
     {
         ArgumentNullException.ThrowIfNull(client_layer_constructor, "client_layer_constructor");
         if (layer != null) {
-            throw new InvalidOperationException("The base mods library has already been initialized successfully.");
+            throw new InvalidOperationException("The BML has already been initialized successfully.");
         } else {
-            BaseModsLib.LOGGER.info("Initializing mdcdi1315's Base Mods Library for the client distribution...");
+            BaseModsLib.LOGGER.info("Initializing mdcdi1315's BML for the client distribution...");
             Stopwatch sw = Stopwatch.StartNew();
             try {
                 layer = client_layer_constructor.function();
@@ -93,11 +94,14 @@ public final class BaseModsLibClient
             } catch (Throwable th) {
                 sw.Stop();
                 initialized = true;
-                BaseModsLib.LOGGER.error("Library failed to be initialized after {} seconds! Inspecting exception and throwing back." , sw.GetElapsed().GetTotalSeconds());
-                Exception e = BaseModsLib.TranslateException(th);
+                BaseModsLib.LOGGER.error("Library failed to be initialized after {} seconds!", sw.GetElapsed().GetTotalSeconds());
+                BaseModsLib.LOGGER.error("[DotNetLayer] Attempting translation of throwable {}", th.getClass().getName());
+                Exception e = ExceptionTranslator.TranslateException(th);
                 if (e == null) {
+                    BaseModsLib.LOGGER.error("[DotNetLayer] Translation of throwable {} unsuccessful.", th.getClass().getName());
                     throw th;
                 } else {
+                    BaseModsLib.LOGGER.error("[DotNetLayer] Translation of throwable {} successful: {}", th.getClass().getName(), e.getClass().getName());
                     throw new CriticalLibraryInitializationException(e);
                 }
             }
@@ -170,14 +174,14 @@ public final class BaseModsLibClient
 
             sw.Stop();
 
-            BaseModsLib.LOGGER.info("BASEMODSLIB: Client mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
+            BaseModsLib.LOGGER.info("[BML]: Client mod instance with ID {} initialized successfully after {} seconds." , instance.GetModId() , sw.GetElapsed().GetTotalSeconds());
 
             mod_instances.Add(instance);
         } catch (Throwable th) {
             sw.Stop();
-            BaseModsLib.LOGGER.info("BASEMODSLIB: Mod instance with ID {} failed after {} seconds." , mod_id, sw.GetElapsed().GetTotalSeconds());
-            BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot initialize client-side mod id {}!\nRethrowing the exception to the underlying mod.", mod_id);
-            Exception e = BaseModsLib.TranslateException(th);
+            BaseModsLib.LOGGER.info("[BML]: Mod instance with ID {} failed after {} seconds." , mod_id, sw.GetElapsed().GetTotalSeconds());
+            BaseModsLib.LOGGER.error("[BML]: Cannot initialize client-side mod id {}!\nRethrowing the exception to the underlying mod.", mod_id);
+            Exception e = ExceptionTranslator.TranslateException(th);
             if (e == null) {
                 throw th;
             } else {
@@ -254,7 +258,7 @@ public final class BaseModsLibClient
         // Sync on the BML class object, so that disposal timing in both BML server/client instances is serialized.
         synchronized (BaseModsLib.class)
         {
-            BaseModsLib.LOGGER.info("Destroying mdcdi1315's Base Mods Library of client distribution side.");
+            BaseModsLib.LOGGER.info("Destroying mdcdi1315's BML of client distribution side.");
             if (layer != null)
             {
                 IClientModInstance mi;
@@ -267,11 +271,11 @@ public final class BaseModsLibClient
                         try {
                             mi.Dispose();
                         } catch (Exception e) {
-                            BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
+                            BaseModsLib.LOGGER.error("[BML]: Cannot dispose mod with ID {} due to an exception: {}" , mi.GetModId() , e);
                         }
                     }
                 } catch (Exception e) {
-                    BaseModsLib.LOGGER.error("BASEMODSLIB: Cannot run disposer due to an underlying exception." , e);
+                    BaseModsLib.LOGGER.error("[BML]: Cannot run disposer due to an underlying exception." , e);
                 }
                 layer.Dispose();
             }

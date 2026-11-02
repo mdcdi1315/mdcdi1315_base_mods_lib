@@ -190,20 +190,9 @@ public class SingleLinkedListBasedStack<T>
     @Override
     public final String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("SingleLinkedListBasedStack<?> (%d) { ", count));
-        if (count == 0) {
-            sb.append("<EMPTY>");
-        } else {
-            NodeWithPreviousPointer<T> p = current, next;
-            while (p != null)
-            {
-                sb.append(p.Value);
-                if ((next = p.Previous) != null) { sb.append(", "); }
-                p = next;
-            }
-        }
-        sb.append(" }");
-        return sb.toString();
+        return CollectionManipulations.Stringify(
+                this,
+                String.format("SingleLinkedListBasedStack<?> (%d)", count)
+        );
     }
 }

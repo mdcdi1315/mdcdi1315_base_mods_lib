@@ -10,7 +10,7 @@ plugins {
 }
 
 base {
-    archivesName = "${mod_id}-fabric-${minecraft_version}-${release_cycle}";
+    archivesName = "mdcdi1315_bml-fabric-${minecraft_version}-${release_cycle}";
 }
 
 dependencies {
@@ -55,7 +55,7 @@ loom {
 
             setGenerateRunConfig(true)
             setDisplayName("Fabric Dist: Data")
-            setRunDirectory(file("build/data_generation"))
+            setRunDirectory(file("runs/data_generation"))
 
             jvmArguments.add("-Dfabric-api.datagen")
             jvmArguments.add("-Dfabric-api.datagen.modid=${mod_id}")
