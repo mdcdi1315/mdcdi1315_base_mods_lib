@@ -8,8 +8,10 @@ import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
-import com.github.mdcdi1315.basemodslib.neoforge.sounds.NeoForgeSoundRegistrar;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
+import com.github.mdcdi1315.basemodslib.neoforge.resource.ResourceLookupFlows;
+import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
+import com.github.mdcdi1315.basemodslib.neoforge.sounds.NeoForgeSoundRegistrar;
 import com.github.mdcdi1315.basemodslib.neoforge.menu.NeoForgeMenuTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.neoforge.network.NeoForgeNetworkBuilder;
 import com.github.mdcdi1315.basemodslib.neoforge.world.NeoForgeWorldGenRegistrar;
@@ -18,11 +20,9 @@ import com.github.mdcdi1315.basemodslib.neoforge.network.NeoForgeNetworkingManag
 import com.github.mdcdi1315.basemodslib.neoforge.commands.NeoForgeCommandRegistrar;
 import com.github.mdcdi1315.basemodslib.neoforge.block_item.BlocksAndItemsRegistrar;
 import com.github.mdcdi1315.basemodslib.neoforge.entity.NeoForgeEntityTypeRegistrar;
-import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.neoforge.registries.NeoForgeRegistriesRegistrar;
 
 import net.neoforged.fml.ModList;
-import net.neoforged.fml.ModContainer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLPaths;
@@ -37,7 +37,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
 import java.nio.file.Path;
-import java.util.Optional;
 
 public final class NeoForgeModLoaderLayer
     implements IModLoaderLayer
@@ -125,13 +124,7 @@ public final class NeoForgeModLoaderLayer
         return ModList.get().getModContainerById(mod_id).isPresent();
     }
 
-    @Override
-    @SuppressWarnings("OptionalIsPresent")
-    public IModResourceLookup GetResourceLookupByID(String mod_id)
-    {
-        Optional<? extends ModContainer> mc = ModList.get().getModContainerById(mod_id);
-        return mc.isPresent() ? new NeoForgeModResourceLookup(mc.get().getModInfo()) : null;
-    }
+
 
     @Override
     public ModdingEnvironment GetEnvironment()
@@ -155,13 +148,13 @@ public final class NeoForgeModLoaderLayer
     public Path GetConfigurationDirectory() { return FMLPaths.CONFIGDIR.get(); }
 
     @Override
-    public IModResourceLookup GetBMLResourceLookup() { return new BMLModSpecialRLP(); }
-
-    @Override
     public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.isProduction(); }
 
     @Override
     public List<String> GetLoadedMods() { return new DirectlyMappedList<>(ModList.get().getMods(), IModInfo::getModId); }
+
+    @Override
+    public IModResourceLookup GetResourceLookupByID(String mod_id) { return ResourceLookupFlows.GetModResourceLookup(mod_id); }
 
     @Override
     public void Dispose()

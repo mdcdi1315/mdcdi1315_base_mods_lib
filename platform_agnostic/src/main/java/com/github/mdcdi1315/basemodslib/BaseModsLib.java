@@ -144,6 +144,7 @@ public final class BaseModsLib
 
     private static void LoadDotNetLayerConfig(Path config_file)
     {
+        if (config_file == null) { return; }
         try (InputStream stream = Files.newInputStream(config_file)) {
             AppConfigXMLReader.ApplyToApplicationContext(AppConfigXMLReader.ReadFromStream(stream));
             BaseModsLib.LOGGER.info("[DotNetLayer]: Loaded .NET layer configuration.");

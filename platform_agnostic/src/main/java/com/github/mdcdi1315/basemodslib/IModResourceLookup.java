@@ -22,6 +22,8 @@ public interface IModResourceLookup
     /**
      * Gets the root path where the logical mod data begin.
      * @return The {@link Path} where the logical mod data begin.
+     * @apiNote This may not be the notional 'beginning' of the mod data.
+     * It will probably point to a physical {@link Path} where the .jar mod file is located to.
      */
     @NotNull
     Path GetRootPath();
