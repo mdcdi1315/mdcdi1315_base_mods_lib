@@ -258,7 +258,7 @@ public final class BaseModsLibClient
         // Sync on the BML class object, so that disposal timing in both BML server/client instances is serialized.
         synchronized (BaseModsLib.class)
         {
-            BaseModsLib.LOGGER.info("Destroying mdcdi1315's BML of client distribution side.");
+            BaseModsLib.LOGGER.info("[BML]: Destroying mdcdi1315's BML of client distribution side.");
             if (layer != null)
             {
                 IClientModInstance mi;

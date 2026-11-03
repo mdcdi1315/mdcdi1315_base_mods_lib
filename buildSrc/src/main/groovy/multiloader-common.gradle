@@ -57,6 +57,7 @@ processResources {
             'neoforge_loader_version_range': neoforge_loader_version_range,
             'mod_menu_version'             : mod_menu_version,
             'cloth_config_api_version'     : cloth_config_api_version,
+            'gradle_version'               : gradle.gradleVersion,
             'mod_name'                     : mod_name,
             'mod_author'                   : mod_author,
             'mod_id'                       : mod_id,
@@ -69,7 +70,7 @@ processResources {
             "java_version"                 : java_version,
             "mixin_version"                : mixin_version,
             "release_cycle"                : release_cycle,
-            "timestamp"                    : java.time.Instant.now().toString()
+            "timestamp"                    : java.time.format.DateTimeFormatter.ofPattern("d MMM uuuu HH:mm:ss.SS Z VV").format(java.time.ZonedDateTime.now())
     ]
 
     var jsonExpandProps = expandProps.collectEntries {
@@ -80,7 +81,7 @@ processResources {
         expand expandProps
     }
 
-    filesMatching(['pack.mcmeta', 'fabric.mod.json', '*.mixins.json']) {
+    filesMatching(['pack.mcmeta', 'fabric.mod.json', 'licenses.json', '*.mixins.json']) {
         expand jsonExpandProps
     }
 

@@ -3,7 +3,7 @@ package com.github.mdcdi1315.basemodslib.integration.modmenu;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
-import com.github.mdcdi1315.basemodslib.client.gui.AboutBMLScreen;
+import com.github.mdcdi1315.basemodslib.client.gui.about_the_lib.AboutBMLScreen;
 
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;

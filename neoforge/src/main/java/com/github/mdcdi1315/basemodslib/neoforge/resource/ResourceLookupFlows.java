@@ -36,7 +36,7 @@ public final class ResourceLookupFlows
             IModFile fe = mc.get().getModInfo().getOwningFile().getFile();
             Path root_path = fe.getFilePath();
             BaseModsLib.LOGGER.debug("[BML]: ResourceLookupFlows: Code base path for {}: {}", mod_id, root_path);
-            if (root_path.endsWith(".jar") && Files.exists(root_path)) {
+            if (root_path.toString().endsWith(".jar") && Files.exists(root_path)) {
                 BaseModsLib.LOGGER.debug("[BML]: ResourceLookupFlows: Code base for {} is a .jar file, loading", mod_id);
                 return new JarFileResourceLookup(fe, GetModInstance(mod_id));
             } else if (Files.isDirectory(root_path)) {

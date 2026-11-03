@@ -1,0 +1,12 @@
+[
+	{
+		"license_file": "LICENSE_${mod_name}",
+		"license_button_text": "BML Library License",
+		"license_title_screen_text": "BML License"
+	},
+	{
+		"license_file": "LICENSE_DotNetFoundation",
+		"license_button_text": ".NET Foundation License",
+		"license_title_screen_text": ".NET Foundation License"
+	}
+]

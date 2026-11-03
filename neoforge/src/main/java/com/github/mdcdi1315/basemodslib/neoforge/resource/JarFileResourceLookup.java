@@ -43,6 +43,7 @@ public final class JarFileResourceLookup
     public Path GetResource(String path)
             throws ArgumentNullException
     {
+        ArgumentNullException.ThrowIfNull(path, "path");
         Path result = file_contents.getPath(path);
         if (Files.exists(result)) {
             return result;

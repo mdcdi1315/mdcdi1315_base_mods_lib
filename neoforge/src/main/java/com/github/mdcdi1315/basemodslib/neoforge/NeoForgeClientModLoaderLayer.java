@@ -1,6 +1,5 @@
 package com.github.mdcdi1315.basemodslib.neoforge;
 
-import com.github.mdcdi1315.basemodslib.client.gui.AboutBMLScreen;
 import com.github.mdcdi1315.basemodslib.utils.Pair;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.NeoForgeUtils;
@@ -11,6 +10,7 @@ import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
+import com.github.mdcdi1315.basemodslib.client.gui.about_the_lib.AboutBMLScreen;
 import com.github.mdcdi1315.basemodslib.neoforge.client.NeoForgeClientArtifactsRegistrar;
 import com.github.mdcdi1315.basemodslib.neoforge.client.NeoForgeClientRegistriesRegistrar;
 

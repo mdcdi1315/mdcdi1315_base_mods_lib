@@ -3,6 +3,10 @@
 version=${version}
 build_time=${timestamp}
 release_series=${release_cycle}
+gradle_version=${gradle_version}
+compiled_against_java=${java_version}
 compiled_against_mixin=${mixin_version}
 compiled_against_neoforge=${neoforge_version}
+compiled_against_mod_menu=${mod_menu_version}
 compiled_against_fabric=${fabric_loader_version}
+compiled_against_cloth_config=${cloth_config_api_version}
