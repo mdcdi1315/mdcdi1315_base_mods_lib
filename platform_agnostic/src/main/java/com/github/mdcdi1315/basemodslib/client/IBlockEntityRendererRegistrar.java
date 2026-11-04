@@ -5,6 +5,7 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.basemodslib.Contract;
 
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 
 /**
  * CLIENT-ONLY CLIENT-ONLY CLIENT-ONLY CLIENT-ONLY <br />
@@ -16,8 +17,9 @@ public interface IBlockEntityRendererRegistrar
     /**
      * Registers a block entity renderer to Minecraft client.
      * @param info The block entity renderer registration information.
+     * @param <S> The type of the cached block entity state.
      * @param <T> The type of the block entity this renderer applies to.
      * @throws ArgumentNullException {@code info} is {@code null}.
      */
-    <T extends BlockEntity> void Register(BlockEntityRendererRegistrationInfo<T> info) throws ArgumentNullException;
+    <T extends BlockEntity, S extends BlockEntityRenderState> void Register(BlockEntityRendererRegistrationInfo<T, S> info) throws ArgumentNullException;
 }

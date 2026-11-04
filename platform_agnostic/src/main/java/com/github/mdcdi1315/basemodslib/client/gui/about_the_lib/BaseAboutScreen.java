@@ -1,6 +1,7 @@
 package com.github.mdcdi1315.basemodslib.client.gui.about_the_lib;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
+import com.github.mdcdi1315.basemodslib.utils.Extensions;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.client.gui.ParentableScreen;
 
@@ -60,6 +61,10 @@ public abstract class BaseAboutScreen
 
     private int GetMaximumWorkAreaY() { return height - WORK_AREA_Y_POINT * 2; }
 
+    public int ComputeWorkAreaWidth() { return width - WORK_AREA_X_POINT * 2; }
+
+    public int BoundToMaxOfWorkArea(int desired_width) { return Extensions.Min(ComputeWorkAreaWidth(), desired_width); }
+
     @Pure
     public void SetTitleTextColor(int color) { title_text_ctl.SetColor(color); }
 
@@ -76,7 +81,7 @@ public abstract class BaseAboutScreen
 
         button_layout.spacing(5);
 
-        int layout_width = width - WORK_AREA_X_POINT * 2;
+        int layout_width = ComputeWorkAreaWidth();
         int layout_height = (height - GetMaximumWorkAreaY() - 10) / 3;
 
         OnAddControlsOnButtonLayoutRow0(CreateChildLayout(button_layout, layout_width, layout_height));
@@ -111,7 +116,7 @@ public abstract class BaseAboutScreen
         var sl = new ScrollableLayout(minecraft, layout, 0);
         sl.setX(WORK_AREA_X_POINT);
         sl.setY(WORK_AREA_Y_POINT);
-        sl.setMinWidth(width - WORK_AREA_X_POINT * 2 - 20);
+        sl.setMinWidth(ComputeWorkAreaWidth() - 20);
         int g = GetMaximumWorkAreaY() - WORK_AREA_Y_POINT;
         sl.setMaxHeight(g);
         sl.setMinHeight(g);

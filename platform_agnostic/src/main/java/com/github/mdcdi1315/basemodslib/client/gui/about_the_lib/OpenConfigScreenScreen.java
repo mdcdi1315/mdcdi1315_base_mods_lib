@@ -19,17 +19,19 @@ public final class OpenConfigScreenScreen
     public OpenConfigScreenScreen(Screen parent)
     {
         super(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.title"), parent);
-        layout = LinearLayout.vertical();
+        layout = LinearLayout.vertical().spacing(5);
         boolean is_empty = true;
         try (var en = BaseModsLibClient.GetConfigurationScreens().GetEnumerator())
         {
+            Component text;
             while (en.MoveNext())
             {
                 var p = en.getCurrent();
+                text = Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.button_open_screen", p.first());
                 layout.addChild(Button.builder(
-                        Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.button_open_screen", p.first()),
+                        text,
                         new ConstructScreenData(this, p.second())
-                ).build());
+                ).width(BoundToMaxOfWorkArea(minecraft.font.width(text) + 10)).build());
                 is_empty = false;
             }
         }

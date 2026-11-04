@@ -83,7 +83,9 @@ public final class LicensesScreen
                                     Button.builder(
                                             lic_entry.license_button_text(),
                                             new LicenseScreenButtonHandler(this, lic_entry)
-                                    ).build()
+                                    )
+                                            .width(BoundToMaxOfWorkArea(minecraft.font.width(lic_entry.license_button_text()) + 10))
+                                            .build()
                             );
                         }
                     }

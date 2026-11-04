@@ -25,6 +25,7 @@ import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 
 import net.fabricmc.fabric.api.client.particle.v1.FabricSpriteSet;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
@@ -76,7 +77,7 @@ public final class FabricClientArtifactsRegistrar
     }
 
     @Override
-    public <T extends BlockEntity> void Register(BlockEntityRendererRegistrationInfo<T> info)
+    public <T extends BlockEntity, S extends BlockEntityRenderState> void Register(BlockEntityRendererRegistrationInfo<T, S> info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");

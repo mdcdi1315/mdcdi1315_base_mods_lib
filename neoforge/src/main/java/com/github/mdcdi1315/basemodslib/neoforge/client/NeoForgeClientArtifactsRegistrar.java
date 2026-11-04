@@ -25,6 +25,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.block.BuiltInBlockModels;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.*;
@@ -47,9 +48,9 @@ public final class NeoForgeClientArtifactsRegistrar
     private SingleLinkedListBasedRegister<EntityRendererRegistrationInfo<? extends Entity>> entities;
     private SingleLinkedListBasedRegister<SpecialModelRendererRegistrationInfo> model_renderer_registrations;
     private SingleLinkedListBasedRegister<SpecialModelRendererCodecRegistrationInfo> model_renderer_codec_registrations;
-    private SingleLinkedListBasedRegister<BlockEntityRendererRegistrationInfo<? extends BlockEntity>> block_entities;
     private SingleLinkedListBasedRegister<SimpleParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_simple;
     private SingleLinkedListBasedRegister<AdvancedParticleProviderRegistrationInfo<? extends ParticleOptions>> particles_advanced;
+    private SingleLinkedListBasedRegister<BlockEntityRendererRegistrationInfo<? extends BlockEntity, ? extends BlockEntityRenderState>> block_entities;
 
     public NeoForgeClientArtifactsRegistrar()
     {
@@ -66,7 +67,7 @@ public final class NeoForgeClientArtifactsRegistrar
     }
 
     @Override
-    public <T extends BlockEntity> void Register(BlockEntityRendererRegistrationInfo<T> info)
+    public <T extends BlockEntity, S extends BlockEntityRenderState> void Register(BlockEntityRendererRegistrationInfo<T, S> info)
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(info, "info");
@@ -146,7 +147,7 @@ public final class NeoForgeClientArtifactsRegistrar
         model_renderer_registrations.Register(info);
     }
 
-    private static <T extends BlockEntity> void RegisterBlockEntityRenderer(EntityRenderersEvent.RegisterRenderers event, BlockEntityRendererRegistrationInfo<T> info) {
+    private static <T extends BlockEntity, S extends BlockEntityRenderState> void RegisterBlockEntityRenderer(EntityRenderersEvent.RegisterRenderers event, BlockEntityRendererRegistrationInfo<T, S> info) {
         event.registerBlockEntityRenderer(info.type().function() , info.provider());
     }
 
