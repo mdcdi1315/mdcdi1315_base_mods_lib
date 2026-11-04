@@ -14,12 +14,18 @@ import net.minecraft.network.chat.Component;
 public final class OpenConfigScreenScreen
     extends BaseAboutScreen
 {
+    private boolean layout_not_inited;
     private final LinearLayout layout;
 
     public OpenConfigScreenScreen(Screen parent)
     {
         super(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.title"), parent);
-        layout = LinearLayout.vertical().spacing(5);
+        layout_not_inited = true;
+        layout = LinearLayout.vertical().spacing(10);
+    }
+
+    private void InitLayout()
+    {
         boolean is_empty = true;
         try (var en = BaseModsLibClient.GetConfigurationScreens().GetEnumerator())
         {
@@ -47,6 +53,12 @@ public final class OpenConfigScreenScreen
     protected void init()
     {
         super.init();
+
+        if (layout_not_inited)
+        {
+            InitLayout();
+            layout_not_inited = false;
+        }
 
         CreateScrollableAreaInWorkArea(layout);
     }
