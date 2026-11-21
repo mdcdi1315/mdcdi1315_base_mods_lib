@@ -9,7 +9,6 @@ import com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulation
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.components.StringWidget;
 
 import net.minecraft.network.chat.Component;
@@ -22,7 +21,6 @@ public final class LicensesScreen
 {
     private boolean licenses_appended;
     private final StringWidget header;
-    private final LinearLayout layout;
     private final CompletableFuture<IEnumerable<KeyValuePair<String, IEnumerable<LicenseEntry>>>> licenses_action;
 
     public LicensesScreen(Screen parent)
@@ -30,16 +28,8 @@ public final class LicensesScreen
         super(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_licenses.title"), parent);
         licenses_action = LicenseEntriesLoader.GetLicenseEntriesAsync();
         header = new StringWidget(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_licenses.fetching"), minecraft.font);
-        layout = new LinearLayout(0, 0, LinearLayout.Orientation.VERTICAL).spacing(20);
-        layout.addChild(header);
-    }
-
-    @Override
-    protected void init()
-    {
-        super.init();
-
-        CreateScrollableAreaInWorkArea(layout);
+        SetWorkAreaSpacing(20);
+        AddWorkAreaWidget(header);
     }
 
     private IEnumerable<KeyValuePair<String, IEnumerable<LicenseEntry>>> UnwrapResult()
@@ -71,15 +61,14 @@ public final class LicensesScreen
                 while (en.MoveNext())
                 {
                     mod_entry = en.getCurrent();
-                    LinearLayout mod_license_banner = layout.addChild(new LinearLayout(0, 0, LinearLayout.Orientation.VERTICAL).spacing(10));
-                    mod_license_banner.addChild(new StringWidget(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_licenses.entry.header", mod_entry.getKey()), minecraft.font));
+                    AddWorkAreaWidget(new StringWidget(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_licenses.entry.header", mod_entry.getKey()), minecraft.font));
                     try (var entry_enum = mod_entry.getValue().GetEnumerator())
                     {
                         LicenseEntry lic_entry;
                         while (entry_enum.MoveNext())
                         {
                             lic_entry = entry_enum.getCurrent();
-                            mod_license_banner.addChild(
+                            AddWorkAreaWidget(
                                     Button.builder(
                                             lic_entry.license_button_text(),
                                             new LicenseScreenButtonHandler(this, lic_entry)
@@ -102,10 +91,11 @@ public final class LicensesScreen
         {
             licenses_appended = true;
             AddButtonsAndArrangeLicenses();
-            repositionElements();
+            HardReinitializeWorkArea();
         }
     }
 
+    @SuppressWarnings("NullableProblems")
     private record LicenseScreenButtonHandler(LicensesScreen parent, LicenseEntry entry)
         implements Button.OnPress
     {

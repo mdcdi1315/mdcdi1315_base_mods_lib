@@ -24,9 +24,11 @@ import com.github.mdcdi1315.basemodslib.utils.annotations.MaybeNullInMixin;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.config.gui.ClothConfigIntegrationHandler;
+import com.github.mdcdi1315.basemodslib.client.gui.about_the_lib.MessageReporterToast;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedListBasedRegister;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 /**
@@ -87,6 +89,7 @@ public final class BaseModsLibClient
                     mod_instances = new ClientModInstanceCollection();
                     config_factories.SetValue(new SingleLinkedListBasedRegister<>());
                     BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class, BaseModsLibClient::OnModLoadingCompleted);
+                    BaseModsLib.GetEventsManager().AddEventListener(ClientAssetsReloadedEvent.class, BaseModsLibClient::OnClientAssetsReloaded);
                     ClothConfigIntegrationHandler.Instantiate();
                     sw.Stop();
                     BaseModsLib.LOGGER.info("The library for the client distribution took {} seconds to initialize." , sw.GetElapsed().GetTotalSeconds());
@@ -106,6 +109,21 @@ public final class BaseModsLibClient
                 }
             }
             initialized = true;
+        }
+    }
+
+    @SuppressWarnings("resource")
+    private static void OnClientAssetsReloaded(ClientAssetsReloadedEvent event)
+    {
+        var mr = BaseModsLib.GetMessageReporter();
+        if (mr != null && mr.HasReportedMessages())
+        {
+            event.minecraft().getToastManager().addToast(
+                    new MessageReporterToast(
+                            Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.diag_toast.title"),
+                            Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.diag_toast.text")
+                    )
+            );
         }
     }
 

@@ -8,6 +8,7 @@ import com.github.mdcdi1315.basemodslib.utils.ChatComponentSupplier;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.Strictness;
 import com.google.gson.stream.JsonWriter;
 
 import com.mojang.brigadier.context.CommandContext;
@@ -41,7 +42,7 @@ public final class DescribeHeldItemCommand
         return builder.then(
                 Commands.argument("file_format", EnumArgument.Create(DescribeHeldItemFileFormat.class))
                         .then(
-                                Commands.argument("file_path" , StringArgumentType.string())
+                                Commands.argument("file_path", StringArgumentType.string())
                                         .executes(DescribeHeldItemCommand::DescribeItemGeneric)
                         )
         ).executes(DescribeHeldItemCommand::DescribeItemPrintJsonInChat);
@@ -51,7 +52,7 @@ public final class DescribeHeldItemCommand
     {
         StringWriter stringWriter = new StringWriter();
         JsonWriter jsonWriter = new JsonWriter(stringWriter);
-        jsonWriter.setLenient(true);
+        jsonWriter.setStrictness(Strictness.LENIENT);
         jsonWriter.setIndent("    ");
         new GsonBuilder().setPrettyPrinting().create().toJson(element , jsonWriter);
         return stringWriter.toString();
@@ -72,7 +73,7 @@ public final class DescribeHeldItemCommand
             c.getSource().sendFailure(Component.translatable("mdcdi1315_base_mods_lib.devcmds.describe_held_item.cannot_encode_stack"));
             return -2;
         } else if (result == 0) {
-            c.getSource().sendSuccess(ChatComponentSupplier.FromTranslatable("mdcdi1315_base_mods_lib.cmds.completed_sucessfully"), false);
+            SendCommandSuccessMessage(c.getSource(), false);
             return 0;
         } else if (result == 1) {
             c.getSource().sendSuccess(ChatComponentSupplier.FromTranslatable("mdcdi1315_base_mods_lib.devcmds.describe_held_item.item_stack_empty"), false);
@@ -134,7 +135,7 @@ public final class DescribeHeldItemCommand
             ) {
                 writer.setIndent("\t");
                 writer.setSerializeNulls(false);
-                new GsonBuilder().setPrettyPrinting().setLenient().create().toJson(element.result().get() , writer);
+                new GsonBuilder().setPrettyPrinting().setStrictness(Strictness.LENIENT).create().toJson(element.result().get() , writer);
             } catch (IOException ioex) {
                 BaseModsLib.LOGGER.error("Cannot encode the specified item stack" , ioex);
                 return -2;
@@ -169,7 +170,7 @@ public final class DescribeHeldItemCommand
                 BaseModsLib.LOGGER.error("Cannot encode the specified item stack.", e);
                 return -2;
             }
-            c.getSource().sendSuccess(ChatComponentSupplier.FromTranslatable("mdcdi1315_base_mods_lib.cmds.completed_sucessfully"), false);
+            SendCommandSuccessMessage(c.getSource());
             return 0;
         }
     }

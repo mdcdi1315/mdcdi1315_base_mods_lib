@@ -74,7 +74,7 @@ public final class BMLInfoCommand
                 context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_bml_info.java_runtime_additional_info", os.get()));
             }
         }
-        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.cmds.completed_sucessfully"));
+        SendCommandSuccessMessage(context.getSource());
         return 0;
     }
 }

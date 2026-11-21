@@ -1,4 +1,5 @@
 {
+	"mdcdi1315_base_mods_lib.mod_recommended": "The mod %s recommends to also install the mod %s for the best experience.",
 	"mdcdi1315_base_mods_lib.disconnect_mod_missing": "A mod is missing!\nNetwork validator cannot validate that you have the mod with ID %s loaded in your environment.\nAdd that mod and retry.",
 	"mdcdi1315_base_mods_lib.mod_network_version_mismatch": "The mod with ID %s has a versioning mismatch!\nValue retrieved from the client: %s\nValue retrieved from the server: %s\nPlease update the offending mod to match the server version.",
 
@@ -10,9 +11,11 @@
 
 	"mdcdi1315_base_mods_lib.about_bml_screen.title": "About the BML Library",
 	"mdcdi1315_base_mods_lib.about_bml_screen.exit_button_text": "Return Back",
-	"mdcdi1315_base_mods_lib.about_bml_screen.open_cfg_screen_button_text": "Config screens...",
-	"mdcdi1315_base_mods_lib.about_bml_screen.footer_quote": "Made in hand and love by mdcdi1315!",
 	"mdcdi1315_base_mods_lib.about_bml_screen.licensing_button_text": "Licensing...",
+	"mdcdi1315_base_mods_lib.about_bml_screen.open_cfg_screen_button_text": "Config screens...",
+	"mdcdi1315_base_mods_lib.about_bml_screen.open_diag_screen_button_text": "Reported diagnostics...",
+	"mdcdi1315_base_mods_lib.about_bml_screen.footer_quote": "Made in hand and love by mdcdi1315!",
+
 	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.title": "Licenses utilized by BML and mods",
 	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.entry.header": "Licenses for mod with ID %s:",
 	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.fetching": "Fetching licenses, please be patient!",
@@ -21,6 +24,19 @@
 	"mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.title": "Open Configuration Screen",
 	"mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.button_open_screen": "Open config screen of mod %s",
 	"mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.no_mods_detected": "<No mods detected that provide configuration screens>",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.no_messages.title": "No reported messages found",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.no_messages.text": "It looks like that there are not any diagnostics reported by the library and the loaded mods.\nEnjoy your day!",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.title": "Reported Diagnostic Messages",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.header_error": "Found error messages:",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.header_warn": "Found warning messages:",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.header_info": "Found informational messages:",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.header_recommendation": "Found recommendation messages:",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.diag_message.severity": "Severity: %s",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.diag_message.see_url": "Open Issue URL for this message",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.diag_message.attributes_header": "Discovered attributes: ",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.diag_message.attribute_and_value": "Attribute %s: %s",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_toast.title": "Diagnostic messages reported",
+	"mdcdi1315_base_mods_lib.about_bml_screen.diag_toast.text": "One or more diagnostics were reported!\nCheck BML Info/Diagnostic Messages",
 
 	"mdcdi1315_base_mods_lib.config.cfg_tweaker_screen.default_title": "Configuration tweaker for %s config file",
 	"mdcdi1315_base_mods_lib.config.no_cloth_config_api.line_1": "For editing the configuration values in GUI, Cloth Config API is required.",
@@ -39,6 +55,7 @@
 	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.i_o_error_gathering_files": "The files could not be gathered from the source directory due to an I/O error.",
 	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.not_all_files_updated": "%d out of %d NBT files were not updated! See server error log for more information about those failed files.",
 	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.completed_inform_about_files": "%d file(s) were updated. Results saved to: %s",
+	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.updating_file_task": "Updating file %s...",
 	"mdcdi1315_base_mods_lib.devcmds.update_structure_templates.all_files_failed": "All the specified files were failed to be updated! See server error log for more information about those failed files.",
 
 	"mdcdi1315_base_mods_lib.devcmds.describe_held_item.item_stack_empty": "You do not currently hold any item.",

@@ -17,6 +17,7 @@ import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 import com.github.mdcdi1315.basemodslib.utils.annotations.MixinUnsafe;
+import com.github.mdcdi1315.basemodslib.mods.reporting.MessageReporter;
 import com.github.mdcdi1315.basemodslib.mods.ServerModInstanceCollection;
 import com.github.mdcdi1315.basemodslib.eventapi.internal.EventAPIHelpers;
 import com.github.mdcdi1315.basemodslib.utils.annotations.MaybeNullInMixin;
@@ -50,6 +51,7 @@ public final class BaseModsLib
     private static ProxyManager proxy_manager;
     private static EventManager events_manager;
     private static volatile boolean initialized;
+    private static MessageReporter message_reporter;
     private static ServerModInstanceCollection mod_instances;
 
     public static final Logger LOGGER;
@@ -59,6 +61,7 @@ public final class BaseModsLib
         initialized = false;
         proxy_manager = null; // Initialized once the layer is ready.
         mod_instances = null;
+        message_reporter = null;
         events_manager = EventAPIHelpers.CreateEarly();
         LOGGER = LoggerFactory.getLogger("mdcdi1315's BML logger");
         LOGGER.info("BML Library is statically initialized - initialization will start in a bit.");
@@ -88,6 +91,7 @@ public final class BaseModsLib
         LOGGER.info("Initializing mdcdi1315's BML...");
         Stopwatch sw = Stopwatch.StartNew();
         try {
+            message_reporter = new MessageReporter();
             layer = mod_loader_layer_constructor.function();
             if (layer == null) {
                 throw new InvalidOperationException("Returned an empty mod loader layer through the mod loader layer constructor. This is unexpected.");
@@ -234,8 +238,21 @@ public final class BaseModsLib
      * Instead, wait until the {@link com.github.mdcdi1315.basemodslib.mods.IModInstance#RegisterProxyObjects(ProxyManager)} method is called to your mod instance.
      * @return The proxy manager to be used by mods that use this API.
      */
+    @Pure
     @MaybeNull
     public static ProxyManager GetProxyManager() { return proxy_manager; }
+
+    /**
+     * Gets the message reporter for reporting minor issues during loading. <br />
+     * @return The message reporter instance.
+     * @apiNote Do not attempt to access this on early time. <br />
+     * This is only valid once the library itself has been successfully initialized, <br />
+     * and will only remain valid until the mod-loading complete event, if no messages were reported.
+     */
+    @Pure
+    @NotNull
+    @MaybeNullInMixin
+    public static MessageReporter GetMessageReporter() { return message_reporter; }
 
     /**
      * Gets an enumerable of mod instances currently registered.
@@ -248,6 +265,7 @@ public final class BaseModsLib
     @Pure
     @NotNull
     @Deprecated(since = "1.0.37")
+    @APIStatus(Status = APIStatus.Status.DEPRECATED, Since = "1.0.37")
     public static IEnumerable<IServerModInstance> GetModInstances() { return mod_instances; }
 
     /**
@@ -271,6 +289,7 @@ public final class BaseModsLib
      * despite the fact that this method won't be removed.
      */
     @Deprecated(since = "1.0.37")
+    @APIStatus(Status = APIStatus.Status.DEPRECATED, Since = "1.0.37")
     public static int GetModInstancesCount() { return mod_instances.getCount(); }
 
     /**
@@ -428,10 +447,17 @@ public final class BaseModsLib
         LOGGER.info("[BML]: Mod instance collection has been frozen, dispatching mod loading complete event to implementing mods.");
         events_manager.FireEvent(new ModLoadingCompleteEvent());
         events_manager.DestroyDestroyableEvents();
-        if (!proxy_manager.Lock()) {
-            BaseModsLib.LOGGER.info("[BML]: Proxy manager is not used by any mods, deallocating it.");
+        if (!proxy_manager.Lock())
+        {
+            LOGGER.info("[BML]: Proxy manager is not used by any mods, deallocating it.");
             proxy_manager.Dispose();
             proxy_manager = null;
+        }
+        message_reporter.Freeze();
+        if (!message_reporter.HasReportedMessages())
+        {
+            LOGGER.info("[BML]: Message reporter has not any reported messages, deallocating it.");
+            message_reporter = null;
         }
     }
 

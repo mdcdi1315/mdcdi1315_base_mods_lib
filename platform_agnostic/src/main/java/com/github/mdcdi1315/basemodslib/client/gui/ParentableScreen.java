@@ -21,7 +21,8 @@ public abstract class ParentableScreen
      * @param title The title of the newly created screen.
      * @param parent The parent screen that will become the current one if and when this screen object is closed. Can be {@code null}, in which case the user will be lead to the game's main menu.
      */
-    protected ParentableScreen(Component title, @MaybeNull Screen parent) {
+    protected ParentableScreen(Component title, @AllowNull Screen parent)
+    {
         super(title);
         this.parent = parent;
     }
@@ -31,11 +32,11 @@ public abstract class ParentableScreen
      * @return The screen object that will become the current one if and when this screen object is closed.
      */
     @MaybeNull
-    public Screen GetParent() {
-        return parent;
-    }
+    public final Screen GetParent() { return parent; }
 
-    public void onClose() {
+    @Override
+    public void onClose()
+    {
         // When this is called the Minecraft instance is never but never null.
         minecraft.setScreen(parent);
     }

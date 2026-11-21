@@ -1,5 +1,7 @@
 package com.github.mdcdi1315.basemodslib.commands.libcmd;
 
+import com.github.mdcdi1315.DotNetLayer.System.ValueTuple3;
+
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.commands.AbstractCommand;
 import com.github.mdcdi1315.basemodslib.utils.ChatComponentSupplier;
@@ -19,13 +21,13 @@ import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.DataResult;
 
 import net.minecraft.commands.Commands;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 
@@ -48,14 +50,15 @@ public final class GetDimensionBiomeTemperaturesCommand
         );
     }
 
-    private static int GenerateFile(MultiNoiseBiomeSource source, ServerLevel level, File output)
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private static void SaveFileWork(CommandSourceStack stack, ValueTuple3<MultiNoiseBiomeSource, HolderLookup.Provider, File> state)
     {
-        var list = ((MultiNoiseBiomeSourceMixin)source).GetParameters();
+        var list = ((MultiNoiseBiomeSourceMixin)state.Item1).GetParameters();
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         try (
-                FileOutputStream fos = new FileOutputStream(output);
+                FileOutputStream fos = new FileOutputStream(state.Item3);
                 OutputStreamWriter osw = new OutputStreamWriter(fos);
                 JsonWriter writer = new JsonWriter(osw)
         ) {
@@ -65,10 +68,11 @@ public final class GetDimensionBiomeTemperaturesCommand
                 writer.name("minecraft_version");
                 writer.value(BaseModsLib.GetMinecraftVersion().toString());
                 writer.name("climate_parameters");
-                DataResult<JsonElement> dr = Climate.ParameterList.codec(Biome.CODEC.fieldOf("biome")).encode(list , RegistryOps.create(JsonOps.INSTANCE, level.registryAccess()) , JsonOps.INSTANCE.empty());
+                DataResult<JsonElement> dr = Climate.ParameterList.codec(Biome.CODEC.fieldOf("biome")).encode(list , RegistryOps.create(JsonOps.INSTANCE, state.Item2) , JsonOps.INSTANCE.empty());
                 if (dr.error().isPresent()) {
                     BaseModsLib.LOGGER.error("Cannot encode the biome climate parameter list due to an unexpected error: {}" , dr.error().get().message());
-                    return -1;
+                    stack.sendFailure(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.list_encoding_failed"));
+                    return;
                 } else {
                     gson.toJson(dr.result().get() , writer);
                 }
@@ -77,9 +81,9 @@ public final class GetDimensionBiomeTemperaturesCommand
             }
         } catch (IOException ioex) {
             BaseModsLib.LOGGER.error("Cannot encode the biome climate parameter list due to an unexpected I/O error." , ioex);
-            return -2;
+            return;
         }
-        return 0;
+        stack.sendSuccess(ChatComponentSupplier.FromTranslatable("mdcdi1315_base_mods_lib.cmds.completed_sucessfully"), true);
     }
 
     private static int CommandImpl(CommandContext<CommandSourceStack> c)
@@ -87,16 +91,9 @@ public final class GetDimensionBiomeTemperaturesCommand
     {
         ServerLevel level = DimensionArgument.getDimension(c, "dimension");
         File out_file = new File(StringArgumentType.getString(c , "output_file"));
-        BiomeSource bs = level.getChunkSource().getGenerator().getBiomeSource();
-        if (bs instanceof MultiNoiseBiomeSource mnbs) {
-            int ret;
-            if ((ret = GenerateFile(mnbs, level, out_file)) == 0) {
-                c.getSource().sendSuccess(ChatComponentSupplier.FromTranslatable("mdcdi1315_base_mods_lib.cmds.completed_sucessfully"), true);
-                return 0;
-            } else {
-                c.getSource().sendFailure(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.list_encoding_failed"));
-                return ret;
-            }
+        if (level.getChunkSource().getGenerator().getBiomeSource() instanceof MultiNoiseBiomeSource mnbs) {
+            OffloadTask(c.getSource(), GetDimensionBiomeTemperaturesCommand::SaveFileWork, new ValueTuple3<>(mnbs, level.registryAccess(), out_file));
+            return 0;
         } else {
             c.getSource().sendFailure(Component.translatable("mdcdi1315_base_mods_lib.devcmds.get_dimension_biome_temperatures.not_multi_noise_source"));
             return -1;

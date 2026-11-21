@@ -84,6 +84,7 @@ public final class EventAPIHelpers
         event_appender.action(ClientSetupEvent.class);
         event_appender.action(ClientStartedEvent.class);
         event_appender.action(ClientStoppingEvent.class);
+        event_appender.action(ClientAssetsReloadedEvent.class);
         event_appender.action(ClientConnectedToServerEvent.class);
         event_appender.action(ClientDisconnectedFromServerEvent.class);
     }

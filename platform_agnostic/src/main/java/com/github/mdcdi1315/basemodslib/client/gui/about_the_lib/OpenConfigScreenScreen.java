@@ -6,7 +6,6 @@ import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.components.StringWidget;
 
 import net.minecraft.network.chat.Component;
@@ -14,14 +13,11 @@ import net.minecraft.network.chat.Component;
 public final class OpenConfigScreenScreen
     extends BaseAboutScreen
 {
-    private boolean layout_not_inited;
-    private final LinearLayout layout;
-
     public OpenConfigScreenScreen(Screen parent)
     {
         super(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.title"), parent);
-        layout_not_inited = true;
-        layout = LinearLayout.vertical().spacing(10);
+        SetWorkAreaSpacing(10);
+        InitLayout();
     }
 
     private void InitLayout()
@@ -34,7 +30,7 @@ public final class OpenConfigScreenScreen
             {
                 var p = en.getCurrent();
                 text = Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.button_open_screen", p.first());
-                layout.addChild(Button.builder(
+                AddWorkAreaWidget(Button.builder(
                         text,
                         new ConstructScreenData(this, p.second())
                 ).width(BoundToMaxOfWorkArea(minecraft.font.width(text) + 10)).build());
@@ -43,24 +39,10 @@ public final class OpenConfigScreenScreen
         }
         if (is_empty)
         {
-            layout.addChild(
+            AddWorkAreaWidget(
                     new StringWidget(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.no_mods_detected"), minecraft.font)
             );
         }
-    }
-
-    @Override
-    protected void init()
-    {
-        super.init();
-
-        if (layout_not_inited)
-        {
-            InitLayout();
-            layout_not_inited = false;
-        }
-
-        CreateScrollableAreaInWorkArea(layout);
     }
 
     private record ConstructScreenData(OpenConfigScreenScreen parent, ConfigurationScreenFactory<?> factory)

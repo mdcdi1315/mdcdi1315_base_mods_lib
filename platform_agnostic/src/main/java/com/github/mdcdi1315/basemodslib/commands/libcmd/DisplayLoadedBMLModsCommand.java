@@ -33,7 +33,7 @@ public final class DisplayLoadedBMLModsCommand
             }
         }
 
-        context.getSource().sendSystemMessage(Component.translatable("mdcdi1315_base_mods_lib.cmds.completed_sucessfully"));
+        SendCommandSuccessMessage(context.getSource());
         return 0;
     }
 }

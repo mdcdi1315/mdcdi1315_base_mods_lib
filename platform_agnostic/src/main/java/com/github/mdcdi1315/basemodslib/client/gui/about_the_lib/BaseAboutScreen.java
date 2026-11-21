@@ -3,16 +3,17 @@ package com.github.mdcdi1315.basemodslib.client.gui.about_the_lib;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.utils.Extensions;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
+import com.github.mdcdi1315.basemodslib.registries.RegistryUtils;
 import com.github.mdcdi1315.basemodslib.client.gui.ParentableScreen;
+import com.github.mdcdi1315.basemodslib.client.gui.RectangularScrollableArea;
 
-import net.minecraft.client.gui.layouts.Layout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.layouts.EqualSpacingLayout;
-import net.minecraft.client.gui.components.ScrollableLayout;
 
 import net.minecraft.network.chat.Component;
 
@@ -27,13 +28,14 @@ public abstract class BaseAboutScreen
     private static final int BKGD_TEXTURE_WIDTH = 1920;
     private static final int BKGD_TEXTURE_HEIGHT = 1081;
 
-    private static final Identifier BKGD_TEXTURE = Identifier.fromNamespaceAndPath(
+    private static final Identifier BKGD_TEXTURE = RegistryUtils.ConstructResourceLocation(
             BaseModsLib.MOD_ID,
             "textures/gui/bml_about_screen_bg.png"
     );
 
     private final Button exit_button;
     private final MovingTitleText title_text_ctl;
+    private final RectangularScrollableArea main_area;
 
     public BaseAboutScreen(Component title, Screen parent)
     {
@@ -41,6 +43,10 @@ public abstract class BaseAboutScreen
 
         title_text_ctl = new MovingTitleText();
         title_text_ctl.SetText(this.title);
+
+        main_area = new RectangularScrollableArea(0, 0);
+        main_area.setPosition(WORK_AREA_X_POINT, WORK_AREA_Y_POINT);
+        main_area.SetXPadding(1);
 
         exit_button = Button.builder(
                 Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.exit_button_text"),
@@ -59,30 +65,46 @@ public abstract class BaseAboutScreen
 
     private void OnClose_ExitButton(Button b) { this.onClose(); }
 
-    private int GetMaximumWorkAreaY() { return height - WORK_AREA_Y_POINT * 2; }
+    public final int ComputeWorkAreaWidth() { return width - WORK_AREA_X_POINT * 2; }
 
-    public int ComputeWorkAreaWidth() { return width - WORK_AREA_X_POINT * 2; }
+    public final int ComputeWorkAreaHeight() { return height - WORK_AREA_Y_POINT * 3; }
 
-    public int BoundToMaxOfWorkArea(int desired_width) { return Extensions.Min(ComputeWorkAreaWidth(), desired_width); }
+    public final int BoundToMaxOfWorkArea(int desired_width) { return Extensions.Min(main_area.getWidth(), desired_width); }
 
     @Pure
-    public void SetTitleTextColor(int color) { title_text_ctl.SetColor(color); }
+    public final void SetTitleTextColor(int color) { title_text_ctl.SetColor(color); }
+
+    @Pure
+    protected final void SetWorkAreaSpacing(int spacing) { main_area.SetSpacing(spacing); }
+
+    protected final <T extends AbstractWidget> T AddWorkAreaWidget(T w) { main_area.RegisterWidget(w); return w; }
+
+    protected final void HardReinitializeWorkArea()
+    {
+        main_area.setWidth(ComputeWorkAreaWidth());
+        main_area.setHeight(ComputeWorkAreaHeight());
+        main_area.Initialize();
+    }
 
     @Override
     protected void init()
     {
         super.init();
 
+        HardReinitializeWorkArea();
+
+        addRenderableWidget(main_area);
+
         LinearLayout button_layout = new LinearLayout(
-                WORK_AREA_X_POINT,
-                GetMaximumWorkAreaY() + 10,
+                main_area.getX(),
+                main_area.getBottom() + 6,
                 LinearLayout.Orientation.VERTICAL
         );
 
         button_layout.spacing(5);
 
-        int layout_width = ComputeWorkAreaWidth();
-        int layout_height = (height - GetMaximumWorkAreaY() - 10) / 3;
+        int layout_width = main_area.getWidth();
+        int layout_height = (height - main_area.getBottom() - 6) / 3;
 
         OnAddControlsOnButtonLayoutRow0(CreateChildLayout(button_layout, layout_width, layout_height));
 
@@ -110,34 +132,6 @@ public abstract class BaseAboutScreen
 
     @Override
     public void tick() { title_text_ctl.Tick(); }
-
-    protected final void CreateScrollableAreaInWorkArea(Layout layout)
-    {
-        var sl = new ScrollableLayout(minecraft, layout, 0);
-        sl.setX(WORK_AREA_X_POINT);
-        sl.setY(WORK_AREA_Y_POINT);
-        sl.setMinWidth(ComputeWorkAreaWidth() - 20);
-        int g = GetMaximumWorkAreaY() - WORK_AREA_Y_POINT;
-        sl.setMaxHeight(g);
-        sl.setMinHeight(g);
-        sl.visitWidgets(this::addRenderableWidget);
-        sl.arrangeElements();
-    }
-
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor gc, int mouseX, int mouseY, float a)
-    {
-        gc.fillGradient(
-                WORK_AREA_X_POINT,
-                WORK_AREA_Y_POINT,
-                width - WORK_AREA_X_POINT,
-                GetMaximumWorkAreaY(),
-                0x78000000,
-                0x78000000
-        );
-
-        super.extractRenderState(gc, mouseX, mouseY, a);
-    }
 
     @Override
     public void extractBackground(GuiGraphicsExtractor gc, int mouseX, int mouseY, float a)

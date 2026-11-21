@@ -7,12 +7,14 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.VersionInfo;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
 import com.github.mdcdi1315.basemodslib.mods.ModInstanceCollection;
+import com.github.mdcdi1315.basemodslib.client.gui.AnimatedTextWidget;
+import com.github.mdcdi1315.basemodslib.client.gui.InformationalDialogScreen;
 import com.github.mdcdi1315.basemodslib.client.gui.about_the_lib.licenses.LicensesScreen;
 
 import com.mojang.authlib.GameProfile;
+
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.EqualSpacingLayout;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
@@ -25,14 +27,14 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 public final class AboutBMLScreen
     extends BaseAboutScreen
 {
-    private final LinearLayout layout;
     private final Button licensing_button;
+    private final AnimatedTextWidget love_text;
     private final Button config_screens_button;
+    private final Button reporting_messages_button;
 
     public AboutBMLScreen(Screen parent)
     {
         super(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.title"), parent);
-        layout = new LinearLayout(0, 0, LinearLayout.Orientation.VERTICAL).spacing(10);
         licensing_button = Button.builder(
                 Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.licensing_button_text"),
                 this::OpenLicensesScreen
@@ -41,70 +43,81 @@ public final class AboutBMLScreen
                 Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.open_cfg_screen_button_text"),
                 this::OpenConfigsScreen
         ).build();
+        reporting_messages_button = Button.builder(
+                Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.open_diag_screen_button_text"),
+                this::OpenReportedMessagesScreen
+        ).build();
         InitLayout();
+        SetWorkAreaSpacing(10);
+        love_text = new AnimatedTextWidget(font);
+        love_text.SetHoverScale(1.041551f);
+        love_text.SetHoverColor(0xFF45E070);
+        love_text.SetTransitionTime(500);
     }
 
     private void InitLayout()
     {
-        var first_column = layout.addChild(LinearLayout.vertical().spacing(5));
-        first_column.addChild(new MultiLineTextWidget(
-                Component.literal(
-                        String.format(
-"""
-================================================
-                BML Information
-================================================
-
-BML Version: %s
-BML Build Time: %s
-BML Release Series: %s
-Minecraft Version: %s
-Mod Loader: %s
-Mod Loader Version: %s
-Java Runtime: %s
-Is Development Environment: %s
-Built against Gradle: %s
-Built against Mixin: %s
-Built against Java: %s
-""",
-                                VersionInfo.GetPropertyOrEmpty(VersionInfo.PROPERTY_VERSION),
-                                VersionInfo.GetPropertyOrEmpty(VersionInfo.PROPERTY_BUILD_TIME),
-                                VersionInfo.GetPropertyOrEmpty(VersionInfo.PROPERTY_RELEASE_TYPE),
-                                BaseModsLib.GetMinecraftVersion(),
-                                BaseModsLib.GetModLoaderBranding(),
-                                BaseModsLib.GetModLoaderVersion(),
-                                BaseModsLib.GetJavaVersion(),
-                                BaseModsLib.IsDevelopmentEnvironment() ? "Yes" : "No",
-                                VersionInfo.GetPropertyOrEmpty("gradle_version"),
-                                VersionInfo.GetPropertyOrEmpty("compiled_against_mixin"),
-                                VersionInfo.GetPropertyOrEmpty("compiled_against_java")
-                        )
-                ),
-                minecraft.font
-        ));
-        first_column.addChild(
+        AddWorkAreaWidget(
                 new MultiLineTextWidget(
                         Component.literal(
                                 String.format(
-"""
-================================================
-            Mod Instance Information
-================================================
+                                        """
+                                        ================================================
+                                                        BML Information
+                                        ================================================
+                                        
+                                        BML Version: %s
+                                        BML Build Time: %s
+                                        BML Release Series: %s
+                                        Minecraft Version: %s
+                                        Mod Loader: %s
+                                        Mod Loader Version: %s
+                                        Java Runtime: %s
+                                        Is Development Environment: %s
+                                        Built against Gradle: %s
+                                        Built against Mixin: %s
+                                        Built against Java: %s
+                                        """,
+                                        VersionInfo.GetPropertyOrEmpty(VersionInfo.PROPERTY_VERSION),
+                                        VersionInfo.GetPropertyOrEmpty(VersionInfo.PROPERTY_BUILD_TIME),
+                                        VersionInfo.GetPropertyOrEmpty(VersionInfo.PROPERTY_RELEASE_TYPE),
+                                        BaseModsLib.GetMinecraftVersion(),
+                                        BaseModsLib.GetModLoaderBranding(),
+                                        BaseModsLib.GetModLoaderVersion(),
+                                        BaseModsLib.GetJavaVersion(),
+                                        BaseModsLib.IsDevelopmentEnvironment() ? "Yes" : "No",
+                                        VersionInfo.GetPropertyOrEmpty("gradle_version"),
+                                        VersionInfo.GetPropertyOrEmpty("compiled_against_mixin"),
+                                        VersionInfo.GetPropertyOrEmpty("compiled_against_java")
+                                )
+                        ),
+                        minecraft.font
+                )
+        );
 
-Loaded Server Mod Instances: %d
-Loaded Client Mod Instances: %d
-
-================================================
-            Server Mod Instances
-================================================
-%s
-
-================================================
-            Client Mod Instances
-================================================
-%s
-
-""",
+        AddWorkAreaWidget(
+                new MultiLineTextWidget(
+                        Component.literal(
+                                String.format(
+                                        """
+                                        ================================================
+                                                    Mod Instance Information
+                                        ================================================
+                                        
+                                        Loaded Server Mod Instances: %d
+                                        Loaded Client Mod Instances: %d
+                                        
+                                        ================================================
+                                                    Server Mod Instances
+                                        ================================================
+                                        %s
+                                        
+                                        ================================================
+                                                    Client Mod Instances
+                                        ================================================
+                                        %s
+                                        
+                                        """,
                                         BaseModsLib.GetModInstanceCollection().getCount(),
                                         BaseModsLibClient.GetModInstances().getCount(),
                                         GetModInstanceInfo(BaseModsLib.GetModInstanceCollection()),
@@ -115,18 +128,18 @@ Loaded Client Mod Instances: %d
                 )
         );
 
-        layout.addChild(
+        AddWorkAreaWidget(
                 new MultiLineTextWidget(
                         Component.literal(
                                 String.format(
-"""
-================================================
-                  .NET Layer
-================================================
-
-Target Framework Name: %s
-App Context Base Directory: %s
-""",
+                                        """
+                                        ================================================
+                                                          .NET Layer
+                                        ================================================
+                                        
+                                        Target Framework Name: %s
+                                        App Context Base Directory: %s
+                                        """,
                                         AppContext.GetTargetFrameworkName(),
                                         AppContext.GetBaseDirectory()
                                 )
@@ -135,8 +148,7 @@ App Context Base Directory: %s
                 )
         );
 
-        var third_column = layout.addChild(LinearLayout.vertical().spacing(5));
-        third_column.addChild(
+        AddWorkAreaWidget(
                 new StringWidget(Component.literal("Supported .NET Layer Features: "), minecraft.font)
         );
         for (var s : new String[] {
@@ -150,7 +162,7 @@ App Context Base Directory: %s
                 RuntimeFeature.NumericIntPtr
         })
         {
-            third_column.addChild(
+            AddWorkAreaWidget(
                     new StringWidget(Component.literal(
                             String.format(
                                     "Feature %s: %s",
@@ -161,7 +173,7 @@ App Context Base Directory: %s
             );
         }
 
-        layout.addChild(
+        AddWorkAreaWidget(
                 new MultiLineTextWidget(Component.literal(String.format("""
 ================================================
                 Mixin Info
@@ -197,7 +209,7 @@ Options:
 
         var minecraft_info = net.minecraft.SharedConstants.getCurrentVersion();
 
-        layout.addChild(
+        AddWorkAreaWidget(
                 new MultiLineTextWidget(
                         Component.literal(String.format(
 """
@@ -318,6 +330,23 @@ Player properties:
         );
     }
 
+    private void OpenReportedMessagesScreen(Button b)
+    {
+        if (BaseModsLib.GetMessageReporter() == null) {
+            minecraft.setScreen(
+                    new InformationalDialogScreen(
+                            Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.no_messages.title"),
+                            Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.diag_screen.no_messages.text"),
+                            this
+                    )
+            );
+        } else {
+            minecraft.setScreen(
+                    new MessageReporterMessagesScreen(this)
+            );
+        }
+    }
+
     @Override
     protected void OnAddControlsOnButtonLayoutRow0(EqualSpacingLayout layout)
     {
@@ -331,19 +360,16 @@ Player properties:
     @Override
     protected void OnAddControlsOnButtonLayoutRow1(EqualSpacingLayout layout)
     {
-        layout.addChild(
-                new StringWidget(
-                        Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.footer_quote"),
-                        minecraft.font
-                )
-        );
+        love_text.ResetTickTime();
+        love_text.SetText(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.footer_quote").withColor(0xFF00FFFF));
+        layout.addChild(love_text);
+        layout.addChild(reporting_messages_button);
     }
 
     @Override
-    protected void init()
+    public void tick()
     {
-        super.init();
-
-        CreateScrollableAreaInWorkArea(layout);
+        super.tick();
+        love_text.Tick();
     }
 }

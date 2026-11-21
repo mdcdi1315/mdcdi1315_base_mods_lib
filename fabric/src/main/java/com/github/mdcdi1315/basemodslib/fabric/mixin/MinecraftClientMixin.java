@@ -4,6 +4,7 @@ import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.client.ClientEventHooks;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.main.GameConfig;
@@ -32,5 +33,11 @@ public final class MinecraftClientMixin
         ClientSetupEvent cse = new ClientSetupEvent();
         EventManager.FireEventSafe(cse);
         cse.Run();
+    }
+
+    @Inject(method = "onResourceLoadFinished", at = @At("TAIL"))
+    private void OnReloadingSuccess(CallbackInfo info)
+    {
+        ClientEventHooks.ClientReloaded((Minecraft)(Object)this);
     }
 }

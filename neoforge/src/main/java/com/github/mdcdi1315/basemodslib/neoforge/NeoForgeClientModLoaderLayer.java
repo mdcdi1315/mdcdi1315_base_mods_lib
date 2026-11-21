@@ -8,6 +8,7 @@ import com.github.mdcdi1315.basemodslib.IClientModLoaderLayer;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IClientModInstance;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ClientSetupEvent;
+import com.github.mdcdi1315.basemodslib.eventapi.client.ClientEventHooks;
 import com.github.mdcdi1315.basemodslib.config.gui.ConfigurationScreenFactory;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.ModLoadingCompleteEvent;
 import com.github.mdcdi1315.basemodslib.client.gui.about_the_lib.AboutBMLScreen;
@@ -19,8 +20,11 @@ import net.minecraft.client.gui.screens.Screen;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.client.event.lifecycle.ClientStartedEvent;
+import net.neoforged.neoforge.client.event.lifecycle.ClientStoppingEvent;
 
 import java.util.Optional;
 
@@ -32,6 +36,8 @@ public final class NeoForgeClientModLoaderLayer
     {
         BaseModsLib.GetEventsManager().AddEventListener(ModLoadingCompleteEvent.class , NeoForgeClientModLoaderLayer::RegisterConfigScreensToMods);
         NeoForgeUtils.AddListener(event_bus, FMLClientSetupEvent.class, NeoForgeClientModLoaderLayer::OnClientSetupEvent);
+        NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, ClientStartedEvent.class, NeoForgeClientModLoaderLayer::OnClientStarted);
+        NeoForgeUtils.AddListener(NeoForge.EVENT_BUS, ClientStoppingEvent.class, NeoForgeClientModLoaderLayer::OnClientStopping);
     }
 
     @Override
@@ -57,6 +63,10 @@ public final class NeoForgeClientModLoaderLayer
         EventManager.FireEventSafe(cse);
         event.enqueueWork(cse::Run);
     }
+
+    private static void OnClientStarted(ClientStartedEvent event) { ClientEventHooks.ClientStarted(event.getClient()); }
+
+    private static void OnClientStopping(ClientStoppingEvent event) { ClientEventHooks.ClientStopping(event.getClient()); }
 
     private static void RegisterConfigScreensToMods(ModLoadingCompleteEvent completed)
     {
