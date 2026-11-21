@@ -1,14 +1,7 @@
-### Now releasing 1.0.40:
+### Now releasing 1.0.41:
 
--> Internal preparations for the 26.1.2 release
+-> Fixed critical bugs to the Event API and the `Dictionary` class
 
--> Code cleanups
+-> Added the `color` package, provides color manipulation primitives.
 
--> Fix `AppContext` threading races
-
--> Collections package: The new `ICountableCollectionBase` interface is a lower-level description
-of the `ICountableCollection` interface that does not require generics.
-
--> Exception translation .NET Layer equivalents is now done through a dedicated method
-
--> Log message cleanups, and `Base Mods Library` is now referred as simply `BML`
+-> Added the `ClientAssetsReloadedEvent` event.

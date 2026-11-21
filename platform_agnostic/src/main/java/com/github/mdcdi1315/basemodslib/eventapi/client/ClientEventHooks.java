@@ -31,4 +31,11 @@ public final class ClientEventHooks
     {
         EventManager.FireEventSafe(new ClientStartedEvent(mc));
     }
+
+    @MixinUnsafe
+    @APIStatus(Status = APIStatus.Status.INTERNAL, Since = "1.0.41")
+    public static void ClientReloaded(Minecraft mc)
+    {
+        EventManager.FireEventSafe(new ClientAssetsReloadedEvent(mc));
+    }
 }

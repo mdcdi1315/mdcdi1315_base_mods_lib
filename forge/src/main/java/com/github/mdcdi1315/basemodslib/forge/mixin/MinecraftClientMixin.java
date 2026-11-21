@@ -17,4 +17,7 @@ public final class MinecraftClientMixin
 
     @Inject(method = "destroy", at = @At("HEAD"))
     private void OnDestroy(CallbackInfo ci) { ClientEventHooks.ClientStopping((Minecraft) ((Object)this)); }
+
+    @Inject(method = "onResourceLoadFinished", at = @At("TAIL"))
+    private void OnClientReloaded(CallbackInfo ci) { ClientEventHooks.ClientReloaded((Minecraft) (Object)this); }
 }
