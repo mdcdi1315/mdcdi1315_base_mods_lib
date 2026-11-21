@@ -8,6 +8,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.StackTraceHidden;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.Dictionary;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.DisallowNull;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.ReferenceEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.eventapi.*;
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
@@ -32,7 +33,7 @@ abstract class EventManagerBase
     public EventManagerBase()
     {
         lock = new ReentrantLock();
-        actions = new Dictionary<>();
+        actions = new Dictionary<>(16, ReferenceEqualityComparer.Instance);
 
         if (this instanceof IBMLEventManager)
         {
@@ -120,6 +121,7 @@ abstract class EventManagerBase
 
     public static void IfDestroyedOnUseRemove(EventManagerBase manager, IEvent evt)
     {
+        if (!(evt instanceof IDestroyedOnUseEvent)) { return; }
         boolean result;
         manager.lock.lock();
         try {
@@ -127,8 +129,7 @@ abstract class EventManagerBase
         } finally {
             manager.lock.unlock();
         }
-        if (evt instanceof IDestroyedOnUseEvent && (!result))
-        {
+        if (!result) {
             throw new InvalidEventDispatchException(evt, "Attempted to dispatch an event that was already used once!");
         }
     }

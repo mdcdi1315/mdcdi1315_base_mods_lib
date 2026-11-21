@@ -12,9 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public final class MinecraftClientMixin
 {
-    @Inject(method = "run", at = @At("HEAD"))
-    private void OnRun(CallbackInfo ci) { ClientEventHooks.ClientStarted((Minecraft) ((Object)this)); }
-
-    @Inject(method = "destroy", at = @At("HEAD"))
-    private void OnDestroy(CallbackInfo ci) { ClientEventHooks.ClientStopping((Minecraft) ((Object)this)); }
+    @Inject(method = "onResourceLoadFinished", at = @At("TAIL"))
+    private void OnClientReloaded(CallbackInfo ci) { ClientEventHooks.ClientReloaded((Minecraft) (Object)this); }
 }

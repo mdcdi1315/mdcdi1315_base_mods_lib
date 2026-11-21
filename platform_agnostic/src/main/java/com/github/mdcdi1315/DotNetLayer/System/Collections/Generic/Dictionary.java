@@ -423,7 +423,7 @@ public class Dictionary<TKey, TValue>
     public void setItem(TKey key, TValue value) throws ArgumentNullException, NotSupportedException { TryInsert(key, value, InsertionBehavior.OverwriteExisting); }
 
     @Override
-    public void Add(TKey key, TValue value) throws ArgumentNullException, ArgumentException, NotSupportedException { TryInsert(key, value, InsertionBehavior.OverwriteExisting); }
+    public void Add(TKey key, TValue value) throws ArgumentNullException, ArgumentException, NotSupportedException { TryInsert(key, value, InsertionBehavior.ThrowOnExisting); }
 
     public boolean ContainsValue(TValue value)
     {
