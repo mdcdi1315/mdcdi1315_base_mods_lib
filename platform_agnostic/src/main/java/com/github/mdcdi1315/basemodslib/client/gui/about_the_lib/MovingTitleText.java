@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.client.gui.about_the_lib;
 import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
+import com.github.mdcdi1315.basemodslib.utils.color.Colors;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.client.gui.ITickableGuiElement;
 
@@ -31,7 +32,7 @@ public final class MovingTitleText
         this.run_width = 0;
         this.tick_width = 0;
         this.text_length = 0;
-        this.color = 0xFF000000;
+        this.color = Colors.Black;
         this.text = Component.empty();
         this.tick_width_increment = false;
     }

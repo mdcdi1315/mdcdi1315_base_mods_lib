@@ -17,7 +17,8 @@
 	"mdcdi1315_base_mods_lib.about_bml_screen.footer_quote": "Made in hand and love by mdcdi1315!",
 
 	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.title": "Licenses utilized by BML and mods",
-	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.entry.header": "Licenses for mod with ID %s:",
+	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.entry.header": "Licenses for mod %s:",
+	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.lic_entry.default": "%s License",
 	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.fetching": "Fetching licenses, please be patient!",
 	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.header": "Licenses provided by BML and all the mods depending on the library.",
 	"mdcdi1315_base_mods_lib.about_bml_screen_licenses.failure_fetching": "Could not fetch licenses, see error log for more information.",

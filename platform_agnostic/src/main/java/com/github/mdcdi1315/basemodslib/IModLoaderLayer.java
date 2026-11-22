@@ -2,14 +2,21 @@ package com.github.mdcdi1315.basemodslib;
 
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.IDisposable;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.ICollection;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
 
 import com.github.mdcdi1315.basemodslib.utils.ISynchronized;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.mods.information.IModInfo;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
+import com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations;
+import com.github.mdcdi1315.basemodslib.utils.collections.ICountableCollectionBase;
 
 import java.util.List;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 /**
  * Provides the specification for a mod loader layer in a given mod loader.
@@ -32,18 +39,38 @@ public interface IModLoaderLayer
 
     /**
      * Gets a value whether the specified mod ID is present in this Minecraft instance. <br />
-     * Implementers should communicate with the mod loader's mod list and look up the mod ID.
+     * Implementers wishing to override this should communicate with the mod loader's mod list and look up the mod ID.
      * @param mod_id The ID of the mod to find.
      * @return A value whether the requested mod is loaded.
      */
-    boolean IsModLoaded(String mod_id);
+    default boolean IsModLoaded(String mod_id) { return GetModInfo(mod_id) != null; }
 
     /**
-     * Gets a list of the mods loaded by their ID's.
+     * Gets a list of the mods loaded by their IDs.
      * @return The loaded mods.
+     * @deprecated This method is deprecated because it comes from the first
+     * development versions of the library, where {@link IEnumerable} support
+     * did not yet exist at the time. Use the {@link #GetLoadedModIDs()} method instead.
      */
     @NotNull
-    List<String> GetLoadedMods();
+    @Deprecated(forRemoval = true, since = "1.0.42-beta8")
+    @APIStatus(Status = APIStatus.Status.DEPRECATED, Since = "1.0.42-beta8")
+    default List<String> GetLoadedMods()
+    {
+        int count = 64;
+        var elements = GetLoadedModIDs();
+        if (elements instanceof ICountableCollectionBase c) { count = c.GetCount(); }
+        else if (elements instanceof ICollection<String> c) { count = c.getCount(); }
+
+        var list = new ArrayList<String>(count);
+
+        try (var en = CollectionManipulations.GetEnumeratorSafe(elements))
+        {
+            while (en.MoveNext()) { list.add(en.getCurrent()); }
+        }
+
+        return list;
+    }
 
     /**
      * Gets the modding environment under which the library runs. <br />
@@ -59,20 +86,6 @@ public interface IModLoaderLayer
      */
     @NotNull
     String GetModLoaderBranding();
-
-    /**
-     * Gets a {@link Version} instance providing the Minecraft (base game) version.
-     * @return The Minecraft version.
-     * @deprecated This method invocation is no longer required and most
-     * mod-loaders do not provide a run-time version of the game version, neither the base game itself.
-     * Instead now, the BML itself will provide the version that it was built against.
-     * (Which it will typically be that one that will be used in a large modded instance)
-     */
-    @NotNull
-    @Deprecated(since = "1.0.25")
-    default Version GetMinecraftVersion() {
-        return BaseModsLib.GetMinecraftVersion();
-    }
 
     /**
      * Gets a {@link Version} instance providing the mod loader's version.
@@ -104,19 +117,22 @@ public interface IModLoaderLayer
     boolean IsDevelopmentEnvironmentBuild();
 
     /**
-     * Returns a {@link IModResourceLookup} instance for the given mod id.
-     * @param mod_id The mod id to get an {@link IModResourceLookup} instance for.
-     * @return The mod resource lookup object for {@code mod_id}.
-     * @since 1.0.31
+     * Gets various information about a mod with the specified ID.
+     * @param mod_id The ID of the mod to find.
+     * @return Information about the mod with ID {@code mod_id}, or
+     * {@code null} if the specified mod ID cannot be found.
+     * @since 1.0.42-beta8
      */
     @MaybeNull
-    IModResourceLookup GetResourceLookupByID(String mod_id);
+    @APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.42-beta8")
+    IModInfo GetModInfo(String mod_id);
 
     /**
-     * Returns a {@link IModResourceLookup} instance for the BML library.
-     * @return The library's mod resource lookup. {@code null} if the layer cannot find the library (probably the mod-loader is misbehaving)
-     * @since 1.0.37
+     * Gets a list of the mods loaded by their IDs.
+     * @return The loaded mods.
+     * @since 1.0.42-beta8
      */
-    @MaybeNull
-    default IModResourceLookup GetBMLResourceLookup() { return GetResourceLookupByID(BaseModsLib.MOD_ID); }
+    @NotNull
+    @APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.42-beta8")
+    IEnumerable<String> GetLoadedModIDs();
 }

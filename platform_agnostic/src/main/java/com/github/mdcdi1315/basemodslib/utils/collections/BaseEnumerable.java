@@ -3,6 +3,7 @@ package com.github.mdcdi1315.basemodslib.utils.collections;
 import com.github.mdcdi1315.DotNetLayer.System.*;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerator;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEqualityComparer;
 
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.*;
@@ -18,6 +19,7 @@ import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
 public abstract class BaseEnumerable<T>
     implements IEnumerable<T>, ISupportsDirectConversionTo<T>, ISupportsSlicing<T>, ISupportsFiltering<T>
 {
+    @NotNull
     @Override
     public abstract IEnumerator<T> GetEnumerator();
 
@@ -58,7 +60,7 @@ public abstract class BaseEnumerable<T>
         ArgumentNullException.ThrowIfNull(converter, "converter");
         return CollectionManipulations.IsEmpty(this) ?
                 new EmptyBaseEnumerable<>() :
-                new ConvertAllEnumerable<>(this, converter);
+                MapToMethodEnumerable.Create(this, converter);
     }
 
     /**
@@ -96,7 +98,7 @@ public abstract class BaseEnumerable<T>
         } else if (count == 0) {
             return new EmptyBaseEnumerable<>();
         } else {
-            return new SliceEnumerable<>(this, index, count);
+            return SliceEnumerable.Create(this, index, count);
         }
     }
 

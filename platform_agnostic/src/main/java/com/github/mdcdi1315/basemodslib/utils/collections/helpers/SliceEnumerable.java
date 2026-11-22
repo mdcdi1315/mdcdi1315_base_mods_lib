@@ -8,19 +8,31 @@ import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.collections.BaseEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.collections.SlicingEnumerator;
 import com.github.mdcdi1315.basemodslib.utils.collections.ITraversableCollection;
+import com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations;
 
-public final class SliceEnumerable<T>
+public class SliceEnumerable<T>
     extends BaseEnumerable<T>
     implements ITraversableCollection<T>
 {
-    private final int index, count;
-    private final IEnumerable<T> enumerable;
+    protected final int index, count;
+    protected final IEnumerable<T> enumerable;
 
-    public SliceEnumerable(IEnumerable<T> enumerable, int index, int count)
+    protected SliceEnumerable(IEnumerable<T> enumerable, int index, int count)
     {
         this.enumerable = enumerable;
         this.index = index;
         this.count = count;
+    }
+
+    public static <T> BaseEnumerable<T> Create(IEnumerable<T> enumerable, int index, int count)
+    {
+        if (CollectionManipulations.IsEmpty(enumerable)) {
+            return new EmptyBaseEnumerable<>();
+        } else if (enumerable instanceof ITraversableCollection<T> tc) {
+            return TraversableCollectionSlice.Create(tc, index, count);
+        } else {
+            return new SliceEnumerable<>(enumerable, index, count);
+        }
     }
 
     @Override
@@ -53,10 +65,8 @@ public final class SliceEnumerable<T>
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
         } else if (count == 0) {
             return new EmptyBaseEnumerable<>();
-        } else if (enumerable instanceof ITraversableCollection<T> tc) {
-            return new TraversableCollectionSlice<>(tc, index, count);
         } else {
-            return new SliceEnumerable<>(enumerable, index, count);
+            return Create(this, index, count);
         }
     }
 

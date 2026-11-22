@@ -1,7 +1,6 @@
 package com.github.mdcdi1315.basemodslib.client.gui.about_the_lib.licenses;
 
 import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
-import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.KeyValuePair;
 
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.client.gui.about_the_lib.BaseAboutScreen;
@@ -21,7 +20,7 @@ public final class LicensesScreen
 {
     private boolean licenses_appended;
     private final StringWidget header;
-    private final CompletableFuture<IEnumerable<KeyValuePair<String, IEnumerable<LicenseEntry>>>> licenses_action;
+    private final CompletableFuture<IEnumerable<ModLicenses>> licenses_action;
 
     public LicensesScreen(Screen parent)
     {
@@ -32,7 +31,7 @@ public final class LicensesScreen
         AddWorkAreaWidget(header);
     }
 
-    private IEnumerable<KeyValuePair<String, IEnumerable<LicenseEntry>>> UnwrapResult()
+    private IEnumerable<ModLicenses> UnwrapResult()
     {
         try {
             return licenses_action.get();
@@ -57,12 +56,12 @@ public final class LicensesScreen
             header.setMessage(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_licenses.header"));
             try (var en = CollectionManipulations.GetEnumeratorSafe(UnwrapResult()))
             {
-                KeyValuePair<String, IEnumerable<LicenseEntry>> mod_entry;
+                ModLicenses mod_entry;
                 while (en.MoveNext())
                 {
                     mod_entry = en.getCurrent();
-                    AddWorkAreaWidget(new StringWidget(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_licenses.entry.header", mod_entry.getKey()), minecraft.font));
-                    try (var entry_enum = mod_entry.getValue().GetEnumerator())
+                    AddWorkAreaWidget(new StringWidget(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_licenses.entry.header", mod_entry.mod_friendly_name()), minecraft.font));
+                    try (var entry_enum = mod_entry.entries().GetEnumerator())
                     {
                         LicenseEntry lic_entry;
                         while (entry_enum.MoveNext())

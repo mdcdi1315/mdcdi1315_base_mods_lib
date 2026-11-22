@@ -1,5 +1,6 @@
 package com.github.mdcdi1315.basemodslib.neoforge;
 
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 
 import com.github.mdcdi1315.basemodslib.*;
@@ -9,7 +10,6 @@ import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
 import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.registries.*;
 import com.github.mdcdi1315.basemodslib.eventapi.mods.CommonSetupEvent;
-import com.github.mdcdi1315.basemodslib.neoforge.resource.ResourceLookupFlows;
 import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.neoforge.sounds.NeoForgeSoundRegistrar;
 import com.github.mdcdi1315.basemodslib.neoforge.menu.NeoForgeMenuTypeRegistrar;
@@ -22,6 +22,7 @@ import com.github.mdcdi1315.basemodslib.neoforge.block_item.BlocksAndItemsRegist
 import com.github.mdcdi1315.basemodslib.neoforge.entity.NeoForgeEntityTypeRegistrar;
 import com.github.mdcdi1315.basemodslib.neoforge.registries.NeoForgeRegistriesRegistrar;
 
+import com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations;
 import net.neoforged.fml.ModList;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.api.distmarker.Dist;
@@ -119,14 +120,6 @@ public final class NeoForgeModLoaderLayer
     private static void OnServerStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent e) { EventManager.FireEventSafe(new ServerStoppingEvent(e.getServer())); }
 
     @Override
-    public boolean IsModLoaded(String mod_id)
-    {
-        return ModList.get().getModContainerById(mod_id).isPresent();
-    }
-
-
-
-    @Override
     public ModdingEnvironment GetEnvironment()
     {
         return switch (FMLEnvironment.getDist()) {
@@ -151,10 +144,17 @@ public final class NeoForgeModLoaderLayer
     public boolean IsDevelopmentEnvironmentBuild() { return !FMLEnvironment.isProduction(); }
 
     @Override
+    public IEnumerable<String> GetLoadedModIDs() { return CollectionManipulations.AsList(GetLoadedMods()); }
+
+    @Override
+    public boolean IsModLoaded(String mod_id) { return ModList.get().getModContainerById(mod_id).isPresent(); }
+
+    @Override
+    @SuppressWarnings("removal")
     public List<String> GetLoadedMods() { return new DirectlyMappedList<>(ModList.get().getMods(), IModInfo::getModId); }
 
     @Override
-    public IModResourceLookup GetResourceLookupByID(String mod_id) { return ResourceLookupFlows.GetModResourceLookup(mod_id); }
+    public com.github.mdcdi1315.basemodslib.mods.information.IModInfo GetModInfo(String mod_id) { return ModList.get().getModContainerById(mod_id).map(NeoForgeModModInfo::new).orElse(null); }
 
     @Override
     public void Dispose()

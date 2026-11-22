@@ -9,6 +9,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 import com.github.mdcdi1315.basemodslib.utils.function.*;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerable;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerator;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.*;
 import com.github.mdcdi1315.basemodslib.utils.collections.helpers.sorting.*;
 import com.github.mdcdi1315.basemodslib.utils.collections.projections.IIntEnumerable;
@@ -164,7 +165,7 @@ public final class CollectionManipulations
             throws ArgumentNullException
     {
         ArgumentNullException.ThrowIfNull(read_only, "read_only");
-        if (read_only instanceof ReadOnlyListToTraversableCollection<T> c) {
+        if (read_only instanceof ITraversableCollection<T> c) {
             return c;
         } else {
             return new ReadOnlyListToTraversableCollection<>(read_only);
@@ -262,7 +263,7 @@ public final class CollectionManipulations
         } else if (enumerable instanceof ISupportsDirectConversionTo<TS> c_supported) {
             return c_supported.ConvertAll(converter);
         } else {
-            return new MapToMethodEnumerable<>(enumerable, converter);
+            return MapToMethodEnumerable.Create(enumerable, converter);
         }
     }
 
@@ -331,7 +332,27 @@ public final class CollectionManipulations
         ArgumentNullException.ThrowIfNull(enumerables, "enumerables");
         return enumerables.length == 0 ?
                 new EmptyEnumerable<>() :
-                new MultipleConcatenatingEnumerablesEnumerable<>(enumerables);
+                new ConcatenatingEnumerable<>(enumerables);
+    }
+
+    /**
+     * Concatenates a multiple of sequences.
+     * @param enumerables The sequences to concatenate.
+     * @return An {@link IEnumerable} that contains the concatenated elements of the input sequences.
+     * @param <T> The base type of the elements of the input sequences.
+     * @throws ArgumentNullException {@code enumerables} is {@code null}.
+     * @since 1.0.42
+     */
+    @NotNull
+    @SuppressWarnings("SpellCheckingInspection")
+    @APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.42")
+    public static <T> IEnumerable<T> ConcatEnumerables(IEnumerable<IEnumerable<? extends T>> enumerables)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(enumerables, "enumerables");
+        return IsEmptyUnsafe(enumerables) ?
+                new EmptyEnumerable<>() :
+                new ConcatenatingEnumerable<>(enumerables);
     }
 
     /**
@@ -379,7 +400,7 @@ public final class CollectionManipulations
         } else if (enumerable instanceof ISupportsSlicing<T> c_supported) {
             return c_supported.Slice(0, count);
         } else {
-            return new SliceEnumerable<>(enumerable, 0, count);
+            return SliceEnumerable.Create(enumerable, 0, count);
         }
     }
 
@@ -866,13 +887,11 @@ public final class CollectionManipulations
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if (count == 0) {
-            return new TraversableCollectionSlice.Empty<>();
         } else if ((IEnumerable<T>)collection instanceof ISupportsSlicing<T> s) {
             return (ITraversableCollection<T>) s.Slice(index, count);
         } else {
             CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, collection.GetCount());
-            return new TraversableCollectionSlice<>(collection, index, count);
+            return TraversableCollectionSlice.Create(collection, index, count);
         }
     }
 
@@ -932,7 +951,11 @@ public final class CollectionManipulations
      * @param <T> The type of the item to specify in the {@code item} parameter.
      * @throws ArgumentNullException {@code collection} is {@code null}.
      * @since 1.0.37
+     * @deprecated Since BML 1.0.42, {@link ITraversableCollection} implicitly
+     * implements {@link IReadOnlyList}, so this definition is redundant.
      */
+    @Deprecated(forRemoval = true, since = "1.0.42")
+    @APIStatus(Status = APIStatus.Status.DEPRECATED, Since = "1.0.42")
     public static <T> int BinarySearch(ITraversableCollection<T> collection, @AllowNull T item, @AllowNull IComparer<? super T> comparer)
             throws ArgumentNullException
     {

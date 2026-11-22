@@ -3,3 +3,8 @@
 # are changed when only line endings change.
 src/generated/**/.cache/cache text eol=lf
 src/generated/**/*.json text eol=lf
+
+# Make LICENSE files LF only so that when they are
+# correctly displayed on the Licenses about screen.
+LICENSE eol=lf
+platform_agnostic/src/main/resources/LICENSE_* eol=lf

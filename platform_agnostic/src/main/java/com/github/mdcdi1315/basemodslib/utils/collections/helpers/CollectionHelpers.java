@@ -136,7 +136,7 @@ public final class CollectionHelpers
     @NotNull
     public static String GetStringSafe(Object o)
     {
-        if (o == null) { return "<NULL>"; }
+        if (o == null) { return "<EMPTY>"; }
         try {
             return o.toString();
         } catch (Exception ex) {

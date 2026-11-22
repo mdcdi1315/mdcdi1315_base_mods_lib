@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNul
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.Extension;
 
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
+import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 import com.github.mdcdi1315.basemodslib.utils.collections.SingleLinkedList;
 import com.github.mdcdi1315.basemodslib.utils.function.FunctionManipulations;
 
@@ -143,6 +144,42 @@ public final class Extensions
     {
         // Borrowed from Minecraft's code, but this is roughly in all cases.
         return start + (delta * (end - start));
+    }
+
+    /**
+     * Linearly interpolates a value ranging from 0 to 1 to the specified range, and returns the result.
+     * @param delta The value to linearly interpolate.
+     * @param start The minimum inclusive bound of the mapped range.
+     * @param end The maximum inclusive bound of the mapped range.
+     * @return The interpolated value.
+     * @apiNote Works exactly the same as {@link #Lerp(float, float, float)}, but the
+     * range specification and the result are 32-bit signed integers.
+     */
+    @Pure
+    @SuppressWarnings("SpellCheckingInspection")
+    @APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.42")
+    public static int LerpInt(float delta, int start, int end)
+    {
+        // Borrowed from Minecraft's code, but this is roughly in all cases.
+        return start + (int)(delta * (float)(end - start));
+    }
+
+    /**
+     * Linearly interpolates a value ranging from 0 to 1 to the specified range, and returns the result.
+     * @param delta The value to linearly interpolate.
+     * @param start The minimum inclusive bound of the mapped range.
+     * @param end The maximum inclusive bound of the mapped range.
+     * @return The interpolated value.
+     * @apiNote Works exactly the same as {@link #Lerp(double, double, double)}, but the
+     * range specification and the result are 64-bit signed integers.
+     */
+    @Pure
+    @SuppressWarnings("SpellCheckingInspection")
+    @APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.42")
+    public static long LerpLong(double delta, long start, long end)
+    {
+        // Borrowed from Minecraft's code, but this is roughly in all cases.
+        return start + (long)(delta * (double)(end - start));
     }
 
     /**

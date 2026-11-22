@@ -20,6 +20,6 @@ public final class NullBinaryFormatEntry
 
     @Override
     public void ReadFrom(WrappedInputStream stream, BinaryFormatEntryType type) throws IOException {
-        if (type != BinaryFormatEntryType.NULL) { throw new IOException("Expected NULL"); }
+        if (type != BinaryFormatEntryType.NULL) { throw new IOException("Expected EMPTY"); }
     }
 }

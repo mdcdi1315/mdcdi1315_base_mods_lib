@@ -2,19 +2,19 @@ package com.github.mdcdi1315.basemodslib.fabric;
 
 import com.github.mdcdi1315.DotNetLayer.System.Version;
 import com.github.mdcdi1315.DotNetLayer.System.InvalidOperationException;
+import com.github.mdcdi1315.DotNetLayer.System.Collections.Generic.IEnumerable;
 
 import com.github.mdcdi1315.basemodslib.*;
 import com.github.mdcdi1315.basemodslib.eventapi.server.*;
 import com.github.mdcdi1315.basemodslib.eventapi.EventManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
-import com.github.mdcdi1315.basemodslib.utils.DirectlyMappedList;
+import com.github.mdcdi1315.basemodslib.mods.information.IModInfo;
 import com.github.mdcdi1315.basemodslib.network.ServerBoundModInfoPacket;
+import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
 import com.github.mdcdi1315.basemodslib.fabric.commands.FabricCommandsRegistrar;
 import com.github.mdcdi1315.basemodslib.fabric.network.FabricBasedNetworkManager;
-import com.github.mdcdi1315.basemodslib.commands.libcmd.BaseModsLibraryCommand;
+import com.github.mdcdi1315.basemodslib.utils.collections.CollectionManipulations;
 import com.github.mdcdi1315.basemodslib.fabric.registries.FabricCommonRegistryItemsRegistrar;
-
-import com.google.common.collect.ImmutableList;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -30,7 +30,6 @@ import java.nio.file.Path;
 public final class FabricModLoaderLayer
     implements IModLoaderLayer
 {
-    private List<String> mod_ids;
     private final boolean dev_env;
     private Path config_dir, minecraft_dir;
     private ModdingEnvironment environment;
@@ -49,18 +48,6 @@ public final class FabricModLoaderLayer
                         .getMetadata()
                         .getVersion()
                         .getFriendlyString();
-        var mod_containers = loader.getAllMods();
-        if (mod_containers instanceof List<ModContainer> direct_list)
-        {
-            mod_ids = new DirectlyMappedList<>(direct_list, FabricModLoaderLayer::ModContainerToId);
-        }
-        else
-        {
-            // Slow path, adding the id's one by one to the list
-            ImmutableList.Builder<String> builder = ImmutableList.builder();
-            for (var mc : mod_containers) { builder.add(mc.getMetadata().getId()); }
-            mod_ids = builder.build();
-        }
         environment = switch (loader.getEnvironmentType()) {
             case CLIENT -> ModdingEnvironment.CLIENT;
             case SERVER -> ModdingEnvironment.SERVER;
@@ -151,25 +138,6 @@ public final class FabricModLoaderLayer
     }
 
     @Override
-    @SuppressWarnings("OptionalIsPresent")
-    public IModResourceLookup GetResourceLookupByID(String mod_id)
-    {
-        Optional<ModContainer> mc = FabricLoader.getInstance().getModContainer(mod_id);
-        return mc.isPresent() ? new FabricModResourceLookup(mc.get(), true) : null;
-    }
-
-    @Override
-    @SuppressWarnings("OptionalIsPresent")
-    public IModResourceLookup GetBMLResourceLookup()
-    {
-        Optional<ModContainer> mc = FabricLoader.getInstance().getModContainer(BaseModsLib.MOD_ID);
-        return mc.isPresent() ? new FabricModResourceLookup(mc.get(), false) : null;
-    }
-
-    @Override
-    public List<String> GetLoadedMods() { return mod_ids; }
-
-    @Override
     public String GetModLoaderBranding() { return "Fabric"; }
 
     @Override
@@ -188,9 +156,27 @@ public final class FabricModLoaderLayer
     public Version GetModLoaderVersion() { return fabric_modloader_version; }
 
     @Override
+    public IEnumerable<String> GetLoadedModIDs()
+    {
+        return CollectionManipulations.MapTo(
+                CollectionManipulations.AsCollection(FabricLoader.getInstance().getAllMods()),
+                FabricModLoaderLayer::ModContainerToId
+        );
+    }
+
+    @Override
+    public IModInfo GetModInfo(String mod_id)
+    {
+        return FabricLoader
+                .getInstance()
+                .getModContainer(mod_id)
+                .map(FabricModModInfo::new)
+                .orElse(null);
+    }
+
+    @Override
     public void Dispose()
     {
-        this.mod_ids = null;
         this.config_dir = null;
         this.environment = null;
         this.minecraft_dir = null;

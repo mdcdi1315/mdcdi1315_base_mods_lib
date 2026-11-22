@@ -11,7 +11,6 @@ public final class MergeSort
 
     public static <T> FixedArrayBasedList<T> Algorithm(ITraversableCollection<T> to_sort, SortOrdering<T> ordering) { return Algorithm(to_sort, new SingleLinkedList<>(), ordering); }
 
-    @SuppressWarnings("unchecked")
     public static <T> FixedArrayBasedList<T> Algorithm(
             ITraversableCollection<T> left,
             ITraversableCollection<T> right,
@@ -27,8 +26,8 @@ public final class MergeSort
         } else {
             int mid_1 = left_count / 2;
             first_part = Algorithm(
-                    (ITraversableCollection<T>)((ISupportsSlicing<T>)left).Slice(0, mid_1),
-                    (ITraversableCollection<T>)((ISupportsSlicing<T>)left).Slice(mid_1, left_count - mid_1),
+                    CollectionManipulations.Slice(left, 0, mid_1),
+                    CollectionManipulations.Slice(left, mid_1, left_count - mid_1),
                     ordering
             );
         }
@@ -38,8 +37,8 @@ public final class MergeSort
         } else {
             int mid_2 = right_count / 2;
             second_part = Algorithm(
-                    (ITraversableCollection<T>)((ISupportsSlicing<T>)right).Slice(0, mid_2),
-                    (ITraversableCollection<T>)((ISupportsSlicing<T>)right).Slice(mid_2, right_count - mid_2),
+                    CollectionManipulations.Slice(right, 0, mid_2),
+                    CollectionManipulations.Slice(right, mid_2, right_count - mid_2),
                     ordering
             );
         }

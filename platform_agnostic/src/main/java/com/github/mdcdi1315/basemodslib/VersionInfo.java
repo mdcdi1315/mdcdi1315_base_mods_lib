@@ -6,12 +6,12 @@ import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNul
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.ConstantExpected;
 
+import com.github.mdcdi1315.basemodslib.mods.information.DeferredFile;
+
 import com.google.common.collect.ImmutableMap;
 
-import java.nio.file.Path;
-import java.nio.file.Files;
-import java.io.IOException;
-import java.io.BufferedReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -68,14 +68,17 @@ public final class VersionInfo
         return StringUtils.IsNullOrEmpty(value) ? StringUtils.Empty : value;
     }
 
-    static void LoadProjectInfo(@AllowNull Path file_path)
+    static void LoadProjectInfo(@AllowNull DeferredFile input_file)
     {
-        if (file_path == null)
+        if (input_file == null)
         {
             BaseModsLib.LOGGER.warn("[VersionDataLoader] The system failed to locate the versioning data file. Skipping versioning info load.");
             return;
         }
-        try (BufferedReader reader = Files.newBufferedReader(file_path)) {
+        try (
+                var reader_internal = input_file.OpenReader(StandardCharsets.UTF_8);
+                BufferedReader reader = new BufferedReader(reader_internal)
+        ) {
             String s, key, value;
             int line = 0;
             info_data = new HashMap<>();

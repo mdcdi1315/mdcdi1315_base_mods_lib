@@ -1,6 +1,6 @@
 package com.github.mdcdi1315.DotNetLayer.System;
 
-import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.MaybeNull;
+import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.AllowNull;
 import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.CallerArgumentExpression;
 
 /**
@@ -47,7 +47,7 @@ public class ArgumentNullException
      * Initializes a new instance of the {@link ArgumentNullException} class with the name of the parameter that causes this exception.
      * @param paramname The name of the parameter that caused the exception.
      */
-    public ArgumentNullException(@MaybeNull String paramname)
+    public ArgumentNullException(@AllowNull String paramname)
     {
         super(DEFAULT_MSG_VALUE , paramname);
     }
@@ -57,7 +57,7 @@ public class ArgumentNullException
      * @param paramname The name of the parameter that caused the exception.
      * @param message A message that describes the error.
      */
-    public ArgumentNullException(@MaybeNull String paramname , @MaybeNull String message)
+    public ArgumentNullException(@AllowNull String paramname, @AllowNull String message)
     {
         super(message , paramname);
     }
@@ -69,7 +69,7 @@ public class ArgumentNullException
      * @param innerException The exception that is the cause of the current exception, or a null reference
      * (Nothing in Visual Basic) if no inner exception is specified.
      */
-    public ArgumentNullException(@MaybeNull String message, @MaybeNull Exception innerException)
+    public ArgumentNullException(@AllowNull String message, @AllowNull Exception innerException)
     {
         super(message , innerException);
     }

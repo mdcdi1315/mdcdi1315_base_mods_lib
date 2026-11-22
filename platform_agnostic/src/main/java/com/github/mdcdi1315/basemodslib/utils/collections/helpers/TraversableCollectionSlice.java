@@ -8,17 +8,12 @@ import com.github.mdcdi1315.basemodslib.utils.collections.*;
 import com.github.mdcdi1315.basemodslib.utils.EmptyEnumerator;
 
 public class TraversableCollectionSlice<T>
-    extends BaseEnumerable<T>
-    implements ITraversableCollection<T>, ISupportsSlicing<T>, ISupportsCloning<T>
+    extends SliceEnumerable<T>
+    implements ISupportsSlicing<T>, ISupportsCloning<T>
 {
-    private final int index, count;
-    private final ITraversableCollection<T> collection;
-
-    public TraversableCollectionSlice(ITraversableCollection<T> collection, int index, int count)
+    protected TraversableCollectionSlice(ITraversableCollection<T> collection, int index, int count)
     {
-        this.index = index;
-        this.count = count;
-        this.collection = collection;
+        super(collection, index, count);
     }
 
     public static final class Empty<T>
@@ -96,14 +91,23 @@ public class TraversableCollectionSlice<T>
         }
     }
 
+    public static <T> TraversableCollectionSlice<T> Create(ITraversableCollection<T> collection, int index, int count)
+    {
+        if (collection instanceof IEmptyEnumerable || count == 0 || collection.GetCount() == 0) {
+            return new Empty<>();
+        } else {
+            return new TraversableCollectionSlice<>(collection, index, count);
+        }
+    }
+
     @Override
     public int GetCount() { return count; }
 
     @Override
-    public IEnumerator<T> GetEnumerator() { return new Enumerator<>(collection, index, count); }
+    public ISupportsCloning<T> Clone() { return Create((ITraversableCollection<T>)enumerable, index, count); }
 
     @Override
-    public ISupportsCloning<T> Clone() { return new TraversableCollectionSlice<>(collection, index, count); }
+    public IEnumerator<T> GetEnumerator() { return new Enumerator<>((ITraversableCollection<T>)enumerable, index, count); }
 
     @Override
     public T GetItem(int index)
@@ -114,7 +118,7 @@ public class TraversableCollectionSlice<T>
         } else if (index >= count) {
             throw new ArgumentOutOfRangeException("index", "Index is outside of the collections's bounds.");
         } else {
-            return collection.GetItem(this.index + index);
+            return ((ITraversableCollection<T>)enumerable).GetItem(this.index + index);
         }
     }
 
@@ -126,11 +130,9 @@ public class TraversableCollectionSlice<T>
             throw new ArgumentOutOfRangeException("index", "Index cannot be a negative value.");
         } else if (count < 0) {
             throw new ArgumentOutOfRangeException("count", "Count cannot be a negative value.");
-        } else if (count == 0) {
-            return new Empty<>();
         } else {
             CollectionHelpers.CheckIndexCountInsideCollectionBound(index, count, this.count);
-            return new TraversableCollectionSlice<>(this, index, count);
+            return Create(this, index, count);
         }
     }
 

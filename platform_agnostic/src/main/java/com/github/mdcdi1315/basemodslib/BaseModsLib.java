@@ -15,7 +15,9 @@ import com.github.mdcdi1315.basemodslib.config.ConfigManager;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
 import com.github.mdcdi1315.basemodslib.mods.proxy.ProxyManager;
 import com.github.mdcdi1315.basemodslib.mods.IServerModInstance;
+import com.github.mdcdi1315.basemodslib.mods.information.IModInfo;
 import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
+import com.github.mdcdi1315.basemodslib.mods.information.DeferredFile;
 import com.github.mdcdi1315.basemodslib.utils.annotations.MixinUnsafe;
 import com.github.mdcdi1315.basemodslib.mods.reporting.MessageReporter;
 import com.github.mdcdi1315.basemodslib.mods.ServerModInstanceCollection;
@@ -27,10 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.nio.file.Files;
-
 import java.io.IOException;
-import java.io.InputStream;
 
 import java.lang.Exception;
 
@@ -127,16 +126,13 @@ public final class BaseModsLib
             }
         }
         LOGGER.info("[BML]: The library took {} seconds to initialize.", sw.GetElapsed().GetTotalSeconds());
-        IModResourceLookup bml_lookup = layer.GetBMLResourceLookup();
-        if (bml_lookup == null) {
+        var bml_mod = layer.GetModInfo(BaseModsLib.MOD_ID);
+        if (bml_mod == null) {
             LOGGER.info("[BML]: Cannot get the BML resource lookup! Versioning data won't be loaded.");
         } else {
-            try {
-                VersionInfo.LoadProjectInfo(bml_lookup.GetResource("project.mdcdi1315_info"));
-                LoadDotNetLayerConfig(bml_lookup.GetResource("META-INF/dotnetlayer.config"));
-            } finally {
-                bml_lookup.Dispose();
-            }
+            var fs = bml_mod.GetFileSystem();
+            VersionInfo.LoadProjectInfo(fs.TryGetFile("project.mdcdi1315_info"));
+            LoadDotNetLayerConfig(fs.TryGetFile("META-INF/dotnetlayer.config"));
         }
         LOGGER.info("[BML]: Now marking the library as initialized.");
         initialized = true;
@@ -146,14 +142,14 @@ public final class BaseModsLib
         if (ver != null) { BaseModsLib.LOGGER.info("[BML]: Successfully identified .NET Layer info: {}", ver); }
     }
 
-    private static void LoadDotNetLayerConfig(Path config_file)
+    private static void LoadDotNetLayerConfig(DeferredFile config_file)
     {
         if (config_file == null) { return; }
-        try (InputStream stream = Files.newInputStream(config_file)) {
+        try (var stream = config_file.Open()) {
             AppConfigXMLReader.ApplyToApplicationContext(AppConfigXMLReader.ReadFromStream(stream));
             BaseModsLib.LOGGER.info("[DotNetLayer]: Loaded .NET layer configuration.");
         } catch (IOException ioex) {
-            BaseModsLib.LOGGER.error("[DotNetLayer]: Error while reading .NET Layer config file {}", config_file, ioex);
+            BaseModsLib.LOGGER.error("[DotNetLayer]: Error while reading .NET Layer config file 'META-INF/dotnetlayer.config'", ioex);
         }
     }
 
@@ -315,19 +311,19 @@ public final class BaseModsLib
     }
 
     /**
-     * Gets an {@link IModResourceLookup} instance for the specified mod with that ID. <br />
-     * This is provided for retrieving resources from inside a mod (which will typically be a .jar file).
-     * @param mod_id The ID of the mod to get a resource lookup for.
-     * @return A new instance of the {@link IModResourceLookup} interface, providing the resource lookup interface for that mod.
+     * Provides information about a mod.
+     * @param mod_id The ID of the mod to provide information for.
+     * @return An {@link IModInfo} value providing information about the mod,
+     * or {@code null} if the mod with the specified ID cannot be found.
      * @throws ArgumentNullException {@code mod_id} is {@code null}.
-     * @since 1.0.31
      */
     @MaybeNull
-    public static IModResourceLookup GetModResourceLookup(String mod_id)
-        throws ArgumentNullException
+    @APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.41-beta8")
+    public static IModInfo GetModInfo(String mod_id)
+            throws ArgumentNullException
     {
-        ArgumentNullException.ThrowIfNull(mod_id);
-        return mod_id.isBlank() ? null : layer.GetResourceLookupByID(mod_id);
+        ArgumentNullException.ThrowIfNull(mod_id, "mod_id");
+        return (mod_id.isBlank()) ? null : layer.GetModInfo(mod_id);
     }
 
     /**
@@ -346,9 +342,19 @@ public final class BaseModsLib
     /**
      * Gets a list of the loaded mods in this Minecraft instance.
      * @return A list of the loaded mods in this Minecraft instance.
+     * @deprecated This method is deprecated because it comes from the first
+     * development versions of the library, where {@link IEnumerable} support
+     * did not yet exist at the time. Use the {@link #GetLoadedModIDs()} method instead.
      */
     @NotNull
+    @SuppressWarnings("removal")
+    @Deprecated(forRemoval = true, since = "1.0.41-beta8")
+    @APIStatus(Status = APIStatus.Status.DEPRECATED, Since = "1.0.41-beta8")
     public static java.util.List<String> GetLoadedMods() { return layer.GetLoadedMods(); }
+
+    @NotNull
+    @APIStatus(Status = APIStatus.Status.STABLE, Since = "1.0.41-beta8")
+    public static IEnumerable<String> GetLoadedModIDs() { return layer.GetLoadedModIDs(); }
 
     /**
      * Gets the modding environment under which the library itself runs.
@@ -387,9 +393,6 @@ public final class BaseModsLib
     /**
      * Gets the Minecraft version under which the library runs.
      * @return The Minecraft version.
-     * @implNote Since BML 1.0.25, the mod loader layer call {@link IModLoaderLayer#GetMinecraftVersion()}
-     * is deprecated and no longer used because a run-time way to retrieve the game version is available from the base game. <br />
-     * So, this will from now on point to the value of {@link net.minecraft.WorldVersion#name()} method.
      */
     @NotNull
     public static Version GetMinecraftVersion() { return Version.Parse(net.minecraft.SharedConstants.getCurrentVersion().name()); }

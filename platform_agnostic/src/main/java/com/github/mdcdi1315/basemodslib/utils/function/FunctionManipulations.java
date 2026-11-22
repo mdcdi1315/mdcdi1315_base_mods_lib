@@ -61,11 +61,11 @@ public final class FunctionManipulations
             @DisallowNull Predicate<T> p1,
             @DisallowNull Predicate<T> p2
     ) {
-        if (p1 instanceof AlwaysFalsePredicate<T> || p2 instanceof AlwaysFalsePredicate<T>) {
+        if (p1 instanceof IAlwaysFalsePredicate<T> || p2 instanceof IAlwaysFalsePredicate<T>) {
             return new AlwaysFalsePredicate<>();
-        } else if (p1 instanceof AlwaysTruePredicate<T>) {
+        } else if (p1 instanceof IAlwaysTruePredicate<T>) {
             return p2;
-        } else if (p2 instanceof AlwaysTruePredicate<T>) {
+        } else if (p2 instanceof IAlwaysTruePredicate<T>) {
             return p1;
         } else {
             return new AndPredicateFromTwo<>(p1, p2);
@@ -125,9 +125,9 @@ public final class FunctionManipulations
             @DisallowNull Predicate<T> p1,
             @DisallowNull Predicate<T> p2
     ) {
-        if (p1 instanceof AlwaysFalsePredicate<T> && p2 instanceof AlwaysFalsePredicate<T>) {
+        if (p1 instanceof IAlwaysFalsePredicate<T> && p2 instanceof IAlwaysFalsePredicate<T>) {
             return new AlwaysFalsePredicate<>();
-        } else if (p1 instanceof AlwaysTruePredicate<T> || p2 instanceof AlwaysTruePredicate<T>) {
+        } else if (p1 instanceof IAlwaysTruePredicate<T> || p2 instanceof IAlwaysTruePredicate<T>) {
             return new AlwaysTruePredicate<>();
         } else {
             return new OrPredicateFromTwo<>(p1, p2);
@@ -187,8 +187,8 @@ public final class FunctionManipulations
             @DisallowNull Predicate<T> p1,
             @DisallowNull Predicate<T> p2
     ) {
-        if ((p1 instanceof AlwaysFalsePredicate<T> && p2 instanceof AlwaysFalsePredicate<T>) ||
-                (p1 instanceof AlwaysTruePredicate<T> && p2 instanceof AlwaysTruePredicate<T>)) {
+        if ((p1 instanceof IAlwaysFalsePredicate<T> && p2 instanceof IAlwaysFalsePredicate<T>) ||
+                (p1 instanceof IAlwaysTruePredicate<T> && p2 instanceof IAlwaysTruePredicate<T>)) {
             return new AlwaysFalsePredicate<>();
         } else {
             return new XorPredicateFromTwo<>(p1, p2);

@@ -6,6 +6,7 @@ import com.github.mdcdi1315.DotNetLayer.System.Runtime.CompilerServices.RuntimeF
 import com.github.mdcdi1315.basemodslib.BaseModsLib;
 import com.github.mdcdi1315.basemodslib.VersionInfo;
 import com.github.mdcdi1315.basemodslib.BaseModsLibClient;
+import com.github.mdcdi1315.basemodslib.utils.color.Colors;
 import com.github.mdcdi1315.basemodslib.mods.ModInstanceCollection;
 import com.github.mdcdi1315.basemodslib.client.gui.AnimatedTextWidget;
 import com.github.mdcdi1315.basemodslib.client.gui.InformationalDialogScreen;
@@ -50,9 +51,9 @@ public final class AboutBMLScreen
         InitLayout();
         SetWorkAreaSpacing(10);
         love_text = new AnimatedTextWidget(font);
-        love_text.SetHoverScale(1.041551f);
+        love_text.SetHoverScale(1.081551f);
         love_text.SetHoverColor(0xFF45E070);
-        love_text.SetTransitionTime(500);
+        love_text.SetTransitionTime(580);
     }
 
     private void InitLayout()
@@ -361,7 +362,7 @@ Player properties:
     protected void OnAddControlsOnButtonLayoutRow1(EqualSpacingLayout layout)
     {
         love_text.ResetTickTime();
-        love_text.SetText(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.footer_quote").withColor(0xFF00FFFF));
+        love_text.SetText(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen.footer_quote").withColor(Colors.DodgerBlue));
         layout.addChild(love_text);
         layout.addChild(reporting_messages_button);
     }

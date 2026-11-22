@@ -5,7 +5,9 @@ import com.github.mdcdi1315.DotNetLayer.System.ArgumentNullException;
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
 import com.github.mdcdi1315.basemodslib.utils.Extensions;
+import com.github.mdcdi1315.basemodslib.utils.color.Colors;
 import com.github.mdcdi1315.basemodslib.utils.annotations.Pure;
+import com.github.mdcdi1315.basemodslib.utils.color.ColorHelpers;
 import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
 
 import net.minecraft.client.gui.Font;
@@ -15,8 +17,6 @@ import net.minecraft.client.gui.components.AbstractStringWidget;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.sounds.SoundManager;
-
-import net.minecraft.util.ARGB;
 
 import org.joml.Matrix3x2f;
 
@@ -48,11 +48,11 @@ public class AnimatedTextWidget
     public AnimatedTextWidget(Font font)
     {
         super(0, 0, 0, font.lineHeight, Component.empty(), font);
-        normal_color = 0xFFFFFFFF;
+        normal_color = Colors.White;
         text_alignment = TextAlignment.LEFT;
         scale_current = hovered_scale = 1.0F;
         SetTransitionTime(1000);
-        color_current = hovered_color = 0xFF00FF00;
+        color_current = hovered_color = Colors.Green;
     }
 
     /**
@@ -67,7 +67,7 @@ public class AnimatedTextWidget
         super.setMessage(text);
         var color = text.getStyle().getColor();
         if (color != null) {
-            normal_color = ARGB.color(255, color.getValue());
+            normal_color = ColorHelpers.CreateARGB(255, color.getValue());
         }
     }
 
@@ -171,26 +171,22 @@ public class AnimatedTextWidget
     @Override
     public void visitLines(ActiveTextCollector atc)
     {
-        int lineHeight = getFont().lineHeight;
         var parameters = atc.defaultParameters();
+        int y_scale_offset = Extensions.Ceiling(getFont().lineHeight * scale_current);
 
         parameters = parameters
-                .withPose(parameters.pose().translate(getX(), getY() + lineHeight, new Matrix3x2f()))
+                .withPose(parameters.pose().translate(getX(), getY() + y_scale_offset, new Matrix3x2f()))
                 .withScale(scale_current);
 
-        atc.accept(text_alignment, 0, -(int)(lineHeight * scale_current), parameters, message.copy().withColor(color_current));
+        atc.accept(text_alignment, 0, -y_scale_offset, parameters, message.copy().withColor(color_current));
     }
 
     @Override
     public void Tick()
     {
         current_transition_ticks += isHovered ? ((current_transition_ticks < transition_ticks) ? 1 : 0) : ((current_transition_ticks > 0) ? -1 : 0);
-        scale_current = Extensions.MapToRange(current_transition_ticks, 0f, transition_ticks, 1f, hovered_scale);
-        color_current = ARGB.color(
-                255,
-                (int)Extensions.MapToRange(current_transition_ticks, 0f, transition_ticks, ARGB.red(normal_color), ARGB.red(hovered_color)),
-                (int)Extensions.MapToRange(current_transition_ticks, 0f, transition_ticks, ARGB.green(normal_color), ARGB.green(hovered_color)),
-                (int)Extensions.MapToRange(current_transition_ticks, 0f, transition_ticks, ARGB.blue(normal_color), ARGB.blue(hovered_color))
-        );
+        float current_transition_time = current_transition_ticks / (float)transition_ticks;
+        scale_current = Extensions.Lerp(current_transition_time, 1f, hovered_scale);
+        color_current = ColorHelpers.Lerp(current_transition_time, normal_color, hovered_color);
     }
 }

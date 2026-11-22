@@ -13,11 +13,13 @@ import net.minecraft.network.chat.Component;
 public final class OpenConfigScreenScreen
     extends BaseAboutScreen
 {
+    private boolean loaded_configs;
+
     public OpenConfigScreenScreen(Screen parent)
     {
         super(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.title"), parent);
         SetWorkAreaSpacing(10);
-        InitLayout();
+        loaded_configs = false;
     }
 
     private void InitLayout()
@@ -42,6 +44,19 @@ public final class OpenConfigScreenScreen
             AddWorkAreaWidget(
                     new StringWidget(Component.translatable("mdcdi1315_base_mods_lib.about_bml_screen_cfg_screen.no_mods_detected"), minecraft.font)
             );
+        }
+    }
+
+    @Override
+    protected void init()
+    {
+        super.init();
+
+        if (!loaded_configs)
+        {
+            loaded_configs = true;
+            InitLayout();
+            HardReinitializeWorkArea();
         }
     }
 
