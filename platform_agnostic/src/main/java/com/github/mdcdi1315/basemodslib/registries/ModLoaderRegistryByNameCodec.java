@@ -44,7 +44,7 @@ public final class ModLoaderRegistryByNameCodec<TElement>
      * @param <T> The input state type.
      */
     @Override
-    @SuppressWarnings("all")
+    @SuppressWarnings({"OptionalGetWithoutIsPresent", "OptionalIsPresent"})
     public <T> DataResult<Pair<TElement, T>> decode(DynamicOps<T> ops, T input)
     {
         DataResult<Pair<Identifier , T>> ld = Identifier.CODEC.decode(ops , input);
@@ -52,7 +52,7 @@ public final class ModLoaderRegistryByNameCodec<TElement>
         var err = ld.error();
 
         if (err.isPresent()) {
-            return DataResult.error(new StringSupplier(err.get().message()));
+            return DataResult.error(err.get().messageSupplier());
         } else {
             var result = ld.result().get();
 

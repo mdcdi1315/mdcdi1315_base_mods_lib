@@ -2,9 +2,8 @@ package com.github.mdcdi1315.basemodslib.eventapi.client;
 
 import com.github.mdcdi1315.DotNetLayer.System.Diagnostics.CodeAnalysis.NotNull;
 
-import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
-
 import com.github.mdcdi1315.basemodslib.utils.annotations.APIStatus;
+import com.github.mdcdi1315.basemodslib.eventapi.IDestroyableIfUnusedEvent;
 
 import net.minecraft.client.Minecraft;
 

@@ -13,19 +13,19 @@ record JavaUtilListRandomLookup<T>(IRandomSource random, java.util.List<T> list)
 {
     @NotNull
     @Override
-    public IEnumerable<T> GetCollection() { return CollectionManipulations.AsList(list); }
-
-    @NotNull
-    @Override
     public Optional<T> GetRandomElement()
     {
         int count = list.size();
         return (count == 0) ? Optional.empty() :
-                Optional.ofNullable(list.get(RandomUtils.NextIntInRangeExclusive(random, 0, count)));
+                Optional.ofNullable(list.get(RandomUtils.NextPositiveIntInRangeExclusive(random, count)));
     }
 
     @Pure
     @NotNull
     @Override
     public IRandomSource GetRandomSource() { return random; }
+
+    @NotNull
+    @Override
+    public IEnumerable<T> GetCollection() { return CollectionManipulations.AsList(list); }
 }

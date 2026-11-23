@@ -591,24 +591,6 @@ public final class RandomUtils
     }
 
     /**
-     * Given an {@link IReadOnlyList} object, creates a {@link IRandomLookup}
-     * that can return random elements of the collection object.
-     * @param random The random source to use.
-     * @param list The list object to use for getting random elements.
-     * @return A new instance of the {@link IRandomLookup} interface.
-     * @param <T> The type of the element that is held by the collection.
-     * @throws ArgumentNullException {@code random} and/or {@code list} are {@code null}.
-     */
-    @NotNull
-    public static <T> IRandomLookup<T> CreateRandomLookup(IRandomSource random, IReadOnlyList<T> list)
-            throws ArgumentNullException
-    {
-        ArgumentNullException.ThrowIfNull(list, "list");
-        ArgumentNullException.ThrowIfNull(random, "random");
-        return new IReadOnlyListRandomLookup<>(random, list);
-    }
-
-    /**
      * Given an {@link IList} object, creates a {@link IRandomLookup}
      * that can return random elements of the collection object.
      * @param random The random source to use.
@@ -627,6 +609,24 @@ public final class RandomUtils
     }
 
     /**
+     * Given an {@link IReadOnlyList} object, creates a {@link IRandomLookup}
+     * that can return random elements of the collection object.
+     * @param random The random source to use.
+     * @param list The list object to use for getting random elements.
+     * @return A new instance of the {@link IRandomLookup} interface.
+     * @param <T> The type of the element that is held by the collection.
+     * @throws ArgumentNullException {@code random} and/or {@code list} are {@code null}.
+     */
+    @NotNull
+    public static <T> IRandomLookup<T> CreateRandomLookup(IRandomSource random, IReadOnlyList<T> list)
+            throws ArgumentNullException
+    {
+        ArgumentNullException.ThrowIfNull(list, "list");
+        ArgumentNullException.ThrowIfNull(random, "random");
+        return new IReadOnlyListRandomLookup<>(random, list);
+    }
+
+    /**
      * Given an {@link ITraversableCollection} object, creates a {@link IRandomLookup}
      * that can return random elements of the collection object.
      * @param random The random source to use.
@@ -634,6 +634,7 @@ public final class RandomUtils
      * @return A new instance of the {@link IRandomLookup} interface.
      * @param <T> The type of the element that is held by the collection.
      * @throws ArgumentNullException {@code random} and/or {@code list} are {@code null}.
+     * @apiNote Since BML 1.0.42, this method forwards to {@link #CreateRandomLookup(IRandomSource, IReadOnlyList)}.
      */
     @NotNull
     public static <T> IRandomLookup<T> CreateRandomLookup(IRandomSource random, ITraversableCollection<T> collection)
@@ -641,6 +642,6 @@ public final class RandomUtils
     {
         ArgumentNullException.ThrowIfNull(random, "random");
         ArgumentNullException.ThrowIfNull(collection, "collection");
-        return new TraversableCollectionRandomLookup<>(random, collection);
+        return new IReadOnlyListRandomLookup<>(random, collection);
     }
 }
